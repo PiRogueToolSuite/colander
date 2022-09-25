@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=colander
+POSTGRES_USER=hhGArHWVrVQjuDcgBUNNlQqZNfqyNPfQ
+POSTGRES_PASSWORD=vW9WtXmFWpsq5tATgcYNAi62cC1tWar1BsSrksBodMrra2bv4NHVvRyIm9k29Ro9

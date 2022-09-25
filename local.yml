@@ -1,0 +1,98 @@
+version: '3'
+
+volumes:
+  colander_local_postgres_data: {}
+  colander_local_postgres_data_backups: {}
+  colander_local_minio_data: {}
+  colander_local_es_data: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: colander_local_django
+    container_name: colander_local_django
+    platform: linux/x86_64
+    depends_on:
+      - postgres
+      - minio
+      - elasticsearch
+      - redis
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "8000:8000"
+    command: /start
+
+  worker:
+    <<: *django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: colander_local_worker
+    container_name: colander_local_worker
+    platform: linux/x86_64
+    depends_on:
+      - postgres
+      - minio
+      - elasticsearch
+      - redis
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    command: /start-worker
+    ports: []
+
+  redis:
+    image: redis:6
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: colander_production_postgres
+    container_name: colander_local_postgres
+    volumes:
+      - colander_local_postgres_data:/var/lib/postgresql/data:Z
+      - colander_local_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.local/.postgres
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2022-09-22T18-57-27Z
+    volumes:
+      - colander_local_minio_data:/data
+    env_file:
+      - ./.envs/.local/.django
+    command: server /data
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  elasticsearch:
+    image: elasticsearch:8.4.1
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - colander_local_es_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type='single-node'
+      - xpack.security.enabled='false'
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+  kibana:
+    image: kibana:8.4.1
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601

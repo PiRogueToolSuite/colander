@@ -1,0 +1,66 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-8 text-truncate border-end border-secondary">
+        <div class="border-bottom border-secondary">
+          <i class="nf {{ artifact.type.nf_icon }} h4 text-primary"></i>
+          <a class="h4" href="#">
+            <samp>{{ artifact.original_name }}</samp>
+          </a>
+          <div class="text-muted small">
+            {{ artifact.type.name }}
+          </div>
+        </div>
+        <div>
+          <div class="text-tiny font-monospace text-muted mt-1">
+            {% include "icons/id_icon.html" %}{{ artifact.id }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/date_icon.html" %}
+            {{ artifact.created_at }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/case_icon.html" %}
+            {{ artifact.case.name }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/user_icon.html" %}
+            {{ artifact.owner }}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-truncate ">
+        <div class="row">
+          <div class="col">
+            {% include "tlp/show_tlp_pap.html" with element=artifact %}
+            <div class="small">
+              {% include "icons/id_icon.html" with c="text-primary" %}
+              {{ artifact.sha1 }}
+            </div>
+            <div class="small">
+              {{ artifact.mime_type }}
+            </div>
+            <div class="small">
+              {{ artifact.size_in_bytes|filesizeformat }}
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    <div class="btn-group" role="group" aria-label="Basic example">
+      <a href="#" class="btn btn-primary">
+        <i class="nf nf-fa-eye"></i>
+        {% translate "Details" %}
+      </a>
+      <a href="{% url "collect_artifact_update_view" pk=artifact.id %}" class="btn btn-primary">
+        <i class="nf nf-fa-edit"></i>
+        {% translate "Edit" %}
+      </a>
+    </div>
+  </div>
+
+</div>

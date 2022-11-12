@@ -1,0 +1,9 @@
+{% if pap == "WHITE" or pap == "CLEAR" %}
+  <span class="badge bg-dark text-light {{ c }}">PAP:CLEAR</span>
+{% elif pap == "GREEN" %}
+  <span class="badge bg-dark text-success {{ c }}">PAP:GREEN</span>
+{% elif pap == "AMBER" %}
+  <span class="badge bg-dark text-warning {{ c }}">PAP:AMBER</span>
+{% elif pap == "RED" %}
+  <span class="badge bg-dark text-danger {{ c }}">PAP:RED</span>
+{% endif %}

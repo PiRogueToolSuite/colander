@@ -65,16 +65,19 @@ DJANGO_APPS = [
     # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
+    "django.contrib.postgres",
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
+    "dj_rest_auth.registration",
     "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",
     "rest_framework",
     "rest_framework.authtoken",
-    # "knox",
+    "dj_rest_auth",
     "corsheaders",
     "drf_spectacular",
     "django_q",
@@ -131,8 +134,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -270,7 +273,7 @@ LOGGING = {
 
 # django-allauth
 # ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
+ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -295,9 +298,8 @@ STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        # "knox.auth.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -308,9 +310,16 @@ CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:3000",
 ]
-
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:3000",
+]
+# CORS_ORIGIN_ALLOW_ALL = True
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
@@ -342,12 +351,5 @@ Q_CLUSTER = {
     'redis': env("REDIS_URL")
 }
 
-# REST_KNOX = {
-#     'SECURE_HASH_ALGORITHM':'cryptography.hazmat.primitives.hashes.SHA512',
-#     'AUTH_TOKEN_CHARACTER_LENGTH': 64, # By default, it is set to 64 characters (this shouldn't need changing).
-#     'TOKEN_TTL': timedelta(minutes=45), # The default is 10 hours i.e., timedelta(hours=10)).
-#     'USER_SERIALIZER': 'knox.serializers.UserSerializer',
-#     'TOKEN_LIMIT_PER_USER': None, # By default, this option is disabled and set to None -- thus no limit.
-#     'AUTO_REFRESH': False, # This defines if the token expiry time is extended by TOKEN_TTL each time the token is used.
-#     'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
-# }
+# Authentication
+GITHUB_AUTH_CALLBACK = 'http://localhost:8000/dj-rest-auth/github/'

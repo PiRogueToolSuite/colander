@@ -1,0 +1,8 @@
+[
+  {"short_name": "COMMUNICATION", "name": "Communication", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-lan_connect"},
+  {"short_name": "RESOLVE", "name": "Resolution", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-dns"},
+  {"short_name": "COMPROMISSION", "name": "Compromission", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-alert_decagram"},
+  {"short_name": "INFECTION", "name": "Infection", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-alert_decagram"},
+  {"short_name": "ALERT", "name": "Alert", "description": "", "svg_icon": "", "nf_icon": "nf-oct-alert"},
+  {"short_name": "HIT", "name": "Hit", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-white_balance_sunny"}
+]

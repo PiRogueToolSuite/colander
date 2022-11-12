@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% url 'collect_cases_create_view' as collect_cases_view_url %}
+  {% url 'collect_artifact_create_view' as collect_artifact_view_url %}
+  {% url 'collect_observable_create_view' as collect_observable_create_view_url %}
+  {% url 'collect_relation_create_view' as collect_relation_create_view_url %}
+  <div class="row">
+    <div class="col-md-2">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
+             href="{{ collect_cases_view_url }}">
+            {% include "icons/case_icon.html" %}
+            Cases
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_observable_create_view_url }}">
+            {% include "icons/observable_icon.html" %}
+            Observables
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_relation_create_view_url }}">
+            {% include "icons/relation_icon.html" %}
+            Relations
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_artifact_view_url }}">
+            {% include "icons/artifact_icon.html" %}
+            Artifacts
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-10">
+      {% block inner-content %}
+        <div class="row justify-content-center row-cols-1 row-cols-md-5 g-4">
+          <div class="col">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <h1 class="card-title text-primary">{{ cases|length }}</h1>
+                <p class="card-text text-secondary">Cases</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <h1 class="card-title text-primary">{{ evidences|length }}</h1>
+                <p class="card-text text-secondary">Evidences</p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <h1 class="card-title text-primary">{{ observables|length }}</h1>
+                <p class="card-text text-secondary">Observables</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endblock inner-content %}
+    </div>
+  </div>
+{% endblock content %}

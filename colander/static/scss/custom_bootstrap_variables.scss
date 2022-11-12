@@ -1,0 +1,52 @@
+$white: #fff;
+$gray-100: #fafafa;
+$gray-200: #F9F8FC;
+$gray-300: #EDEDED;
+$gray-400: #cbc8d0;
+$gray-500: #adb5bd;
+$gray-600: #868e96;
+$gray-700: #444;
+$gray-800: #343a40;
+$gray-900: #17141F;
+$black: #000;
+$blue: #007bff;
+$indigo: #6610f2;
+$purple: #7122da;
+$pink: #e83e8c;
+$red: #FC3939;
+$orange: #fd7e14;
+$yellow: #EFA31D;
+$green: #13B955;
+$teal: #20c997;
+$cyan: #009CDC;
+$primary: $purple;
+$secondary: #A991D4;
+$success: $green;
+$info: $cyan;
+$warning: $yellow;
+$danger: $red;
+$light: $gray-200;
+$dark: $gray-900;
+$body-color: $gray-700;
+$dropdown-link-color: $gray-700;
+$dropdown-link-hover-color: $white;
+$dropdown-link-hover-bg: $primary;
+$navbar-dark-hover-color: rgba($white, .9);
+$font-size-base: 0.8rem;
+
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+$enable-gradients: false;
+$spacer: 1.2rem;
+$border-width: 1px;
+
+.bg-secondary-light {
+  background-color: rgba($secondary, 0.1) !important;
+}
+.text-small {
+  font-size: $font-size-base * 0.9;
+}
+.text-tiny {
+  font-size: $font-size-base * 0.8;
+}

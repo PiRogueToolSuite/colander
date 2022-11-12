@@ -28,3 +28,4 @@ elasticsearch-dsl>=7.0.0,<8.0.0
 python-dateutil
 djangorestframework_simplejwt
 python-magic
+dj-rest-auth

@@ -1,0 +1,23 @@
+[
+  {"short_name": "IPV4", "name": "IPv4", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-ethernet"},
+  {"short_name": "IPV6", "name": "IPv6", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-ethernet"},
+  {"short_name": "DOMAIN", "name": "Domain", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "HOSTNAME", "name": "Hostname", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "EMAIL", "name": "Email address", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-email_outline"},
+  {"short_name": "PHONE", "name": "Phone number", "description": "", "svg_icon": "", "nf_icon": "nf-fa-phone"},
+  {"short_name": "SOCIAL_ACCOUNT", "name": "Social account identifier", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-account_card_details"},
+  {"short_name": "URL", "name": "URL", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "URI", "name": "URI", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "MD5", "name": "MD5", "description": "", "svg_icon": "", "nf_icon": "nf-fa-hashtag"},
+  {"short_name": "SHA1", "name": "SHA1", "description": "", "svg_icon": "", "nf_icon": "nf-fa-hashtag"},
+  {"short_name": "SHA256", "name": "SHA256", "description": "", "svg_icon": "", "nf_icon": "nf-fa-hashtag"},
+  {"short_name": "PEHASH", "name": "PE hash", "description": "", "svg_icon": "", "nf_icon": "nf-fa-hashtag"},
+  {"short_name": "IMPHASH", "name": "IMP hash", "description": "", "svg_icon": "", "nf_icon": "nf-fa-hashtag"},
+  {"short_name": "DEXOFUZZY", "name": "Dexofuzzy hash", "description": "", "svg_icon": "", "nf_icon": "nf-fa-hashtag"},
+  {"short_name": "CIDR", "name": "CIDR", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-ethernet"},
+  {"short_name": "PATH", "name": "File path", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-file_tree"},
+  {"short_name": "MUTEX", "name": "Mutex", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-pencil_lock"},
+  {"short_name": "CVE", "name": "CVE", "description": "", "svg_icon": "", "nf_icon": "nf-cod-debug_console"},
+  {"short_name": "OS_QUERY", "name": "Os query", "description": "", "svg_icon": "", "nf_icon": "nf-cod-inspect"},
+  {"short_name": "SSL_CERT_F", "name": "SSL certificate fingerprint", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-certificate"}
+]

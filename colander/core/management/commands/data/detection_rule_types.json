@@ -1,0 +1,4 @@
+[
+  {"short_name": "YARA", "name":  "Yara rule", "description": "", "svg_icon": "", "nf_icon": "nf-cod-server_process"},
+  {"short_name": "SURICATA", "name":  "Suricata rule", "description": "", "svg_icon": "", "nf_icon": "nf-cod-server_process"}
+]

@@ -1,0 +1,6 @@
+[
+  {"short_name": "SERVER", "name":  "Server", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-server_network"},
+  {"short_name": "LAPTOP", "name":  "Laptop", "description": "", "svg_icon": "", "nf_icon": "nf-fa-laptop"},
+  {"short_name": "MOBILE", "name":  "Mobile device", "description": "", "svg_icon": "", "nf_icon": "nf-fa-mobile_phone"},
+  {"short_name": "ROUTER", "name":  "Router", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-router_wireless"}
+]

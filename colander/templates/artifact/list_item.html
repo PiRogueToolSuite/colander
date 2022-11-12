@@ -8,7 +8,7 @@
         <div class="border-bottom border-secondary">
           <i class="nf {{ artifact.type.nf_icon }} h4 text-primary"></i>
           <a class="h4" href="#">
-            <samp>{{ artifact.original_name }}</samp>
+            <samp>{{ artifact.original_name }}</samp>1
           </a>
           <div class="text-muted small">
             {{ artifact.type.name }}
@@ -28,7 +28,7 @@
           </div>
           <div class="text-tiny text-muted">
             {% include "icons/user_icon.html" %}
-            {{ artifact.owner }}
+            {{ artifact.owner }} {% if artifact.owner == request.user %}(me){% endif %}
           </div>
         </div>
       </div>
@@ -46,6 +46,7 @@
             <div class="small">
               {{ artifact.size_in_bytes|filesizeformat }}
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -62,5 +63,4 @@
       </a>
     </div>
   </div>
-
 </div>

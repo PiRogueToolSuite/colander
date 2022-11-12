@@ -4,12 +4,12 @@
 {% load i18n %}
 
 {% block inner-content %}
-  <div class="row justify-content-center mt-4">
-    <div class="col-md-12">
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
       {% if is_editing %}
         <h2>{% translate "Edit this observable" %}</h2>
       {% else %}
-        <h2>{% translate "Create an observable" %}</h2>
+        <h2>{% translate "New observable" %}</h2>
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
@@ -20,7 +20,6 @@
                 {{ form.type|as_crispy_field }}
               </div>
               <div class="col">
-                {{ form.case|as_crispy_field }}
                 {{ form.value|as_crispy_field }}
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}

@@ -6,43 +6,49 @@
     <div class="row">
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
-          <i class="nf {{ observable.type.nf_icon }} h4 text-primary"></i>
+          <i class="nf {{ event.type.nf_icon }} h4 text-primary"></i>
           <a class="h4" href="#">
-            <samp>{{ observable.value }}</samp>
+            <samp>{{ event.name }}</samp>
           </a>
         </div>
         <div>
           <div class="text-tiny font-monospace text-muted mt-1">
-            {% include "icons/id_icon.html" %}{{ observable.id }}
+            {% include "icons/id_icon.html" %}{{ event.id }}
           </div>
           <div class="text-tiny text-muted">
             {% include "icons/date_icon.html" %}
-            {{ observable.created_at }}
+            {{ event.created_at }}
           </div>
           <div class="text-tiny text-muted">
             {% include "icons/case_icon.html" %}
-            {{ observable.case.name }}
+            {{ event.case.name }}
           </div>
           <div class="text-tiny text-muted">
             {% include "icons/user_icon.html" %}
-            {{ observable.owner }} {% if observable.owner == request.user %}(me){% endif %}
+            {{ event.owner }} {% if event.owner == request.user %}(me){% endif %}
           </div>
         </div>
       </div>
       <div class="col-md-4 text-truncate ">
         <div class="row">
           <div class="col">
-            {% include "tlp/show_tlp_pap.html" with element=observable %}
-            <div class="small">
-              {% include "icons/event_icon.html" with c="text-primary" %}
-              {{ observable.event_count }} events
+            {% include "tlp/show_tlp_pap.html" with element=event %}
+            <div class="">
+              <span class="">
+                {% include "icons/date_icon.html" with c="text-primary" %}
+                {{ event.first_seen }}
+              </span>
             </div>
-            {% if observable.operated_by %}
-              <div class="small">
-                {% include "icons/actor_icon.html" with c="text-primary" %}
-                {{ observable.operated_by.name }}
-              </div>
-            {% endif %}
+            <div class="">
+              <i class="nf nf-fa-long_arrow_down text-primary"></i>
+              {{ event.count }} times
+            </div>
+            <div class="">
+              <span class="">
+                {% include "icons/date_icon.html" with c="text-primary" %}
+                {{ event.last_seen }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -54,7 +60,7 @@
         <i class="nf nf-fa-eye"></i>
         {% translate "Details" %}
       </a>
-      <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary">
+      <a href="{% url "collect_event_update_view" pk=event.id %}" class="btn btn-primary">
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>

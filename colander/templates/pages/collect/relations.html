@@ -5,77 +5,37 @@
 
 {% block inner-content %}
   <div class="row justify-content-center">
-    <div class="col-md-5">
-      <div class="card mb-4">
+    <div class="col-md-7 mt-2">
+      {% if is_editing %}
+        <h2>{% translate "Edit this relation between two observables" %}</h2>
+      {% else %}
+        <h2>{% translate "New relation between two observables" %}</h2>
+      {% endif %}
+      <div class="card bg-secondary-light">
         <div class="card-body">
           <div class="card-title">
-            <h2>Create new relation</h2>
           </div>
           <form method="post">
             {% csrf_token %}
             {{ form|crispy }}
-            <button class="btn btn-primary" type="submit" name="save_case">{% translate "Create" %}</button>
+            {% if is_editing %}
+              <button class="btn btn-primary" type="submit" name="save_relation">{% translate "Update" %}</button>
+            {% else %}
+              <button class="btn btn-primary" type="submit" name="save_relation">{% translate "Create" %}</button>
+            {% endif %}
           </form>
         </div>
       </div>
     </div>
-    <div class="col-md-7">
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="card-title">
-            <h2>Latest relations</h2>
-          </div>
-          {% if relations %}
-            <table class="table table-sm table-borderless">
-              <thead></thead>
-              <tbody>
-              {% for relation in relations %}
-                <tr>
-                  <td>
-                    {% include "icons/relation_icon.html" %}
-                    <span class="">
-                      {{ relation.name }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge bg-secondary">
-                      {{ relation.observable_from.type }}
-                    </span>
-                    <span class="font-monospace">
-                      {{ relation.observable_from.value|truncatechars_html:20 }}
-                    </span>
-                  </td>
-                  <td>
-                    {% include "icons/user_icon.html" %}
-                    {{ relation.owner }}
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="text-tiny font-monospace text-muted">
-                      {% include "icons/id_icon.html" %}{{ relation.id }}
-                    </div>
-                    <div class="text-tiny text-muted">
-                      {% include "icons/case_icon.html" %}
-                      {{ relation.case.name }}
-                    </div>
-                  </td>
-                  <td>
-                    <span class="badge bg-secondary">
-                      {{ relation.observable_to.type }}
-                    </span>
-                    <span class="font-monospace">
-                      {{ relation.observable_to.value|truncatechars_html:20 }}
-                    </span>
-                  </td>
-                  <td></td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% endif %}
-        </div>
-      </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-4">
+      <h2>Latest relations</h2>
+      {% if relations %}
+        {% for relation in relations %}
+          {% include "observable_relation/list_item.html" %}
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
 {% endblock inner-content %}

@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -108,6 +109,7 @@ class CommonModel(models.Model):
 
     class Meta:
         abstract: True
+        ordering = ['-updated_at']
 
     id = models.UUIDField(
         primary_key=True,
@@ -267,6 +269,8 @@ class CaseRelated(models.Model):
 
 
 class Actor(CommonModel):
+    class Meta:
+        ordering = ['name']
     type = models.ForeignKey(
         ActorType,
         on_delete=models.CASCADE,
@@ -278,6 +282,41 @@ class Actor(CommonModel):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_user_actors(user):
+        return Actor.objects.all()
+
+
+class Device(CommonModel, CaseRelated):
+    type = models.ForeignKey(
+        DeviceType,
+        on_delete=models.CASCADE,
+        help_text=_('Type of this device.')
+    )
+    name = models.CharField(
+        max_length=512,
+    )
+    operated_by = models.ForeignKey(
+        Actor,
+        on_delete=models.CASCADE,
+        related_name='devices',
+        null=True,
+        blank=True,
+    )
+    attributes = HStoreField(
+        blank=True,
+        null=True
+    )
+
+    def __str__(self):
+        return self.name
+
+    @staticmethod
+    def get_user_devices(user, case=None):
+        if case:
+            return Device.objects.filter(case=case)
+        return Device.objects.all()
 
 
 class Artifact(CommonModel, CaseRelated):
@@ -307,6 +346,13 @@ class Artifact(CommonModel, CaseRelated):
         help_text=_('Elasticsearch index storing the analysis.'),
         editable=False
     )
+    extracted_from = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        related_name='observables',
+        null=True,
+        blank=True,
+    )
     attributes = HStoreField(
         blank=True,
         null=True
@@ -316,7 +362,9 @@ class Artifact(CommonModel, CaseRelated):
         return f'{self.original_name} - {self.type}'
 
     @staticmethod
-    def get_user_artifacts(user):
+    def get_user_artifacts(user, case=None):
+        if case:
+            return Artifact.objects.filter(case=case)
         return Artifact.objects.all()
 
 
@@ -341,7 +389,9 @@ class Threat(CommonModel):
         return f'{self.name} - {self.type}'
 
     @staticmethod
-    def get_user_threats(user):
+    def get_user_threats(user, case=None):
+        if case:
+            return Threat.objects.filter(case=case)
         return Threat.objects.all()
 
 
@@ -396,7 +446,9 @@ class Observable(CommonModel, CaseRelated):
         return self.events.count()
 
     @staticmethod
-    def get_user_observables(user):
+    def get_user_observables(user, case=None):
+        if case:
+            return Observable.objects.filter(case=case)
         return Observable.objects.all()
 
 
@@ -404,49 +456,26 @@ class ObservableRelation(CommonModel, CaseRelated):
     class Meta:
         ordering = ['-updated_at']
 
-    name = models.TextField(
+    name = models.CharField(
+        max_length=512,
         help_text=_('Name of this relation between two observables.'),
     )
     observable_from = models.ForeignKey(
         Observable,
         on_delete=models.CASCADE,
-        related_name='relation_origins',
-        null=True,
-        blank=True,
+        related_name='relation_origins'
     )
     observable_to = models.ForeignKey(
         Observable,
         on_delete=models.CASCADE,
-        related_name='relation_targets',
-        null=True,
-        blank=True,
+        related_name='relation_targets'
     )
 
     @staticmethod
-    def get_user_relations(user):
+    def get_user_relations(user, case=None):
+        if case:
+            return ObservableRelation.objects.filter(case=case)
         return ObservableRelation.objects.all()
-
-
-class Device(CommonModel, CaseRelated):
-    type = models.ForeignKey(
-        DeviceType,
-        on_delete=models.CASCADE,
-        help_text=_('Type of this device.')
-    )
-    name = models.CharField(
-        max_length=512,
-    )
-    operated_by = models.ForeignKey(
-        Actor,
-        on_delete=models.CASCADE,
-        related_name='devices',
-        null=True,
-        blank=True,
-    )
-    attributes = HStoreField(
-        blank=True,
-        null=True
-    )
 
 
 class DetectionRule(CommonModel):
@@ -464,6 +493,12 @@ class DetectionRule(CommonModel):
         editable=False
     )
 
+    @staticmethod
+    def get_user_detection_rules(user, case=None):
+        if case:
+            return DetectionRule.objects.filter(case=case)
+        return DetectionRule.objects.all()
+
 
 class Event(CommonModel, CaseRelated):
     type = models.ForeignKey(
@@ -472,17 +507,23 @@ class Event(CommonModel, CaseRelated):
         help_text=_('Type of this event.')
     )
     first_seen = models.DateTimeField(
-        help_text=_('First time the event has occurred.')
+        help_text=_('First time the event has occurred.'),
+        default=timezone.now()
     )
     last_seen = models.DateTimeField(
-        help_text=_('First time the event has occurred.')
+        help_text=_('First time the event has occurred.'),
+        default=timezone.now()
     )
-    count = models.BigIntegerField(default=0)
+    count = models.BigIntegerField(
+        help_text=_('How many times this event has occurred.'),
+        default=0
+    )
     name = models.CharField(
         max_length=512,
     )
     extracted_from = models.ForeignKey(
         Artifact,
+        help_text=_('Select the artifact from which this event was extracted.'),
         on_delete=models.CASCADE,
         related_name='events',
         null=True,
@@ -490,6 +531,7 @@ class Event(CommonModel, CaseRelated):
     )
     observed_on = models.ForeignKey(
         Device,
+        help_text=_('Select the device on which this event was observed.'),
         on_delete=models.CASCADE,
         related_name='events',
         null=True,
@@ -497,6 +539,7 @@ class Event(CommonModel, CaseRelated):
     )
     detected_by = models.ForeignKey(
         DetectionRule,
+        help_text=_('Select the rule which has detected this event.'),
         on_delete=models.CASCADE,
         related_name='events',
         null=True,
@@ -504,9 +547,16 @@ class Event(CommonModel, CaseRelated):
     )
     involved_observables = models.ManyToManyField(
         Observable,
+        help_text=_('Select the observables involved with this event.'),
         related_name='events',
     )
     attributes = HStoreField(null=True, blank=True)
+
+    @staticmethod
+    def get_user_events(user, case=None):
+        if case:
+            return Event.objects.filter(case=case)
+        return Event.objects.all()
 
 
 class PiRogueDump(CommonModel, CaseRelated):
@@ -562,5 +612,7 @@ class PiRogueDump(CommonModel, CaseRelated):
     )
 
     @staticmethod
-    def get_user_pirogue_dumps(user):
+    def get_user_pirogue_dumps(user, case=None):
+        if case:
+            return PiRogueDump.objects.filter(case=case)
         return PiRogueDump.objects.all()

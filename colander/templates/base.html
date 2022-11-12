@@ -17,6 +17,7 @@
       <link href="{% static 'css/project.css' %}" rel="stylesheet">
       <link href="{% static 'css/bootstrap-vue.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/fork-awesome.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/tempus-dominus.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/nf.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/myLib.css' %}" rel="stylesheet">
     {% endcompress %}
@@ -26,16 +27,17 @@
   {# Placed at the top of the document so pages load faster with defer #}
   {% block javascript %}
     <!-- place project specific Javascript in this file -->
+    <script src="{% static 'js/project.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
-      <script src="{% static 'js/bootstrap.min.js' %}"></script>
       <script src="{% static 'js/vue.min.js' %}"></script>
       <script src="{% static 'js/myLib.umd.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
-      <script src="{% static 'js/project.js' %}"></script>
+      <script src="{% static 'js/popper.min.js' %}"></script>
+      <script src="{% static 'js/tempus-dominus.min.js' %}"></script>
     {% endcompress %}
-
   {% endblock javascript %}
 
 </head>
@@ -47,7 +49,7 @@
 {% url 'analyze_base_view' as analyze_base_view_url %}
 {% url 'report_base_view' as report_base_view_url %}
 
-<div class="mb-1">
+<div class="mb-0">
   <nav class="navbar navbar-expand-md navbar-dark bg-primary">
     <div class="container-fluid">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse"
@@ -58,30 +60,34 @@
       <a class="navbar-brand" href="{% url 'home' %}">colander</a>
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
+        <ul class="navbar-nav mr-auto ">
           <li class="nav-item">
-            <a class="nav-link{% if request.path == home_url %} active {%endif%}" href="{% url 'home' %}">Home</a>
+            <a class="nav-link{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link{% if collect_base_view_url in request.path%} active {%endif%}" href="{{ collect_base_view_url }}">
+            <a class="nav-link{% if collect_base_view_url in request.path %} active {% endif %}"
+               href="{{ collect_base_view_url }}">
               <i class="fa fa-th" aria-hidden="true"></i>
               Collect
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link{% if analyze_base_view_url in request.path%} active {%endif%}" href="{{ analyze_base_view_url }}">
+            <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"
+               href="{{ analyze_base_view_url }}">
               <i class="fa fa-cubes" aria-hidden="true"></i>
               Analyze
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link{% if investigate_base_view_url in request.path%} active {%endif%}" href="{{ investigate_base_view_url }}">
+            <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
+               href="{{ investigate_base_view_url }}">
               <i class="fa fa-puzzle-piece" aria-hidden="true"></i>
               Investigate
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link{% if report_base_view_url in request.path%} active {%endif%}" href="{{ report_base_view_url }}">
+            <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"
+               href="{{ report_base_view_url }}">
               <i class="fa fa-file-text" aria-hidden="true"></i>
               Report
             </a>
@@ -111,10 +117,59 @@
             </li>
           {% endif %}
         </ul>
+
       </div>
     </div>
   </nav>
+  <div class="bg-secondary-light p-2 border-bottom">
+    <div class="row">
+      {% if request.user.is_authenticated %}
+        <div class="col-md-2 text-center">
+          Current case: <br>
+          <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
+                  data-bs-target="#caseSwitchModal">
+            <i class="nf nf-cod-arrow_swap"></i>
+            Switch
+          </button>
+        </div>
+        <div class="col">
+          {% if request.active_case %}
+            <h3>{{ request.active_case.name }}</h3>
+            <div class="small text-muted">
+              {% include "icons/id_icon.html" %}
+              {{ request.active_case.id }}
+            </div>
+            <div class="small text-muted">
+              {% include "icons/date_icon.html" %}
+              {{ request.active_case.created_at }}
+            </div>
+          {% else %}
+            No case selected, select one.
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 
+<div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="caseSwitchModalLabel">{% translate "Switch to another case" %}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          {% for case in request.user_cases %}
+            <li>
+              {{ case.name }} <a href="{% url "collect_cases_select_view" pk=case.id %}">Select</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="container-fluid">

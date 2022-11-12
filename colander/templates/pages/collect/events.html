@@ -7,31 +7,35 @@
   <div class="row justify-content-center">
     <div class="col-md-12 mt-2">
       {% if is_editing %}
-        <h2>{% translate "Edit this artifact" %}</h2>
+        <h2>{% translate "Edit this event" %}</h2>
       {% else %}
-        <h2>{% translate "New artifact" %}</h2>
+        <h2>{% translate "New event" %}</h2>
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <form method="post" enctype="multipart/form-data">
+          <form method="post">
             {% csrf_token %}
             <div class="row justify-content-center">
               <div class="col-md-4">
                 {{ form.type|as_crispy_field }}
+                {{ form.involved_observables|as_crispy_field }}
               </div>
               <div class="col">
-              {% if not is_editing %}
-                {{ form.file|as_crispy_field }}
-              {% endif %}
+                {{ form.name|as_crispy_field }}
+                {{ form.first_seen|as_crispy_field }}
+                {{ form.last_seen|as_crispy_field }}
+                {{ form.count|as_crispy_field }}
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}
                 {{ form.extracted_from|as_crispy_field }}
+                {{ form.observed_on|as_crispy_field }}
+                {{ form.detected_by|as_crispy_field }}
                 {{ form.source_url|as_crispy_field }}
                 {{ form.description|as_crispy_field }}
                 {% if is_editing %}
-                  <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Update" %}</button>
+                  <button class="btn btn-primary" type="submit" name="save_event">{% translate "Update" %}</button>
                 {% else %}
-                  <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
+                  <button class="btn btn-primary" type="submit" name="save_event">{% translate "Create" %}</button>
                 {% endif %}
               </div>
             </div>
@@ -42,12 +46,13 @@
   </div>
   <div class="row justify-content-center mt-4">
     <div class="col-md-12">
-      <h2>{% translate "Latest artifacts" %}</h2>
-      {% if artifacts %}
-        {% for artifact in artifacts %}
-          {% include "artifact/list_item.html" %}
+      <h2>{% translate "Latest events" %}</h2>
+      {% if events %}
+        {% for event in events %}
+          {% include "event/list_item.html" %}
         {% endfor %}
       {% endif %}
     </div>
   </div>
 {% endblock inner-content %}
+

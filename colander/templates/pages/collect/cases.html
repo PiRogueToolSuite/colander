@@ -5,51 +5,35 @@
 
 {% block inner-content %}
   <div class="row justify-content-center">
-    <div class="col-md-5">
-      <div class="card mb-4">
+    <div class="col-md-6 mt-2">
+      {% if is_editing %}
+        <h2>{% translate "Edit this case" %}</h2>
+      {% else %}
+        <h2>{% translate "New case" %}</h2>
+      {% endif %}
+      <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <div class="card-title">
-            <h2>Create new case</h2>
-          </div>
           <form method="post">
             {% csrf_token %}
-            {{ case_edit_form|crispy }}
-            <button class="btn btn-primary" type="submit" name="save_case">{% translate "Create" %}</button>
+            {{ form|crispy }}
+            {% if is_editing %}
+              <button class="btn btn-primary" type="submit" name="save_case">{% translate "Update" %}</button>
+            {% else %}
+              <button class="btn btn-primary" type="submit" name="save_case">{% translate "Create" %}</button>
+            {% endif %}
           </form>
         </div>
       </div>
     </div>
-    <div class="col-md-7">
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="card-title">
-            <h2>Existing cases</h2>
-          </div>
-          {% if cases %}
-            <table class="table table-sm table-borderless">
-              <thead></thead>
-              <tbody>
-              {% for case in cases %}
-                <tr>
-
-                  <td>
-                    {% include "icons/case_icon.html" %}
-                    {{ case.name }}
-                    <div class="text-tiny font-monospace text-muted">
-                      {% include "icons/id_icon.html" %}{{ case.id }}
-                    </div>
-                  </td>
-                  <td>
-                    {% include "icons/user_icon.html" %}
-                    {{ case.owner }}
-                  </td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% endif %}
-        </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2>{% translate "Latest cases" %}</h2>
+        {% if cases %}
+          {% for case in cases %}
+            {% include "case/list_item.html" %}
+          {% endfor %}
+        {% endif %}
       </div>
-    </div>
   </div>
 {% endblock inner-content %}

@@ -1,18 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% url 'collect_cases_create_view' as collect_cases_view_url %}
+  {% url 'collect_case_create_view' as collect_cases_view_url %}
+  {% url 'collect_actor_create_view' as collect_actor_view_url %}
+  {% url 'collect_device_create_view' as collect_device_view_url %}
+  {% url 'collect_event_create_view' as collect_event_view_url %}
   {% url 'collect_artifact_create_view' as collect_artifact_view_url %}
   {% url 'collect_observable_create_view' as collect_observable_create_view_url %}
   {% url 'collect_relation_create_view' as collect_relation_create_view_url %}
   <div class="row">
-    <div class="col-md-2">
+    <div class="col-md-2 bg-secondary-light border-end">
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
              href="{{ collect_cases_view_url }}">
             {% include "icons/case_icon.html" %}
             Cases
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_actor_view_url }}">
+            {% include "icons/actor_icon.html" %}
+            Actors
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_artifact_view_url }}">
+            {% include "icons/artifact_icon.html" %}
+            Artifacts
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_device_view_url }}">
+            {% include "icons/device_icon.html" %}
+            Devices
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_event_view_url }}">
+            {% include "icons/event_icon.html" %}
+            Events
           </a>
         </li>
         <li class="nav-item">
@@ -25,12 +52,6 @@
           <a class="nav-link" href="{{ collect_relation_create_view_url }}">
             {% include "icons/relation_icon.html" %}
             Relations
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_artifact_view_url }}">
-            {% include "icons/artifact_icon.html" %}
-            Artifacts
           </a>
         </li>
       </ul>

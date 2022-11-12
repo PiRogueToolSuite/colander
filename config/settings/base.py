@@ -197,6 +197,7 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
+                "colander.core.middlewares.active_case",
                 "django.contrib.messages.context_processors.messages",
                 "colander.users.context_processors.allauth_settings",
             ],

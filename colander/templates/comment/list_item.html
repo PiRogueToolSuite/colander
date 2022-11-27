@@ -1,0 +1,23 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-12 text-truncate">
+        <div class="">
+          <p class="text-wrap">
+            {% include "icons/comment_icon.html" with c="h4 text-primary" %}
+            {{ comment.content }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 small text-muted">
+    {% include "icons/user_icon.html" %}
+    {{ comment.owner }} {% if comment.owner == request.user %}(me){% endif %}
+    {% include "icons/date_icon.html" %}
+    {{ comment.created_at }}
+  </div>
+</div>

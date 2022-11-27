@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from colander.core.models import ObservableType, Observable, Case, Threat, ObservableRelation, \
-    Artifact, ArtifactType, Event, Actor, EventType
+    Artifact, ArtifactType, Event, Actor, EventType, Comment
 
 
 class ArtifactTypeAdmin(admin.ModelAdmin):
@@ -32,6 +32,11 @@ class CaseAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner')
     list_filter = ('name', 'owner')
 admin.site.register(Case, CaseAdmin)
+
+
+class CommentAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(Comment, CommentAdmin)
 
 
 class EventTypeAdmin(admin.ModelAdmin):

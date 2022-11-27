@@ -8,8 +8,10 @@
   {% url 'collect_artifact_create_view' as collect_artifact_view_url %}
   {% url 'collect_observable_create_view' as collect_observable_create_view_url %}
   {% url 'collect_relation_create_view' as collect_relation_create_view_url %}
+  {% url 'collect_threat_create_view' as collect_threat_create_view_url %}
   <div class="row">
     <div class="col-md-2 bg-secondary-light border-end">
+      <div class="mt-2">Managed entities</div>
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
@@ -52,6 +54,12 @@
           <a class="nav-link" href="{{ collect_relation_create_view_url }}">
             {% include "icons/relation_icon.html" %}
             Relations
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ collect_threat_create_view_url }}">
+            {% include "icons/threat_icon.html" %}
+            Threats
           </a>
         </li>
       </ul>

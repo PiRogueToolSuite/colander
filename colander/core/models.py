@@ -1,9 +1,11 @@
 import uuid
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 
 
@@ -159,6 +161,10 @@ class CommonModel(models.Model):
         default=WHITE
     )
 
+    @property
+    def sorted_comments(self):
+        return self.comments.order_by('created_at')
+
 
 class Comment(models.Model):
     class Meta:
@@ -167,28 +173,27 @@ class Comment(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
-        help_text=_('Unique identifier of the case.'),
+        help_text=_('Unique identifier of the comment.'),
         editable=False
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text=_('Creation date of the case.'),
+        help_text=_('Creation date of the comment.'),
         editable=False
     )
     updated_at = models.DateTimeField(
-        help_text=_('Latest modification of the case.'),
+        help_text=_('Latest modification of the comment.'),
         auto_now=True
     )
     content = models.TextField(
-        help_text=_('Add more details about the case here.'),
+        help_text=_('Add more details about the comment.'),
         default=_('No description')
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        help_text=_('Who owns the current case.'),
+        help_text=_('Who redacted this comment.'),
         related_name='comments',
-        editable=False
     )
     commented_object = models.ForeignKey(
         CommonModel,
@@ -444,6 +449,10 @@ class Observable(CommonModel, CaseRelated):
     @property
     def event_count(self):
         return self.events.count()
+
+    @property
+    def sorted_events(self):
+        return self.events.order_by('first_seen')
 
     @staticmethod
     def get_user_observables(user, case=None):

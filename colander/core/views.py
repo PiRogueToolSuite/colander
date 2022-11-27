@@ -1,6 +1,6 @@
 import pathlib
 from tempfile import NamedTemporaryFile
-from django.contrib.admin import widgets as admin_widgets
+
 import magic
 from django.forms.widgets import Textarea, RadioSelect
 from django.shortcuts import render, redirect, get_object_or_404
@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView
 
-from colander.core.models import Case, Artifact, Observable, ObservableRelation, ObservableType, ArtifactType, Actor, \
+from colander.core.models import Case, Artifact, Observable, ArtifactType, Actor, \
     ActorType, Device, DeviceType, Event, EventType
 from colander.core.utils import hash_file
 

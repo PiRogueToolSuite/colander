@@ -2,7 +2,7 @@ from django.forms.widgets import Textarea, RadioSelect
 from django.forms.widgets import Textarea, RadioSelect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.models import Observable, ObservableRelation, ObservableType
 from colander.core.views import get_active_case
@@ -61,6 +61,11 @@ class ObservableUpdateView(ObservableCreateView, UpdateView):
         ctx['observables'] = Observable.get_user_observables(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
+
+
+class ObservableDetailsView(DetailView):
+    model = Observable
+    template_name = 'observable/details.html'
 
 
 class ObservableRelationCreateView(CreateView):

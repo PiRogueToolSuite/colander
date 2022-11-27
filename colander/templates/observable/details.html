@@ -1,0 +1,156 @@
+{% extends "pages/collect/base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+{% block inner-content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
+      <h2><i class="nf {{ observable.type.nf_icon }} text-primary"></i> {{ observable.value }}</h2>
+      <div>
+        {% if observable.description %}
+          {{ observable.description }}
+        {% else %}
+          {% translate "No description" %}
+        {% endif %}
+      </div>
+      <div class="btn-group" role="group">
+        <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary">
+          <i class="nf nf-fa-edit"></i>
+          {% translate "Edit" %}
+        </a>
+      </div>
+    </div>
+    <div class="col-md-12 mt-2">
+      <h3>{% translate "Details" %}</h3>
+      <table class="table">
+        <tbody>
+        <tr>
+          <td>ID</td>
+          <td>
+            {% include "icons/id_icon.html" with c="text-primary" %}
+            <span class="font-monospace">
+              {{ observable.id }}
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Case</td>
+          <td>
+            {% include "icons/case_icon.html" with c="text-primary" %}
+            <a href="#">
+              {{ observable.case.name }}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>Owner</td>
+          <td>
+            {% include "icons/user_icon.html" with c="text-primary" %}
+            {{ observable.owner }}
+          </td>
+        </tr>
+        <tr>
+          <td>Type</td>
+          <td>
+            <i class="nf {{ observable.type.nf_icon }} text-primary"></i>
+            {{ observable.type.name }}
+          </td>
+        </tr>
+        <tr>
+          <td>Created at</td>
+          <td>
+            {% include "icons/date_icon.html" with c="text-primary" %}
+            {{ observable.created_at }}
+          </td>
+        </tr>
+        <tr>
+          <td>Updated at</td>
+          <td>
+            {% include "icons/date_icon.html" with c="text-primary" %}
+            {{ observable.updated_at }}
+          </td>
+        </tr>
+        <tr>
+          <td>TLP/PAP</td>
+          <td>
+            {% include "tlp/show_tlp_pap.html" with element=observable %}
+          </td>
+        </tr>
+        <tr>
+          <td>Extracted from</td>
+          <td>
+            {% if observable.extracted_from %}
+              <i class="nf {{ observable.extracted_from.type.nf_icon }} text-primary"></i>
+              <a href="#">
+                {{ observable.extracted_from.name }}
+              </a>
+              ({{ observable.extracted_from.type }})
+            {% else %}
+              {% translate "No observable specified" %}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Source</td>
+          <td>
+            {% if observable.source_url %}
+              <i class="nf {{ observable.extracted_from.type.nf_icon }} text-primary"></i>
+              <a href="{{ observable.source_url }}" target="_blank">
+                {{ observable.source_url }}
+                <i class="nf nf-fa-external_link text-primary"></i>
+              </a>
+            {% else %}
+              {% translate "No source specified" %}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Threat</td>
+          <td>
+            {% if observable.associated_threat %}
+              <i class="nf {{ observable.associated_threat.type.nf_icon }} text-primary"></i>
+              <a href="#">
+                {{ observable.associated_threat.name }}
+              </a>
+              ({{ observable.associated_threat.type }})
+            {% else %}
+              {% translate "No theat specified" %}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Operated by</td>
+          <td>
+            {% if observable.operated_by %}
+              <i class="nf {{ observable.operated_by.type.nf_icon }} text-primary"></i>
+              <a href="#">
+                {{ observable.operated_by.name }}
+              </a>
+              ({{ observable.operated_by.type }})
+            {% else %}
+              {% translate "No operator specified" %}
+            {% endif %}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-12 mt-2">
+      <h3>{% translate "Events" %}</h3>
+      {% for event in observable.sorted_events %}
+        {% include "event/list_item.html" %}
+      {% empty %}
+        {% translate "No events" %}
+      {% endfor %}
+    </div>
+    <div class="col-md-12 mt-2">
+      <h3>{% translate "Comments" %}</h3>
+      {% for comment in observable.sorted_comments %}
+        {% include "comment/list_item.html" %}
+      {% empty %}
+        {% translate "No comment" %}
+      {% endfor %}
+    </div>
+  </div>
+{% endblock inner-content %}

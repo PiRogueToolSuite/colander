@@ -1,0 +1,50 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-8 text-truncate border-end border-secondary">
+        <div class="border-bottom border-secondary">
+          <i class="nf {{ threat.type.nf_icon }} h4 text-primary"></i>
+          <a class="h4" href="#">
+            {{ threat.name }}
+          </a>
+        </div>
+        <div>
+          <div class="text-tiny font-monospace text-muted mt-1">
+            {% include "icons/id_icon.html" %}{{ threat.id }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/date_icon.html" %}
+            {{ threat.created_at }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/user_icon.html" %}
+            {{ threat.owner }} {% if threat.owner == request.user %}(me){% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-truncate ">
+        <div class="row">
+          <div class="col">
+            {% include "tlp/show_tlp_pap.html" with element=threat %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    <div class="btn-group" role="group" aria-label="Basic example">
+      <a href="{% url "collect_threat_details_view" pk=threat.id %}" class="btn btn-primary">
+        <i class="nf nf-fa-eye"></i>
+        {% translate "Details" %}
+      </a>
+      <a href="{% url "collect_threat_update_view" pk=threat.id %}" class="btn btn-primary">
+        <i class="nf nf-fa-edit"></i>
+        {% translate "Edit" %}
+      </a>
+    </div>
+  </div>
+
+</div>

@@ -401,9 +401,6 @@ class Threat(CommonModel):
 
 
 class Observable(CommonModel, CaseRelated):
-    class Meta:
-        ordering = ['-updated_at']
-
     type = models.ForeignKey(
         ObservableType,
         on_delete=models.CASCADE,
@@ -625,3 +622,31 @@ class PiRogueDump(CommonModel, CaseRelated):
         if case:
             return PiRogueDump.objects.filter(case=case)
         return PiRogueDump.objects.all()
+
+
+class ObservableAnalysisEngine(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    observable_type = models.ForeignKey(
+        ObservableType,
+        on_delete=models.CASCADE,
+        help_text=_('Type of observable this engine can handle.')
+    )
+    name = models.CharField(
+        max_length=512,
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this engine.'),
+        null=True,
+        blank=True
+    )
+    source_url = models.URLField(
+        help_text=_('Specify the link to this engine.'),
+        verbose_name='Source URL',
+        null=True,
+        blank=True
+    )

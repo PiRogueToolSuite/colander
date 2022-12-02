@@ -67,3 +67,4 @@ class ObservableRelationAdmin(admin.ModelAdmin):
     list_display = ('name', 'observable_from', 'observable_to')
     list_filter = ('name', 'observable_from', 'observable_to')
 admin.site.register(ObservableRelation, ObservableRelationAdmin)
+

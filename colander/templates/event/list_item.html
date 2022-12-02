@@ -7,7 +7,7 @@
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <i class="nf {{ event.type.nf_icon }} h4 text-primary"></i>
-          <a class="h4" href="#">
+          <a class="h4" href="{% url "collect_event_details_view" pk=event.id %}">
             <samp>{{ event.name }}</samp>
           </a>
         </div>
@@ -56,7 +56,7 @@
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
     <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="#" class="btn btn-primary">
+      <a href="{% url "collect_event_details_view" pk=event.id %}" class="btn btn-primary">
         <i class="nf nf-fa-eye"></i>
         {% translate "Details" %}
       </a>

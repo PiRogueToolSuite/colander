@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from rest_framework.authtoken.models import Token
 
 
 class User(AbstractUser):
@@ -28,6 +29,18 @@ class User(AbstractUser):
         choices=USER_TYPE,
         default=USER,
     )
+
+    @property
+    def token(self):
+        return self.get_auth_token()
+
+    def get_auth_token(self, reset=False):
+        print('Allllllo !')
+        if reset:
+            Token.objects.filter(user=self).delete()
+        token, _ = Token.objects.get_or_create(user=self)
+        print(token)
+        return token
 
     def get_absolute_url(self):
         """Get url for user's detail view.

@@ -7,12 +7,15 @@ from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from colander.core.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView
+from colander.core.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView
+from colander.core.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView
 from colander.core.obversable_views import ObservableCreateView, ObservableRelationCreateView, ObservableUpdateView, \
-    ObservableRelationUpdateView, ObservableDetailsView
+    ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView
 from colander.core.views import collect_base_view, analyze_base_view, investigate_base_view, \
-    report_base_view, ArtifactCreateView, ArtifactUpdateView, collect_cases_select_view, CaseCreateView, \
-    CaseUpdateView, ActorUpdateView, ActorCreateView, DeviceCreateView, DeviceUpdateView, EventCreateView, \
-    EventUpdateView
+    report_base_view, collect_cases_select_view, CaseCreateView, \
+    CaseUpdateView
+from colander.core.event_views import EventCreateView, EventUpdateView, EventDetailsView
 from colander.core.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView
 
 urlpatterns = [
@@ -35,23 +38,36 @@ urlpatterns = [
       path("collect/", collect_base_view, name="collect_base_view"),
       path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
       path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
+      path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+
       path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
       path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
       path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
+
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
       path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
+      path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
+
       path("collect/device", DeviceCreateView.as_view(), name="collect_device_create_view"),
       path("collect/device/<slug:pk>", DeviceUpdateView.as_view(), name="collect_device_update_view"),
+      path("collect/device/<slug:pk>/details", DeviceDetailsView.as_view(), name="collect_device_details_view"),
+
       path("collect/event", EventCreateView.as_view(), name="collect_event_create_view"),
       path("collect/event/<slug:pk>", EventUpdateView.as_view(), name="collect_event_update_view"),
+      path("collect/event/<slug:pk>/details", EventDetailsView.as_view(), name="collect_event_details_view"),
+
       path("collect/observable", ObservableCreateView.as_view(), name="collect_observable_create_view"),
       path("collect/observable/<slug:pk>", ObservableUpdateView.as_view(), name="collect_observable_update_view"),
       path("collect/observable/<slug:pk>/details", ObservableDetailsView.as_view(), name="collect_observable_details_view"),
+
       path("collect/relation", ObservableRelationCreateView.as_view(), name="collect_relation_create_view"),
       path("collect/relation/<slug:pk>", ObservableRelationUpdateView.as_view(), name="collect_relation_update_view"),
+      path("collect/relation/<slug:pk>/details", ObservableRelationDetailsView.as_view(), name="collect_relation_details_view"),
+
       path("collect/threat", ThreatCreateView.as_view(), name="collect_threat_create_view"),
       path("collect/threat/<slug:pk>", ThreatUpdateView.as_view(), name="collect_threat_update_view"),
       path("collect/threat/<slug:pk>/details", ThreatDetailsView.as_view(), name="collect_threat_details_view"),
+
       path("analyze/", analyze_base_view, name="analyze_base_view"),
       path("investigate/", investigate_base_view, name="investigate_base_view"),
       path("report/", report_base_view, name="report_base_view"),

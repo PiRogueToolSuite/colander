@@ -289,6 +289,11 @@ class Actor(CommonModel):
         return self.name
 
     @staticmethod
+    def get_if_exists(name):
+        objects = Actor.objects.filter(name=name).all()
+        return bool(objects), objects
+
+    @staticmethod
     def get_user_actors(user):
         return Actor.objects.all()
 
@@ -316,6 +321,11 @@ class Device(CommonModel, CaseRelated):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_if_exists(name, case_id):
+        objects = Device.objects.filter(name=name, case__id=case_id).all()
+        return bool(objects), objects
 
     @staticmethod
     def get_user_devices(user, case=None):
@@ -354,7 +364,7 @@ class Artifact(CommonModel, CaseRelated):
     extracted_from = models.ForeignKey(
         Device,
         on_delete=models.CASCADE,
-        related_name='observables',
+        related_name='artifacts',
         null=True,
         blank=True,
     )
@@ -389,6 +399,11 @@ class Threat(CommonModel):
         help_text=_('Add documentation about this threat.'),
         default=_('No documentation')
     )
+
+    @staticmethod
+    def get_if_exists(name):
+        objects = Threat.objects.filter(name=name).all()
+        return bool(objects), objects
 
     def __str__(self):
         return f'{self.name} - {self.type}'
@@ -452,6 +467,11 @@ class Observable(CommonModel, CaseRelated):
         return self.events.order_by('first_seen')
 
     @staticmethod
+    def get_if_exists(value, case_id):
+        objects = Observable.objects.filter(value=value, case__id=case_id).all()
+        return bool(objects), objects
+
+    @staticmethod
     def get_user_observables(user, case=None):
         if case:
             return Observable.objects.filter(case=case)
@@ -476,6 +496,11 @@ class ObservableRelation(CommonModel, CaseRelated):
         on_delete=models.CASCADE,
         related_name='relation_targets'
     )
+
+    @staticmethod
+    def get_if_exists(name, case_id, from_id, to_id):
+        objects = ObservableRelation.objects.filter(name=name, case__id=case_id, observable_from__id=from_id, observable_to__id=to_id)
+        return bool(objects), objects
 
     @staticmethod
     def get_user_relations(user, case=None):
@@ -563,6 +588,11 @@ class Event(CommonModel, CaseRelated):
         if case:
             return Event.objects.filter(case=case)
         return Event.objects.all()
+
+    @staticmethod
+    def get_if_exists(name, case_id):
+        objects = Event.objects.filter(name=name, case__id=case_id)
+        return bool(objects), objects
 
 
 class PiRogueDump(CommonModel, CaseRelated):

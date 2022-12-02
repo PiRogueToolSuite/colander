@@ -2,16 +2,16 @@
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h2><i class="nf {{ threat.type.nf_icon }} text-primary"></i> {{ threat.name }}</h2>
+    <h2><i class="nf {{ actor.type.nf_icon }} text-primary"></i> {{ actor.name }}</h2>
     <div>
-      {% if threat.description %}
-        {{ threat.description }}
+      {% if actor.description %}
+        {{ actor.description }}
       {% else %}
         {% translate "No description" %}
       {% endif %}
     </div>
     <div class="btn-group" role="group">
-      <a href="{% url "collect_threat_update_view" pk=threat.id %}" class="btn btn-primary">
+      <a href="{% url "collect_actor_update_view" pk=actor.id %}" class="btn btn-primary">
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>
@@ -26,51 +26,60 @@
         <td>
           {% include "icons/id_icon.html" with c="text-primary" %}
           <span class="font-monospace">
-              {{ threat.id }}
+              {{ actor.id }}
             </span>
+        </td>
+      </tr>
+      <tr>
+        <td>Case</td>
+        <td>
+          {% include "icons/case_icon.html" with c="text-primary" %}
+          <a href="#">
+            {{ actor.case.name }}
+          </a>
         </td>
       </tr>
       <tr>
         <td>Owner</td>
         <td>
           {% include "icons/user_icon.html" with c="text-primary" %}
-          {{ threat.owner }}
+          {{ actor.owner }}
         </td>
       </tr>
       <tr>
         <td>Type</td>
         <td>
-          <i class="nf {{ threat.type.nf_icon }} text-primary"></i>
-          {{ threat.type.name }}
+          <i class="nf {{ actor.type.nf_icon }} text-primary"></i>
+          {{ actor.type.name }}
         </td>
       </tr>
       <tr>
         <td>Created at</td>
         <td>
           {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ threat.created_at }}
+          {{ actor.created_at }}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
           {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ threat.updated_at }}
+          {{ actor.updated_at }}
         </td>
       </tr>
       <tr>
         <td>TLP/PAP</td>
         <td>
-          {% include "tlp/show_tlp_pap.html" with element=threat %}
+          {% include "tlp/show_tlp_pap.html" with element=actor %}
         </td>
       </tr>
       <tr>
         <td>Source</td>
         <td>
-          {% if threat.source_url %}
-            <i class="nf {{ threat.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{{ threat.source_url }}" target="_blank">
-              {{ threat.source_url }}
+          {% if actor.source_url %}
+            <i class="nf {{ actor.extracted_from.type.nf_icon }} text-primary"></i>
+            <a href="{{ actor.source_url }}" target="_blank">
+              {{ actor.source_url }}
               <i class="nf nf-fa-external_link text-primary"></i>
             </a>
           {% else %}
@@ -82,11 +91,11 @@
     </table>
   </div>
 
-  {% include "helpers/extra_attributes.html" with attributes=threat.attributes %}
+  {% include "helpers/extra_attributes.html" with attributes=actor.attributes %}
 
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
-    {% for comment in threat.sorted_comments %}
+    {% for comment in actor.sorted_comments %}
       {% include "comment/list_item.html" %}
     {% empty %}
       {% translate "No comment" %}

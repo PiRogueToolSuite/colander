@@ -7,7 +7,7 @@
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <i class="nf {{ artifact.type.nf_icon }} h4 text-primary"></i>
-          <a class="h4" href="#">
+          <a class="h4" href="{% url "collect_artifact_details_view" pk=artifact.id %}">
             <samp>{{ artifact.original_name }}</samp>
           </a>
           <div class="text-muted small">
@@ -53,7 +53,7 @@
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
     <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="#" class="btn btn-primary">
+      <a href="{% url "collect_artifact_details_view" pk=artifact.id %}" class="btn btn-primary">
         <i class="nf nf-fa-eye"></i>
         {% translate "Details" %}
       </a>

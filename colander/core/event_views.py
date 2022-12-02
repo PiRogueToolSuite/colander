@@ -3,30 +3,38 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
-from colander.core.models import Threat, ThreatType
+from colander.core.models import Event, EventType
 from colander.core.views import get_active_case
 
 
-class ThreatCreateView(CreateView):
-    model = Threat
-    template_name = 'pages/collect/threats.html'
-    success_url = reverse_lazy('collect_threat_create_view')
+class EventCreateView(CreateView):
+    model = Event
+    template_name = 'pages/collect/events.html'
+    success_url = reverse_lazy('collect_event_create_view')
     fields = [
         'type',
         'name',
         'description',
+        'first_seen',
+        'last_seen',
+        'count',
+        'extracted_from',
+        'observed_on',
+        'detected_by',
+        'involved_observables',
         'source_url',
         'tlp',
         'pap'
     ]
 
     def get_form(self, form_class=None):
-        form = super(ThreatCreateView, self).get_form(form_class)
-        threat_types = ThreatType.objects.all()
+        form = super(EventCreateView, self).get_form(form_class)
+        event_types = EventType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
-            for t in threat_types
+            for t in event_types
         ]
+        form.fields['involved_observables'].widget.attrs = {'size': 30}
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         return form
@@ -43,19 +51,19 @@ class ThreatCreateView(CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['threats'] = Threat.objects.all()
+        ctx['events'] = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = False
         return ctx
 
 
-class ThreatUpdateView(ThreatCreateView, UpdateView):
+class EventUpdateView(EventCreateView, UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['threats'] = Threat.objects.all()
+        ctx['events'] = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
 
 
-class ThreatDetailsView(DetailView):
-    model = Threat
-    template_name = 'pages/collect/threat_details.html'
+class EventDetailsView(DetailView):
+    model = Event
+    template_name = 'pages/collect/event_details.html'

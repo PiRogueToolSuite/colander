@@ -65,7 +65,7 @@ class ObservableUpdateView(ObservableCreateView, UpdateView):
 
 class ObservableDetailsView(DetailView):
     model = Observable
-    template_name = 'observable/details.html'
+    template_name = 'pages/collect/observable_details.html'
 
 
 class ObservableRelationCreateView(CreateView):
@@ -111,3 +111,9 @@ class ObservableRelationUpdateView(ObservableRelationCreateView, UpdateView):
                                                                  self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
+
+
+class ObservableRelationDetailsView(DetailView):
+    model = ObservableRelation
+    context_object_name = 'relation'
+    template_name = 'pages/collect/relation_details.html'

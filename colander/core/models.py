@@ -1,13 +1,22 @@
+import base64
+import random
+import string
 import uuid
-from datetime import datetime
 
+import django
+from cryptography.exceptions import InvalidSignature
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.utils import timezone
-from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
+from elasticsearch_dsl import Document, Keyword, Date, Object
+from cryptography.hazmat.primitives.asymmetric import rsa
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import utils
 
 class ColanderTeam(models.Model):
     contributors = models.ManyToManyField(
@@ -28,6 +37,10 @@ def _get_evidence_upload_dir(instance, filename):
     # owner_id = instance.owner.id
     case_id = instance.case.id
     return f'cases/{case_id}/evidences/{instance.id}'
+
+
+def _random_id(length=16):
+    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 
 class CommonModelType(models.Model):
@@ -252,9 +265,106 @@ class Case(models.Model):
         null=True,
         related_name='sub_cases'
     )
+    es_prefix = models.CharField(
+        max_length=16,
+        editable=False,
+        default=_random_id()
+    )
+    signing_key = models.TextField(
+        editable=True,
+        default=''
+    )
+    verify_key = models.TextField(
+        editable=True,
+        default=''
+    )
+
+    def save(self, *args, **kwargs):
+        self.generate_key_pair(save=False)
+        super().save(*args, **kwargs)
+
+    @property
+    def value(self):
+        return self.name
 
     def __str__(self):
         return self.name
+
+    def generate_key_pair(self, save=True):
+        if not self.signing_key:
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=4096,
+            )
+            private_pem = private_key.private_bytes(
+               encoding=serialization.Encoding.PEM,
+               format=serialization.PrivateFormat.TraditionalOpenSSL,
+               encryption_algorithm=serialization.NoEncryption()
+            )
+            public_key = private_key.public_key()
+            public_pem = public_key.public_bytes(
+               encoding=serialization.Encoding.PEM,
+               format=serialization.PublicFormat.SubjectPublicKeyInfo
+            )
+            self.signing_key = private_pem.decode('utf-8')
+            self.verify_key = public_pem.decode('utf-8')
+            if save:
+                self.save()
+
+    def quick_search(self, value, type=None, exclude_types=['ObservableRelation']):
+        models = colander_models
+        if type and type in models:
+            models = {type: models.get(type)}
+        field_name = ''
+        results = []
+        for name, model in models.items():
+            if name in exclude_types:
+                continue
+            if hasattr(model, 'name'):
+                field_name = 'name'
+            elif hasattr(model, 'value'):
+                field_name = 'value'
+            try:
+                if hasattr(model, 'case'):
+                    objects = model.objects.filter(**{f'{field_name}__icontains': value, 'case': self})
+                else:
+                    objects = model.objects.filter(**{f'{field_name}__icontains': value})
+                results.extend(objects.all())
+            except Exception as e:
+                print(model, e)
+                pass
+        return results
+
+    def get_all_entities(self, exclude_types=[]):
+        return self.quick_search('', exclude_types=exclude_types)
+
+    def get_mermaid(self):
+        nodes = []
+        clicks = []
+        links = []
+        classes = []
+        for name, model in colander_models.items():
+            if model in color_scheme:
+                classes.append(f'classDef {name} fill:{color_scheme.get(model)}')
+        entities = self.get_all_entities(exclude_types=['PiRogueExperiment', 'Threat', 'Event'])
+        for entity in entities:
+            print(entity, hasattr(entity, 'to_mermaid'))
+            if hasattr(entity, 'to_mermaid'):
+                n, c, l = entity.to_mermaid
+                print(n, c, l)
+                nodes.extend(n)
+                clicks.extend(c)
+                links.extend(l)
+        node_txt = '\n\t'.join(list(set(nodes)))
+        click_txt = '\n\t'.join(list(set(clicks)))
+        link_txt = '\n\t'.join(list(set(links)))
+        class_txt = '\n\t'.join(list(set(classes)))
+        text = f'flowchart TD\n\t{node_txt}\n\t{click_txt}\n\t{link_txt}\n\t{class_txt}'
+        return text
+
+    @property
+    def to_mermaid(self):
+        return self.get_mermaid()
 
     @staticmethod
     def get_user_cases(user):
@@ -273,9 +383,10 @@ class CaseRelated(models.Model):
     )
 
 
-class Actor(CommonModel):
+class Actor(CommonModel, CaseRelated):
     class Meta:
         ordering = ['name']
+
     type = models.ForeignKey(
         ActorType,
         on_delete=models.CASCADE,
@@ -285,8 +396,48 @@ class Actor(CommonModel):
         max_length=512,
     )
 
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    @property
+    def value(self):
+        return self.name
+
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_actor_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
+        nodes = [f'{self.id}("{icon} {label}")']
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} Actor'
+        ]
+        links = []
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @staticmethod
     def get_if_exists(name):
@@ -294,7 +445,9 @@ class Actor(CommonModel):
         return bool(objects), objects
 
     @staticmethod
-    def get_user_actors(user):
+    def get_user_actors(user, case):
+        if case:
+            return Actor.objects.filter(case=case)
         return Actor.objects.all()
 
 
@@ -319,8 +472,54 @@ class Device(CommonModel, CaseRelated):
         null=True
     )
 
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_device_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+        label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
+        nodes = [
+            f'{self.id}("{icon} {label}")',
+            ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} Device'
+        ]
+        if self.operated_by:
+            links.append(
+                f'{self.operated_by_id}-- operates -->{self.id}'
+            )
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @staticmethod
     def get_if_exists(name, case_id):
@@ -373,8 +572,97 @@ class Artifact(CommonModel, CaseRelated):
         null=True
     )
 
+    def save(self, *args, **kwargs):
+        self.sign(save=False)
+        super().save(*args, **kwargs)
+
+    def sign(self, save=True, force=False):
+        if not self.detached_signature and self.sha256 or force:
+            private_key = serialization.load_pem_private_key(
+                self.case.signing_key.encode('utf-8'),
+                password=None,
+            )
+            chosen_hash = hashes.SHA256()
+            sig = private_key.sign(
+                bytes.fromhex(self.sha256),
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                utils.Prehashed(chosen_hash)
+            )
+            self.detached_signature = base64.b64encode(sig).decode('utf-8')
+            if save:
+                self.save()
+
+    @property
+    def has_valid_signature(self):
+        public_key = serialization.load_pem_public_key(
+            self.case.verify_key.encode('utf-8'),
+        )
+        chosen_hash = hashes.SHA256()
+        try:
+            public_key.verify(
+                base64.b64decode(self.detached_signature),
+                bytes.fromhex(self.sha256),
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                utils.Prehashed(chosen_hash)
+            )
+            return True
+        except InvalidSignature:
+            return False
+
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
     def __str__(self):
         return f'{self.original_name} - {self.type}'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_artifact_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+        label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
+        nodes = [
+            f'{self.id}("{icon} {label}")',
+            ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} Artifact'
+        ]
+        if self.extracted_from:
+            links.append(
+                f'{self.id}-- extracted from -->{self.extracted_from_id}'
+            )
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @staticmethod
     def get_user_artifacts(user, case=None):
@@ -383,7 +671,7 @@ class Artifact(CommonModel, CaseRelated):
         return Artifact.objects.all()
 
 
-class Threat(CommonModel):
+class Threat(CommonModel, CaseRelated):
     class Meta:
         ordering = ['-updated_at']
 
@@ -399,6 +687,47 @@ class Threat(CommonModel):
         help_text=_('Add documentation about this threat.'),
         default=_('No documentation')
     )
+
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_threat_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+        nodes = [
+            f'{self.id}("{icon} {self.name}")',
+            ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} Threat'
+        ]
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @staticmethod
     def get_if_exists(name):
@@ -423,6 +752,15 @@ class Observable(CommonModel, CaseRelated):
     )
     value = models.CharField(
         max_length=512,
+    )
+    classification = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True
+    )
+    raw_value = models.TextField(
+        blank=True,
+        null=True
     )
     extracted_from = models.ForeignKey(
         Artifact,
@@ -454,9 +792,66 @@ class Observable(CommonModel, CaseRelated):
         blank=True,
         null=True
     )
+    es_prefix = models.CharField(
+        max_length=16,
+        editable=False,
+        default=_random_id()
+    )
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.type} - {self.value}'
+        return f'{self.value} ({self.type.name.lower()})'
+
+    def get_es_index(self):
+        return f'c.{self.case.es_prefix}.o.{self.type.short_name.lower()}'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_observable_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+
+        label = f'<samp>{self.value}</samp><br><small><i>{self.type.name}</i></small>'
+        if self.associated_threat:
+            label += f'<br><small>fa:fa-bug {self.associated_threat.name}</small>'
+        nodes = [
+            f'{self.id}("{icon} {label}")',
+            ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} Observable'
+        ]
+        if self.extracted_from:
+            links.append(
+                f'{self.id}-- extracted from -->{self.extracted_from_id}'
+            )
+        if self.operated_by:
+            links.append(
+                f'{self.operated_by_id}-- operates -->{self.id}'
+            )
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @property
     def event_count(self):
@@ -465,6 +860,10 @@ class Observable(CommonModel, CaseRelated):
     @property
     def sorted_events(self):
         return self.events.order_by('first_seen')
+
+    @property
+    def is_malicious(self):
+        return bool(self.associated_threat)
 
     @staticmethod
     def get_if_exists(value, case_id):
@@ -497,9 +896,51 @@ class ObservableRelation(CommonModel, CaseRelated):
         related_name='relation_targets'
     )
 
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    def __str__(self):
+        return f'{self.observable_from} -> {self.observable_to}'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_relation_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = [
+            f'{self.observable_from_id}-- {icon} {self.name} -->{self.observable_to_id}'
+        ]
+        nodes = []
+        clicks = []
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
+
     @staticmethod
     def get_if_exists(name, case_id, from_id, to_id):
-        objects = ObservableRelation.objects.filter(name=name, case__id=case_id, observable_from__id=from_id, observable_to__id=to_id)
+        objects = ObservableRelation.objects.filter(name=name, case__id=case_id, observable_from__id=from_id,
+                                                    observable_to__id=to_id)
         return bool(objects), objects
 
     @staticmethod
@@ -509,7 +950,7 @@ class ObservableRelation(CommonModel, CaseRelated):
         return ObservableRelation.objects.all()
 
 
-class DetectionRule(CommonModel):
+class DetectionRule(CommonModel, CaseRelated):
     type = models.ForeignKey(
         DetectionRuleType,
         on_delete=models.CASCADE,
@@ -523,6 +964,20 @@ class DetectionRule(CommonModel):
         help_text=_('Elasticsearch index storing the detections.'),
         editable=False
     )
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
 
     @staticmethod
     def get_user_detection_rules(user, case=None):
@@ -539,11 +994,11 @@ class Event(CommonModel, CaseRelated):
     )
     first_seen = models.DateTimeField(
         help_text=_('First time the event has occurred.'),
-        default=timezone.now()
+        default=django.utils.timezone.now()
     )
     last_seen = models.DateTimeField(
         help_text=_('First time the event has occurred.'),
-        default=timezone.now()
+        default=django.utils.timezone.now()
     )
     count = models.BigIntegerField(
         help_text=_('How many times this event has occurred.'),
@@ -583,6 +1038,64 @@ class Event(CommonModel, CaseRelated):
     )
     attributes = HStoreField(null=True, blank=True)
 
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    def __str__(self):
+        return f'{self.name} ({self.type.name})'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_event_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+        label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
+        nodes = [
+            f'{self.id}("{icon} {label}")',
+            ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} Event'
+        ]
+        if self.extracted_from:
+            links.append(
+                f'{self.id}-- extracted from -->{self.extracted_from_id}'
+            )
+        if self.observed_on:
+            links.append(
+                f'{self.id}-- observed on -->{self.observed_on_id}'
+            )
+        if self.involved_observables:
+            for obj in self.involved_observables.all():
+                links.append(
+                    f'{self.id}-- involves -->{obj.id}'
+                )
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
+
     @staticmethod
     def get_user_events(user, case=None):
         if case:
@@ -595,7 +1108,13 @@ class Event(CommonModel, CaseRelated):
         return bool(objects), objects
 
 
-class PiRogueDump(CommonModel, CaseRelated):
+class PiRogueExperiment(CommonModel, CaseRelated):
+    class Meta:
+        verbose_name = 'PiRogue experiment'
+
+    name = models.CharField(
+        max_length=512,
+    )
     pcap = models.ForeignKey(
         Artifact,
         on_delete=models.CASCADE,
@@ -641,17 +1160,85 @@ class PiRogueDump(CommonModel, CaseRelated):
         help_text=_('Elasticsearch index storing the network traffic.'),
         editable=False
     )
-    analysis_index = models.UUIDField(
-        default=uuid.uuid4,
+    analysis_index = models.CharField(
+        max_length=64,
+        default=_random_id(),
         help_text=_('Elasticsearch index storing the analysis.'),
-        editable=False
+        editable=True
     )
+
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    @property
+    def analysis(self):
+        from elasticsearch_dsl import connections
+        connections.create_connection(hosts=['elasticsearch'], timeout=20)
+        try:
+            search = PiRogueExperimentAnalysis.search(index=self.get_es_index())
+            search.sort('result.timestamp')
+            return search.execute()
+        except Exception as e:
+            return None
+
+    def get_es_index(self):
+        return f'c.{self.case.es_prefix}.ex.{self.analysis_index}'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_experiment_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+        nodes = [
+            f'{self.id}("{icon} {self.name}")',
+            ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} PiRogueExperiment'
+        ]
+        if self.pcap:
+            links.append(f'{self.id}-- generated -->{self.pcap_id}')
+        if self.socket_trace:
+            links.append(f'{self.id}-- generated -->{self.socket_trace_id}')
+        if self.target_device:
+            links.append(f'{self.id}-- executed on -->{self.target_device_id}')
+        if self.target_artifact:
+            links.append(f'{self.id}-- execution of -->{self.target_artifact_id}')
+        if self.sslkeylog:
+            links.append(f'{self.id}-- generated -->{self.sslkeylog_id}')
+        if self.sslkeylog:
+            links.append(f'{self.id}-- generated -->{self.sslkeylog_id}')
+        return nodes, clicks, links
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @staticmethod
     def get_user_pirogue_dumps(user, case=None):
         if case:
-            return PiRogueDump.objects.filter(case=case)
-        return PiRogueDump.objects.all()
+            return PiRogueExperiment.objects.filter(case=case)
+        return PiRogueExperiment.objects.all()
 
 
 class ObservableAnalysisEngine(models.Model):
@@ -680,3 +1267,73 @@ class ObservableAnalysisEngine(models.Model):
         null=True,
         blank=True
     )
+
+
+class PiRogueExperimentAnalysis(Document):
+    owner = Keyword(required=True)
+    case_id = Keyword()
+    experiment_id = Keyword()
+    analysis_date = Date()
+    result = Object()
+
+    @property
+    def analysis_id(self):
+        return self.meta.id
+
+
+# class IndexedEntity(Document):
+#     owner = Keyword(required=True)
+#     case_id = Keyword()
+#     entity_id = Keyword()
+#     super_type = Keyword()
+#     type = Keyword()
+#     value = Keyword()
+#
+#
+# def _index_entity(entity, index_name):
+#     pass
+#
+# @receiver(post_save, sender=Observable)
+# def index_observable(sender, instance, **kwargs):
+#     ie = IndexedEntity()
+#     ie.owner = instance.owner.id
+#     ie.super_type = "Observable"
+
+
+colander_models = {
+    'Actor': Actor,
+    'Artifact': Artifact,
+    'DetectionRule': DetectionRule,
+    'Device': Device,
+    'Event': Event,
+    'Observable': Observable,
+    'ObservableRelation': ObservableRelation,
+    'PiRogueExperiment': PiRogueExperiment,
+    'Threat': Threat,
+    # 'Case': Case,
+}
+
+icons = {
+    Actor: 'fa-users',
+    Artifact: 'fa-archive',
+    DetectionRule: 'fa-',
+    Device: 'fa-server',
+    Event: 'fa-bolt',
+    Observable: 'fa-bullseye',
+    ObservableRelation: 'fa-link',
+    PiRogueExperiment: 'fa-flask',
+    Threat: 'fa-bug',
+}
+
+color_scheme = {
+    Actor: '#8dd3c7',
+    Artifact: '#ffffb3',
+    DetectionRule: '#bebada',
+    Device: '#fb8072',
+    Event: '#80b1d3',
+    Observable: '#fdb462',
+    ObservableRelation: '#b3de69',
+    PiRogueExperiment: '#fccde5',
+    Threat: '#d9d9d9',
+    # #bc80bd #ccebc5 #ffed6f
+}

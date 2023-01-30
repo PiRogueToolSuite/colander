@@ -33,9 +33,18 @@
         <div class="row">
           <div class="col">
             {% include "tlp/show_tlp_pap.html" with element=observable %}
+            {% if observable.is_malicious %}
+              <div class="badge bg-danger">
+                Malicious
+              </div>
+          {% endif %}
             <div class="small">
               {% include "icons/event_icon.html" with c="text-primary" %}
               {{ observable.event_count }} events
+            </div>
+            <div class="small">
+              {% include "icons/relation_icon.html" with c="text-primary" %}
+              {{ observable.relation_origins.count|add:observable.relation_targets.count }} relations
             </div>
             {% if observable.operated_by %}
               <div class="small">
@@ -49,16 +58,7 @@
     </div>
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
-    <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="{% url "collect_observable_details_view" pk=observable.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-eye"></i>
-        {% translate "Details" %}
-      </a>
-      <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
-    </div>
+    {% include "observable/controls.html" with exclude="" %}
   </div>
 
 </div>

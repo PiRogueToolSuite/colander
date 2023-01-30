@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-9">
+      <div class="card border-0">
+        <div class="card-body">
+          <div>
+          <span class="h3">
+            {{ observable.value }}
+          </span>
+            <a href="#" class="text-muted small" data-bs-toggle="modal" data-bs-target="#jsonModal">
+              <u>raw</u>
+            </a>
+          </div>
+          {% for tag in enrichment.data.tags %}
+            <span class="badge bg-secondary">{{ tag }}</span>
+          {% endfor %}
+          {% if enrichment.data.threat_classification == "malicious" %}
+            <p class="text-danger small">{{ enrichment.data.threat_explanation }}</p>
+          {% else %}
+            <p class="text-muted small">{{ enrichment.data.threat_explanation }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-light m-2 small text-muted">
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li>Source: {{ source }}</li>
+            <li>From cache: {{ cached }}</li>
+            <li>Last update: {{ enrichment.enrichment_date }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="jsonModal" tabindex="-1" aria-labelledby="jsonModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-body">
+            <pre class="small"><code>{{ raw }}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-5">
+      {% if enrichment.data.network %}
+        <h4>Network</h4>
+        <ul class="list-unstyled">
+          <li>ASN: <samp>{{ enrichment.data.network.asn }}</samp></li>
+          <li>Description: <samp>{{ enrichment.data.network.network_description }}</samp></li>
+          <li>Type: <samp>{{ enrichment.data.network.type }}</samp></li>
+          <li>Abuse: <samp>{{ enrichment.data.network.abuse_email }}</samp></li>
+          <li>Last update: <samp>{{ enrichment.data.network.last_updated }}</samp></li>
+        </ul>
+        {% if enrichment.data.network.location %}
+          <h4>Location</h4>
+          <ul class="list-unstyled">
+            <li>Country: <samp>{{ enrichment.data.network.location.country_code }}</samp></li>
+            <li>Division: <samp>{{ enrichment.data.network.location.division }}</samp></li>
+            <li>City: <samp>{{ enrichment.data.network.location.city }}</samp></li>
+            <li>Coordinates:
+              <samp>{{ enrichment.data.network.location.lat }}</samp>,<samp>{{ enrichment.data.network.location.lng }}</samp>
+            </li>
+          </ul>
+        {% endif %}
+      {% endif %}
+      {% if enrichment.data.ip and enrichment.data.registered and enrichment.data.age %}
+        <h4>Info</h4>
+        <ul class="list-unstyled">
+          <li>IP address: <samp>{{ enrichment.data.ip }}</samp></li>
+          <li>Registration date: <samp>{{ enrichment.data.registered }}</samp> ({{ enrichment.data.age }} days ago)</li>
+        </ul>
+      {% endif %}
+    </div>
+    <div class="col-md-7">
+      {% if enrichment.data.dns %}
+        <h4>Related domains</h4>
+        <table class="table table-sm">
+          <thead>
+          <tr class="bg-secondary-light">
+            <td>Domain</td>
+            <td>Classification</td>
+            <td>First seen</td>
+            <td>Last seen</td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for domain in enrichment.data.dns %}
+            <tr>
+              <td>
+                <samp>{{ domain.hostname }}</samp>
+              </td>
+              <td>
+                {{ domain.classification }}
+              </td>
+              <td>
+                {{ domain.first_seen }}
+              </td>
+              <td>
+                {{ domain.last_seen }}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+      {% if enrichment.data.threat_actor_aliases %}
+        <h4>Threat actor</h4>
+        # {{ enrichment.data.threat_actor_id }}
+        <table class="table table-sm">
+          <thead>
+          <tr class="bg-secondary-light">
+            <td>Alias</td>
+            <td>Named by</td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for alias in enrichment.data.threat_actor_aliases %}
+            <tr>
+              <td>{{ alias.alias }}</td>
+              <td>{{ alias.named_by }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </div>
+
+
+{% endblock content %}

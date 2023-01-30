@@ -1,19 +1,29 @@
 {% load i18n %}
 
 {% if attributes %}
-<div class="col-md-12 mt-2">
-  <h3>{% translate "Extra attributes" %}</h3>
-  <table class="table table-sm">
-    <tbody>
-    {% for k,v in attributes.items %}
-      {% if v %}
-        <tr>
-          <td>{{ k }}</td>
-          <td><samp>{{ v }}</samp></td>
-        </tr>
-      {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <div class="col-md-12 mt-2">
+    <h3>
+      {% translate "Extra attributes" %}
+      <a class="btn btn-sm btn-secondary" data-bs-toggle="collapse" href="#collapseExTraAttributes" role="button" aria-expanded="false"
+         aria-controls="collapseExTraAttributes">
+        <i class="nf nf-fa-expand"></i>
+      </a>
+    </h3>
+    <div class="collapse" id="collapseExTraAttributes">
+      <div class="card card-body">
+        <table class="table table-sm">
+          <tbody>
+          {% for k,v in attributes.items %}
+            {% if v %}
+              <tr>
+                <td>{{ k }}</td>
+                <td><samp>{{ v }}</samp></td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 {% endif %}

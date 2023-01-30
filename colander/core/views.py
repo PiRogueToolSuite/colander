@@ -1,16 +1,13 @@
-import pathlib
-from tempfile import NamedTemporaryFile
+import json
 
-import magic
-from django.forms.widgets import Textarea, RadioSelect
+from django.apps import apps
+from django.forms.widgets import Textarea
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.utils.safestring import mark_safe
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DetailView
 
-from colander.core.models import Case, Artifact, Observable, ArtifactType, Actor, \
-    ActorType, Device, DeviceType
-from colander.core.utils import hash_file
+from colander.core.models import Case, Artifact, Observable
 
 
 def evidences_view(request):
@@ -30,7 +27,7 @@ def collect_cases_select_view(request, pk):
     if request.method == 'GET':
         case = get_object_or_404(Case, id=pk)
         request.session['active_case'] = str(case.id)
-        return redirect(request.META.get('HTTP_REFERER'))
+        return redirect('collect_base_view')
 
 
 def get_active_case(request):
@@ -80,17 +77,50 @@ class CaseUpdateView(CaseCreateView, UpdateView):
         return ctx
 
 
+class CaseDetailsView(DetailView):
+    model = Case
+    context_object_name = 'case'
+    template_name = 'pages/collect/case_details.html'
 
 
+def download_case_public_key(request, pk):
+    case = Case.objects.get(id=pk)
+    response = HttpResponse(case.verify_key, content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename={case.name}.pem'
+    return response
 
 
+def entity_exists(request, type, value):
+    if request.method == 'GET':
+        active_case = get_active_case(request)
+        if not active_case:
+            return JsonResponse([], safe=False)
+
+        results = active_case.quick_search(value, type=type)
+        data = []
+        for obj in results:
+            data.append({
+                'id': str(obj.id),
+                'type': type,
+                'value': obj.value,
+                'text': str(obj),
+                'url': obj.get_absolute_url()
+            })
+            return JsonResponse(data, safe=False)
+        return JsonResponse([], safe=False)
 
 
+def quick_search(request):
+    active_case = get_active_case(request)
+    if not active_case:
+        return redirect(request.META.get('HTTP_REFERER'))
+    if request.method == 'POST':
+        query = request.POST['q']
+        results = active_case.quick_search(query)
+        return render(request, 'pages/quick_search/result_list.html', context={'results': results})
 
+    return redirect(request.META.get('HTTP_REFERER'))
 
-
-def analyze_base_view(request):
-    return render(request, 'pages/collect/base.html')
 
 
 def investigate_base_view(request):

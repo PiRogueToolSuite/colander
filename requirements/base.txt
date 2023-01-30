@@ -29,4 +29,8 @@ python-dateutil
 djangorestframework_simplejwt
 python-magic
 dj-rest-auth
+pynacl
 
+
+# Analysis
+communityid

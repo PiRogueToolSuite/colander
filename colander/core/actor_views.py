@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.models import Actor, ActorType
+from colander.core.views import get_active_case
 
 
 class ActorCreateView(CreateView):
@@ -31,16 +32,18 @@ class ActorCreateView(CreateView):
         return form
 
     def form_valid(self, form):
-        if form.is_valid():
+        active_case = get_active_case(self.request)
+        if form.is_valid() and active_case:
             actor = form.save(commit=False)
             actor.owner = self.request.user
+            actor.case = active_case
             actor.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['actors'] = Actor.get_user_actors(self.request.user)
+        ctx['actors'] = Actor.get_user_actors(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = False
         return ctx
 
@@ -48,7 +51,7 @@ class ActorCreateView(CreateView):
 class ActorUpdateView(ActorCreateView, UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['actors'] = Actor.get_user_actors(self.request.user)
+        ctx['actors'] = Actor.get_user_actors(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
 

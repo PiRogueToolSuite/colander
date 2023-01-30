@@ -3,7 +3,7 @@
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ artifact.type.nf_icon }} text-primary"></i> {{ artifact.original_name }}</h2>
-    <div>
+    <div class="mb-3">
       {% if artifact.description %}
         {{ artifact.description }}
       {% else %}
@@ -15,11 +15,18 @@
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>
+      <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-primary">
+        <i class="nf nf-fa-download"></i>
+        {% translate "Download" %}
+      </a>
     </div>
   </div>
-  <div class="col-md-12 mt-2">
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8 mt-2">
     <h3>{% translate "Details" %}</h3>
-    <table class="table">
+    <table class="table table-sm">
       <tbody>
       <tr>
         <td>ID</td>
@@ -34,7 +41,7 @@
         <td>Case</td>
         <td>
           {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="#">
+          <a href="{% url "collect_case_details_view" pk=artifact.case.id %}">
             {{ artifact.case.name }}
           </a>
         </td>
@@ -119,11 +126,21 @@
         </td>
       </tr>
       <tr>
+        <td>Signature</td>
+        <td>
+          {% if artifact.has_valid_signature %}
+            <span class="badge bg-success">Valid signature</span>
+          {% else %}
+            <span class="badge bg-danger">Incorrect signature (file potentially tempered)</span>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
         <td>Extracted from</td>
         <td>
           {% if artifact.extracted_from %}
             <i class="nf {{ artifact.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="#">
+            <a href="{% url "collect_device_details_view" pk=artifact.extracted_from_id %}">
               {{ artifact.extracted_from.name }}
             </a>
             ({{ artifact.extracted_from.type }})
@@ -149,9 +166,41 @@
       </tbody>
     </table>
   </div>
+  <div class="col-md-4 mt-5">
+    <div class="card bg-secondary-light">
+      <div class="card-body bg-secondary-light">
+        <h3 class="card-title ">Artifact integrity check</h3>
+        To verify the integrity of this artifact, you have to download:
+        <ul class="">
+          <li>the public key of the case</li>
+          <li>the signature of the artifact</li>
+          <li>the artifact itself</li>
+        </ul>
+        Then, in a terminal run the following command:
+<pre class="font-monospace small mb-3"><code>
+openssl dgst -sha256 -sigopt rsa_padding_mode:pss \
+  -verify [case key file] \
+  -signature [artifact signature file] \
+  [artifact file]</code></pre>
+        If the file has not been tampered, the command above should prompt <code>Verified OK</code>
+      </div>
+      <div class="card-footer text-center">
+        <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}" class="btn btn-sm btn-primary text-white">
+            Download case key
+        </a>
+        <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
+          Download artifact
+        </a>
+        <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
+          Download artifact signature
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div class="row justify-content-center">
   {% include "helpers/extra_attributes.html" with attributes=artifact.attributes %}
-
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
     {% for comment in artifact.sorted_comments %}

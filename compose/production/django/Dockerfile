@@ -11,11 +11,11 @@ FROM python as python-build-stage
 ARG BUILD_ENVIRONMENT=production
 
 # Install apt packages
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev libmagic1
+  libpq-dev libmagic1 tshark wireshark-common
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -42,11 +42,11 @@ RUN addgroup --system django \
 
 
 # Install required system dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
-  gettext \
+  gettext tshark wireshark-common \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*

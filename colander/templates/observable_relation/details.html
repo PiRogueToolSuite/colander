@@ -22,7 +22,7 @@
           {{ relation.observable_to.value }}
         </span>
     </div>
-    <div>
+    <div class="mb-3">
       {% if relation.description %}
         {{ relation.description }}
       {% else %}
@@ -38,7 +38,7 @@
   </div>
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>
-    <table class="table">
+    <table class="table table-sm">
       <tbody>
       <tr>
         <td>ID</td>
@@ -53,7 +53,7 @@
         <td>Case</td>
         <td>
           {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="#">
+          <a href="{% url "collect_case_details_view" pk=relation.case.id %}">
             {{ relation.case.name }}
           </a>
         </td>
@@ -83,6 +83,24 @@
         <td>TLP/PAP</td>
         <td>
           {% include "tlp/show_tlp_pap.html" with element=relation %}
+        </td>
+      </tr>
+      <tr>
+        <td>From</td>
+        <td>
+          {% include "icons/observable_icon.html" with c="text-primary" %}
+          <a href="{% url "collect_observable_details_view" pk=relation.observable_from.id %}">
+            {{ relation.observable_from }}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>To</td>
+        <td>
+          {% include "icons/observable_icon.html" with c="text-primary" %}
+          <a href="{% url "collect_observable_details_view" pk=relation.observable_to.id %}">
+            {{ relation.observable_to }}
+          </a>
         </td>
       </tr>
       </tbody>

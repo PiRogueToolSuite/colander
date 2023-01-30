@@ -3,7 +3,7 @@
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ event.type.nf_icon }} text-primary"></i> {{ event.name }}</h2>
-    <div>
+    <div class="mb-3">
       {% if event.description %}
         {{ event.description }}
       {% else %}
@@ -19,7 +19,7 @@
   </div>
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>
-    <table class="table">
+    <table class="table table-sm">
       <tbody>
       <tr>
         <td>ID</td>
@@ -34,7 +34,7 @@
         <td>Case</td>
         <td>
           {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="#">
+          <a href="{% url "collect_case_details_view" pk=event.case.id %}">
             {{ event.case.name }}
           </a>
         </td>
@@ -78,7 +78,7 @@
         <td>
           {% if event.extracted_from %}
             <i class="nf {{ event.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="#">
+            <a href="{% url "collect_artifact_details_view" pk=event.extracted_from_id %}">
               {{ event.extracted_from.original_name }}
             </a>
             ({{ event.extracted_from.type }})

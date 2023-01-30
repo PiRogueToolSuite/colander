@@ -13,7 +13,7 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <form method="post">
+          <form method="post" autocomplete="off">
             {% csrf_token %}
             {{ form|crispy }}
             {% if is_editing %}
@@ -37,3 +37,12 @@
       </div>
   </div>
 {% endblock inner-content %}
+
+{% block inline_javascript %}
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      let input = $("input[name=name]");
+      suggest_entity(input, 'Case')
+    });
+  </script>
+{% endblock inline_javascript %}

@@ -1,0 +1,33 @@
+{% load colander_tags %}
+
+{% if results %}
+  <h3>{{ results|length }} entities found</h3>
+  <table class="table table-hover table-responsive table-sm">
+    <thead class="bg-secondary-light">
+    <tr>
+      <th>Entity</th>
+      <th>Type</th>
+      <th>Owner</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for r in results %}
+      <tr>
+        <td>
+          {% include "icons/pills.html" with elt=r %}
+          <a href="{{ r.absolute_url }}"><samp>{{ r.value }}</samp></a>
+        </td>
+        <td>
+          {{ r|model_name|capfirst }}
+          {% if r.type %}
+           - <i>{{ r.type }}</i>
+          {% endif %}
+        </td>
+        <td class="text-muted">{% include "icons/user_icon.html" with c="text-muted" %} {{ r.owner }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <h3>No entity</h3>
+{% endif %}

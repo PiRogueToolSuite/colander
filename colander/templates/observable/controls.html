@@ -1,0 +1,23 @@
+{% load i18n %}
+
+
+<div class="btn-group" role="group">
+  {% if "details" not in exclude %}
+  <a href="{% url "collect_observable_details_view" pk=observable.id %}" class="btn btn-primary">
+    <i class="nf nf-fa-eye"></i>
+    {% translate "Details" %}
+  </a>
+  {% endif %}
+  {% if "edit" not in exclude %}
+  <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary">
+    <i class="nf nf-fa-edit"></i>
+    {% translate "Edit" %}
+  </a>
+  {% endif %}
+  {% if "analyze" not in exclude %}
+  <a href="{% url "analyze_base_view" observable_id=observable.id %}" class="btn btn-primary">
+    <i class="nf nf-fa-filter"></i>
+    {% translate "Analyze" %}
+  </a>
+  {% endif %}
+</div>

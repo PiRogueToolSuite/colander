@@ -18,6 +18,7 @@
       <link href="{% static 'css/bootstrap-vue.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/fork-awesome.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/tempus-dominus.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/flag-icons.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/nf.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/myLib.css' %}" rel="stylesheet">
     {% endcompress %}
@@ -27,17 +28,18 @@
   {# Placed at the top of the document so pages load faster with defer #}
   {% block javascript %}
     <!-- place project specific Javascript in this file -->
-    <script src="{% static 'js/project.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/vue.min.js' %}"></script>
       <script src="{% static 'js/myLib.umd.js' %}"></script>
+      <script src="{% static 'js/popper.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
-      <script src="{% static 'js/popper.min.js' %}"></script>
       <script src="{% static 'js/tempus-dominus.min.js' %}"></script>
     {% endcompress %}
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/project.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
   {% endblock javascript %}
 
 </head>
@@ -46,150 +48,176 @@
 {% url 'home' as home_url %}
 {% url 'collect_base_view' as collect_base_view_url %}
 {% url 'investigate_base_view' as investigate_base_view_url %}
-{% url 'analyze_base_view' as analyze_base_view_url %}
+{% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
 {% url 'report_base_view' as report_base_view_url %}
 
-<div class="mb-0">
-  <nav class="navbar navbar-expand-md navbar-dark bg-primary">
-    <div class="container-fluid">
-      <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-              aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <a class="navbar-brand" href="{% url 'home' %}">colander</a>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto ">
-          <li class="nav-item">
-            <a class="nav-link{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link{% if collect_base_view_url in request.path %} active {% endif %}"
-               href="{{ collect_base_view_url }}">
-              <i class="fa fa-th" aria-hidden="true"></i>
-              Collect
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"
-               href="{{ analyze_base_view_url }}">
-              <i class="fa fa-cubes" aria-hidden="true"></i>
-              Analyze
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
-               href="{{ investigate_base_view_url }}">
-              <i class="fa fa-puzzle-piece" aria-hidden="true"></i>
-              Investigate
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"
-               href="{{ report_base_view_url }}">
-              <i class="fa fa-file-text" aria-hidden="true"></i>
-              Report
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'about' %}">About</a>
-          </li>
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              {# URL provided by django-allauth/account/urls.py #}
-              <a class="nav-link" href="{% url 'users:detail' request.user.username %}">{% translate "My Profile" %}</a>
-            </li>
-            <li class="nav-item">
-              {# URL provided by django-allauth/account/urls.py #}
-              <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
-            </li>
-          {% else %}
-            {% if ACCOUNT_ALLOW_REGISTRATION %}
-              <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
-              </li>
-            {% endif %}
-            <li class="nav-item">
-              {# URL provided by django-allauth/account/urls.py #}
-              <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
-            </li>
-          {% endif %}
-        </ul>
-
-      </div>
-    </div>
-  </nav>
-  <div class="bg-secondary-light p-2 border-bottom">
-    <div class="row">
+<header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-lg-auto col-md-3 me-0 px-3" href="#">Colander</a>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+          data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+          aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <form method="post" action="{% url "quick_search_view" %}" class="w-100">
+    {% csrf_token %}
+    <input class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search">
+  </form>
+  <div class="navbar-nav">
+    <div class="nav-item text-nowrap">
       {% if request.user.is_authenticated %}
-        <div class="col-md-2 text-center">
-          Current case: <br>
-          <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
-                  data-bs-target="#caseSwitchModal">
-            <i class="nf nf-cod-arrow_swap"></i>
-            Switch
-          </button>
-        </div>
-        <div class="col">
-          {% if request.active_case %}
-            <h3>{{ request.active_case.name }}</h3>
-            <div class="small text-muted">
-              {% include "icons/id_icon.html" %}
-              {{ request.active_case.id }}
-            </div>
-            <div class="small text-muted">
-              {% include "icons/date_icon.html" %}
-              {{ request.active_case.created_at }}
-            </div>
-          {% else %}
-            No case selected, select one.
-          {% endif %}
-        </div>
+        {# URL provided by django-allauth/account/urls.py #}
+        <a class="nav-link px-3" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+      {% else %}
+        {% if ACCOUNT_ALLOW_REGISTRATION %}
+          {# URL provided by django-allauth/account/urls.py #}
+          <a id="sign-up-link" class="nav-link px-3" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
+        {% endif %}
+        {# URL provided by django-allauth/account/urls.py #}
+        <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
       {% endif %}
     </div>
-  </div>
-</div>
 
-<div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="caseSwitchModalLabel">{% translate "Switch to another case" %}</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <ul>
-          {% for case in request.user_cases %}
-            <li>
-              {{ case.name }} <a href="{% url "collect_cases_select_view" pk=case.id %}">Select</a>
-            </li>
+  </div>
+</header>
+
+
+{% block container %}
+  <div class="container-fluid justify-content-center">
+    <div class="row">
+      {% block sidebar %}
+        <nav id="sidebarMenu"
+             class="col-sm-4 col-md-3 col-lg-3 col-xl-2 col-xxl-2 d-md-block bg-light sidebar collapse"
+             style="min-width: 240px"
+        >
+          <div class="position-sticky">
+            {% if request.user.is_authenticated %}
+              <div class="text-center">
+                <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
+                        data-bs-target="#caseSwitchModal">
+                  <i class="nf nf-cod-arrow_swap"></i>
+                  Switch case
+                </button>
+              </div>
+              <div class="p-2">
+                {% if request.active_case %}
+                  <div>
+                    <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+                      {% include "icons/case_icon.html" with c="text-primary" %}
+                      {{ request.active_case.name }}
+                    </a>
+                  </div>
+                  <div class="small text-muted">
+                    {% include "icons/date_icon.html" %}
+                    {{ request.active_case.created_at }}
+                  </div>
+                {% else %}
+                  No case selected, select one.
+                {% endif %}
+              </div>
+            {% endif %}
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>Workspaces</span>
+            </h6>
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
+                  <i class="nf nf-fa-home"></i>
+                  Home
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if collect_base_view_url in request.path %} active {% endif %}"
+                   href="{{ collect_base_view_url }}">
+                  <i class="fa fa-th" aria-hidden="true"></i>
+                  Collect
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"
+                   href="{{ analyze_base_view_url }}">
+                  <i class="fa fa-cubes" aria-hidden="true"></i>
+                  Analyze
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
+                   href="{{ investigate_base_view_url }}">
+                  <i class="nf nf-fa-search" aria-hidden="true"></i>
+                  Investigate
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"
+                   href="{{ report_base_view_url }}">
+                  <i class="fa fa-file-text" aria-hidden="true"></i>
+                  Report
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'about' %}">
+                  <i class="nf nf-fa-question" aria-hidden="true"></i>
+                  About
+                </a>
+              </li>
+              {% if request.user.is_authenticated %}
+                <li class="nav-item text-nowrap">
+                  {# URL provided by django-allauth/account/urls.py #}
+                  <a class="nav-link px-3" href="{% url 'users:detail' request.user.username %}">
+                    <i class="nf nf-fa-user" aria-hidden="true"></i>
+                    {% translate "My Profile" %}
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+            {% block sidebar-items %}
+            {% endblock sidebar-items %}
+          </div>
+        </nav>
+      {% endblock sidebar %}
+    </div>
+
+
+    <main class="col-sm-8 col-md-9 col-lg-9 col-xl-10 col-xxl-10 ms-sm-auto px-md-4">
+      <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
           {% endfor %}
-        </ul>
+        {% endif %}
+        {% block content %}
+          <p>Use this document as a way to quick start any new project.</p>
+        {% endblock content %}
+      </div>
+    </main>
+
+  </div> <!-- /container -->
+{% endblock container %}
+
+
+{% block modal %}
+  <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="caseSwitchModalLabel">{% translate "Switch to another case" %}</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul>
+            {% for case in request.user_cases %}
+              <li>
+                {{ case.name }} <a href="{% url "collect_cases_select_view" pk=case.id %}">Select</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<div class="container-fluid">
-
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  {% block content %}
-    <p>Use this document as a way to quick start any new project.</p>
-  {% endblock content %}
-
-</div> <!-- /container -->
-
-{% block modal %}{% endblock modal %}
+{% endblock modal %}
 
 {% block inline_javascript %}
   {% comment %}

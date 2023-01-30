@@ -3,7 +3,7 @@
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ threat.type.nf_icon }} text-primary"></i> {{ threat.name }}</h2>
-    <div>
+    <div class="mb-3">
       {% if threat.description %}
         {{ threat.description }}
       {% else %}
@@ -19,7 +19,7 @@
   </div>
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>
-    <table class="table">
+    <table class="table table-sm">
       <tbody>
       <tr>
         <td>ID</td>
@@ -28,6 +28,15 @@
           <span class="font-monospace">
               {{ threat.id }}
             </span>
+        </td>
+      </tr>
+      <tr>
+        <td>Case</td>
+        <td>
+          {% include "icons/case_icon.html" with c="text-primary" %}
+          <a href="{% url "collect_case_details_view" pk=threat.case.id %}">
+            {{ threat.case.name }}
+          </a>
         </td>
       </tr>
       <tr>

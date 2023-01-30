@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
-from colander.core.models import Event, EventType
+from colander.core.models import Event, EventType, Observable
 from colander.core.views import get_active_case
 
 
@@ -28,6 +28,7 @@ class EventCreateView(CreateView):
     ]
 
     def get_form(self, form_class=None):
+        active_case = get_active_case(self.request)
         form = super(EventCreateView, self).get_form(form_class)
         event_types = EventType.objects.all()
         choices = [
@@ -35,6 +36,7 @@ class EventCreateView(CreateView):
             for t in event_types
         ]
         form.fields['involved_observables'].widget.attrs = {'size': 30}
+        form.fields['involved_observables'].queryset = Observable.get_user_observables(self.request.user, active_case)
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         return form

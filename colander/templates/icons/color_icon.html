@@ -1,0 +1,5 @@
+{% if elt and elt.color %}
+  <i class="fa {{ elt.icon }} {{ c }}" style="color: {{ elt.color }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type}}"></i>
+{% else %}
+  <i class="fa {{ elt.icon }} {{ c }}" style="color: #aaaaaa"></i>
+{% endif %}

@@ -1,0 +1,36 @@
+{% load static %}
+
+<pre class="mermaid text-center" id="mermaid-code" style="display: none">
+    {{ case.to_mermaid }}
+</pre>
+<div id="mermaid-output" class="text-center"></div>
+
+
+{% block inline_javascript %}
+  <script type="module">
+    import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
+    mermaid.initialize({
+      theme: 'base',
+      startOnLoad: false,
+      securityLevel: 'antiscript',
+      flowchart: {
+        curve: 'basis'
+      },
+      themeVariables: {
+        fontSize: '1em',
+        fontFamily: 'Open Sans, sans-serif',
+        edgeLabelBackground: '#ffffff',
+        primaryBorderColor: '#333333',
+        lineColor: '#999999'
+      }
+    });
+
+    $(async function () {
+      const insertSvg = function (svgCode, bindFunctions) {
+        document.getElementById('mermaid-output').innerHTML = svgCode
+    };
+    const graphDefinition = document.getElementById('mermaid-code').innerText;
+    mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
+  });
+  </script>
+{% endblock inline_javascript %}

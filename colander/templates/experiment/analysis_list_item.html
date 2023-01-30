@@ -1,0 +1,139 @@
+{% load i18n %}
+{% load colander_tags %}
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-header">
+    <div class="text-truncate">
+      <div class="h5">
+        {% if analysis.result.direction == "outbound" %}
+          <i class="nf nf-fa-sign_out text-primary" data-bs-toggle="tooltip"
+             data-bs-title="{{ analysis.result.direction }} communication"></i>
+        {% else %}
+          <i class="nf nf-fa-sign_in text-primary" data-bs-toggle="tooltip"
+             data-bs-title="{{ analysis.result.direction }} communication"></i>
+        {% endif %}
+        <samp>{{ analysis.result.src.ip }}</samp> /
+        <samp>{{ analysis.result.src.host }}</samp>
+        <i class="nf nf-fa-long_arrow_right text-primary"></i>
+        <samp>{{ analysis.result.dst.ip }}</samp> /
+        <samp>{{ analysis.result.dst.host }}</samp>
+      </div>
+      <div class="row">
+        <div class="col-md-5">
+          <div class="small">
+            <ul class="list-unstyled">
+              <li>
+                <b>Community ID</b>:
+                <samp>{{ analysis.result.community_id }}</samp>
+              </li>
+              {% if analysis.result.direction == "outbound" %}
+                <li>
+                  <b>ASN</b>: {{ analysis.result.dst.geoip.asn.asn }}
+                  (<samp>{{ analysis.result.dst.geoip.asn.ip }}</samp>) -
+                  <samp>{{ analysis.result.dst.geoip.asn.network }}</samp>
+                </li>
+                <li>
+                  <b>Organization</b>: {{ analysis.result.dst.geoip.asn.organization_name }}
+                </li>
+                <li>
+                  <b>Country</b>: {{ analysis.result.dst.geoip.country_name }} <span
+                  class="fi fi-{{ analysis.result.dst.geoip.country_iso_code|lower }} text-primary"></span>
+                  / {{ analysis.result.dst.geoip.continent_name }}
+                </li>
+              {% else %}
+                <li>
+                  <b>ASN</b>: {{ analysis.result.src.geoip.asn.asn }}
+                  (<samp>{{ analysis.result.src.geoip.asn.ip }}</samp>) -
+                  <samp>{{ analysis.result.src.geoip.asn.network }}</samp>
+                </li>
+                <li>
+                  <b>Organization</b>: {{ analysis.result.src.geoip.asn.organization_name }}
+                </li>
+                <li>
+                  <b>Country</b>: {{ analysis.result.src.geoip.country_name }} <span
+                  class="fi fi-{{ analysis.result.src.geoip.country_iso_code|lower }} text-primary"></span>
+                  / {{ analysis.result.src.geoip.continent_name }}
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="small">
+            <ul class="list-unstyled">
+              <li>
+                <b>Process name</b>:
+                <samp>{{ analysis.result.full_stack_trace.process|default:"unknown" }}</samp>
+              </li>
+              <li><b>PID</b>: {{ analysis.result.full_stack_trace.pid|default:"unknown" }}</li>
+              <li><b>Thread ID</b>: {{ analysis.result.full_stack_trace.data.thread_id|default:"unknown" }}</li>
+              <li><b>Socket FD</b>: {{ analysis.result.full_stack_trace.data.socket_fd|default:"unknown" }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-8 text-wrap border-secondary border-end">
+        <b>Headers</b>
+        <div class="small">
+          <ul class="list-unstyled">
+            {% for h, v in analysis.result.headers %}
+              <li><b><samp>{{ h }}</samp></b>: <samp>{{ v }}</samp></li>
+            {% empty %}
+              <i>no headers</i>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-4 text-wrap">
+        <b>Stack trace</b>
+        <a href="#" class="small" data-bs-toggle="modal" data-bs-target="#stack_trace_{{ analysis.analysis_id }}">
+          <i class="nf nf-fa-eye"></i> raw
+        </a>
+
+        <div class="small">
+          <ul class="list-unstyled">
+            {% for s in analysis.result.stack_trace %}
+              <li class=""><samp>{{ s }}</samp></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="modal fade" id="stack_trace_{{ analysis.analysis_id }}" tabindex="-1"
+             aria-labelledby="stack_trace_{{ analysis.analysis_id }}Label" aria-hidden="true">
+          <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="stack_trace_{{ analysis.analysis_id }}Label">Full stack trace</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <ul class="list-unstyled">
+                  {% for s in analysis.result.full_stack_trace.data.stack %}
+                    {% if s.is_external %}
+                      <li class=""><samp>{{ s.str }}</samp></li>
+                    {% else %}
+                      <li><i class="nf nf-fa-info_circle text-info" data-bs-toggle="tooltip"
+                             data-bs-title="Code defined in the app or in an SDK"></i> <samp>{{ s.str }}</samp></li>
+                    {% endif %}
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="text-wrap">
+      <b>Data</b>
+      <div class="rounded">
+        <pre class="bg-transparent"><code>{{ analysis.result.data }}</code></pre>
+      </div>
+    </div>
+  </div>
+</div>

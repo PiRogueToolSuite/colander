@@ -3,6 +3,8 @@
   {"short_name": "IPV6", "name": "IPv6", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-ethernet"},
   {"short_name": "MAC", "name": "MAC address", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-ethernet"},
   {"short_name": "DOMAIN", "name": "Domain", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "DOMAIN_REGISTRAR", "name": "Domain registrar", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "DOMAIN_REGISTRANT", "name": "Domain registrant", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
   {"short_name": "HOSTNAME", "name": "Hostname", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
   {"short_name": "EMAIL", "name": "Email address", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-email_outline"},
   {"short_name": "PHONE", "name": "Phone number", "description": "", "svg_icon": "", "nf_icon": "nf-fa-phone"},
@@ -23,5 +25,7 @@
   {"short_name": "OS_QUERY", "name": "Os query", "description": "", "svg_icon": "", "nf_icon": "nf-cod-inspect"},
   {"short_name": "SSL_CERT_F", "name": "SSL certificate fingerprint", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-certificate"},
   {"short_name": "DNS_RECORD", "name": "DNS record", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
-  {"short_name": "ASN", "name": "Autonomous system number", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"}
+  {"short_name": "ASN", "name": "Autonomous system number", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "SERVICE", "name": "Running service", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-web"},
+  {"short_name": "LOCATION", "name": "Location", "description": "", "svg_icon": "", "nf_icon": "nf-fa-globe"}
 ]

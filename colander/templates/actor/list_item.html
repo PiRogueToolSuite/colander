@@ -23,6 +23,10 @@
             {{ actor.created_at }}
           </div>
           <div class="text-tiny text-muted">
+            {% include "icons/case_icon.html" %}
+            {{ actor.case.name }}
+          </div>
+          <div class="text-tiny text-muted">
             {% include "icons/user_icon.html" %}
             {{ actor.owner }} {% if actor.owner == request.user %}(me){% endif %}
           </div>

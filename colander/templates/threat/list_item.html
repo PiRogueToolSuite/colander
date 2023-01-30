@@ -20,6 +20,10 @@
             {{ threat.created_at }}
           </div>
           <div class="text-tiny text-muted">
+            {% include "icons/case_icon.html" %}
+            {{ threat.case.name }}
+          </div>
+          <div class="text-tiny text-muted">
             {% include "icons/user_icon.html" %}
             {{ threat.owner }} {% if threat.owner == request.user %}(me){% endif %}
           </div>

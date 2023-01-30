@@ -15,7 +15,7 @@
         <div class="card-body">
           <div class="card-title">
           </div>
-          <form method="post">
+          <form method="post" autocomplete="off">
             {% csrf_token %}
             {{ form|crispy }}
             {% if is_editing %}
@@ -39,3 +39,12 @@
     </div>
   </div>
 {% endblock inner-content %}
+
+{% block inline_javascript %}
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      let input = $("input[name=name]");
+      suggest_entity(input, 'ObservableRelation')
+    });
+  </script>
+{% endblock inline_javascript %}

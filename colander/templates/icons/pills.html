@@ -1,0 +1,36 @@
+{% if elt %}
+  {% if elt.color %}
+    <i class="fa fa-circle {{ c }}" style="color: {{ elt.color }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type }}"></i>
+  {% else %}
+    <i class="fa fa-circle {{ c }}" style="color: #aaaaaa"></i>
+  {% endif %}
+  {% if elt.tlp == "WHITE" or elt.tlp == "CLEAR" %}
+    <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="TLP:CLEAR"></i>
+  {% elif elt.tlp == "GREEN" %}
+    <i class="fa fa-circle text-success {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="TLP:GREEN"></i>
+  {% elif elt.tlp == "AMBER" %}
+    <i class="fa fa-circle text-warning {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="TLP:AMBER"></i>
+  {% elif elt.tlp == "RED" %}
+    <i class="fa fa-circle text-danger {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="TLP:RED"></i>
+  {% else %}
+    <i class="fa fa-circle text-muted {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="No TLP"></i>
+  {% endif %}
+  {% if elt.pap == "WHITE" or elt.pap == "CLEAR" %}
+    <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="PAP:CLEAR"></i>
+  {% elif elt.pap == "GREEN" %}
+    <i class="fa fa-circle text-success {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="PAP:GREEN"></i>
+  {% elif elt.pap == "AMBER" %}
+    <i class="fa fa-circle text-warning {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="PAP:AMBER"></i>
+  {% elif elt.pap == "RED" %}
+    <i class="fa fa-circle text-danger {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="PAP:RED"></i>
+  {% else %}
+    <i class="fa fa-circle text-muted {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top" title="No PAP"></i>
+  {% endif %}
+
+  {% if elt.associated_threat %}
+    <i class="fa fa-circle text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Malicious"></i>
+  {% else %}
+    <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="No threat"></i>
+  {% endif %}
+  <i class="fa {{ r.icon }} text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type }}"></i>
+{% endif %}

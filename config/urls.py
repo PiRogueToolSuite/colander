@@ -8,13 +8,16 @@ from django.views.i18n import JavaScriptCatalog
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from colander.core.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView
-from colander.core.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView
+from colander.core.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
+    download_artifact_signature
 from colander.core.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView
+from colander.core.enrich_view import enrich_observable
+from colander.core.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, PiRogueExperimentDetailsView
 from colander.core.obversable_views import ObservableCreateView, ObservableRelationCreateView, ObservableUpdateView, \
     ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView
-from colander.core.views import collect_base_view, analyze_base_view, investigate_base_view, \
+from colander.core.views import collect_base_view, investigate_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
-    CaseUpdateView
+    CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key
 from colander.core.event_views import EventCreateView, EventUpdateView, EventDetailsView
 from colander.core.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView
 
@@ -35,6 +38,8 @@ urlpatterns = [
       # path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
       # Your stuff: custom urls includes go here
 
+      path("quick_search/", quick_search, name='quick_search_view'),
+
       path("collect/", collect_base_view, name="collect_base_view"),
       path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
       path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
@@ -42,11 +47,15 @@ urlpatterns = [
 
       path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
       path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
+      path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
       path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
+      path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
 
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
       path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
       path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
+      path("collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
+      path("collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
 
       path("collect/device", DeviceCreateView.as_view(), name="collect_device_create_view"),
       path("collect/device/<slug:pk>", DeviceUpdateView.as_view(), name="collect_device_update_view"),
@@ -68,7 +77,14 @@ urlpatterns = [
       path("collect/threat/<slug:pk>", ThreatUpdateView.as_view(), name="collect_threat_update_view"),
       path("collect/threat/<slug:pk>/details", ThreatDetailsView.as_view(), name="collect_threat_details_view"),
 
-      path("analyze/", analyze_base_view, name="analyze_base_view"),
+      path("collect/experiment", PiRogueExperimentCreateView.as_view(), name="collect_experiment_create_view"),
+      path("collect/experiment/<slug:pk>", PiRogueExperimentUpdateView.as_view(), name="collect_experiment_update_view"),
+      path("collect/experiment/<slug:pk>/details", PiRogueExperimentDetailsView.as_view(), name="collect_experiment_details_view"),
+
+      path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
+
+      path("entity/<str:type>/<str:value>", entity_exists, name="entity_exists_view"),
+
       path("investigate/", investigate_base_view, name="investigate_base_view"),
       path("report/", report_base_view, name="report_base_view"),
 

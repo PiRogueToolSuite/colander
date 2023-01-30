@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block content %}
+
+{% block sidebar-items %}
   {% url 'collect_case_create_view' as collect_cases_view_url %}
   {% url 'collect_actor_create_view' as collect_actor_view_url %}
   {% url 'collect_device_create_view' as collect_device_view_url %}
@@ -9,90 +11,125 @@
   {% url 'collect_observable_create_view' as collect_observable_create_view_url %}
   {% url 'collect_relation_create_view' as collect_relation_create_view_url %}
   {% url 'collect_threat_create_view' as collect_threat_create_view_url %}
-  <div class="row">
-    <div class="col-md-2 bg-secondary-light border-end">
-      <div class="mt-2">Knowledge</div>
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
-             href="{{ collect_cases_view_url }}">
-            {% include "icons/case_icon.html" %}
-            Cases
+  {% url 'collect_experiment_create_view' as collect_experiment_create_view_url %}
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+    <span>Knowledge</span>
+  </h6>
+  <ul class="nav flex-column mb-2">
+    <li class="nav-item">
+      <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
+         href="{{ collect_cases_view_url }}">
+        {% include "icons/case_icon.html" %}
+        Cases
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_actor_view_url in request.path %} active {% endif %}" href="{{ collect_actor_view_url }}">
+        {% include "icons/actor_icon.html" %}
+        Actors
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_artifact_view_url in request.path %} active {% endif %}" href="{{ collect_artifact_view_url }}">
+        {% include "icons/artifact_icon.html" %}
+        Artifacts
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_device_view_url in request.path %} active {% endif %}" href="{{ collect_device_view_url }}">
+        {% include "icons/device_icon.html" %}
+        Devices
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_event_view_url in request.path %} active {% endif %}" href="{{ collect_event_view_url }}">
+        {% include "icons/event_icon.html" %}
+        Events
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_observable_create_view_url in request.path %} active {% endif %}" href="{{ collect_observable_create_view_url }}">
+        {% include "icons/observable_icon.html" %}
+        Observables
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_relation_create_view_url in request.path %} active {% endif %}" href="{{ collect_relation_create_view_url }}">
+        {% include "icons/relation_icon.html" %}
+        Relations
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_threat_create_view_url in request.path %} active {% endif %}" href="{{ collect_threat_create_view_url }}">
+        {% include "icons/threat_icon.html" %}
+        Threats
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link{% if collect_experiment_create_view_url in request.path %} active {% endif %}"
+         href="{{ collect_experiment_create_view_url }}">
+        {% include "icons/experiment_icon.html" %}
+        PiRogue experiment
+      </a>
+    </li>
+  </ul>
+{% endblock sidebar-items %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <h2>{{ request.active_case.name }}</h2>
+        <table class="table table-sm">
+      <tbody>
+      <tr>
+        <td>ID</td>
+        <td>
+          {% include "icons/id_icon.html" with c="text-primary" %}
+          <span class="font-monospace">
+              {{ request.active_case.id }}
+            </span>
+        </td>
+      </tr>
+      <tr>
+        <td>Case</td>
+        <td>
+          {% include "icons/case_icon.html" with c="text-primary" %}
+          <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+            {{ request.active_case.name }}
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_actor_view_url }}">
-            {% include "icons/actor_icon.html" %}
-            Actors
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_artifact_view_url }}">
-            {% include "icons/artifact_icon.html" %}
-            Artifacts
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_device_view_url }}">
-            {% include "icons/device_icon.html" %}
-            Devices
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_event_view_url }}">
-            {% include "icons/event_icon.html" %}
-            Events
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_observable_create_view_url }}">
-            {% include "icons/observable_icon.html" %}
-            Observables
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_relation_create_view_url }}">
-            {% include "icons/relation_icon.html" %}
-            Relations
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_threat_create_view_url }}">
-            {% include "icons/threat_icon.html" %}
-            Threats
-          </a>
-        </li>
-      </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Owner</td>
+        <td>
+          {% include "icons/user_icon.html" with c="text-primary" %}
+          {{ request.active_case.owner }}
+        </td>
+      </tr>
+      <tr>
+        <td>Created at</td>
+        <td>
+          {% include "icons/date_icon.html" with c="text-primary" %}
+          {{ request.active_case.created_at }}
+        </td>
+      </tr>
+      <tr>
+        <td>Description</td>
+        <td>
+          {{ request.active_case.description }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+      </div>
     </div>
-    <div class="col-md-10">
-      {% block inner-content %}
-        <div class="row justify-content-center row-cols-1 row-cols-md-5 g-4">
-          <div class="col">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h1 class="card-title text-primary">{{ cases|length }}</h1>
-                <p class="card-text text-secondary">Cases</p>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h1 class="card-title text-primary">{{ evidences|length }}</h1>
-                <p class="card-text text-secondary">Evidences</p>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h1 class="card-title text-primary">{{ observables|length }}</h1>
-                <p class="card-text text-secondary">Observables</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endblock inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <h3>Graph view</h3>
+        {% include "case/graph.html" with case=request.active_case %}
+      </div>
     </div>
-  </div>
+  {% endblock inner-content %}
 {% endblock content %}
+

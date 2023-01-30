@@ -3,23 +3,18 @@
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ observable.type.nf_icon }} text-primary"></i> {{ observable.value }}</h2>
-    <div>
+    <div class="mb-3">
       {% if observable.description %}
         {{ observable.description }}
       {% else %}
         {% translate "No description" %}
       {% endif %}
     </div>
-    <div class="btn-group" role="group">
-      <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
-    </div>
+    {% include "observable/controls.html" with exclude="details" %}
   </div>
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>
-    <table class="table">
+    <table class="table table-sm">
       <tbody>
       <tr>
         <td>ID</td>
@@ -34,7 +29,7 @@
         <td>Case</td>
         <td>
           {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="#">
+          <a href="{% url "collect_case_details_view" pk=observable.case.id %}">
             {{ observable.case.name }}
           </a>
         </td>
@@ -78,12 +73,12 @@
         <td>
           {% if observable.extracted_from %}
             <i class="nf {{ observable.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="#">
+            <a href="{% url "collect_artifact_details_view" pk=observable.extracted_from.id %}">
               {{ observable.extracted_from.original_name }}
             </a>
             ({{ observable.extracted_from.type }})
           {% else %}
-            {% translate "No observable specified" %}
+            {% translate "No artifact specified" %}
           {% endif %}
         </td>
       </tr>
@@ -106,7 +101,7 @@
         <td>
           {% if observable.associated_threat %}
             <i class="nf {{ observable.associated_threat.type.nf_icon }} text-primary"></i>
-            <a href="#">
+            <a href="{% url "collect_threat_details_view" pk=observable.associated_threat_id %}">
               {{ observable.associated_threat.name }}
             </a>
             ({{ observable.associated_threat.type }})
@@ -120,7 +115,7 @@
         <td>
           {% if observable.operated_by %}
             <i class="nf {{ observable.operated_by.type.nf_icon }} text-primary"></i>
-            <a href="#">
+            <a href="{% url "collect_actor_details_view" pk=observable.operated_by_id %}">
               {{ observable.operated_by.name }}
             </a>
             ({{ observable.operated_by.type }})
@@ -134,6 +129,32 @@
   </div>
 
   {% include "helpers/extra_attributes.html" with attributes=observable.attributes %}
+
+  {% with targets=observable.relation_targets.all origins=observable.relation_origins.all %}
+    {% if origins or targets %}
+      <div class="col-md-12 mt-2">
+        <h3>{% translate "Related observables" %}</h3>
+        <table class="table table-sm">
+          <thead class="bg-secondary-light">
+          <tr>
+            <td>Type</td>
+            <td>Observable</td>
+            <td>Creation date</td>
+            <td></td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for relation in origins %}
+            {% include "observable_relation/table_item.html" with direction="to" %}
+          {% endfor %}
+          {% for relation in targets %}
+            {% include "observable_relation/table_item.html" with direction="from" %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <div class="col-md-12 mt-2">
     <h3>{% translate "Events" %}</h3>

@@ -1,0 +1,17 @@
+{% load i18n %}
+
+
+<div class="btn-group" role="group">
+  {% if "details" not in exclude %}
+  <a href="{% url "collect_relation_details_view" pk=relation.id %}" class="btn btn-primary {{ btn_class }}">
+    <i class="nf nf-fa-eye"></i>
+    {% translate "Details" %}
+  </a>
+  {% endif %}
+  {% if "edit" not in exclude %}
+  <a href="{% url "collect_relation_update_view" pk=relation.id %}" class="btn btn-primary {{ btn_class }}">
+    <i class="nf nf-fa-edit"></i>
+    {% translate "Edit" %}
+  </a>
+  {% endif %}
+</div>

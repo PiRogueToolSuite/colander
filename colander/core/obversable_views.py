@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
-from colander.core.models import Observable, ObservableRelation, ObservableType
+from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact
 from colander.core.views import get_active_case
 
 
@@ -39,6 +39,7 @@ class ObservableCreateView(CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['extracted_from'].queryset = Artifact.get_user_artifacts(self.request.user, self.request.session.get('active_case'))
         return form
 
     def form_valid(self, form):
@@ -82,8 +83,11 @@ class ObservableRelationCreateView(CreateView):
     ]
 
     def get_form(self, form_class=None):
+        observable_qset = Observable.get_user_observables(self.request.user, self.request.session.get('active_case'))
         form = super(ObservableRelationCreateView, self).get_form(form_class)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['observable_from'].queryset = observable_qset
+        form.fields['observable_to'].queryset = observable_qset
         return form
 
     def form_valid(self, form):

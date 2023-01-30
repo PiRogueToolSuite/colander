@@ -14,6 +14,7 @@
   {"short_name": "MOBILE_TROJAN", "name": "Mobile Trojan", "description": "", "svg_icon": "", "nf_icon": ""},
   {"short_name": "POS_MALWARE", "name": "Point-of-sale Malware", "description": "", "svg_icon": "", "nf_icon": ""},
   {"short_name": "RANSOMWARE", "name": "Ransomware", "description": "", "svg_icon": "", "nf_icon": ""},
+  {"short_name": "PHISHING", "name": "Phishing", "description": "", "svg_icon": "", "nf_icon": ""},
   {"short_name": "STALKERWARE", "name": "Stalkerware", "description": "", "svg_icon": "", "nf_icon": ""},
   {"short_name": "WATCHWARE", "name": "Watchware", "description": "", "svg_icon": "", "nf_icon": ""},
   {"short_name": "MALWARE", "name": "Malware", "description": "", "svg_icon": "", "nf_icon": ""},

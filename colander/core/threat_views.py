@@ -34,16 +34,16 @@ class ThreatCreateView(CreateView):
     def form_valid(self, form):
         active_case = get_active_case(self.request)
         if form.is_valid() and active_case:
-            event = form.save(commit=False)
-            event.owner = self.request.user
-            event.case = active_case
-            event.save()
+            threat = form.save(commit=False)
+            threat.owner = self.request.user
+            threat.case = active_case
+            threat.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['threats'] = Threat.objects.all()
+        ctx['threats'] = Threat.get_user_threats(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = False
         return ctx
 
@@ -51,7 +51,7 @@ class ThreatCreateView(CreateView):
 class ThreatUpdateView(ThreatCreateView, UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['threats'] = Threat.objects.all()
+        ctx['threats'] = Threat.get_user_threats(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
 

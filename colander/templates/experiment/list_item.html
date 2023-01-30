@@ -1,0 +1,45 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-12 text-truncate">
+        <div class="border-bottom border-secondary">
+          {% include "icons/experiment_icon.html" with c="h4 text-primary" %}
+          <a class="h4" href="{% url "collect_experiment_details_view" pk=experiment.id %}">
+            {{ experiment.name }}
+          </a>
+          <div class="text-muted small">
+            {{ experiment.type.name }}
+          </div>
+        </div>
+        <div>
+          <div class="text-tiny font-monospace text-muted mt-1">
+            {% include "icons/id_icon.html" %}{{ experiment.id }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/date_icon.html" %}
+            {{ experiment.created_at }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/user_icon.html" %}
+            {{ experiment.owner }} {% if experiment.owner == request.user %}(me){% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    <div class="btn-group" role="group" aria-label="Basic example">
+      <a href="{% url "collect_experiment_details_view" pk=experiment.id %}" class="btn btn-primary">
+        <i class="nf nf-fa-eye"></i>
+        {% translate "Details" %}
+      </a>
+      <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">
+        <i class="nf nf-fa-edit"></i>
+        {% translate "Edit" %}
+      </a>
+    </div>
+  </div>
+</div>

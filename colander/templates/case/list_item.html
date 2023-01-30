@@ -7,7 +7,7 @@
       <div class="col-md-12 text-truncate">
         <div class="border-bottom border-secondary">
           {% include "icons/case_icon.html" with c="h4 text-primary" %}
-          <a class="h4" href="#">
+          <a class="h4" href="{% url "collect_case_details_view" pk=case.id %}">
             {{ case.name }}
           </a>
           <div class="text-muted small">
@@ -32,7 +32,7 @@
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
     <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="#" class="btn btn-primary">
+      <a href="{% url "collect_case_details_view" pk=case.id %}" class="btn btn-primary">
         <i class="nf nf-fa-eye"></i>
         {% translate "Details" %}
       </a>

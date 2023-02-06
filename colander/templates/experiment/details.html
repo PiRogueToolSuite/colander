@@ -142,5 +142,6 @@
     {% empty %}
       {% translate "No comment" %}
     {% endfor %}
+    {% include "comment/form.html" with elt_id=experiment.id %}
   </div>
 </div>

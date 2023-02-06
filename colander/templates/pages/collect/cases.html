@@ -5,6 +5,19 @@
 
 {% block inner-content %}
   <div class="row justify-content-center">
+    {% if not request.active_case %}
+      <div class="col-md-4 mt-5">
+        <div class="card border-warning">
+          <div class="card-body">
+            <h3 class="card-title">
+              <i class="nf nf-fa-warning text-warning"></i> No case selected
+            </h3>
+            You have not selected a case yet. Create a new one or select one from the list below.
+          </div>
+        </div>
+      </div>
+      <div class="col"></div>
+    {% endif %}
     <div class="col-md-6 mt-2">
       {% if is_editing %}
         <h2>{% translate "Edit this case" %}</h2>
@@ -29,12 +42,12 @@
   <div class="row justify-content-center">
     <div class="col-md-12">
       <h2>{% translate "Latest cases" %}</h2>
-        {% if cases %}
-          {% for case in cases %}
-            {% include "case/list_item.html" %}
-          {% endfor %}
-        {% endif %}
-      </div>
+      {% if cases %}
+        {% for case in cases %}
+          {% include "case/list_item.html" %}
+        {% endfor %}
+      {% endif %}
+    </div>
   </div>
 {% endblock inner-content %}
 

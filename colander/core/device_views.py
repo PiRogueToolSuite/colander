@@ -1,13 +1,15 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import CommentForm
 from colander.core.models import Device, DeviceType
-from colander.core.views import get_active_case
+from colander.core.views import get_active_case, CaseRequiredMixin
 
 
-class DeviceCreateView(CreateView):
+class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = Device
     template_name = 'pages/collect/devices.html'
     success_url = reverse_lazy('collect_device_create_view')
@@ -57,6 +59,11 @@ class DeviceUpdateView(DeviceCreateView, UpdateView):
         return ctx
 
 
-class DeviceDetailsView(DetailView):
+class DeviceDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Device
     template_name = 'pages/collect/device_details.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx

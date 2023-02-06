@@ -145,6 +145,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "colander.core.middlewares.ActiveCaseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
 ]
 
 # STATIC

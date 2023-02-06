@@ -530,7 +530,7 @@ class Device(CommonModel, CaseRelated):
     def get_user_devices(user, case=None):
         if case:
             return Device.objects.filter(case=case)
-        return Device.objects.all()
+        return []
 
 
 class Artifact(CommonModel, CaseRelated):

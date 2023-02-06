@@ -1,0 +1,24 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% if comment_form %}
+  <div class="card bg-secondary-light mt-4">
+    <div class="card-body">
+      <h5>Add new comment</h5>
+      <form method="post" action="{% url "create_comment_view" %}" class="row align-items-end g-2">
+        {% csrf_token %}
+        <div class="col">
+          <small id="hint_id_content" class="form-text text-muted">Write your comment and click on save.</small>
+          <textarea name="content" cols="20" rows="4" class="textarea form-control" required="" id="id_content"
+                    data-lt-tmp-id="lt-620893" spellcheck="false" data-gramm="false"></textarea>
+          <input type="hidden" value="{{ elt_id }}" name="commented_object">
+        </div>
+        <div class="col-md-1 text-center">
+          <button class="btn btn-primary" type="submit">{% translate "Save" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+{% endif %}

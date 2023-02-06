@@ -1,5 +1,21 @@
+from django.shortcuts import redirect
+
 from colander.core.models import Case
 
+
+class ActiveCaseMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        # One-time configuration and initialization.
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
+    # def process_view(self, request, view_func, view_args, view_kwargs):
+    #     print(view_func)
+    #     if not request.session.get('active_case'):
+    #         return redirect('collect_case_create_view')
 
 def active_case(request):
     active_case = None

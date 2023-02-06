@@ -2,22 +2,53 @@
 
 
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
-  <div class="card-body p-2">
-    <div class="row">
-      <div class="col-md-12 text-truncate">
-        <div class="">
-          <p class="text-wrap">
-            {% include "icons/comment_icon.html" with c="h4 text-primary" %}
-            {{ comment.content }}
-          </p>
-        </div>
+  <div class="card-body p-2 ">
+    <p class="text-wrap mb-0 comment-content-{{ comment.id }}">
+      {% include "icons/comment_icon.html" with c="h4 text-primary" %}
+      {{ comment.content }}
+    </p>
+    <form method="post" class="edit-comment-form-{{ comment.id }} text-center"
+          action="{% url "update_comment_view" pk=comment.id %}"
+          style="display: none">
+      {% csrf_token %}
+      <textarea name="content" cols="20" rows="4"
+                class="textarea form-control"
+                required="" data-gramm="false">{{ comment.content }}</textarea>
+      <div class="mt-1">
+        <button comment-id="{{ comment.id }}" class="btn btn-primary cancel-comment-edit-btn">Cancel</button>
+        <button class="btn btn-primary" type="submit">Save</button>
       </div>
+    </form>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 small text-muted row">
+    <div class="col">
+      {% include "icons/user_icon.html" %}
+      {{ comment.owner }} {% if comment.owner == request.user %}(me){% endif %}
+      {% include "icons/date_icon.html" %}
+      {{ comment.created_at }}
+    </div>
+    <div class="col-md-2 text-end btn-group" role="group">
+      <a href="#" comment-id="{{ comment.id }}" class="update-comment-btn btn btn-sm btn-primary text-white">
+        <i class="nf nf-fa-pencil"></i>
+        Edit
+      </a>
+      <a href="{% url "delete_comment_view" pk=comment.id %}" class="delete-comment-btn btn btn-sm btn-primary text-white">
+        <i class="nf nf-fa-trash"></i>
+        Delete
+      </a>
     </div>
   </div>
-  <div class="card-footer bg-transparent border-secondary m-0 p-1 small text-muted">
-    {% include "icons/user_icon.html" %}
-    {{ comment.owner }} {% if comment.owner == request.user %}(me){% endif %}
-    {% include "icons/date_icon.html" %}
-    {{ comment.created_at }}
-  </div>
 </div>
+
+
+
+{#{% block vue_javascript %}#}
+{#  <script>#}
+{#    $(function () {#}
+{#      var app = new Vue({#}
+{#        el: '#myApp',#}
+{#        delimiters: ['[[', ']]'],#}
+{#      });#}
+{#    });#}
+{#  </script>#}
+{#{% endblock vue_javascript %}#}

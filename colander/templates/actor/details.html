@@ -99,5 +99,6 @@
     {% empty %}
       {% translate "No comment" %}
     {% endfor %}
+    {% include "comment/form.html" with elt_id=actor.id %}
   </div>
 </div>

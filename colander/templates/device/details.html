@@ -114,5 +114,6 @@
     {% empty %}
       {% translate "No comment" %}
     {% endfor %}
+    {% include "comment/form.html" with elt_id=device.id %}
   </div>
 </div>

@@ -1,14 +1,15 @@
-from django.forms.widgets import Textarea, RadioSelect
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import CommentForm
 from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact
-from colander.core.views import get_active_case
+from colander.core.views import get_active_case, CaseRequiredMixin
 
 
-class ObservableCreateView(CreateView):
+class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = Observable
     template_name = 'pages/collect/observables.html'
     success_url = reverse_lazy('collect_observable_create_view')
@@ -39,7 +40,8 @@ class ObservableCreateView(CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
-        form.fields['extracted_from'].queryset = Artifact.get_user_artifacts(self.request.user, self.request.session.get('active_case'))
+        form.fields['extracted_from'].queryset = Artifact.get_user_artifacts(self.request.user,
+                                                                             self.request.session.get('active_case'))
         return form
 
     def form_valid(self, form):
@@ -64,12 +66,17 @@ class ObservableUpdateView(ObservableCreateView, UpdateView):
         return ctx
 
 
-class ObservableDetailsView(DetailView):
+class ObservableDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Observable
     template_name = 'pages/collect/observable_details.html'
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx
 
-class ObservableRelationCreateView(CreateView):
+
+class ObservableRelationCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = ObservableRelation
     template_name = 'pages/collect/relations.html'
     success_url = reverse_lazy('collect_relation_create_view')
@@ -117,7 +124,12 @@ class ObservableRelationUpdateView(ObservableRelationCreateView, UpdateView):
         return ctx
 
 
-class ObservableRelationDetailsView(DetailView):
+class ObservableRelationDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = ObservableRelation
     context_object_name = 'relation'
     template_name = 'pages/collect/relation_details.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx

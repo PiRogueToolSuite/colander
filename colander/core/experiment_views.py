@@ -1,13 +1,13 @@
-from django.forms.widgets import Textarea, RadioSelect
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import CommentForm
 from colander.core.models import PiRogueExperiment, Artifact
-from colander.core.views import get_active_case
+from colander.core.views import get_active_case, CaseRequiredMixin
 
 
-class PiRogueExperimentCreateView(CreateView):
+class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = PiRogueExperiment
     template_name = 'pages/collect/experiments.html'
     success_url = reverse_lazy('collect_experiment_create_view')
@@ -41,7 +41,8 @@ class PiRogueExperimentCreateView(CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user, self.request.session.get('active_case'))
+        ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user,
+                                                                      self.request.session.get('active_case'))
         ctx['is_editing'] = False
         return ctx
 
@@ -49,12 +50,18 @@ class PiRogueExperimentCreateView(CreateView):
 class PiRogueExperimentUpdateView(PiRogueExperimentCreateView, UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user, self.request.session.get('active_case'))
+        ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user,
+                                                                      self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
 
 
-class PiRogueExperimentDetailsView(DetailView):
+class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = PiRogueExperiment
     template_name = 'pages/collect/experiment_details.html'
     context_object_name = 'experiment'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx

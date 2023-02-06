@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 
 import magic
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.http import HttpResponse
 from django.urls import reverse_lazy
@@ -10,12 +11,13 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 from nacl.encoding import Base64Encoder
 
+from colander.core.forms import CommentForm
 from colander.core.models import Artifact, ArtifactType
 from colander.core.utils import hash_file
-from colander.core.views import get_active_case
+from colander.core.views import get_active_case, CaseRequiredMixin
 
 
-class ArtifactCreateView(CreateView):
+class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = Artifact
     template_name = 'pages/collect/artifacts.html'
     success_url = reverse_lazy('collect_artifact_create_view')
@@ -74,7 +76,7 @@ class ArtifactCreateView(CreateView):
         return form
 
 
-class ArtifactUpdateView(UpdateView):
+class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
     model = Artifact
     template_name = 'pages/collect/artifacts.html'
     success_url = reverse_lazy('collect_artifact_create_view')
@@ -105,9 +107,14 @@ class ArtifactUpdateView(UpdateView):
         return ctx
 
 
-class ArtifactDetailsView(DetailView):
+class ArtifactDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Artifact
     template_name = 'pages/collect/artifact_details.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx
 
 @login_required
 def download_artifact(request, pk):

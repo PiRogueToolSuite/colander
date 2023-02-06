@@ -10,6 +10,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from colander.core.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView
 from colander.core.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
     download_artifact_signature
+from colander.core.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
 from colander.core.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView
 from colander.core.enrich_view import enrich_observable
 from colander.core.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, PiRogueExperimentDetailsView
@@ -87,6 +88,10 @@ urlpatterns = [
 
       path("investigate/", investigate_base_view, name="investigate_base_view"),
       path("report/", report_base_view, name="report_base_view"),
+
+      path("comment/", create_comment_view, name="create_comment_view"),
+      path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),
+      path("comment/<slug:pk>/delete", delete_comment_view, name="delete_comment_view"),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

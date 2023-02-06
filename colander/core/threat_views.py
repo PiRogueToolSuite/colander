@@ -1,13 +1,15 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import CommentForm
 from colander.core.models import Threat, ThreatType
-from colander.core.views import get_active_case
+from colander.core.views import get_active_case, CaseRequiredMixin
 
 
-class ThreatCreateView(CreateView):
+class ThreatCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = Threat
     template_name = 'pages/collect/threats.html'
     success_url = reverse_lazy('collect_threat_create_view')
@@ -56,6 +58,11 @@ class ThreatUpdateView(ThreatCreateView, UpdateView):
         return ctx
 
 
-class ThreatDetailsView(DetailView):
+class ThreatDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Threat
     template_name = 'pages/collect/threat_details.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx

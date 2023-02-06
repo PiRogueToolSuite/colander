@@ -1,13 +1,15 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import CommentForm
 from colander.core.models import Event, EventType, Observable
-from colander.core.views import get_active_case
+from colander.core.views import get_active_case, CaseRequiredMixin
 
 
-class EventCreateView(CreateView):
+class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = Event
     template_name = 'pages/collect/events.html'
     success_url = reverse_lazy('collect_event_create_view')
@@ -66,6 +68,11 @@ class EventUpdateView(EventCreateView, UpdateView):
         return ctx
 
 
-class EventDetailsView(DetailView):
+class EventDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Event
     template_name = 'pages/collect/event_details.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['comment_form'] = CommentForm()
+        return ctx

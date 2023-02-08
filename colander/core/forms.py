@@ -1,6 +1,6 @@
 from django import forms
 
-from colander.core.models import Case, Comment
+from colander.core.models import Case, Comment, ObservableType
 
 
 class CaseForm(forms.ModelForm):
@@ -37,3 +37,8 @@ class CommentForm(forms.ModelForm):
         if connected_user:
             self.instance.owner = connected_user
 
+
+class InvestigateSearchForm(forms.Form):
+    types = [(t.short_name, t.name) for t in ObservableType.objects.all()]
+    type = forms.ChoiceField(choices=types)
+    value = forms.CharField(max_length=128)

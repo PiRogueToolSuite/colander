@@ -146,10 +146,5 @@ def quick_search(request):
 
 
 @login_required
-def investigate_base_view(request):
-    return render(request, 'pages/collect/base.html')
-
-
-@login_required
 def report_base_view(request):
     return render(request, 'pages/collect/base.html')

@@ -12,13 +12,18 @@
       {% endif %}
     </div>
     <div class="btn-group" role="group">
+      <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary">
+        <i class="nf nf-mdi-key_remove"></i>
+        {% translate "Decrypt" %}
+      </a>
       <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>
     </div>
   </div>
-  <div class="col-md-12 mt-2">
+
+  <div class="col mt-2">
     <h3>{% translate "Details" %}</h3>
     <table class="table table-sm">
       <tbody>
@@ -110,6 +115,20 @@
         </td>
       </tr>
       <tr>
+        <td>Screencast</td>
+        <td>
+          {% if experiment.sslkeylog %}
+            <i class="nf {{ experiment.screencast.type.nf_icon }} text-primary"></i>
+            <a href="{% url "collect_artifact_details_view" pk=experiment.sslkeylog.id %}">
+              {{ experiment.screencast.original_name }}
+            </a>
+            ({{ experiment.screencast.type }})
+          {% else %}
+            {% translate "No screencast file specified" %}
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
         <td>Socket activity</td>
         <td>
           {% if experiment.socket_trace %}
@@ -126,14 +145,18 @@
       </tbody>
     </table>
   </div>
+  {% if experiment.screencast %}
+    <div class="col-md-3 mt-5 text-end">
+      <video width="240" height="320" controls>
+        <source src="{% url "collect_artifact_download_view" pk=experiment.screencast.id %}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  {% endif %}
+</div>
 
+<div class="row justify-content-center">
   {% include "helpers/extra_attributes.html" with attributes=experiment.attributes %}
-
-  <div class="col-md-12 mt-2">
-    {% for a in experiment.analysis %}
-      {% include "experiment/analysis_list_item.html" with analysis=a %}
-    {% endfor %}
-  </div>
 
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
@@ -143,5 +166,12 @@
       {% translate "No comment" %}
     {% endfor %}
     {% include "comment/form.html" with elt_id=experiment.id %}
+  </div>
+
+  <div class="col-md-12 mt-2">
+    <h3>{% translate "Decrypted traffic" %}</h3>
+    {% for a in experiment.analysis %}
+      {% include "experiment/analysis_list_item.html" with analysis=a %}
+    {% endfor %}
   </div>
 </div>

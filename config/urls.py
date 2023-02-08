@@ -13,10 +13,12 @@ from colander.core.artifact_views import ArtifactDetailsView, ArtifactCreateView
 from colander.core.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
 from colander.core.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView
 from colander.core.enrich_view import enrich_observable
-from colander.core.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, PiRogueExperimentDetailsView
+from colander.core.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
+    PiRogueExperimentDetailsView, start_decryption
+from colander.core.investigate_views import investigate_search_view
 from colander.core.obversable_views import ObservableCreateView, ObservableRelationCreateView, ObservableUpdateView, \
     ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView
-from colander.core.views import collect_base_view, investigate_base_view, \
+from colander.core.views import collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key
 from colander.core.event_views import EventCreateView, EventUpdateView, EventDetailsView
@@ -81,12 +83,13 @@ urlpatterns = [
       path("collect/experiment", PiRogueExperimentCreateView.as_view(), name="collect_experiment_create_view"),
       path("collect/experiment/<slug:pk>", PiRogueExperimentUpdateView.as_view(), name="collect_experiment_update_view"),
       path("collect/experiment/<slug:pk>/details", PiRogueExperimentDetailsView.as_view(), name="collect_experiment_details_view"),
+      path("collect/experiment/<slug:pk>/decrypt", start_decryption, name="collect_experiment_decryption_view"),
 
       path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
 
       path("entity/<str:type>/<str:value>", entity_exists, name="entity_exists_view"),
 
-      path("investigate/", investigate_base_view, name="investigate_base_view"),
+      path("investigate/", investigate_search_view, name="investigate_base_view"),
       path("report/", report_base_view, name="report_base_view"),
 
       path("comment/", create_comment_view, name="create_comment_view"),

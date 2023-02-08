@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
-from colander.core.models import Event, EventType, Observable
+from colander.core.models import Event, EventType, Observable, Artifact, Device, DetectionRule
 from colander.core.views import get_active_case, CaseRequiredMixin
 
 
@@ -31,6 +31,10 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         active_case = get_active_case(self.request)
+        observable_qset = Observable.get_user_observables(self.request.user, active_case)
+        artifact_qset = Artifact.get_user_artifacts(self.request.user, active_case)
+        devices_qset = Device.get_user_devices(self.request.user, active_case)
+        rules_qset = DetectionRule.get_user_detection_rules(self.request.user, active_case)
         form = super(EventCreateView, self).get_form(form_class)
         event_types = EventType.objects.all()
         choices = [
@@ -38,7 +42,10 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
             for t in event_types
         ]
         form.fields['involved_observables'].widget.attrs = {'size': 30}
-        form.fields['involved_observables'].queryset = Observable.get_user_observables(self.request.user, active_case)
+        form.fields['involved_observables'].queryset = observable_qset
+        form.fields['extracted_from'].queryset = artifact_qset
+        form.fields['observed_on'].queryset = devices_qset
+        form.fields['detected_by'].queryset = rules_qset
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         return form

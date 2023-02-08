@@ -1,66 +1,61 @@
 {% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load colander_tags %}
 
 {% block content %}
-  {% url 'collect_cases_create_view' as collect_cases_view_url %}
-  {% url 'collect_evidence_create_view' as collect_evidence_view_url %}
-  <div class="row">
-    <div class="col-md-2">
-      <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
-             href="{{ collect_cases_view_url }}">
-            {% include "icons/case_icon.html" %}
-            Cases
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">
-            {% include "icons/observable_icon.html" %}
-            Observables
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ collect_evidence_view_url }}">
-            {% include "icons/evidence_icon.html" %}
-            Evidences
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">
-            Events
-          </a>
-        </li>
-      </ul>
-    </div>
-    <div class="col-md-10">
-      {% block inner-content %}
-        <div class="row justify-content-center row-cols-1 row-cols-md-5 g-4">
-          <div class="col">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h1 class="card-title text-primary">{{ cases|length }}</h1>
-                <p class="card-text text-secondary">Cases</p>
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <div class="card mb-4 bg-secondary-light">
+          <div class="card-body">
+            <form method="post" autocomplete="off">
+              {% csrf_token %}
+              <div class="row justify-content-center">
+                <div class="col-md-4">
+                  {{ form.type|as_crispy_field }}
+                </div>
+                <div class="col-md-8">
+                  {{ form.value|as_crispy_field }}
+                  <button class="btn btn-primary" type="submit">{% translate "Search" %}</button>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h1 class="card-title text-primary">{{ evidences|length }}</h1>
-                <p class="card-text text-secondary">Evidences</p>
-              </div>
-            </div>
-          </div>
-          <div class="col">
-            <div class="card h-100">
-              <div class="card-body text-center">
-                <h1 class="card-title text-primary">{{ observables|length }}</h1>
-                <p class="card-text text-secondary">Observables</p>
-              </div>
-            </div>
+            </form>
           </div>
         </div>
-      {% endblock inner-content %}
+      </div>
     </div>
-  </div>
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+          <pre class="mermaid text-center" id="mermaid-code" style="display: none">
+{#            {{ mermaid }}#}
+        </pre>
+        <div id="mermaid-output" class="text-center"></div>
+      </div>
+      <div class="col-md-12">
+      {% if results %}
+        <table class="table table-sm">
+          {% for k, v in results.items %}
+            {% if v.obj_type == "relation" %}
+              <tr>
+                {% with target=results|get_field:v.obj_from %}
+                  <td>{{ v.name }}</td>
+                  {% with t=types|get_field:target.type %}
+                    <td><i class="nf {{ t.nf_icon }} text-primary"></i> {{ t.name }}</td>
+                    <td class="font-monospace text-wrap">{{ target.value }}</td>
+                  {% endwith %}
+                {% endwith %}
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </table>
+      {% endif %}
+      </div>
+    </div>
+  {% endblock inner-content %}
 {% endblock content %}
+
+{% block inline_javascript %}
+{% endblock inline_javascript %}

@@ -132,13 +132,13 @@
                   Collect
                 </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"
-                   href="{{ analyze_base_view_url }}">
-                  <i class="fa fa-cubes" aria-hidden="true"></i>
-                  Analyze
-                </a>
-              </li>
+{#              <li class="nav-item">#}
+{#                <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"#}
+{#                   href="{{ analyze_base_view_url }}">#}
+{#                  <i class="fa fa-cubes" aria-hidden="true"></i>#}
+{#                  Analyze#}
+{#                </a>#}
+{#              </li>#}
               <li class="nav-item">
                 <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
                    href="{{ investigate_base_view_url }}">
@@ -146,13 +146,13 @@
                   Investigate
                 </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"
-                   href="{{ report_base_view_url }}">
-                  <i class="fa fa-file-text" aria-hidden="true"></i>
-                  Report
-                </a>
-              </li>
+{#              <li class="nav-item">#}
+{#                <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"#}
+{#                   href="{{ report_base_view_url }}">#}
+{#                  <i class="fa fa-file-text" aria-hidden="true"></i>#}
+{#                  Report#}
+{#                </a>#}
+{#              </li>#}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'about' %}">
                   <i class="nf nf-fa-question" aria-hidden="true"></i>

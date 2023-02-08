@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
-from colander.core.models import Device, DeviceType
+from colander.core.models import Device, DeviceType, Actor
 from colander.core.views import get_active_case, CaseRequiredMixin
 
 
@@ -24,7 +24,9 @@ class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     ]
 
     def get_form(self, form_class=None):
+        active_case = get_active_case(self.request)
         form = super(DeviceCreateView, self).get_form(form_class)
+        actor_qset = Actor.get_user_actors(self.request.user, active_case)
         device_types = DeviceType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -32,6 +34,7 @@ class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['operated_by'].queryset = actor_qset
         return form
 
     def form_valid(self, form):

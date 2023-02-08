@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
-from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact
+from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact, Threat, Actor
 from colander.core.views import get_active_case, CaseRequiredMixin
 
 
@@ -33,6 +33,10 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         observable_types = ObservableType.objects.all()
+        active_case = self.request.session.get('active_case')
+        artifact_qset = Artifact.get_user_artifacts(self.request.user, active_case)
+        threat_qset = Threat.get_user_threats(self.request.user, active_case)
+        actor_qset = Actor.get_user_actors(self.request.user, active_case)
         form = super(ObservableCreateView, self).get_form(form_class)
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -40,8 +44,9 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
-        form.fields['extracted_from'].queryset = Artifact.get_user_artifacts(self.request.user,
-                                                                             self.request.session.get('active_case'))
+        form.fields['extracted_from'].queryset = artifact_qset
+        form.fields['associated_threat'].queryset = threat_qset
+        form.fields['operated_by'].queryset = actor_qset
         return form
 
     def form_valid(self, form):

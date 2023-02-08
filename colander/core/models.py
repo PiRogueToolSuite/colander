@@ -351,7 +351,6 @@ class Case(models.Model):
             print(entity, hasattr(entity, 'to_mermaid'))
             if hasattr(entity, 'to_mermaid'):
                 n, c, l = entity.to_mermaid
-                print(n, c, l)
                 nodes.extend(n)
                 clicks.extend(c)
                 links.extend(l)
@@ -634,7 +633,7 @@ class Artifact(CommonModel, CaseRelated):
         return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.original_name} - {self.type}'
+        return f'{self.original_name} - {self.type} ({self.created_at})'
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -1149,6 +1148,13 @@ class PiRogueExperiment(CommonModel, CaseRelated):
         null=True,
         blank=True,
         related_name='pirogue_dump_ssl_keys'
+    )
+    screencast = models.ForeignKey(
+        Artifact,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='pirogue_dump_screencast'
     )
     extra_files = models.ManyToManyField(
         Artifact,

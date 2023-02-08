@@ -12,7 +12,7 @@ from django.views.generic import CreateView, UpdateView, DetailView
 from nacl.encoding import Base64Encoder
 
 from colander.core.forms import CommentForm
-from colander.core.models import Artifact, ArtifactType
+from colander.core.models import Artifact, ArtifactType, Device
 from colander.core.utils import hash_file
 from colander.core.views import get_active_case, CaseRequiredMixin
 
@@ -65,7 +65,9 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_form(self, form_class=None):
+        active_case = get_active_case(self.request)
         form = super(ArtifactCreateView, self).get_form(form_class)
+        devices_qset = Device.get_user_devices(self.request.user, active_case)
         artifact_types = ArtifactType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -73,6 +75,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['extracted_from'].queryset = devices_qset
         return form
 
 

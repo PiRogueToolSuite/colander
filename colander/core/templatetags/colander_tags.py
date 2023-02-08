@@ -14,7 +14,7 @@ def escape_space(instance):
 @register.filter(name="get_field")
 def get_field(instance, name):
     try:
-        return instance.get(name, '')
+        return instance[name]
     except:
         try:
             return getattr(instance, name)

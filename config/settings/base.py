@@ -82,6 +82,14 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "django_q",
     "minio_storage",
+    # Configure the django-otp package.
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+    # Enable two-factor auth.
+    "allauth_2fa",
+    # Documentation
+    "martor",
 ]
 
 LOCAL_APPS = [
@@ -147,6 +155,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "colander.core.middlewares.ActiveCaseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+
+    # Configure the django-otp package. Note this must be after the
+    # AuthenticationMiddleware.
+    "django_otp.middleware.OTPMiddleware",
+
+    # Reset login flow middleware. If this middleware is included, the login
+    # flow is reset if another page is loaded between login and successfully
+    # entering two-factor credentials.
+    "allauth_2fa.middleware.AllauthTwoFactorMiddleware",
 ]
 
 # STATIC
@@ -224,7 +241,7 @@ FIXTURE_DIRS = (str(APPS_DIR / "fixtures"),)
 # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-httponly
 SESSION_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-httponly
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-browser-xss-filter
 SECURE_BROWSER_XSS_FILTER = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
@@ -356,3 +373,10 @@ Q_CLUSTER = {
 
 # Authentication
 GITHUB_AUTH_CALLBACK = 'http://localhost:8000/dj-rest-auth/github/'
+
+# Markdown options
+MARTOR_TOOLBAR_BUTTONS = [
+    'bold', 'italic', 'horizontal', 'heading', 'pre-code',
+    'blockquote', 'unordered-list', 'ordered-list',
+    'link', 'image-link', 'emoji', 'toggle-maximize', 'help'
+]

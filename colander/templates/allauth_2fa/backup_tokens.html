@@ -1,0 +1,49 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card bg-secondary-light">
+        <div class="card-body">
+          <h3 class="card-title">
+            {% trans "Two-Factor Authentication Backup Tokens" %}
+          </h3>
+
+          {% if backup_tokens %}
+            <p>
+              {% trans 'Backup the following backup tokens is a safe place.' %}
+            </p>
+            {% if reveal_tokens %}
+              <ul>
+                {% for token in backup_tokens %}
+                  <li><samp>{{ token.token }}</samp></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              {% trans 'Backup tokens have been generated, but are not revealed here for security reasons. Press the button below to generate new ones.' %}
+            {% endif %}
+          {% else %}
+            {% trans 'No tokens. Press the button below to generate some.' %}
+          {% endif %}
+
+          <form method="post" class="text-center">
+            {% csrf_token %}
+            <div class="btn-group mt-3" role="group">
+              <button type="submit" class="btn btn-primary">
+                {% trans 'Generate backup tokens' %}
+              </button>
+              <a href="{% url 'two-factor-remove' %}" class="btn btn-warning text-white">
+                {% trans 'Disable Two Factor' %}
+              </a>
+            </div>
+          </form>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

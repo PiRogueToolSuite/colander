@@ -21,6 +21,9 @@
       <link href="{% static 'css/flag-icons.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/nf.min.css' %}" rel="stylesheet">
       <link href="{% static 'css/myLib.css' %}" rel="stylesheet">
+      <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
   {% endblock %}
   <!-- Le javascript
@@ -28,6 +31,9 @@
   {# Placed at the top of the document so pages load faster with defer #}
   {% block javascript %}
     <!-- place project specific Javascript in this file -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/project.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/vue.min.js' %}"></script>
@@ -35,11 +41,17 @@
       <script src="{% static 'js/popper.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
-      <script src="{% static 'js/tempus-dominus.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/ext-language_tools.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/theme-github.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/typo.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/spellcheck.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/resizable.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/emojis.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'martor/js/martor.bootstrap.min.js' %}"></script>
     {% endcompress %}
-    <script src="{% static 'js/jquery.min.js' %}"></script>
-    <script src="{% static 'js/project.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
   {% endblock javascript %}
 
 </head>
@@ -66,14 +78,14 @@
     <div class="nav-item text-nowrap">
       {% if request.user.is_authenticated %}
         {# URL provided by django-allauth/account/urls.py #}
-        <a class="nav-link px-3" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+        <a class="nav-link px-3" href="{% url 'account_logout' %}">{% translate "Log Out" %}</a>
       {% else %}
         {% if ACCOUNT_ALLOW_REGISTRATION %}
           {# URL provided by django-allauth/account/urls.py #}
           <a id="sign-up-link" class="nav-link px-3" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
         {% endif %}
         {# URL provided by django-allauth/account/urls.py #}
-        <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+        <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Log In" %}</a>
       {% endif %}
     </div>
 
@@ -85,113 +97,143 @@
   <div class="container-fluid justify-content-center">
     <div class="row">
       {% block sidebar %}
-        <nav id="sidebarMenu"
-             class="col-sm-4 col-md-3 col-lg-3 col-xl-2 col-xxl-2 d-md-block bg-light sidebar collapse"
-             style="min-width: 240px"
-        >
-          <div class="position-sticky">
-            {% if request.user.is_authenticated %}
-              <div class="text-center">
-                <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
-                        data-bs-target="#caseSwitchModal">
-                  <i class="nf nf-cod-arrow_swap"></i>
-                  Switch case
-                </button>
-              </div>
-              <div class="p-2">
-                {% if request.active_case %}
-                  <div>
-                    <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
-                      {% include "icons/case_icon.html" with c="text-primary" %}
-                      {{ request.active_case.name }}
-                    </a>
-                  </div>
-                  <div class="small text-muted">
-                    {% include "icons/date_icon.html" %}
-                    {{ request.active_case.created_at }}
-                  </div>
-                {% else %}
-                  No case selected, select one.
-                {% endif %}
-              </div>
-            {% endif %}
-            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-              <span>Workspaces</span>
-            </h6>
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
-                  <i class="nf nf-fa-home"></i>
-                  Home
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link{% if collect_base_view_url in request.path %} active {% endif %}"
-                   href="{{ collect_base_view_url }}">
-                  <i class="fa fa-th" aria-hidden="true"></i>
-                  Collect
-                </a>
-              </li>
-{#              <li class="nav-item">#}
-{#                <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"#}
-{#                   href="{{ analyze_base_view_url }}">#}
-{#                  <i class="fa fa-cubes" aria-hidden="true"></i>#}
-{#                  Analyze#}
-{#                </a>#}
-{#              </li>#}
-              <li class="nav-item">
-                <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
-                   href="{{ investigate_base_view_url }}">
-                  <i class="nf nf-fa-search" aria-hidden="true"></i>
-                  Investigate
-                </a>
-              </li>
-{#              <li class="nav-item">#}
-{#                <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"#}
-{#                   href="{{ report_base_view_url }}">#}
-{#                  <i class="fa fa-file-text" aria-hidden="true"></i>#}
-{#                  Report#}
-{#                </a>#}
-{#              </li>#}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'about' %}">
-                  <i class="nf nf-fa-question" aria-hidden="true"></i>
-                  About
-                </a>
-              </li>
+        <nav id="sidebarMenu" class="" style="width: 200px; height: 100vh">
+          <div class="position-fixed">
+            <div class="position-sticky">
               {% if request.user.is_authenticated %}
-                <li class="nav-item text-nowrap">
-                  {# URL provided by django-allauth/account/urls.py #}
-                  <a class="nav-link px-3" href="{% url 'users:detail' request.user.username %}">
-                    <i class="nf nf-fa-user" aria-hidden="true"></i>
-                    {% translate "My Profile" %}
+                <div class="p-2">
+                  {% if request.active_case %}
+                    <div>
+                      <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+                        {% include "icons/case_icon.html" with c="text-primary" %}
+                        {{ request.active_case.name }}
+                      </a>
+                    </div>
+                    <div class="small text-muted">
+                      {% include "icons/date_icon.html" %}
+                      {{ request.active_case.created_at }}
+                    </div>
+                  {% else %}
+                    No case selected, select one.
+                  {% endif %}
+                </div>
+                <div class="text-center">
+                  <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
+                          data-bs-target="#caseSwitchModal">
+                    <i class="nf nf-cod-arrow_swap"></i>
+                    Switch case
+                  </button>
+                  <br>
+                  {% if not request.session.show_documentation_editor %}
+                    <a href="{% url "enable_documentation_editor_view" %}"
+                       class="btn btn-primary text-white mt-2" type="button">
+                      <i class="nf nf-fa-file_text"></i>
+                      Start writing doc
+                    </a>
+                  {% else %}
+                    <a href="{% url "disable_documentation_editor_view" %}"
+                       class="btn btn-primary text-white mt-2" type="button">
+                      <i class="nf nf-fa-file_text"></i>
+                      Stop writing doc
+                    </a>
+                  {% endif %}
+                </div>
+              {% endif %}
+            <hr>
+              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                <span>Workspaces</span>
+              </h6>
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <a class="nav-link{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
+                    <i class="nf nf-fa-home"></i>
+                    Home
                   </a>
                 </li>
-              {% endif %}
-            </ul>
-            {% block sidebar-items %}
-            {% endblock sidebar-items %}
+                <li class="nav-item">
+                  <a class="nav-link{% if collect_base_view_url in request.path %} active {% endif %}"
+                     href="{{ collect_base_view_url }}">
+                    <i class="fa fa-th" aria-hidden="true"></i>
+                    Collect
+                  </a>
+                </li>
+                {#              <li class="nav-item">#}
+                {#                <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"#}
+                {#                   href="{{ analyze_base_view_url }}">#}
+                {#                  <i class="fa fa-cubes" aria-hidden="true"></i>#}
+                {#                  Analyze#}
+                {#                </a>#}
+                {#              </li>#}
+                <li class="nav-item">
+                  <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
+                     href="{{ investigate_base_view_url }}">
+                    <i class="nf nf-fa-search" aria-hidden="true"></i>
+                    Investigate
+                  </a>
+                </li>
+                {#              <li class="nav-item">#}
+                {#                <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"#}
+                {#                   href="{{ report_base_view_url }}">#}
+                {#                  <i class="fa fa-file-text" aria-hidden="true"></i>#}
+                {#                  Report#}
+                {#                </a>#}
+                {#              </li>#}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'about' %}">
+                    <i class="nf nf-fa-question" aria-hidden="true"></i>
+                    About
+                  </a>
+                </li>
+                {% if request.user.is_authenticated %}
+                  <li class="nav-item text-nowrap">
+                    {# URL provided by django-allauth/account/urls.py #}
+                    <a class="nav-link px-3" href="{% url 'users:detail' request.user.username %}">
+                      <i class="nf nf-fa-user" aria-hidden="true"></i>
+                      {% translate "My Profile" %}
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+              {% block sidebar-items %}
+              {% endblock sidebar-items %}
+            </div>
           </div>
         </nav>
       {% endblock sidebar %}
-    </div>
-
-
-    <main class="col-sm-8 col-md-9 col-lg-9 col-xl-10 col-xxl-10 ms-sm-auto px-md-4">
-      <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-              {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <main class="mt-2 {% if request.session.show_documentation_editor %}col-md-7{% else %}col-md-10{% endif %}">
+        <div class="">
+          {#        <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">#}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          <div class="row">
+            <div class="col-md-12">
+              {% block content %}
+                <p>Use this document as a way to quick start any new project.</p>
+              {% endblock content %}
             </div>
-          {% endfor %}
-        {% endif %}
-        {% block content %}
-          <p>Use this document as a way to quick start any new project.</p>
-        {% endblock content %}
-      </div>
-    </main>
+          </div>
+        </div>
+      </main>
+
+      {% if request.session.show_documentation_editor %}
+        <div class="col-md-auto mt-3">
+          <div class="position-fixed">
+            <div class="position-sticky">
+              <h3>Case documentation</h3>
+              <div class="">
+                {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
 
   </div> <!-- /container -->
 {% endblock container %}

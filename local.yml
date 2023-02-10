@@ -7,6 +7,11 @@ volumes:
   colander_local_es_data: {}
 
 services:
+  analyzers:
+    image: colander-analyzers
+    ports:
+      - 6666:6666
+
   django: &django
     build:
       context: .
@@ -19,6 +24,7 @@ services:
       - minio
       - elasticsearch
       - redis
+      - analyzers
     volumes:
       - .:/app:z
     env_file:

@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import DocumentationForm
 from colander.core.models import Case, Artifact, Observable
 
 
@@ -28,14 +29,47 @@ def evidences_view(request):
 
 
 @login_required
-def collect_base_view(request):
-    if not request.session.get('active_case'):
+def enable_documentation_editor(request):
+    active_case = get_active_case(request)
+    if not active_case:
+        return redirect('collect_case_create_view')
+    request.session['show_documentation_editor'] = True
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def disable_documentation_editor(request):
+    active_case = get_active_case(request)
+    if not active_case:
+        return redirect('collect_case_create_view')
+    request.session['show_documentation_editor'] = False
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def save_case_documentation_view(request, pk):
+    active_case = get_active_case(request)
+    if not active_case:
         return redirect('collect_case_create_view')
 
+    if request.method == 'POST':
+        form = DocumentationForm(request.POST)
+        if form.is_valid():
+            active_case.documentation = form.cleaned_data.get('documentation')
+            active_case.save()
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def collect_base_view(request):
+    active_case = get_active_case(request)
+    if not active_case:
+        return redirect('collect_case_create_view')
+
+    form = DocumentationForm(initial={'documentation': active_case.documentation})
+
     ctx = {
-        'cases': Case.get_user_cases(request.user)[:20],
-        'artifacts': Artifact.get_user_artifacts(request.user, request.session.get('active_case'))[:20],
-        'observables': Observable.get_user_observables(request.user, request.session.get('active_case'))[:20],
+        'documentation_form': form,
     }
     return render(request, 'pages/collect/base.html', context=ctx)
 

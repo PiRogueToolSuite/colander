@@ -14,7 +14,7 @@ body, a {
   position: relative;
   min-height: 100%;
   font-family: "Open Sans", sans-serif !important;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 samp {
@@ -41,6 +41,20 @@ samp {
   bottom: 0;
   /* rtl:remove */
   left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 48px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-right {
+  position: fixed;
+  top: 0;
+  /* rtl:raw:
+  right: 0;
+  */
+  bottom: 0;
+  /* rtl:remove */
+  right: 0;
   z-index: 100; /* Behind the navbar */
   padding: 48px 0 0; /* Height of navbar */
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);

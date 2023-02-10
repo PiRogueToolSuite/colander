@@ -1,3 +1,6 @@
+from base64 import b32encode
+
+from allauth_2fa.views import TwoFactorSetup
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -46,3 +49,11 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
 
 user_redirect_view = UserRedirectView.as_view()
+
+
+class UserTwoFactorSetup(TwoFactorSetup):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        secret = b32encode(self.device.bin_key).decode("utf-8")
+        context["secret"] = secret
+        return context

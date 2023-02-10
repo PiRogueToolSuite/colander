@@ -1,6 +1,7 @@
 from django import forms
 
 from colander.core.models import Case, Comment, ObservableType
+from martor.fields import MartorFormField
 
 
 class CaseForm(forms.ModelForm):
@@ -42,3 +43,7 @@ class InvestigateSearchForm(forms.Form):
     types = [(t.short_name, t.name) for t in ObservableType.objects.all()]
     type = forms.ChoiceField(choices=types)
     value = forms.CharField(max_length=128)
+
+
+class DocumentationForm(forms.Form):
+    documentation = MartorFormField()

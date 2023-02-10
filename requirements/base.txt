@@ -30,7 +30,10 @@ djangorestframework_simplejwt
 python-magic
 dj-rest-auth
 pynacl
-
+django-allauth-2fa
 
 # Analysis
 communityid
+
+# Documentation
+martor

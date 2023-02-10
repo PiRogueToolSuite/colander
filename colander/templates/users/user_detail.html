@@ -4,8 +4,6 @@
 {% block title %}User: {{ object.username }}{% endblock %}
 
 {% block content %}
-<div class="container">
-
   <div class="row">
     <div class="col-sm-12">
 
@@ -16,19 +14,50 @@
     </div>
   </div>
 
-{% if object == request.user %}
-<!-- Action buttons -->
-<div class="row">
+  {% if object == request.user %}
+    <!-- Action buttons -->
+    <div class="row">
 
-  <div class="col-sm-12">
-    <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
-    <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
-    <!-- Your Stuff: Custom user template urls -->
-  </div>
+      <div class="col-md-6">
+        <table class="table table-sm">
+          <tbody>
+          <tr>
+            <td class=""><b>E-mail address</b></td>
+            <td>
+              <ul class="list-unstyled m-0">
+                {% for email in request.user.emailaddress_set.all %}
+                  <samp>{{ email }}</samp>
+                {% endfor %}
+              </ul>
+            </td>
+            <td>
+              <a class="btn btn-sm btn-primary" href="{% url 'account_email' %}" role="button">Manage my addresses</a>
+            </td>
+          </tr>
+          <tr>
+            <td><b>2FA</b></td>
+            <td>
+              {% if request.user.staticdevice_set.exists %}
+                <span class="badge bg-success">2FA enabled</span>
+              {% else %}
+                <span class="badge bg-warning text-white">2FA not enabled</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if request.user.staticdevice_set.exists %}
+                <a class="btn btn-sm btn-primary" href="{% url 'two-factor-backup-tokens' %}" role="button">Backup
+                  tokens</a>
+              {% else %}
+                <a class="btn btn-sm btn-primary" href="{% url 'two-factor-setup' %}" role="button">Setup 2FA</a>
+              {% endif %}
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
 
-</div>
-<!-- End Action buttons -->
-{% endif %}
+    </div>
+    <!-- End Action buttons -->
+  {% endif %}
 
-</div>
 {% endblock content %}

@@ -1,7 +1,7 @@
 {% load i18n %}
 
 
-<div class="row justify-content-center">
+<div class="row">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ experiment.type.nf_icon }} text-primary"></i> {{ experiment.name }}</h2>
     <div class="mb-3">
@@ -117,7 +117,7 @@
       <tr>
         <td>Screencast</td>
         <td>
-          {% if experiment.sslkeylog %}
+          {% if experiment.screencast %}
             <i class="nf {{ experiment.screencast.type.nf_icon }} text-primary"></i>
             <a href="{% url "collect_artifact_details_view" pk=experiment.sslkeylog.id %}">
               {{ experiment.screencast.original_name }}

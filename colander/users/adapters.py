@@ -2,11 +2,12 @@ from typing import Any
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth_2fa.adapter import OTPAdapter
 from django.conf import settings
 from django.http import HttpRequest
 
 
-class AccountAdapter(DefaultAccountAdapter):
+class AccountAdapter(OTPAdapter):
     def is_open_for_signup(self, request: HttpRequest):
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 

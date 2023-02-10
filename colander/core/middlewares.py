@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 
+from colander.core.forms import DocumentationForm
 from colander.core.models import Case
 
 
@@ -20,13 +21,14 @@ class ActiveCaseMiddleware:
 def active_case(request):
     active_case = None
     user_cases = []
-    if request.user:
+    if request.user and request.user.is_authenticated:
         user_cases = Case.get_user_cases(request.user)
         request.user_cases = user_cases
         if 'active_case' in request.session:
             try:
                 active_case = Case.objects.get(id=request.session['active_case'])
                 request.active_case = active_case
+                request.documentation_form = DocumentationForm(initial={'documentation': active_case.documentation})
             except Exception:
                 pass
 

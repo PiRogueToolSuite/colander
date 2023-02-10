@@ -1,3 +1,4 @@
+from allauth_2fa.views import TwoFactorSetup, TwoFactorAuthenticate, TwoFactorBackupTokens, TwoFactorRemove
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -20,21 +21,29 @@ from colander.core.obversable_views import ObservableCreateView, ObservableRelat
     ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView
 from colander.core.views import collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
-    CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key
+    CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
+    save_case_documentation_view, enable_documentation_editor, disable_documentation_editor
 from colander.core.event_views import EventCreateView, EventUpdateView, EventDetailsView
 from colander.core.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView
+from colander.users.views import UserTwoFactorSetup
 
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
       path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
-      path(
-          "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
-      ),
+      path("about/", TemplateView.as_view(template_name="caca.html"), name="about"),
+      # path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
       # Django Admin, use {% url 'admin:index' %}
       path(settings.ADMIN_URL, admin.site.urls),
       # User management
       path("users/", include("colander.users.urls", namespace="users")),
+      path('accounts/2fa/setup', UserTwoFactorSetup.as_view(), name="two-factor-setup",),
+      path('accounts/2fa/authenticate', TwoFactorAuthenticate.as_view(), name="two-factor-authenticate",),
+      path('accounts/2fa/backup-tokens', TwoFactorBackupTokens.as_view(), name="two-factor-backup-tokens",),
+      path('accounts/2fa/remove', TwoFactorRemove.as_view(), name="two-factor-remove",),
+
       path("accounts/", include("allauth.urls")),
+
+      path('martor/', include('martor.urls')),
 
       # path("evidences", evidences_view),
       # path('dj-rest-auth/', include('dj_rest_auth.urls')),
@@ -52,6 +61,7 @@ urlpatterns = [
       path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
       path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
       path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
+      path("collect/case/<slug:pk>/doc/save", save_case_documentation_view, name="collect_cases_save_doc_view"),
       path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
 
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
@@ -91,6 +101,9 @@ urlpatterns = [
 
       path("investigate/", investigate_search_view, name="investigate_base_view"),
       path("report/", report_base_view, name="report_base_view"),
+
+      path("document/enable", enable_documentation_editor, name="enable_documentation_editor_view"),
+      path("document/disable", disable_documentation_editor, name="disable_documentation_editor_view"),
 
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),

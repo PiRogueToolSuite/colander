@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load static %}
+{% load martortags %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
@@ -96,6 +97,10 @@
   </div>
   <div class="col-md-12 mt-2">
     {% include "case/graph.html" with case=case %}
+  </div>
+  <div class="col-md-12 mt-2">
+    <h3>Documentation</h3>
+    {{ case.documentation|safe_markdown }}
   </div>
 </div>
 

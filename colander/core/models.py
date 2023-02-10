@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl import Document, Keyword, Date, Object
 from cryptography.hazmat.primitives.asymmetric import rsa
-
+from martor.models import MartorField
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -278,6 +278,7 @@ class Case(models.Model):
         editable=True,
         default=''
     )
+    documentation = MartorField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.generate_key_pair(save=False)
@@ -348,7 +349,6 @@ class Case(models.Model):
                 classes.append(f'classDef {name} fill:{color_scheme.get(model)}')
         entities = self.get_all_entities(exclude_types=['PiRogueExperiment', 'Threat', 'Event'])
         for entity in entities:
-            print(entity, hasattr(entity, 'to_mermaid'))
             if hasattr(entity, 'to_mermaid'):
                 n, c, l = entity.to_mermaid
                 nodes.extend(n)
@@ -367,7 +367,7 @@ class Case(models.Model):
 
     @staticmethod
     def get_user_cases(user):
-        return Case.objects.all()
+        return Case.objects.filter(owner=user)
 
 
 class CaseRelated(models.Model):

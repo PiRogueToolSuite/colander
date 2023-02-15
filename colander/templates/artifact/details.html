@@ -178,22 +178,24 @@
           <li>the artifact itself</li>
         </ul>
         Then, in a terminal run the following command:
-<p class="font-monospace small mb-3 bg-dark text-white p-2 mt-2 rounded-2">
-  openssl dgst -sha256 -sigopt rsa_padding_mode:pss
-  -verify {{ artifact.case.name|escape_space}}.pem
-  -signature {{ artifact.name|escape_space }}.sig
-  {{ artifact.name|escape_space }}
-</p>
+        <p class="font-monospace small mb-3 bg-dark text-white p-2 mt-2 rounded-2">
+          openssl dgst -sha256 -sigopt rsa_padding_mode:pss
+          -verify {{ artifact.case.name|escape_space }}.pem
+          -signature {{ artifact.name|escape_space }}.sig
+          {{ artifact.name|escape_space }}
+        </p>
         If the file has not been tampered, the command above should prompt <code>Verified OK</code>
       </div>
       <div class="card-footer text-center">
-        <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}" class="btn btn-sm btn-primary text-white">
-            Download case key
+        <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}"
+           class="btn btn-sm btn-primary text-white">
+          Download case key
         </a>
         <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
           Download artifact
         </a>
-        <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
+        <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}"
+           class="btn btn-sm btn-primary text-white">
           Download artifact signature
         </a>
       </div>

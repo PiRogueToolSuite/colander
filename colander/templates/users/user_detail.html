@@ -18,7 +18,7 @@
     <!-- Action buttons -->
     <div class="row">
 
-      <div class="col-md-6">
+      <div class="col-md-8">
         <table class="table table-sm">
           <tbody>
           <tr>
@@ -31,7 +31,7 @@
               </ul>
             </td>
             <td>
-              <a class="btn btn-sm btn-primary" href="{% url 'account_email' %}" role="button">Manage my addresses</a>
+              <a class="btn btn-sm btn-primary" href="{% url 'account_email' %}" role="button">Manage</a>
             </td>
           </tr>
           <tr>
@@ -50,6 +50,15 @@
               {% else %}
                 <a class="btn btn-sm btn-primary" href="{% url 'two-factor-setup' %}" role="button">Setup 2FA</a>
               {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td><b>API key</b></td>
+            <td>
+              <code>{{ request.user.token }}</code>
+            </td>
+            <td>
+
             </td>
           </tr>
           </tbody>

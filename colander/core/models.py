@@ -667,7 +667,7 @@ class Artifact(CommonModel, CaseRelated):
     def get_user_artifacts(user, case=None):
         if case:
             return Artifact.objects.filter(case=case)
-        return Artifact.objects.all()
+        return Artifact.objects.filter(owner=user)
 
 
 class Threat(CommonModel, CaseRelated):

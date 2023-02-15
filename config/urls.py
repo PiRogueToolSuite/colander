@@ -115,13 +115,11 @@ urlpatterns = [
 urlpatterns += [
     # API base url
     path("api/", include("config.api_router")),
-    # path('api/auth/facebook/connect/', FacebookConnect.as_view(), name='fb_connect'),
-    # path('api/auth/twitter/connect/', TwitterConnect.as_view(), name='twitter_connect'),
-    # path('api/auth/github/connect/', csrf_exempt(GithubConnect.as_view()), name='github_connect'),
-    # path('api/auth/github/url/', github_views.oauth2_login, name='github_url'),
-    # path('api/auth/github/callback/', github_callback, name='github_callback'),
     # DRF auth token
     # path("api/auth-token/", obtain_auth_token),
+    # path("api/artifacts/<slug:pk>", ApiArtifactDetails.as_view(), name='api_list_artifacts'),
+    # path("api/artifacts/<slug:pk>/download", ApiArtifactDownload.as_view(), name='api_download_artifact'),
+    # API Schema
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "api/docs/",

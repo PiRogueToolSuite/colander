@@ -33,8 +33,8 @@ from colander.users.views import UserTwoFactorSetup
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
       path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
-      path("about/", TemplateView.as_view(template_name="caca.html"), name="about"),
-      # path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+      # path("about/", TemplateView.as_view(template_name="index.html"), name="about"),
+      path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
       # Django Admin, use {% url 'admin:index' %}
       path(settings.ADMIN_URL, admin.site.urls),
       # User management

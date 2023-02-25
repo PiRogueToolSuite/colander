@@ -38,6 +38,16 @@ function handle_comment_controls() {
     })
 }
 
+function handle_entity_delete_control() {
+    $('.delete-entity-btn').on('click', function (e) {
+        e.preventDefault();
+        const self = $(this);
+        self.html('<b>Sure?</b>');
+        self.removeClass('delete-entity-btn')
+        self.unbind('click');
+    })
+}
+
 $(function () {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -45,6 +55,7 @@ $(function () {
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
     handle_comment_controls();
+    handle_entity_delete_control();
 
     // $('.martor-preview pre').each(function(i, block){
     //     hljs.highlightBlock(block);
@@ -53,7 +64,6 @@ $(function () {
     $('a, button').click(function (e) {
         const documentation_form = $('#case_documentation_form')
         if (documentation_form !== undefined) {
-            console.dir(documentation_form)
             $.ajax({
                 async: false,
                 type: documentation_form.attr('method'),

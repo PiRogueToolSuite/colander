@@ -52,15 +52,6 @@
     </div>
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
-    <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="{% url "collect_artifact_details_view" pk=artifact.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-eye"></i>
-        {% translate "Details" %}
-      </a>
-      <a href="{% url "collect_artifact_update_view" pk=artifact.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
-    </div>
+    {% include "artifact/controls.html" with exclude="" btn_class="btn-sm" %}
   </div>
 </div>

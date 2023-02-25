@@ -49,9 +49,9 @@
                aria-labelledby="pubKeyModalLabel" aria-hidden="true">
             <div class="modal-dialog">
               <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="pubKeyModalLabel">RSA public key</h1>
-              </div>
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="pubKeyModalLabel">RSA public key</h1>
+                </div>
                 <div class="modal-body">
                   <pre><code>{{ case.verify_key }}</code></pre>
                 </div>
@@ -88,19 +88,13 @@
   {% include "helpers/extra_attributes.html" with attributes=case.attributes %}
 
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in case.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-  </div>
-  <div class="col-md-12 mt-2">
     {% include "case/graph.html" with case=case %}
   </div>
-  <div class="col-md-12 mt-2">
-    <h3>Documentation</h3>
-    {{ case.documentation|safe_markdown }}
-  </div>
+  {% if case.documentation %}
+    <div class="col-md-12 mt-2">
+      <h3>Documentation</h3>
+      {{ case.documentation|safe_markdown }}
+    </div>
+  {% endif %}
 </div>
 

@@ -11,16 +11,7 @@
         {% translate "No description" %}
       {% endif %}
     </div>
-    <div class="btn-group" role="group">
-      <a href="{% url "collect_artifact_update_view" pk=artifact.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
-      <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-download"></i>
-        {% translate "Download" %}
-      </a>
-    </div>
+    {% include "artifact/controls.html" with exclude="" btn_class="" %}
   </div>
 </div>
 

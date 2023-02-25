@@ -1,0 +1,70 @@
+{% extends "pages/collect/base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+{% block inner-content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
+      {% if is_editing %}
+        <h2>{% translate "Edit this relation" %}</h2>
+      {% else %}
+        <h2>{% translate "New relation between two entities" %}</h2>
+      {% endif %}
+      <div class="card mb-4 bg-secondary-light">
+        <div class="card-body">
+          <form method="post" autocomplete="off">
+            {% csrf_token %}
+            <div class="row justify-content-center">
+              <div class="col-md-4">
+                {{ form.obj_from|as_crispy_field }}
+              </div>
+              <div class="col-md-4">
+                {{ form.name|as_crispy_field }}
+              </div>
+              <div class="col-md-4">
+                {{ form.obj_to|as_crispy_field }}
+              </div>
+              <div class="col-md-12 text-center">
+                {% if is_editing %}
+                  <button class="btn btn-primary" type="submit" name="save_relation">{% translate "Update" %}</button>
+                {% else %}
+                  <button class="btn btn-primary" type="submit" name="save_relation">{% translate "Create" %}</button>
+                {% endif %}
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
+      {% if relations %}
+        <h3>Existing relations</h3>
+        <table class="table table-sm">
+          <thead>
+          <tr>
+            <th>From</th>
+            <th>Name</th>
+            <th>To</th>
+            <th>Controls</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for r in relations.all %}
+            <tr>
+              <td><a href="{{ r.obj_from.absolute_url }}"><samp>{{ r.obj_from }}</samp></a></td>
+              <td>{{ r.name }}</td>
+              <td><a href="{{ r.obj_to.absolute_url }}"><samp>{{ r.obj_to }}</samp></a></td>
+              <td>{% include "entity_relation/controls.html" with btn_class="btn-sm" exclude="edit,details" relation=r %}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <h3>No relations</h3>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

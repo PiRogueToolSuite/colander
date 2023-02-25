@@ -6,25 +6,27 @@
     <div class="text-truncate">
       <div class="h5">
         {% if analysis.result.direction == "outbound" %}
-          <i class="nf nf-fa-sign_out text-primary" data-bs-toggle="tooltip"
+          <i class="nf nf-fa-sign_out text-primary h3" data-bs-toggle="tooltip"
              data-bs-title="{{ analysis.result.direction }} communication"></i>
         {% else %}
-          <i class="nf nf-fa-sign_in text-primary" data-bs-toggle="tooltip"
+          <i class="nf nf-fa-sign_in text-primary h3" data-bs-toggle="tooltip"
              data-bs-title="{{ analysis.result.direction }} communication"></i>
         {% endif %}
+        <span class="badge bg-info">{{ analysis.result.protocol }}</span>
+        <span class="badge bg-dark">{{ analysis.result.length|filesizeformat }}</span>
         <samp>{{ analysis.result.src.ip }}</samp> /
         <samp>{{ analysis.result.src.host }}</samp>
         <i class="nf nf-fa-long_arrow_right text-primary"></i>
         <samp>{{ analysis.result.dst.ip }}</samp> /
         <samp>{{ analysis.result.dst.host }}</samp>
       </div>
-      <div class="row">
+      <div class="row mt-2">
         <div class="col-md-5">
           <div class="small">
             <ul class="list-unstyled">
               <li>
                 <b>Community ID</b>:
-                <samp>{{ analysis.result.community_id }}</samp>
+                <code>{{ analysis.result.community_id }}</code>
               </li>
               {% if analysis.result.direction == "outbound" %}
                 <li>
@@ -33,7 +35,8 @@
                   <samp>{{ analysis.result.dst.geoip.asn.network }}</samp>
                 </li>
                 <li>
-                  <b>Organization</b>: {{ analysis.result.dst.geoip.asn.organization_name }}
+                  <b>Organization</b>: <span
+                  class="badge bg-info">{{ analysis.result.dst.geoip.asn.organization_name }}</span>
                 </li>
                 <li>
                   <b>Country</b>: {{ analysis.result.dst.geoip.country_name }} <span
@@ -47,7 +50,8 @@
                   <samp>{{ analysis.result.src.geoip.asn.network }}</samp>
                 </li>
                 <li>
-                  <b>Organization</b>: {{ analysis.result.src.geoip.asn.organization_name }}
+                  <b>Organization</b>: <span
+                  class="badge bg-info">{{ analysis.result.src.geoip.asn.organization_name }}</span>
                 </li>
                 <li>
                   <b>Country</b>: {{ analysis.result.src.geoip.country_name }} <span
@@ -61,6 +65,7 @@
         <div class="col-md-7">
           <div class="small">
             <ul class="list-unstyled">
+              <li><b>Timestamp</b>: <code>{{ analysis.result.timestamp }}</code></li>
               <li>
                 <b>Process name</b>:
                 <samp>{{ analysis.result.full_stack_trace.process|default:"unknown" }}</samp>
@@ -76,12 +81,24 @@
   </div>
   <div class="card-body">
     <div class="row">
+{#      <div class="col-md-12 border-secondary border-bottom pb-2">#}
+{#        <b>URI</b>#}
+{#        <div class="font-monospace small text-wrap">#}
+{#          {% for h, v in analysis.result.headers %}#}
+{#            {% if h == "uri" %}#}
+{#              {{ v }}#}
+{#            {% endif %}#}
+{#          {% endfor %}#}
+{#        </div>#}
+{#      </div>#}
       <div class="col-md-8 text-wrap border-secondary border-end">
         <b>Headers</b>
         <div class="small">
           <ul class="list-unstyled">
             {% for h, v in analysis.result.headers %}
-              <li><b><samp>{{ h }}</samp></b>: <samp>{{ v }}</samp></li>
+{#              {% if h != "uri" %}#}
+                <li><b><samp>{{ h }}</samp></b>: <samp>{{ v }}</samp></li>
+{#              {% endif %}#}
             {% empty %}
               <i>no headers</i>
             {% endfor %}
@@ -125,15 +142,39 @@
             </div>
           </div>
         </div>
+        <div class="modal fade" id="raw_data_{{ analysis.analysis_id }}" tabindex="-1"
+             aria-labelledby="raw_data_{{ analysis.analysis_id }}Label" aria-hidden="true">
+          <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="raw_data_{{ analysis.analysis_id }}Label">Raw data in hex</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+<pre class="bg-dark text-white text-wrap p-3 rounded">{{ analysis.result.raw_data }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
   <div class="card-footer">
     <div class="text-wrap">
       <b>Data</b>
-      <div class="rounded">
-        <pre class="bg-transparent"><code>{{ analysis.result.data }}</code></pre>
+        <a href="#" class="small" data-bs-toggle="modal"
+           data-bs-target="#raw_data_{{ analysis.analysis_id }}">
+          <i class="nf nf-fa-eye"></i> raw
+        </a>
+        <span>|</span>
+        <a href="/cyberchef#input={{ analysis.result.raw_data|b64 }}"
+           target="_blank" class="small">
+          <i class="nf nf-fa-arrow_right"></i> to cyberchef
+        </a>
+      <div class="rounded text-wrap">
+        <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.result.data }}</pre>
       </div>
     </div>
   </div>
 </div>
+

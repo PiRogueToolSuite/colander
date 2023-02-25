@@ -153,7 +153,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "colander.core.middlewares.ActiveCaseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
 
     # Configure the django-otp package. Note this must be after the
@@ -380,3 +379,12 @@ MARTOR_TOOLBAR_BUTTONS = [
     'blockquote', 'unordered-list', 'ordered-list',
     'link', 'image-link', 'emoji', 'toggle-maximize', 'help'
 ]
+MARTOR_ENABLE_CONFIGS = {
+    'emoji': 'true',        # to enable/disable emoji icons.
+    'imgur': 'true',        # to enable/disable imgur/custom uploader.
+    'mention': 'false',     # to enable/disable mention
+    'jquery': 'true',       # to include/revoke jquery (require for admin default django)
+    'living': 'false',      # to enable/disable live updates in preview
+    'spellcheck': 'false',  # to enable/disable spellcheck in form textareas
+    'hljs': 'false',         # to enable/disable hljs highlighting in preview
+}

@@ -1,3 +1,5 @@
+from base64 import urlsafe_b64encode
+
 from django import template
 register = template.Library()
 
@@ -20,3 +22,19 @@ def get_field(instance, name):
             return getattr(instance, name)
         except:
             return ''
+
+
+@register.filter(name="b64")
+def to_b64(instance):
+    if type(instance) is not str:
+        return instance
+    encoded = instance.encode('utf-8')
+    return urlsafe_b64encode(encoded).decode()
+
+
+@register.filter(name="to_cyberchef_input")
+def to_cyberchef_input(instance):
+    if type(instance) is not str:
+        return instance
+    encoded = instance.encode('utf-8')
+    return f'input={urlsafe_b64encode(encoded).decode()}'

@@ -4,8 +4,11 @@ import string
 import uuid
 
 import django
+from django.db.models import Q
 from cryptography.exceptions import InvalidSignature
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.utils import timezone
@@ -110,111 +113,6 @@ class DetectionRuleType(CommonModelType):
     pass
 
 
-class CommonModel(models.Model):
-    RED = 'RED'
-    AMBER = 'AMBER'
-    GREEN = 'GREEN'
-    WHITE = 'WHITE'
-    TLP_PAP_CHOICES = [
-        (RED, 'RED'),
-        (AMBER, 'AMBER'),
-        (GREEN, 'GREEN'),
-        (WHITE, 'WHITE'),
-    ]
-
-    class Meta:
-        abstract: True
-        ordering = ['-updated_at']
-
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        help_text=_('Unique identifier.'),
-        editable=False
-    )
-    description = models.TextField(
-        help_text=_('Add more details about this object.'),
-        null=True,
-        blank=True
-    )
-    source_url = models.URLField(
-        help_text=_('Specify the source of this object.'),
-        verbose_name='Source URL',
-        null=True,
-        blank=True
-    )
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        help_text=_('Who owns this object.'),
-        related_name="%(app_label)s_%(class)s_related",
-        related_query_name="%(app_label)s_%(class)ss",
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text=_('Creation date of this object.'),
-        editable=False
-    )
-    updated_at = models.DateTimeField(
-        help_text=_('Latest modification of this object.'),
-        auto_now=True
-    )
-    tlp = models.CharField(
-        max_length=6,
-        choices=TLP_PAP_CHOICES,
-        help_text=_('Traffic Light Protocol, designed to indicate the sharing boundaries to be applied.'),
-        verbose_name='TLP',
-        default=WHITE
-    )
-    pap = models.CharField(
-        max_length=6,
-        choices=TLP_PAP_CHOICES,
-        help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
-        verbose_name='PAP',
-        default=WHITE
-    )
-
-    @property
-    def sorted_comments(self):
-        return self.comments.order_by('created_at')
-
-
-class Comment(models.Model):
-    class Meta:
-        ordering = ['-updated_at']
-
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        help_text=_('Unique identifier of the comment.'),
-        editable=False
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text=_('Creation date of the comment.'),
-        editable=False
-    )
-    updated_at = models.DateTimeField(
-        help_text=_('Latest modification of the comment.'),
-        auto_now=True
-    )
-    content = models.TextField(
-        help_text=_('Add more details about the comment.'),
-        default=_('No description')
-    )
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        help_text=_('Who redacted this comment.'),
-        related_name='comments',
-    )
-    commented_object = models.ForeignKey(
-        CommonModel,
-        on_delete=models.CASCADE,
-        related_name='comments',
-    )
-
-
 class Case(models.Model):
     class Meta:
         ordering = ['-updated_at']
@@ -265,15 +163,14 @@ class Case(models.Model):
         null=True,
         related_name='sub_cases'
     )
-    es_prefix = models.CharField(
-        max_length=16,
-        editable=False,
-        default=_random_id()
-    )
     signing_key = models.TextField(
         editable=True,
         default=''
     )
+    es_prefix = models.CharField(
+        max_length=16,
+        editable=True,
+        default=_random_id  )
     verify_key = models.TextField(
         editable=True,
         default=''
@@ -283,6 +180,10 @@ class Case(models.Model):
     def save(self, *args, **kwargs):
         self.generate_key_pair(save=False)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_case_details_view', kwargs={'pk': self.id})
 
     @property
     def value(self):
@@ -312,7 +213,7 @@ class Case(models.Model):
             if save:
                 self.save()
 
-    def quick_search(self, value, type=None, exclude_types=['ObservableRelation']):
+    def quick_search(self, value, type=None, exclude_types=['EntityRelation']):
         models = colander_models
         if type and type in models:
             models = {type: models.get(type)}
@@ -347,7 +248,7 @@ class Case(models.Model):
         for name, model in colander_models.items():
             if model in color_scheme:
                 classes.append(f'classDef {name} fill:{color_scheme.get(model)}')
-        entities = self.get_all_entities(exclude_types=['PiRogueExperiment', 'Threat', 'Event'])
+        entities = self.get_all_entities(exclude_types=['Threat', 'Event', 'Case'])
         for entity in entities:
             if hasattr(entity, 'to_mermaid'):
                 n, c, l = entity.to_mermaid
@@ -358,7 +259,7 @@ class Case(models.Model):
         click_txt = '\n\t'.join(list(set(clicks)))
         link_txt = '\n\t'.join(list(set(links)))
         class_txt = '\n\t'.join(list(set(classes)))
-        text = f'flowchart TD\n\t{node_txt}\n\t{click_txt}\n\t{link_txt}\n\t{class_txt}'
+        text = f'flowchart LR\n\t{node_txt}\n\t{click_txt}\n\t{link_txt}\n\t{class_txt}'
         return text
 
     @property
@@ -370,19 +271,142 @@ class Case(models.Model):
         return Case.objects.filter(owner=user)
 
 
-class CaseRelated(models.Model):
-    class Meta:
-        abstract = True
+class Entity(models.Model):
+    RED = 'RED'
+    AMBER = 'AMBER'
+    GREEN = 'GREEN'
+    WHITE = 'WHITE'
+    TLP_PAP_CHOICES = [
+        (RED, 'RED'),
+        (AMBER, 'AMBER'),
+        (GREEN, 'GREEN'),
+        (WHITE, 'WHITE'),
+    ]
 
+    class Meta:
+        abstract: True
+        ordering = ['-updated_at']
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this object.'),
+        null=True,
+        blank=True
+    )
+    source_url = models.URLField(
+        help_text=_('Specify the source of this object.'),
+        verbose_name='Source URL',
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this object.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
     case = models.ForeignKey(
         Case,
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_related",
         related_query_name="%(app_label)s_%(class)ss",
     )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+    tlp = models.CharField(
+        max_length=6,
+        choices=TLP_PAP_CHOICES,
+        help_text=_('Traffic Light Protocol, designed to indicate the sharing boundaries to be applied.'),
+        verbose_name='TLP',
+        default=WHITE
+    )
+    pap = models.CharField(
+        max_length=6,
+        choices=TLP_PAP_CHOICES,
+        help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
+        verbose_name='PAP',
+        default=WHITE
+    )
+
+    def get_relations(self):
+        relations = EntityRelation.objects.filter(Q(obj_from_id=self.id) | Q(obj_to_id=self.id)).all()
+        return relations
+
+    def get_in_relations(self):
+        relations = EntityRelation.objects.filter(obj_to_id=self.id).all()
+        return relations
+
+    def get_out_relations(self):
+        relations = EntityRelation.objects.filter(obj_from_id=self.id).all()
+        return relations
+
+    @property
+    def relations(self):
+        return self.get_relations()
+
+    @property
+    def in_relations(self):
+        return self.get_in_relations()
+
+    @property
+    def out_relations(self):
+        return self.get_out_relations()
+
+    @property
+    def sorted_comments(self):
+        return self.comments.order_by('created_at')
 
 
-class Actor(CommonModel, CaseRelated):
+class Comment(models.Model):
+    class Meta:
+        ordering = ['-updated_at']
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier of the comment.'),
+        editable=False
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of the comment.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of the comment.'),
+        auto_now=True
+    )
+    content = models.TextField(
+        help_text=_('Add more details about the comment.'),
+        default=_('No description')
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who redacted this comment.'),
+        related_name='comments',
+    )
+    commented_object = models.ForeignKey(
+        Entity,
+        on_delete=models.CASCADE,
+        related_name='comments',
+    )
+
+
+class Actor(Entity):
     class Meta:
         ordering = ['name']
 
@@ -450,7 +474,7 @@ class Actor(CommonModel, CaseRelated):
         return Actor.objects.all()
 
 
-class Device(CommonModel, CaseRelated):
+class Device(Entity):
     type = models.ForeignKey(
         DeviceType,
         on_delete=models.CASCADE,
@@ -532,7 +556,7 @@ class Device(CommonModel, CaseRelated):
         return []
 
 
-class Artifact(CommonModel, CaseRelated):
+class Artifact(Entity):
     type = models.ForeignKey(
         ArtifactType,
         on_delete=models.CASCADE,
@@ -670,7 +694,7 @@ class Artifact(CommonModel, CaseRelated):
         return Artifact.objects.filter(owner=user)
 
 
-class Threat(CommonModel, CaseRelated):
+class Threat(Entity):
     class Meta:
         ordering = ['-updated_at']
 
@@ -743,14 +767,16 @@ class Threat(CommonModel, CaseRelated):
         return Threat.objects.all()
 
 
-class Observable(CommonModel, CaseRelated):
+class Observable(Entity):
     type = models.ForeignKey(
         ObservableType,
         on_delete=models.CASCADE,
         help_text=_('Type of this observable.')
     )
-    value = models.CharField(
+    name = models.CharField(
         max_length=512,
+        verbose_name='Value',
+        help_text=_('Value of this observable')
     )
     classification = models.CharField(
         max_length=512,
@@ -791,12 +817,11 @@ class Observable(CommonModel, CaseRelated):
         blank=True,
         null=True
     )
+
     es_prefix = models.CharField(
         max_length=16,
         editable=False,
-        default=_random_id()
-    )
-
+        default=_random_id   )
     @property
     def icon(self):
         c = self.__class__
@@ -806,6 +831,10 @@ class Observable(CommonModel, CaseRelated):
     def color(self):
         c = self.__class__
         return color_scheme.get(c, '')
+
+    @property
+    def value(self):
+        return self.name
 
     @property
     def super_type(self):
@@ -873,10 +902,93 @@ class Observable(CommonModel, CaseRelated):
     def get_user_observables(user, case=None):
         if case:
             return Observable.objects.filter(case=case)
-        return Observable.objects.all()
+        return Observable.objects.filter(owner=user)
 
 
-class ObservableRelation(CommonModel, CaseRelated):
+class EntityRelation(models.Model):
+    class Meta:
+        unique_together = [['name', 'obj_from_id', 'obj_to_id']]
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    name = models.CharField(
+        max_length=512,
+        help_text=_('Name of this relation between two entities.'),
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this object.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+    obj_from_id = models.UUIDField()
+    obj_from_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, related_name='obj_from_types')
+    obj_from = GenericForeignKey('obj_from_type', 'obj_from_id')
+    obj_to_id = models.UUIDField()
+    obj_to_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, related_name='obj_to_types')
+    obj_to = GenericForeignKey('obj_to_type', 'obj_to_id')
+
+    def __str__(self):
+        return f'{self.obj_from} -{self.name}-> {self.obj_to}'
+
+    @property
+    def value(self):
+        return self.name
+
+    @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    @staticmethod
+    def get_user_entity_relations(user, case=None):
+        if case:
+            return EntityRelation.objects.filter(case=case)
+        return EntityRelation.objects.filter(owner=user)
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = [
+            f'{self.obj_from_id}-- {icon} {self.name} -->{self.obj_to_id}'
+        ]
+        nodes = []
+        clicks = []
+        return nodes, clicks, links
+
+
+class ObservableRelation(Entity):
     class Meta:
         ordering = ['-updated_at']
 
@@ -949,7 +1061,11 @@ class ObservableRelation(CommonModel, CaseRelated):
         return ObservableRelation.objects.all()
 
 
-class DetectionRule(CommonModel, CaseRelated):
+class DetectionRule(Entity):
+    name = models.CharField(
+        max_length=512,
+        help_text=_('Name of this detection rule.'),
+    )
     type = models.ForeignKey(
         DetectionRuleType,
         on_delete=models.CASCADE,
@@ -985,7 +1101,7 @@ class DetectionRule(CommonModel, CaseRelated):
         return DetectionRule.objects.all()
 
 
-class Event(CommonModel, CaseRelated):
+class Event(Entity):
     type = models.ForeignKey(
         EventType,
         on_delete=models.CASCADE,
@@ -993,11 +1109,11 @@ class Event(CommonModel, CaseRelated):
     )
     first_seen = models.DateTimeField(
         help_text=_('First time the event has occurred.'),
-        default=django.utils.timezone.now()
+        default=django.utils.timezone.now
     )
     last_seen = models.DateTimeField(
         help_text=_('First time the event has occurred.'),
-        default=django.utils.timezone.now()
+        default=django.utils.timezone.now
     )
     count = models.BigIntegerField(
         help_text=_('How many times this event has occurred.'),
@@ -1107,7 +1223,7 @@ class Event(CommonModel, CaseRelated):
         return bool(objects), objects
 
 
-class PiRogueExperiment(CommonModel, CaseRelated):
+class PiRogueExperiment(Entity):
     class Meta:
         verbose_name = 'PiRogue experiment'
 
@@ -1166,13 +1282,13 @@ class PiRogueExperiment(CommonModel, CaseRelated):
         help_text=_('Elasticsearch index storing the network traffic.'),
         editable=False
     )
+
     analysis_index = models.CharField(
         max_length=64,
-        default=_random_id(),
+        default=_random_id,
         help_text=_('Elasticsearch index storing the analysis.'),
         editable=True
     )
-
     @property
     def value(self):
         return self.name
@@ -1181,6 +1297,9 @@ class PiRogueExperiment(CommonModel, CaseRelated):
     def icon(self):
         c = self.__class__
         return icons.get(c, '')
+
+    def __str__(self):
+        return f'{self.name}'
 
     @property
     def color(self):
@@ -1197,6 +1316,8 @@ class PiRogueExperiment(CommonModel, CaseRelated):
         connections.create_connection(hosts=['elasticsearch'], timeout=20)
         try:
             search = PiRogueExperimentAnalysis.search(index=self.get_es_index())
+            total = search.count()
+            search = search[0:total]
             search.sort('result.timestamp')
             return search.execute()
         except Exception as e:
@@ -1232,8 +1353,8 @@ class PiRogueExperiment(CommonModel, CaseRelated):
             links.append(f'{self.id}-- execution of -->{self.target_artifact_id}')
         if self.sslkeylog:
             links.append(f'{self.id}-- generated -->{self.sslkeylog_id}')
-        if self.sslkeylog:
-            links.append(f'{self.id}-- generated -->{self.sslkeylog_id}')
+        if self.screencast:
+            links.append(f'{self.id}-- generated -->{self.screencast_id}')
         return nodes, clicks, links
 
     @property
@@ -1307,16 +1428,16 @@ class PiRogueExperimentAnalysis(Document):
 
 
 colander_models = {
+    'Case': Case,
     'Actor': Actor,
     'Artifact': Artifact,
     'DetectionRule': DetectionRule,
     'Device': Device,
     'Event': Event,
     'Observable': Observable,
-    'ObservableRelation': ObservableRelation,
+    'EntityRelation': EntityRelation,
     'PiRogueExperiment': PiRogueExperiment,
     'Threat': Threat,
-    # 'Case': Case,
 }
 
 icons = {
@@ -1326,7 +1447,7 @@ icons = {
     Device: 'fa-server',
     Event: 'fa-bolt',
     Observable: 'fa-bullseye',
-    ObservableRelation: 'fa-link',
+    EntityRelation: 'fa-link',
     PiRogueExperiment: 'fa-flask',
     Threat: 'fa-bug',
 }
@@ -1338,7 +1459,7 @@ color_scheme = {
     Device: '#fb8072',
     Event: '#80b1d3',
     Observable: '#fdb462',
-    ObservableRelation: '#b3de69',
+    EntityRelation: '#b3de69',
     PiRogueExperiment: '#fccde5',
     Threat: '#d9d9d9',
     # #bc80bd #ccebc5 #ffed6f

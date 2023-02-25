@@ -9,7 +9,7 @@ from django_q.tasks import async_task
 from colander.core.forms import CommentForm
 from colander.core.models import PiRogueExperiment, Artifact
 from colander.core.pcap_tasks import save_decrypted_traffic
-from colander.core.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseRequiredMixin
 
 
 class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
@@ -22,6 +22,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         'socket_trace',
         'sslkeylog',
         'screencast',
+        'target_artifact',
         'tlp',
         'pap'
     ]
@@ -34,6 +35,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         form.fields['socket_trace'].queryset = artifacts_qset.filter(type__short_name='SOCKET_T')
         form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG')
         form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO')
+        form.fields['target_artifact'].queryset = artifacts_qset
         return form
 
     def form_valid(self, form):
@@ -75,12 +77,20 @@ class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detail
 
 
 @login_required
+def delete_experiment_view(request, pk):
+    obj = PiRogueExperiment.objects.get(id=pk)
+    obj.delete()
+    return redirect("collect_experiment_create_view")
+
+
+@login_required
 def start_decryption(request, pk):
     if PiRogueExperiment.objects.filter(id=pk).exists():
         experiment = PiRogueExperiment.objects.get(id=pk)
         if experiment.pcap and experiment.sslkeylog:
             messages.success(request, 'Traffic decryption is in progress, refresh this page in a few minutes.')
-            async_task(save_decrypted_traffic, pk)
+            save_decrypted_traffic(pk)
+            # async_task(save_decrypted_traffic, pk)
         else:
             messages.error(request, 'Cannot decrypt traffic since your experiment does not have both a PCAP file and an SSL keylog file.')
     return redirect(request.META.get('HTTP_REFERER'))

@@ -1,12 +1,14 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
 from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact, Threat, Actor
-from colander.core.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseRequiredMixin
 
 
 class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
@@ -18,7 +20,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'extracted_from',
         'associated_threat',
         'operated_by',
-        'value',
+        'name',
         'description',
         'tlp',
         'pap',
@@ -138,3 +140,10 @@ class ObservableRelationDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detai
         ctx = super().get_context_data(**kwargs)
         ctx['comment_form'] = CommentForm()
         return ctx
+
+
+@login_required
+def delete_observable_view(request, pk):
+    obj = Observable.objects.get(id=pk)
+    obj.delete()
+    return redirect("collect_observable_create_view")

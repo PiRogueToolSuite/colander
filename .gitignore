@@ -330,3 +330,4 @@ colander/media/
 .env
 .envs/*
 !.envs/.local/
+/colander/core/migrationszzz/

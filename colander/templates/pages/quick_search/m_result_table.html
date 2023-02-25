@@ -7,7 +7,6 @@
     <tr>
       <th>Entity</th>
       <th>Type</th>
-      <th>Owner</th>
     </tr>
     </thead>
     <tbody>
@@ -23,7 +22,6 @@
            - <i>{{ r.type }}</i>
           {% endif %}
         </td>
-        <td class="text-muted">{% include "icons/user_icon.html" with c="text-muted" %} {{ r.owner }}</td>
       </tr>
     {% endfor %}
     </tbody>

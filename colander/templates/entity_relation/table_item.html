@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<tr>
+  <td>
+    {{ relation.name|lower }}
+  </td>
+  <td>
+    {% if direction == "from" %}
+      <i class="nf {{ relation.obj_from.type.nf_icon }} text-primary"></i>
+      <a href="{{ relation.obj_from.get_absolute_url }}">
+        <samp>{{ relation.obj_from }}</samp>
+      </a>
+    {% else %}
+      <i class="nf {{ relation.obj_to.type.nf_icon }} text-primary"></i>
+      <a href="{{ relation.obj_to.get_absolute_url }}">
+        <samp>{{ relation.obj_to }}</samp>
+      </a>
+    {% endif %}
+  </td>
+  <td class="text-end">
+    {% include "entity_relation/controls.html" with btn_class="btn-sm" exclude="edit,details" %}
+  </td>
+</tr>

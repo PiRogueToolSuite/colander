@@ -5,7 +5,8 @@ import magic
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
@@ -14,7 +15,7 @@ from nacl.encoding import Base64Encoder
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, ArtifactType, Device
 from colander.core.utils import hash_file
-from colander.core.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseRequiredMixin
 
 
 class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
@@ -122,7 +123,7 @@ class ArtifactDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
 @login_required
 def download_artifact(request, pk):
     content = Artifact.objects.get(id=pk)
-    response = HttpResponse(content.file, content_type=content.mime_type)
+    response = StreamingHttpResponse(content.file, content_type=content.mime_type)
     response['Content-Disposition'] = 'attachment; filename=' + content.name
     return response
 
@@ -133,3 +134,10 @@ def download_artifact_signature(request, pk):
     response = HttpResponse(raw, content_type='application/octet-stream')
     response['Content-Disposition'] = f'attachment; filename={content.name}.sig'
     return response
+
+@login_required
+def delete_artifact_view(request, pk):
+    obj = Artifact.objects.get(id=pk)
+    # Todo handle the more complicated stuff such as delete file on FS
+    obj.delete()
+    return redirect("collect_artifact_create_view")

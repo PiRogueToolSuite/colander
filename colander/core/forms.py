@@ -47,3 +47,19 @@ class InvestigateSearchForm(forms.Form):
 
 class DocumentationForm(forms.Form):
     documentation = MartorFormField()
+
+
+class EntityRelationForm(forms.Form):
+    name = forms.CharField(
+        label='Relation name',
+        max_length=128,
+        required=True
+    )
+    obj_from = forms.ChoiceField(
+        label='Source entity',
+        required=True
+    )
+    obj_to = forms.ChoiceField(
+        label='Target entity',
+        required=True
+    )

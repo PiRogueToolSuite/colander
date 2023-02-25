@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block sidebar-items %}
+
+{% endblock sidebar-items %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <h1>Case documentation</h1>
+        {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+      </div>
+    </div>
+  {% endblock inner-content %}
+{% endblock content %}
+

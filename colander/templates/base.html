@@ -33,21 +33,22 @@
     <!-- place project specific Javascript in this file -->
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/project.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/vue.min.js' %}"></script>
       <script src="{% static 'js/myLib.umd.js' %}"></script>
       <script src="{% static 'js/popper.min.js' %}"></script>
+      <script src="{% static 'js/bootstrap.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
+      <!-- markdown editor -->
       <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/ext-language_tools.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/theme-github.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/typo.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/spellcheck.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>
+{#      <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>#}
       <script type="text/javascript" src="{% static 'plugins/js/resizable.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/emojis.min.js' %}"></script>
       <script type="text/javascript" src="{% static 'martor/js/martor.bootstrap.min.js' %}"></script>
@@ -62,6 +63,7 @@
 {% url 'investigate_base_view' as investigate_base_view_url %}
 {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
 {% url 'report_base_view' as report_base_view_url %}
+{% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
 
 <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
   <a class="navbar-brand col-lg-auto col-md-3 me-0 px-3" href="#">Colander</a>
@@ -124,22 +126,27 @@
                     Switch case
                   </button>
                   <br>
-                  {% if not request.session.show_documentation_editor %}
-                    <a href="{% url "enable_documentation_editor_view" %}"
-                       class="btn btn-primary text-white mt-2" type="button">
-                      <i class="nf nf-fa-file_text"></i>
-                      Start writing doc
-                    </a>
-                  {% else %}
-                    <a href="{% url "disable_documentation_editor_view" %}"
-                       class="btn btn-primary text-white mt-2" type="button">
-                      <i class="nf nf-fa-file_text"></i>
-                      Stop writing doc
-                    </a>
-                  {% endif %}
+                  <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
+                          data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+                    <i class="nf nf-fa-file_text"></i>
+                    Doc editor
+                  </button>
+                  {#                  {% if not request.session.show_documentation_editor %}#}
+                  {#                    <a href="{% url "enable_documentation_editor_view" %}"#}
+                  {#                       class="btn btn-primary text-white mt-2" type="button">#}
+                  {#                      <i class="nf nf-fa-file_text"></i>#}
+                  {#                      Start writing doc#}
+                  {#                    </a>#}
+                  {#                  {% else %}#}
+                  {#                    <a href="{% url "disable_documentation_editor_view" %}"#}
+                  {#                       class="btn btn-primary text-white mt-2" type="button">#}
+                  {#                      <i class="nf nf-fa-file_text"></i>#}
+                  {#                      Stop writing doc#}
+                  {#                    </a>#}
+                  {#                  {% endif %}#}
                 </div>
               {% endif %}
-            <hr>
+              <hr>
               <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                 <span>Workspaces</span>
               </h6>
@@ -165,10 +172,24 @@
                 {#                </a>#}
                 {#              </li>#}
                 <li class="nav-item">
+                  <a class="nav-link{% if document_cases_write_doc_url in request.path %} active {% endif %}"
+                     href="{{ document_cases_write_doc_url }}">
+                    <i class="nf nf-fa-file_text" aria-hidden="true"></i>
+                    Document
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
                      href="{{ investigate_base_view_url }}">
                     <i class="nf nf-fa-search" aria-hidden="true"></i>
                     Investigate
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
+                     href="{% url "cyberchef_view" %}" target="_blank">
+                    <img height="12px" src="{% static "images/cyberchef_hat.svg" %}">
+                    Cyberchef
                   </a>
                 </li>
                 {#              <li class="nav-item">#}
@@ -178,12 +199,12 @@
                 {#                  Report#}
                 {#                </a>#}
                 {#              </li>#}
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'about' %}">
-                    <i class="nf nf-fa-question" aria-hidden="true"></i>
-                    About
-                  </a>
-                </li>
+{#                <li class="nav-item">#}
+{#                  <a class="nav-link" href="{% url 'about' %}">#}
+{#                    <i class="nf nf-fa-question" aria-hidden="true"></i>#}
+{#                    About#}
+{#                  </a>#}
+{#                </li>#}
                 {% if request.user.is_authenticated %}
                   <li class="nav-item text-nowrap">
                     {# URL provided by django-allauth/account/urls.py #}
@@ -200,7 +221,8 @@
           </div>
         </nav>
       {% endblock sidebar %}
-      <main class="mt-2 {% if request.session.show_documentation_editor %}col-md-7{% else %}col-md-10{% endif %}">
+      {#      <main class="mt-2 {% if request.session.show_documentation_editor %}col-md-7{% else %}col-md-10{% endif %}">#}
+      <main class="mt-2 col-md-10" style="margin-bottom: 30vh;">
         <div class="">
           {#        <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">#}
           {% if messages %}
@@ -220,24 +242,23 @@
           </div>
         </div>
       </main>
-
-      {% if request.session.show_documentation_editor %}
-        <div class="col-md-auto mt-3">
-          <div class="position-fixed">
-            <div class="position-sticky">
-              <h3>Case documentation</h3>
-              <div class="">
-                {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
     </div>
-
   </div> <!-- /container -->
 {% endblock container %}
 
+
+{% block offcanvas %}
+  <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+       id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">
+    <div class="offcanvas-header pb-1">
+      <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body mt-0 pt-0">
+      {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+    </div>
+  </div>
+{% endblock %}
 
 {% block modal %}
   <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">

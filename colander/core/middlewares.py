@@ -1,5 +1,3 @@
-from django.shortcuts import redirect
-
 from colander.core.forms import DocumentationForm
 from colander.core.models import Case
 

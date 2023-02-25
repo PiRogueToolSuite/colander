@@ -14,4 +14,8 @@
     {% translate "Edit" %}
   </a>
   {% endif %}
+  <a href="{% url "collect_entity_relation_delete_view" pk=relation.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+    <i class="nf nf-fa-trash"></i>
+    Delete
+  </a>
 </div>

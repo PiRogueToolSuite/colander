@@ -11,16 +11,18 @@
         {% translate "No description" %}
       {% endif %}
     </div>
-    <div class="btn-group" role="group">
-      <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary">
-        <i class="nf nf-mdi-key_remove"></i>
-        {% translate "Decrypt" %}
-      </a>
-      <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
-    </div>
+
+    {% include "experiment/controls.html" with exclude="details" btn_class=""%}
+{#    <div class="btn-group" role="group">#}
+{#      <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary">#}
+{#        <i class="nf nf-mdi-key_remove"></i>#}
+{#        {% translate "Decrypt" %}#}
+{#      </a>#}
+{#      <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">#}
+{#        <i class="nf nf-fa-edit"></i>#}
+{#        {% translate "Edit" %}#}
+{#      </a>#}
+{#    </div>#}
   </div>
 
   <div class="col mt-2">

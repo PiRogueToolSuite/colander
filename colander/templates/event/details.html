@@ -10,12 +10,7 @@
         {% translate "No description" %}
       {% endif %}
     </div>
-    <div class="btn-group" role="group">
-      <a href="{% url "collect_event_update_view" pk=event.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
-    </div>
+    {% include "event/controls.html" with exclude="details" btn_class="" %}
   </div>
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>

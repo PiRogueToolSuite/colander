@@ -8,7 +8,7 @@
         <div class="border-bottom border-secondary">
           <i class="nf {{ observable.type.nf_icon }} h4 text-primary"></i>
           <a class="h4" href="{% url "collect_observable_details_view" pk=observable.id %}">
-            <samp>{{ observable.value }}</samp>
+            <samp>{{ observable.name }}</samp>
           </a>
         </div>
         <div>
@@ -58,7 +58,7 @@
     </div>
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
-    {% include "observable/controls.html" with exclude="" %}
+    {% include "observable/controls.html" with exclude="" btn_class="btn-sm"%}
   </div>
 
 </div>

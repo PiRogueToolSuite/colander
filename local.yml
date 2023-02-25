@@ -7,10 +7,10 @@ volumes:
   colander_local_es_data: {}
 
 services:
-  analyzers:
-    image: colander-analyzers
-    ports:
-      - 6666:6666
+#  analyzers:
+#    image: colander-analyzers
+#    ports:
+#      - 6666:6666
 
   django: &django
     build:
@@ -24,7 +24,8 @@ services:
       - minio
       - elasticsearch
       - redis
-      - analyzers
+      - cyberchef
+#      - analyzers
     volumes:
       - .:/app:z
     env_file:
@@ -84,6 +85,13 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+
+  cyberchef:
+    image: mpepping/cyberchef:latest
+    container_name: colander_local_cyberchef
+    ports:
+      - 8001:8000
+    restart: always
 
   elasticsearch:
     image: elasticsearch:8.4.1

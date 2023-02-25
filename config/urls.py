@@ -8,25 +8,28 @@ from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from colander.core.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView
-from colander.core.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
+from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView, delete_actor_view
+from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
     download_artifact_signature
-from colander.core.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
-from colander.core.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView
-from colander.core.enrich_view import enrich_observable
-from colander.core.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
-    PiRogueExperimentDetailsView, start_decryption
-from colander.core.investigate_views import investigate_search_view
-from colander.core.obversable_views import ObservableCreateView, ObservableRelationCreateView, ObservableUpdateView, \
-    ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView
-from colander.core.views import collect_base_view, \
+from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
+from colander.core.views.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView, delete_device_view
+from colander.core.views.documentation_views import write_documentation_view
+from colander.core.views.enrich_view import enrich_observable
+from colander.core.views.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
+    PiRogueExperimentDetailsView, start_decryption, delete_experiment_view
+from colander.core.views.investigate_views import investigate_search_view
+from colander.core.views.obversable_views import ObservableCreateView, ObservableRelationCreateView, \
+    ObservableUpdateView, \
+    ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView, delete_observable_view
+from colander.core.views.proxys import cyber_chef_view
+from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
+from colander.core.views.views import collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
-    save_case_documentation_view, enable_documentation_editor, disable_documentation_editor
-from colander.core.event_views import EventCreateView, EventUpdateView, EventDetailsView
-from colander.core.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView
+    save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view
+from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
+from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
 from colander.users.views import UserTwoFactorSetup
-
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
       path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -53,11 +56,14 @@ urlpatterns = [
       path("quick_search/", quick_search, name='quick_search_view'),
 
       path("collect/", collect_base_view, name="collect_base_view"),
+      path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
       path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
       path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
       path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+      path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
       path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
+      path("document/case", write_documentation_view, name="document_case_write_doc_view"),
       path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
       path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
       path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
@@ -73,26 +79,34 @@ urlpatterns = [
       path("collect/device", DeviceCreateView.as_view(), name="collect_device_create_view"),
       path("collect/device/<slug:pk>", DeviceUpdateView.as_view(), name="collect_device_update_view"),
       path("collect/device/<slug:pk>/details", DeviceDetailsView.as_view(), name="collect_device_details_view"),
+      path("collect/device/<slug:pk>/delete", delete_device_view, name="collect_device_delete_view"),
 
       path("collect/event", EventCreateView.as_view(), name="collect_event_create_view"),
       path("collect/event/<slug:pk>", EventUpdateView.as_view(), name="collect_event_update_view"),
       path("collect/event/<slug:pk>/details", EventDetailsView.as_view(), name="collect_event_details_view"),
+      path("collect/event/<slug:pk>/delete", delete_event_view, name="collect_event_delete_view"),
 
       path("collect/observable", ObservableCreateView.as_view(), name="collect_observable_create_view"),
       path("collect/observable/<slug:pk>", ObservableUpdateView.as_view(), name="collect_observable_update_view"),
       path("collect/observable/<slug:pk>/details", ObservableDetailsView.as_view(), name="collect_observable_details_view"),
+      path("collect/observable/<slug:pk>/delete", delete_observable_view, name="collect_observable_delete_view"),
 
-      path("collect/relation", ObservableRelationCreateView.as_view(), name="collect_relation_create_view"),
-      path("collect/relation/<slug:pk>", ObservableRelationUpdateView.as_view(), name="collect_relation_update_view"),
-      path("collect/relation/<slug:pk>/details", ObservableRelationDetailsView.as_view(), name="collect_relation_details_view"),
+      path("collect/entity_relation", create_or_edit_entity_relation_view, name="collect_entity_relation_create_view"),
+      path("collect/entity_relation/<slug:pk>/delete", delete_relation_view, name="collect_entity_relation_delete_view"),
+
+      # path("collect/relation", ObservableRelationCreateView.as_view(), name="collect_relation_create_view"),
+      # path("collect/relation/<slug:pk>", ObservableRelationUpdateView.as_view(), name="collect_relation_update_view"),
+
 
       path("collect/threat", ThreatCreateView.as_view(), name="collect_threat_create_view"),
       path("collect/threat/<slug:pk>", ThreatUpdateView.as_view(), name="collect_threat_update_view"),
       path("collect/threat/<slug:pk>/details", ThreatDetailsView.as_view(), name="collect_threat_details_view"),
+      path("collect/threat/<slug:pk>/delete", delete_threat_view, name="collect_threat_delete_view"),
 
       path("collect/experiment", PiRogueExperimentCreateView.as_view(), name="collect_experiment_create_view"),
       path("collect/experiment/<slug:pk>", PiRogueExperimentUpdateView.as_view(), name="collect_experiment_update_view"),
       path("collect/experiment/<slug:pk>/details", PiRogueExperimentDetailsView.as_view(), name="collect_experiment_details_view"),
+      path("collect/experiment/<slug:pk>/delete", delete_experiment_view, name="collect_experiment_delete_view"),
       path("collect/experiment/<slug:pk>/decrypt", start_decryption, name="collect_experiment_decryption_view"),
 
       path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
@@ -109,7 +123,12 @@ urlpatterns = [
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),
       path("comment/<slug:pk>/delete", delete_comment_view, name="delete_comment_view"),
 
+      path("cyberchef", cyber_chef_view, name="cyberchef_view"),
+      # path("cyberchef_input/<path:path>", cyber_chef_input_view, name="cyberchef_view_input"),
+      path("cyberchef/<path:path>", cyber_chef_view, name="cyberchef_view_with_path")
+
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 # API URLS
 urlpatterns += [

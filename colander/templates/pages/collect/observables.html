@@ -20,7 +20,7 @@
                 {{ form.type|as_crispy_field }}
               </div>
               <div class="col">
-                {{ form.value|as_crispy_field }}
+                {{ form.name|as_crispy_field }}
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}
                 {{ form.extracted_from|as_crispy_field }}
@@ -55,7 +55,7 @@
 {% block inline_javascript %}
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=value]");
+      let input = $("input[name=name]");
       suggest_entity(input, 'Observable')
     });
   </script>

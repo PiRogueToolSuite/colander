@@ -2,7 +2,7 @@
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h2><i class="nf {{ observable.type.nf_icon }} text-primary"></i> {{ observable.value }}</h2>
+    <h2><i class="nf {{ observable.type.nf_icon }} text-primary"></i> {{ observable.name }}</h2>
     <div class="mb-3">
       {% if observable.description %}
         {{ observable.description }}
@@ -130,25 +130,24 @@
 
   {% include "helpers/extra_attributes.html" with attributes=observable.attributes %}
 
-  {% with targets=observable.relation_targets.all origins=observable.relation_origins.all %}
+  {% with targets=observable.out_relations origins=observable.in_relations %}
     {% if origins or targets %}
       <div class="col-md-12 mt-2">
-        <h3>{% translate "Related observables" %}</h3>
+        <h3>{% translate "Related entities" %}</h3>
         <table class="table table-sm">
           <thead class="bg-secondary-light">
           <tr>
             <td>Type</td>
-            <td>Observable</td>
-            <td>Creation date</td>
+            <td>Entity</td>
             <td></td>
           </tr>
           </thead>
           <tbody>
           {% for relation in origins %}
-            {% include "observable_relation/table_item.html" with direction="to" %}
+            {% include "entity_relation/table_item.html" with direction="from" %}
           {% endfor %}
           {% for relation in targets %}
-            {% include "observable_relation/table_item.html" with direction="from" %}
+            {% include "entity_relation/table_item.html" with direction="to" %}
           {% endfor %}
           </tbody>
         </table>

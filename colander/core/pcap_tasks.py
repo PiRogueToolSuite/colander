@@ -18,6 +18,7 @@ external_packages = [
     'okhttp3.logging.',
     'java.util.',
     'java.lang.',
+    'android.os.',
 ]
 
 
@@ -118,15 +119,17 @@ def parse_sll_layer(sll_layer: dict):
 
 
 def parse_single_http2_layer(http2_layer: dict):
-    data, headers = None, None
+    data, headers, raw_data = None, None, ''
     if 'http2_http2_body_reassembled_data' in http2_layer:
-        data = binascii.unhexlify(http2_layer.get('http2_http2_body_reassembled_data').replace(':', ''))
+        raw_data = http2_layer.get('http2_http2_body_reassembled_data', '').replace(':', '')
+        data = binascii.unhexlify(raw_data)
         try:
             data = data.decode('utf-8')
         except Exception:
             data = http2_layer.get('http2_http2_body_reassembled_data')
     elif 'http2_http2_data_data' in http2_layer:
-        data = binascii.unhexlify(http2_layer.get('http2_http2_data_data').replace(':', ''))
+        raw_data = http2_layer.get('http2_http2_data_data', '').replace(':', '')
+        data = binascii.unhexlify(raw_data)
         try:
             data = data.decode('utf-8')
         except Exception:
@@ -136,9 +139,9 @@ def parse_single_http2_layer(http2_layer: dict):
         header_value = http2_layer.get('http2_http2_header_value')
         if len(header_name) != len(header_value):
             print('ERROR http2 unmatched header names with values')
-            return headers, data
+            return headers, data, raw_data
         headers = dict([x for x in zip(header_name, header_value)])
-    return headers, data
+    return headers, data, raw_data
 
 
 def parse_http2(layers: dict, layer_names: list):
@@ -146,15 +149,17 @@ def parse_http2(layers: dict, layer_names: list):
     http2_layer = layers.get('http2')
     if type(http2_layer) is list:
         for l in http2_layer:
-            headers, data = parse_single_http2_layer(l)
+            headers, data, raw_data = parse_single_http2_layer(l)
             to_return.append({
                 'headers': headers,
+                'raw_data': raw_data,
                 'data': data
             })
     else:
-        headers, data = parse_single_http2_layer(http2_layer)
+        headers, data, raw_data = parse_single_http2_layer(http2_layer)
         to_return.append({
             'headers': headers,
+            'raw_data': raw_data,
             'data': data
         })
     return to_return
@@ -172,11 +177,13 @@ def parse_http3(layers: dict, layer_names: list):
 
 
 def parse_http(layers: dict, layer_names: list):
-    headers, data = None, None
+    headers, data, raw_data = None, None, ''
+    print(layers.keys())
     http_layer = layers.get('http')
     if http_layer and type(http_layer) is list:  # list in case of websocket communication
         http_layer = http_layer[0]
     data = http_layer.get('http_http_file_data', '')
+    raw_data = data
     raw_headers = None
     if 'http_http_response_line' in http_layer:
         raw_headers = http_layer.get('http_http_response_line')
@@ -192,8 +199,37 @@ def parse_http(layers: dict, layer_names: list):
         headers['uri'] = http_layer.get('http_http_response_for_uri')
     elif 'http_http_request_full_uri' in http_layer:
         headers['uri'] = http_layer.get('http_http_request_full_uri')
-    is_request = 'http_http_request' in http_layer
-    return [{'headers': headers, 'data': data}]
+
+    if 'data' in http_layer:
+        data_layer = http_layer.get('data')
+        if data_layer:
+            raw_data = ''
+            if type(data_layer) is dict:
+                data_layer = [data_layer]
+            for d in data_layer:
+                raw_data += d.get('data_data_data', '').replace(':', '')
+    elif 'media' in layers:
+        data_layer = layers.get('media').get('media_media_type')
+        if data_layer:
+            raw_data = data_layer.replace(':', '')
+    elif 'mime_multipart' in layers:
+        data_layer = layers.get('mime_multipart').get('data')
+        if data_layer:
+            raw_data = ''
+            if type(data_layer) is dict:
+                data_layer = [data_layer]
+            for d in data_layer:
+                raw_data += d.get('data_data_data').replace(':', '')
+    elif 'data' in layers:
+        data_layer = layers.get('data')
+        if data_layer:
+            raw_data = ''
+            if type(data_layer) is dict:
+                data_layer = [data_layer]
+            for d in data_layer:
+                raw_data += d.get('data_data_data', '').replace(':', '')
+
+    return [{'headers': headers, 'data': data, 'raw_data': raw_data}]
 
     # 'http_http_request_line' // request headers
     # 'http_http_request_method'
@@ -233,6 +269,7 @@ def dispatch(packet):
         'community_id': packet.get('layers').get('communityid_communityid'),
         'headers': None,
         'data': None,
+        'raw_data': None,
         'protocol_stack': protocol_stack
     }
     if 'ip' not in packet.get('layers'):
@@ -263,6 +300,8 @@ def dispatch(packet):
                 pd['headers'] = [(k, str(v)) for k, v in r['headers'].items()]
             if r['data']:
                 pd['data'] = r['data']
+            if r['raw_data']:
+                pd['raw_data'] = r['raw_data']
             packets.append(pd)
         return packets
     elif ':http' in protocol_stack:
@@ -276,6 +315,8 @@ def dispatch(packet):
                 pd['headers'] = [(k, str(v)) for k, v in r['headers'].items()]
             if r['data']:
                 pd['data'] = r['data']
+            if r['raw_data']:
+                pd['raw_data'] = r['raw_data']
             packets.append(pd)
         return packets
 
@@ -326,6 +367,7 @@ def save_decrypted_traffic(pirogue_dump_id):
         # Generate the JSON file containing the traffic
         try:
             subprocess.check_call(
+                # f'tshark -2 -T ek --enable-protocol communityid -Ndmn -r {tmp_dir}/{pcapng} > {tmp_dir}/{json_traffic}',
                 f'tshark -2 -T ek -PVx --enable-protocol communityid  -R "http or http2 or quic" -Ndmn -r {tmp_dir}/{pcapng} > {tmp_dir}/{json_traffic}',
                 shell=True
             )

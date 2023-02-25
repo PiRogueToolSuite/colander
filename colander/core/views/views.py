@@ -1,6 +1,3 @@
-import json
-
-from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.forms.widgets import Textarea
@@ -9,12 +6,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
 
-from colander.core.forms import DocumentationForm
-from colander.core.models import Case, Artifact, Observable
+from colander.core.forms import DocumentationForm, CommentForm
+from colander.core.models import Case, colander_models
 
 
 class CaseRequiredMixin(AccessMixin):
     """Verify that the current user has an active case."""
+
     def dispatch(self, request, *args, **kwargs):
         if not request.session.get('active_case'):
             return redirect('collect_case_create_view')
@@ -58,6 +56,56 @@ def save_case_documentation_view(request, pk):
             active_case.documentation = form.cleaned_data.get('documentation')
             active_case.save()
     return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def quick_creation_view(request):
+    active_case = get_active_case(request)
+    if not active_case:
+        return redirect('collect_case_create_view')
+
+    if request.method == 'POST':
+        if 'create_entity' in request.POST:
+            model_name = request.POST.get('model')
+            type_name = request.POST.get('type')
+            name = request.POST.get('name')
+            model = colander_models.get(model_name)
+            type_model = model.type.field.related_model
+            type = type_model.objects.get(short_name=type_name)
+            entity = model(
+                case=active_case,
+                owner=request.user,
+                type=type,
+                name=name
+            )
+            entity.save()
+
+    models = []
+    types = {}
+    exclude = ['Artifact', 'Case', 'DetectionRule', 'EntityRelation', 'Event']
+    for name, model in colander_models.items():
+        if hasattr(model, 'type') and name not in exclude:
+            models.append({
+                'name': name
+            })
+            types[name] = [
+                {'label': t.name,
+                 'id': t.short_name, }
+                for t in model.type.get_queryset().all()
+            ]
+
+    model_data = {
+        'models': models,
+        'types': types
+    }
+
+    ctx = {
+        'models': model_data,
+        'entities': active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
+    }
+
+
+    return render(request, 'pages/quick_creation/base.html', context=ctx)
 
 
 @login_required
@@ -107,8 +155,7 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
-        if form.is_valid() and active_case:
+        if form.is_valid():
             case = form.save(commit=False)
             case.owner = self.request.user
             case.save()

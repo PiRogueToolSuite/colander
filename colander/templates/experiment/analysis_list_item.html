@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 {% load colander_tags %}
 
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
@@ -20,6 +21,16 @@
         <samp>{{ analysis.result.dst.ip }}</samp> /
         <samp>{{ analysis.result.dst.host }}</samp>
       </div>
+      {% if analysis.tracker %}
+        <div class="row mt-2">
+          <div class="col">
+            <span class="badge bg-dark">{{ analysis.tracker.name }}</span>
+            {% for cat in analysis.tracker.categories %}
+              <span class="badge bg-dark">{{ cat }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
       <div class="row mt-2">
         <div class="col-md-5">
           <div class="small">
@@ -65,7 +76,8 @@
         <div class="col-md-7">
           <div class="small">
             <ul class="list-unstyled">
-              <li><b>Timestamp</b>: <code>{{ analysis.result.timestamp }}</code></li>
+              <li><b>Timestamp</b>: <code>{{ analysis.result.timestamp }}</code> <span
+                class="small">({{ analysis.timestamp }})</span></li>
               <li>
                 <b>Process name</b>:
                 <samp>{{ analysis.result.full_stack_trace.process|default:"unknown" }}</samp>
@@ -81,24 +93,24 @@
   </div>
   <div class="card-body">
     <div class="row">
-{#      <div class="col-md-12 border-secondary border-bottom pb-2">#}
-{#        <b>URI</b>#}
-{#        <div class="font-monospace small text-wrap">#}
-{#          {% for h, v in analysis.result.headers %}#}
-{#            {% if h == "uri" %}#}
-{#              {{ v }}#}
-{#            {% endif %}#}
-{#          {% endfor %}#}
-{#        </div>#}
-{#      </div>#}
+      {#      <div class="col-md-12 border-secondary border-bottom pb-2">#}
+      {#        <b>URI</b>#}
+      {#        <div class="font-monospace small text-wrap">#}
+      {#          {% for h, v in analysis.result.headers %}#}
+      {#            {% if h == "uri" %}#}
+      {#              {{ v }}#}
+      {#            {% endif %}#}
+      {#          {% endfor %}#}
+      {#        </div>#}
+      {#      </div>#}
       <div class="col-md-8 text-wrap border-secondary border-end">
         <b>Headers</b>
         <div class="small">
           <ul class="list-unstyled">
             {% for h, v in analysis.result.headers %}
-{#              {% if h != "uri" %}#}
-                <li><b><samp>{{ h }}</samp></b>: <samp>{{ v }}</samp></li>
-{#              {% endif %}#}
+              {#              {% if h != "uri" %}#}
+              <li><b><samp>{{ h }}</samp></b>: <samp>{{ v }}</samp></li>
+              {#              {% endif %}#}
             {% empty %}
               <i>no headers</i>
             {% endfor %}
@@ -142,8 +154,117 @@
             </div>
           </div>
         </div>
-        <div class="modal fade" id="raw_data_{{ analysis.analysis_id }}" tabindex="-1"
-             aria-labelledby="raw_data_{{ analysis.analysis_id }}Label" aria-hidden="true">
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="text-wrap">
+      <div class="row">
+        <div class="col-auto me-auto">
+          {% if analysis.result.aes_info.decrypted %}
+            <span class="badge bg-warning">encrypted</span>
+          {% endif %}
+          <span class="mr-5"><b>Data</b></span>
+        </div>
+        {# Actions on data #}
+        <div class="col-auto">
+          <div class="btn-group">
+            <div class="btn-group">
+              <button class="btn btn-primary p-1 btn-sm dropdown-toggle" type="button"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="nf nf-fa-eye"></i> View
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" data-bs-toggle="modal"
+                       data-bs-target="#raw_data_{{ analysis.analysis_id }}">
+                  Raw data
+                </a></li>
+                {% if analysis.result.aes_info.decrypted %}
+                  <li><a class="dropdown-item" data-bs-toggle="modal"
+                         data-bs-target="#raw_decrypted_data_{{ analysis.analysis_id }}">
+                    Decrypted data
+                  </a></li>
+                {% endif %}
+              </ul>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary p-1 btn-sm dropdown-toggle" type="button"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="nf nf-md-chef_hat"></i> CyberChef
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/cyberchef#input={{ analysis.result.raw_data|b64 }}" target="_blank">
+                  Raw data</a></li>
+                {% if analysis.result.aes_info.decrypted %}
+                  <li><a class="dropdown-item" href="/cyberchef#input={{ analysis.result.aes_info.decrypted|b64 }}"
+                         target="_blank">
+                    Decrypted data
+                  </a></li>
+                {% endif %}
+              </ul>
+            </div>
+            <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+               data-bs-target="#hr_data_{{ analysis.analysis_id }}">
+              <i class="nf nf-fae-file_import"></i> Import decoded content
+            </a>
+          </div>
+        </div>
+      </div>
+      {% if analysis.result.aes_info.decrypted %}
+        <p class="small text-muted">Data has been encrypted before being transmitted.</p>
+      {% endif %}
+      {# Panel containing data #}
+      <div class="rounded text-wrap">
+        {% if analysis.decoded_data %}
+          <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.decoded_data }}</pre>
+        {% else %}
+          <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.result.data }}</pre>
+        {% endif %}
+        </pre>
+      </div>
+      {# Modal containing the form to save the human readable content #}
+      <div class="modal fade" id="hr_data_{{ analysis.analysis_id }}" tabindex="-1"
+           aria-labelledby="hr_data_{{ analysis.analysis_id }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="hr_data_{{ analysis.analysis_id }}Label">
+                Save the payload in a human readable format
+              </h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form class="form" method="post"
+                    action="{% url "collect_experiment_save_decoded_content_view" pk=experiment.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="analysis_id" value="{{ analysis.analysis_id }}">
+                <label for="human_readable_content" class="form-label">Human readable content</label>
+                <textarea class="form-control" name="content" id="human_readable_content" rows="12"></textarea>
+                <button type="submit" class="btn btn-primary mb-3">Save</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# Modal containing raw data in hex #}
+      <div class="modal fade" id="raw_data_{{ analysis.analysis_id }}" tabindex="-1"
+           aria-labelledby="raw_data_{{ analysis.analysis_id }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="raw_data_{{ analysis.analysis_id }}Label">Raw data in hex</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <pre class="bg-dark text-white text-wrap p-3 rounded">{{ analysis.result.raw_data }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# Modal containing raw decrypted data in hex #}
+      {% if analysis.result.aes_info.decrypted %}
+        <div class="modal fade" id="raw_decrypted_data_{{ analysis.analysis_id }}" tabindex="-1"
+             aria-labelledby="raw_decrypted_data_{{ analysis.analysis_id }}Label" aria-hidden="true">
           <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
               <div class="modal-header">
@@ -151,29 +272,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
-<pre class="bg-dark text-white text-wrap p-3 rounded">{{ analysis.result.raw_data }}</pre>
+                <ul class="list-unstyled">
+                  <li>Algorithm: <samp>{{ analysis.result.aes_info.alg|default:"unknown" }}</samp></li>
+                  <li>IV: <code>{{ analysis.result.aes_info.iv|default:"unknown" }}</code></li>
+                  <li>Key: <code>{{ analysis.result.aes_info.key|default:"unknown" }}</code></li>
+                </ul>
+                <pre class="bg-dark text-white text-wrap p-3 rounded">{{ analysis.result.aes_info.decrypted }}</pre>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-  <div class="card-footer">
-    <div class="text-wrap">
-      <b>Data</b>
-        <a href="#" class="small" data-bs-toggle="modal"
-           data-bs-target="#raw_data_{{ analysis.analysis_id }}">
-          <i class="nf nf-fa-eye"></i> raw
-        </a>
-        <span>|</span>
-        <a href="/cyberchef#input={{ analysis.result.raw_data|b64 }}"
-           target="_blank" class="small">
-          <i class="nf nf-fa-arrow_right"></i> to cyberchef
-        </a>
-      <div class="rounded text-wrap">
-        <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.result.data }}</pre>
-      </div>
+      {% endif %}
+
     </div>
   </div>
 </div>

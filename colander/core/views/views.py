@@ -220,9 +220,8 @@ def quick_search(request):
         return redirect(request.META.get('HTTP_REFERER'))
     if request.method == 'POST':
         query = request.POST['q']
-        results = active_case.quick_search(query)
+        results = active_case.quick_search(query, exclude_types=['Case', 'EntityRelation'])
         return render(request, 'pages/quick_search/result_list.html', context={'results': results})
-
     return redirect(request.META.get('HTTP_REFERER'))
 
 

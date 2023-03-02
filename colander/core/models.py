@@ -13,7 +13,7 @@ from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Document, Keyword, Date, Object
+from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Double, Integer
 from cryptography.hazmat.primitives.asymmetric import rsa
 from martor.models import MartorField
 from cryptography.hazmat.primitives import serialization
@@ -1272,6 +1272,13 @@ class PiRogueExperiment(Entity):
         blank=True,
         related_name='pirogue_dump_screencast'
     )
+    aes_trace = models.ForeignKey(
+        Artifact,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='pirogue_aes_trace'
+    )
     extra_files = models.ManyToManyField(
         Artifact,
         blank=True,
@@ -1316,10 +1323,10 @@ class PiRogueExperiment(Entity):
         connections.create_connection(hosts=['elasticsearch'], timeout=20)
         try:
             search = PiRogueExperimentAnalysis.search(index=self.get_es_index())
+            search.sort('timestamp')
             total = search.count()
             search = search[0:total]
-            search.sort('result.timestamp')
-            return search.execute()
+            return search.sort('-timestamp').execute()
         except Exception as e:
             return None
 
@@ -1400,8 +1407,11 @@ class PiRogueExperimentAnalysis(Document):
     owner = Keyword(required=True)
     case_id = Keyword()
     experiment_id = Keyword()
+    decoded_data = Text()
     analysis_date = Date()
     result = Object()
+    tracker = Object()
+    timestamp = Date()
 
     @property
     def analysis_id(self):

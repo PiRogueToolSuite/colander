@@ -1,9 +1,12 @@
 import binascii
+import datetime
 import json
+import re
 import subprocess
 import tempfile
 
 import communityid
+import requests
 from django.utils import timezone
 from elasticsearch_dsl import Index
 
@@ -321,6 +324,52 @@ def dispatch(packet):
         return packets
 
 
+def attach_aes_information(aes_traces, packet):
+    packet_raw_data = packet.get('raw_data')
+    packet['aes_info'] = {
+        'decrypted': '',
+        'alg': '',
+        'iv': '',
+        'key': ''
+    }
+    for aes_trace in aes_traces:
+        data = aes_trace.get('data')
+        if len(data.get('in'))<32 or len(data.get('out'))<32:
+            continue
+        if data.get('in') in packet_raw_data:
+            packet['aes_info'] = {
+                'decrypted': data.get('out'),
+                'alg': data.get('alg'),
+                'iv': data.get('iv'),
+                'key': data.get('key')
+            }
+            return
+        elif data.get('out') in packet_raw_data:
+            packet['aes_info'] = {
+                'decrypted': data.get('in'),
+                'alg': data.get('alg'),
+                'iv': data.get('iv'),
+                'key': data.get('key')
+            }
+            return
+
+
+def get_detected_tracker(tracker_definitions, stack_trace):
+    for _, tracker in tracker_definitions.get('trackers').items():
+        code_sig = tracker.get('code_signature')
+        if len(code_sig) <4:
+            continue
+        p = re.compile(code_sig, re.IGNORECASE)
+        for trace in stack_trace:
+            if p.match(trace):
+                return {
+                    'name': tracker.get('name'),
+                    'categories': tracker.get('categories'),
+                }
+    return None
+
+
+
 def save_decrypted_traffic(pirogue_dump_id):
     from elasticsearch_dsl import connections
     connections.create_connection(hosts=['elasticsearch'], timeout=20)
@@ -340,6 +389,7 @@ def save_decrypted_traffic(pirogue_dump_id):
     pcap = pirogue_dump.pcap.original_name
     ssl_keylog = pirogue_dump.sslkeylog.original_name
     socket_trace = pirogue_dump.socket_trace.original_name
+    aes_trace = pirogue_dump.aes_trace.original_name
     pcapng = 'xx_decrypted_traffic.pcapng'
     json_traffic = 'xx_json_traffic.json'
 
@@ -353,6 +403,9 @@ def save_decrypted_traffic(pirogue_dump_id):
                 out.write(chunk)
         with open(f'{tmp_dir}/{socket_trace}', mode='wb') as out:
             for chunk in pirogue_dump.socket_trace.file.chunks():
+                out.write(chunk)
+        with open(f'{tmp_dir}/{aes_trace}', mode='wb') as out:
+            for chunk in pirogue_dump.aes_trace.file.chunks():
                 out.write(chunk)
         # Generate the PCAPNG file
         try:
@@ -376,9 +429,16 @@ def save_decrypted_traffic(pirogue_dump_id):
             return
 
         socket_traces_file = f'{tmp_dir}/{socket_trace}'
-        socket_traces = None
-        if socket_traces_file:
-            socket_traces = build_community_id_stack_traces(socket_traces_file)
+        socket_traces = build_community_id_stack_traces(socket_traces_file)
+
+        aes_traces_file = f'{tmp_dir}/{aes_trace}'
+        with open(aes_traces_file, 'r') as aes:
+            aes_traces = json.load(aes)
+
+        tracker_definitions = {}
+        response = requests.get('https://reports.exodus-privacy.eu.org/api/trackers')
+        if response.status_code == 200:
+            tracker_definitions = response.json()
 
         with open(f'{tmp_dir}/{json_traffic}') as traffic_json_file:
             for line in traffic_json_file.readlines():
@@ -399,6 +459,10 @@ def save_decrypted_traffic(pirogue_dump_id):
                                     p['data'] = json.dumps(data, indent=2)
                                 except:
                                     pass
+                                if aes_traces:
+                                    attach_aes_information(aes_traces, p)
+                                if tracker_definitions:
+                                    t = get_detected_tracker(tracker_definitions, p['stack_trace'])
                                 # Save in ES
                                 analysis = PiRogueExperimentAnalysis()
                                 analysis.owner = str(pirogue_dump.owner_id)
@@ -406,6 +470,9 @@ def save_decrypted_traffic(pirogue_dump_id):
                                 analysis.experiment_id = str(pirogue_dump.id)
                                 analysis.analysis_date = timezone.now()
                                 analysis.result = p
+                                if t:
+                                    analysis.tracker = t
+                                analysis.timestamp = datetime.datetime.utcfromtimestamp(int(p['timestamp']) / 1000.0)
                                 analysis.save(index=index_name, pipeline=geoip_pipeline_id)
                         except Exception as e:
                             print('Oooooops')

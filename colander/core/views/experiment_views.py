@@ -7,7 +7,7 @@ from django.contrib import messages
 from django_q.tasks import async_task
 
 from colander.core.forms import CommentForm
-from colander.core.models import PiRogueExperiment, Artifact
+from colander.core.models import PiRogueExperiment, Artifact, PiRogueExperimentAnalysis
 from colander.core.pcap_tasks import save_decrypted_traffic
 from colander.core.views.views import get_active_case, CaseRequiredMixin
 
@@ -20,6 +20,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         'name',
         'pcap',
         'socket_trace',
+        'aes_trace',
         'sslkeylog',
         'screencast',
         'target_artifact',
@@ -33,6 +34,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         form = super(PiRogueExperimentCreateView, self).get_form(form_class)
         form.fields['pcap'].queryset = artifacts_qset.filter(type__short_name='PCAP')
         form.fields['socket_trace'].queryset = artifacts_qset.filter(type__short_name='SOCKET_T')
+        form.fields['aes_trace'].queryset = artifacts_qset.filter(type__short_name='CRYPTO_T')
         form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG')
         form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO')
         form.fields['target_artifact'].queryset = artifacts_qset
@@ -79,8 +81,27 @@ class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detail
 @login_required
 def delete_experiment_view(request, pk):
     obj = PiRogueExperiment.objects.get(id=pk)
+    # ToDo delete ES data too
     obj.delete()
     return redirect("collect_experiment_create_view")
+
+
+@login_required
+def save_decoded_content_view(request, pk):
+    from elasticsearch_dsl import connections
+    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    if request.method == 'POST':
+        try:
+            analysis_id = request.POST['analysis_id']
+            content = request.POST['content']
+            obj = PiRogueExperiment.objects.get(id=pk)
+            record = PiRogueExperimentAnalysis.get(index=obj.get_es_index(), id=analysis_id)
+            record.decoded_data = content
+            record.save()
+            messages.success(request, "Decoded content successfully saved")
+        except Exception as e:
+            print(e)
+    return redirect("collect_experiment_details_view", pk=pk)
 
 
 @login_required
@@ -90,6 +111,7 @@ def start_decryption(request, pk):
         if experiment.pcap and experiment.sslkeylog:
             messages.success(request, 'Traffic decryption is in progress, refresh this page in a few minutes.')
             save_decrypted_traffic(pk)
+            # ToDo switch to async task
             # async_task(save_decrypted_traffic, pk)
         else:
             messages.error(request, 'Cannot decrypt traffic since your experiment does not have both a PCAP file and an SSL keylog file.')

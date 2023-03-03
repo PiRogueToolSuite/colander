@@ -27,5 +27,5 @@ if compress_enabled; then
   python /app/manage.py compress
 fi
 
-python manage.py migrate
+python manage.py migrate --skip-checks
 /usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app

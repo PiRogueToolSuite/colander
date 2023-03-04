@@ -7,6 +7,18 @@ Assets storage and analysis
 
 License: GPLv3
 
+## Install your development instance
+
+```
+git clone https://github.com/PiRogueToolSuite/colander.git
+cd colander
+docker compose -f local.yml build 
+docker compose -f local.yml up -d
+docker compose -f local.yml run --rm django python manage.py insert_default_data
+docker compose -f local.yml run --rm django python manage.py createsuperuser --skip-checks 
+```
+Then, you should be able to browse and log-in Colander at [http://localhost:8000](http://localhost:8000).
+
 ## Settings
 
 Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).

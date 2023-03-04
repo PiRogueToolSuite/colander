@@ -19,6 +19,11 @@ docker compose -f local.yml run --rm django python manage.py createsuperuser --s
 ```
 Then, you should be able to browse and log-in Colander at [http://localhost:8000](http://localhost:8000).
 
+To stop your Colander stack:
+```
+docker compose -f local.yml stop
+```
+
 ## Settings
 
 Moved to [settings](http://cookiecutter-django.readthedocs.io/en/latest/settings.html).

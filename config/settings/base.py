@@ -353,6 +353,9 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
+# To fix absurd reloading
+RUNSERVERPLUS_POLLER_RELOADER_TYPE='stat'
+
 # Django Q
 Q_CLUSTER = {
     'name': 'Backend',

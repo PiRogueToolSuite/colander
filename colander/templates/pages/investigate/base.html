@@ -11,14 +11,14 @@
       <div class="col-md-12">
         <div class="card mb-4 bg-secondary-light">
           <div class="card-body">
-            <form method="post" autocomplete="off">
-              {% csrf_token %}
+            <form method="get" autocomplete="off" id="investigate_form">
               <div class="row justify-content-center">
                 <div class="col-md-4">
                   {{ form.type|as_crispy_field }}
                 </div>
                 <div class="col-md-8">
                   {{ form.value|as_crispy_field }}
+                  {{ form.force_update|as_crispy_field }}
                   <button class="btn btn-primary" type="submit">{% translate "Search" %}</button>
                 </div>
               </div>
@@ -28,34 +28,104 @@
       </div>
     </div>
     <div class="row justify-content-center">
-      <div class="col-md-12">
-          <pre class="mermaid text-center" id="mermaid-code" style="display: none">
-{#            {{ mermaid }}#}
-        </pre>
-        <div id="mermaid-output" class="text-center"></div>
-      </div>
-      <div class="col-md-12">
-      {% if results %}
-        <table class="table table-sm">
-          {% for k, v in results.items %}
-            {% if v.obj_type == "relation" %}
-              <tr>
-                {% with target=results|get_field:v.obj_from %}
-                  <td>{{ v.name }}</td>
-                  {% with t=types|get_field:target.type %}
-                    <td><i class="nf {{ t.nf_icon }} text-primary"></i> {{ t.name }}</td>
-                    <td class="font-monospace text-wrap">{{ target.value }}</td>
-                  {% endwith %}
-                {% endwith %}
-              </tr>
-            {% endif %}
-          {% endfor %}
-        </table>
+      {% if wait %}
+        <div class="col-md-6">
+          <div class="card card-body bg-secondary-light text-center">
+            <div class="spinner-grow text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <h2>We are processing your request</h2>
+            <p>This page will automatically refresh until results are available.</p>
+          </div>
+        </div>
       {% endif %}
-      </div>
+      {% if results %}
+        {% with root_entity=results.root_entity %}
+          <div class="col-md-12">
+            {% include "pages/investigate/generic_entity_details.html" with entity=root_entity %}
+          </div>
+          <div class="col-md-12">
+        <pre class="mermaid text-center" id="mermaid-code" style="display: none">
+            {{ results.graph }}
+        </pre>
+            <div id="mermaid-output" class="text-center"></div>
+          </div>
+          {% if "OBSERVABLE" in types_to_display %}
+            <h3>Related observables</h3>
+            <table class="table table-hover table-responsive table-sm">
+              <thead class="bg-secondary-light">
+              <tr>
+                <th>Entity</th>
+                <th class="text-end">Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for id, entity in results.entities.items %}
+                {% if entity.super_type.short_name == "OBSERVABLE" %}
+                  {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
+                {% endif %}
+              {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+          <div class="col-md-12">
+            {% for short_name, super_type in types_to_display.items %}
+              {% if short_name != "OBSERVABLE" %}
+                <h3>Related {{ super_type.name|lower }}s</h3>
+                <div class="row" data-masonry='{"percentPosition": true }'>
+                {% for id, entity in results.entities.items %}
+                  {% if entity.super_type.short_name == super_type.short_name %}
+                    <div class="col-md-4 text-wrap mb-2">
+                      <div class="card card-body bg-secondary-light">
+                        {% include "pages/investigate/generic_entity_details_list.html" with entity=entity %}
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% elif not wait %}
+        <h2>No results found.</h2>
+      {% endif %}
     </div>
   {% endblock inner-content %}
 {% endblock content %}
 
 {% block inline_javascript %}
+  <script type="module">
+    {% if wait %}
+      setTimeout(function () {
+        $('#id_force_update').prop('checked', false);
+        $('#investigate_form').submit();
+      }, 5000);
+    {% endif %}
+    import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
+
+    mermaid.initialize({
+      theme: 'base',
+      startOnLoad: false,
+      securityLevel: 'antiscript',
+      flowchart: {
+        curve: 'basis'
+      },
+      themeVariables: {
+        fontSize: '1em',
+        fontFamily: 'Open Sans, sans-serif',
+        edgeLabelBackground: '#ffffff',
+        primaryBorderColor: '#333333',
+        lineColor: '#999999'
+      }
+    });
+
+    $(async function () {
+      const insertSvg = function (svgCode, bindFunctions) {
+        document.getElementById('mermaid-output').innerHTML = svgCode
+      };
+      const graphDefinition = document.getElementById('mermaid-code').innerText;
+      mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
+    });
+  </script>
 {% endblock inline_javascript %}

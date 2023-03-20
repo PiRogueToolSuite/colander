@@ -1,0 +1,17 @@
+{% load colander_tags %}
+
+{% if observable %}
+  <tr>
+    <td>
+      {% include "icons/pills.html" with elt=observable %} <i>{{ observable.type.name }}</i><br>
+      <code>{{ observable.name }}</code>
+    </td>
+    <td class="text-end">
+      <form class="form-inline" action="{% url "investigate_base_view" %}" method="get">
+        <input type="hidden" name="type" value="{{ observable.type.short_name }}">
+        <input type="hidden" name="value" value="{{ observable.name }}">
+        <button class="btn btn-sm bg-primary text-white" type="submit"><i class="nf nf-fa-search"></i></button>
+      </form>
+    </td>
+  </tr>
+{% endif %}

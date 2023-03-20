@@ -1,6 +1,7 @@
 [
   {"short_name": "COMMUNICATION", "name": "Communication", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-lan_connect"},
   {"short_name": "RESOLVE", "name": "Resolution", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-search_web"},
+  {"short_name": "PASSIVE_DNS", "name": "Passive DNS", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-search_web"},
   {"short_name": "COMPROMISE", "name": "Compromise", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-disk_alert"},
   {"short_name": "INFECTION", "name": "Infection", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-disk_alert"},
   {"short_name": "ALERT", "name": "Alert", "description": "", "svg_icon": "", "nf_icon": "nf-oct-alert"},

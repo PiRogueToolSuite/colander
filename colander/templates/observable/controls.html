@@ -3,25 +3,37 @@
 
 <div class="btn-group" role="group">
   {% if "details" not in exclude %}
-  <a href="{% url "collect_observable_details_view" pk=observable.id %}" class="btn btn-primary {{ btn_class }}">
-    <i class="nf nf-fa-eye"></i>
-    {% translate "Details" %}
-  </a>
+    <a href="{% url "collect_observable_details_view" pk=observable.id %}" class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-eye"></i>
+      {% translate "Details" %}
+    </a>
   {% endif %}
   {% if "edit" not in exclude %}
-  <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary {{ btn_class }}">
-    <i class="nf nf-fa-edit"></i>
-    {% translate "Edit" %}
-  </a>
+    <a href="{% url "collect_observable_update_view" pk=observable.id %}" class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-edit"></i>
+      {% translate "Edit" %}
+    </a>
   {% endif %}
   {% if "analyze" not in exclude %}
-  <a href="{% url "analyze_base_view" observable_id=observable.id %}" class="btn btn-primary {{ btn_class }}">
-    <i class="nf nf-fa-filter"></i>
-    {% translate "Analyze" %}
-  </a>
+    <form class="form-inline" action="{% url "investigate_base_view" %}" method="get" id="investigate-{{ observable.id }}">
+      <input type="hidden" name="type" value="{{ observable.type.short_name }}">
+      <input type="hidden" name="value" value="{{ observable.value }}">
+    </form>
+    <button class="btn btn-primary {{ btn_class }}" type="submit" form="investigate-{{ observable.id }}">
+      <i class="nf nf-fa-search"></i>
+      {% translate "Investigate" %}
+    </button>
+
+{#    <a href="{% url "analyze_base_view" observable_id=observable.id %}" class="btn btn-primary {{ btn_class }}">#}
+{#      <i class="nf nf-fa-filter"></i>#}
+{#      {% translate "Investigate" %}#}
+{#    </a>#}
   {% endif %}
-  <a href="{% url "collect_observable_delete_view" pk=observable.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
-    <i class="nf nf-fa-trash"></i>
-    Delete
-  </a>
+  {% if "delete" not in exclude %}
+    <a href="{% url "collect_observable_delete_view" pk=observable.id %}"
+       class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+      <i class="nf nf-fa-trash"></i>
+      Delete
+    </a>
+  {% endif %}
 </div>

@@ -1,0 +1,72 @@
+{% load colander_tags %}
+
+{% if entity %}
+  {% if entity.name %}
+    <h3>{% include "icons/pills.html" with elt=entity %} <samp>{{ entity.name }}</samp> ({{ entity.type.name }})</h3>
+  {% else %}
+    <h3>{% include "icons/pills.html" with elt=entity %} <samp>{{ entity.value }}</samp> ({{ entity.type.name }})</h3>
+  {% endif %}
+    {% if entity.attributes.category or entity.attributes.tags %}
+      <div class="mb-2">
+      {% if entity.attributes.category %}
+        {% for t in entity.attributes.category|split:"," %}
+          <span class="badge bg-info"><i class="nf nf-fa-tag"></i> {{ t|striptags }}</span>
+        {% endfor %}
+      {% endif %}
+      {% if entity.attributes.tags %}
+          {% for t in entity.attributes.tags|split:"," %}
+            <span class="badge bg-dark"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+          {% endfor %}
+      {% endif %}
+      </div>
+    {% endif %}
+  <table class="table table-sm">
+    <tbody>
+    <tr>
+      <td><b>ID</b></td>
+      <td><samp>{{ entity.id }}</samp></td>
+    </tr>
+    <tr>
+      <td><b>Name</b></td>
+      <td><samp>{{ entity.name }}</samp></td>
+    </tr>
+    {% if entity.description %}
+      <tr>
+        <td><b>Description</b></td>
+        <td>{{ entity.description }}</td>
+      </tr>
+    {% endif %}
+    {% if entity.source_url %}
+      <tr>
+        <td><b>Source URL</b></td>
+        <td>
+          <a href="{{ entity.source_url }}" target="_blank">
+            {{ entity.source_url }}
+            <i class="nf nf-fa-external_link text-primary"></i>
+          </a>
+        </td>
+      </tr>
+    {% endif %}
+    <tr>
+      <td><b>Created at</b></td>
+      <td>{{ entity.created_at }}</td>
+    </tr>
+    <tr>
+      <td><b>Updated at</b></td>
+      <td>{{ entity.updated_at }}</td>
+    </tr>
+    {% if entity.attributes %}
+      {% for k_, v_ in entity.attributes.items %}
+        {% if "tag" not in k_ %}
+          <tr>
+            <td class="col-md-2"><b>{{ k_|to_title }}</b></td>
+            <td><samp>{{ v_ }}</samp></td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    </tbody>
+  </table>
+{% endif %}
+
+

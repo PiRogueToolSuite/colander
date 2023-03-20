@@ -1,0 +1,17 @@
+DB_VENDOR=postgres
+KEYCLOAK_DATABASE_HOST=keycloak-db
+KEYCLOAK_DATABASE_PORT=5432
+# Database name (replace with yours)
+KEYCLOAK_DATABASE_NAME=keycloakdb
+# Database user (replace with yours)
+KEYCLOAK_DATABASE_USER=hhGArHWVrVQjuDcgBUNNlQqZNfqyNPfQ
+# Database password (replace with yours)
+KEYCLOAK_DATABASE_PASSWORD=vW9WtXmFWpsq5tATgcYNAi62cC1tWar1BsSrksBodMrra2bv4NHVvRyIm9k29Ro9
+
+# Keycloak user (replace with yours)
+KEYCLOAK_USER=keycloakadmin
+# Keycloak password (replace with yours)
+KEYCLOAK_PASSWORD=rwXPqspCABJzqh47i723wf9
+
+PROXY_ADDRESS_FORWARDING='true'
+KEYCLOAK_LOGLEVEL=DEBUG

@@ -51,3 +51,41 @@
     </div>
   </div>
 {% endblock inner-content %}
+
+{% block inline_javascript %}
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      $('#upload_submit_btn').prop('disabled', true);
+      $('#upload_submit_btn').hide();
+
+      function upload_success(data) {
+        $('#id_upload_request').val(data.id)
+        $('#upload_submit_btn').prop('disabled', false);
+        $('#upload_btn').hide();
+        $('#upload_submit_btn').show();
+      }
+
+      function upload_error(data) {
+        alert('Unable to upload your file. Please refresh this page and contact your administrator.')
+      }
+
+      function upload_progress(data, sent, total) {
+      }
+
+      (function ($) {
+        $('#upload_btn').on('click', (event) => {
+          $('#upload_btn').prop('disabled', true);
+          $.ajaxSetup({
+            async: false
+          });
+          event.preventDefault();
+          var uploader = new FileUpload(document.querySelector('#fileupload'),
+            upload_success, upload_progress, upload_error
+          )
+          $('#fileupload').hide()
+          uploader.upload();
+        });
+      })(jQuery);
+    });
+  </script>
+{% endblock inline_javascript %}

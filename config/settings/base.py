@@ -74,7 +74,7 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "dj_rest_auth.registration",
     "allauth.socialaccount",
-    "allauth.socialaccount.providers.github",
+    # 'allauth.socialaccount.providers.openid_connect',
     "rest_framework",
     "rest_framework.authtoken",
     "dj_rest_auth",
@@ -296,7 +296,7 @@ ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = False
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -389,5 +389,9 @@ MARTOR_ENABLE_CONFIGS = {
     'jquery': 'true',       # to include/revoke jquery (require for admin default django)
     'living': 'false',      # to enable/disable live updates in preview
     'spellcheck': 'false',  # to enable/disable spellcheck in form textareas
-    'hljs': 'false',         # to enable/disable hljs highlighting in preview
+    'hljs': 'false',        # to enable/disable hljs highlighting in preview
 }
+
+# 3rd-party services
+CYBERCHEF_BASE_URL = env('CYBERCHEF_BASE_URL', default='http://cyberchef.radis:88')
+THREATR_BASE_URL = env('THREATR_BASE_URL', default='http://threatr.radis:9000')

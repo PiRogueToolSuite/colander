@@ -228,3 +228,12 @@ def quick_search(request):
 @login_required
 def report_base_view(request):
     return render(request, 'pages/collect/base.html')
+
+
+@login_required
+def forward_auth(request):
+    print(request.headers)
+    print(request.path)
+    return HttpResponse("OK")
+    # return redirect('http://spiderfoot.localhost:88')
+    # return HttpResponse(status=200,headers=request.headers)

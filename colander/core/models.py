@@ -262,9 +262,30 @@ class Case(models.Model):
         text = f'flowchart LR\n\t{node_txt}\n\t{click_txt}\n\t{link_txt}\n\t{class_txt}'
         return text
 
+    def get_mermaid_events(self):
+        events = Event.objects.filter(case=self).order_by('type__short_name', 'first_seen')
+        graph = 'gantt\n\tdateFormat  YYYY-MM-DD HH:mm'
+        current_section = ''
+        for event in events:
+            first_seen = event.first_seen.strftime('%Y-%m-%d %H:%M')
+            last_seen = event.last_seen.strftime('%Y-%m-%d %H:%M')
+            if current_section != event.type.name:
+                current_section = event.type.name
+                graph += f'\n\tsection {current_section}'
+            if event.first_seen == event.last_seen:
+                graph += f'\n\t{event.name}: milestone, {event.id}, {first_seen}, 2min'
+            else:
+                graph += f'\n\t{event.name}: {event.id}, {first_seen}, {last_seen}'
+        return graph
+
+
     @property
     def to_mermaid(self):
         return self.get_mermaid()
+
+    @property
+    def to_mermaid_events(self):
+        return self.get_mermaid_events()
 
     @staticmethod
     def get_user_cases(user):
@@ -941,6 +962,10 @@ class EntityRelation(models.Model):
         help_text=_('Latest modification of this object.'),
         auto_now=True
     )
+    attributes = HStoreField(
+        blank=True,
+        null=True
+    )
     obj_from_id = models.UUIDField()
     obj_from_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, related_name='obj_from_types')
     obj_from = GenericForeignKey('obj_from_type', 'obj_from_id')
@@ -1400,6 +1425,29 @@ class ObservableAnalysisEngine(models.Model):
         verbose_name='Source URL',
         null=True,
         blank=True
+    )
+
+class BackendCredentials(models.Model):
+    class Meta:
+        ordering = ['last_usage']
+        unique_together = ['backend', 'credentials']
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    backend = models.CharField(
+        max_length=512,
+        verbose_name=_('backend identifier'),
+        default=''
+    )
+    last_usage = models.DateTimeField(
+        default=timezone.now
+    )
+    credentials = HStoreField(
+        default=dict
     )
 
 

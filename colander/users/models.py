@@ -35,11 +35,9 @@ class User(AbstractUser):
         return self.get_auth_token()
 
     def get_auth_token(self, reset=False):
-        print('Allllllo !')
         if reset:
             Token.objects.filter(user=self).delete()
         token, _ = Token.objects.get_or_create(user=self)
-        print(token)
         return token
 
     def get_absolute_url(self):

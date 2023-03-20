@@ -9,7 +9,7 @@
   <meta name="description" content="Assets storage and analysis">
   <meta name="author" content="Esther Onfroy">
 
-  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+  <link rel="icon" href="{% static 'images/favicons/favicon-16x16.png' %}">
 
   {% block css %}
     <!-- This file stores project-specific CSS -->
@@ -33,6 +33,7 @@
     <!-- place project specific Javascript in this file -->
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/project.js' %}"></script>
+    <script src="{% static 'js/file_upload.js' %}"></script>
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/vue.min.js' %}"></script>
@@ -41,6 +42,7 @@
       <script src="{% static 'js/bootstrap.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
+      <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
       <!-- markdown editor -->
       <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
       <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
@@ -187,7 +189,7 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
-                     href="{% url "cyberchef_view" %}" target="_blank">
+                     href="{{ cyberchef_base_url }}" target="_blank">
                     <img height="12px" src="{% static "images/cyberchef_hat.svg" %}">
                     Cyberchef
                   </a>

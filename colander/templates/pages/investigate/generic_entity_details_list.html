@@ -1,0 +1,53 @@
+{% load colander_tags %}
+
+{% if entity %}
+  <div class="mb-2">
+    {% include "icons/pills.html" with elt=entity %}
+    {% if entity.name %}
+       <samp>{{ entity.name }}</samp> (<i>{{ entity.type.name }}</i>)
+    {% else %}
+      <samp>{{ entity.value }}</samp> (<i>{{ entity.type.name }}</i>)
+    {% endif %}
+    {% if entity.attributes.category or entity.attributes.tags %}
+      <div>
+      {% if entity.attributes.category %}
+        {% for t in entity.attributes.category|split:"," %}
+          <span class="badge bg-info"><i class="nf nf-fa-tag"></i> {{ t|striptags }}</span>
+        {% endfor %}
+      {% endif %}
+      {% if entity.attributes.tags %}
+          {% for t in entity.attributes.tags|split:"," %}
+            <span class="badge bg-dark"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+          {% endfor %}
+      {% endif %}
+      </div>
+    {% endif %}
+  </div>
+  <ul class="list-unstyled small">
+    <li><b>ID</b>: <samp>{{ entity.id }}</samp></li>
+    <li><b>Name</b>: <samp>{{ entity.name }}</samp></li>
+    {% if entity.description %}
+      <li><b>Description</b>: {{ entity.description }}</li>
+    {% endif %}
+    {% if entity.source_url %}
+      <li><b>Source URL</b>:
+        <a href="{{ entity.source_url }}" target="_blank">
+          {{ entity.source_url }}
+          <i class="nf nf-fa-external_link text-primary"></i>
+        </a>
+      </li>
+    {% endif %}
+    <li><b>Created at</b>: {{ entity.created_at }}</li>
+    <li><b>Updated at</b>: {{ entity.updated_at }}</li>
+    {% if entity.attributes %}
+      {% for k_, v_ in entity.attributes.items %}
+        {% if "tag" not in k_ %}
+          <li><b>{{ k_|to_title }}</b>:
+            <samp>{{ v_ }}</samp></li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </ul>
+{% endif %}
+
+

@@ -38,3 +38,21 @@ def to_cyberchef_input(instance):
         return instance
     encoded = instance.encode('utf-8')
     return f'input={urlsafe_b64encode(encoded).decode()}'
+
+
+@register.filter(name="to_title")
+def to_title(instance):
+    if not instance or type(instance) is not str:
+        return instance
+    words = instance.split('_')
+    words[0] = words[0].title()
+    title = ' '.join(words)
+    return title
+
+
+@register.filter(name="split")
+def split(instance, delim):
+    if not instance or type(instance) is not str:
+        return instance
+    words = instance.split(delim)
+    return words

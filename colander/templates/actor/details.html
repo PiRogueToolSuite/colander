@@ -85,7 +85,66 @@
       </tbody>
     </table>
   </div>
+
   {% include "helpers/extra_attributes.html" with attributes=actor.attributes %}
+
+  {% if actor.observables %}
+    <div class="col-md-12 mt-2">
+      <h3>{% translate "Operated observables" %}</h3>
+      <table class="table table-sm">
+        <thead class="bg-secondary-light">
+        <tr>
+          <td>Type</td>
+          <td>Entity</td>
+          <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        {% for observable in actor.observables.all %}
+          <tr>
+            <td>
+              operates
+            </td>
+            <td>
+              <i class="nf {{ observable.type.nf_icon }} text-primary"></i>
+              <a href="{{ observable.get_absolute_url }}">
+                <samp>{{ observable }}</samp>
+              </a>
+            </td>
+            <td class="text-end">
+              {% include "observable/controls.html" with btn_class="btn-sm" exclude="delete" %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  {% with targets=actor.out_relations origins=actor.in_relations %}
+    {% if origins or targets %}
+      <div class="col-md-12 mt-2">
+        <h3>{% translate "Related entities" %}</h3>
+        <table class="table table-sm">
+          <thead class="bg-secondary-light">
+          <tr>
+            <td>Type</td>
+            <td>Entity</td>
+            <td></td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for relation in origins %}
+            {% include "entity_relation/table_item.html" with direction="from" %}
+          {% endfor %}
+          {% for relation in targets %}
+            {% include "entity_relation/table_item.html" with direction="to" %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>

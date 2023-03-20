@@ -43,6 +43,7 @@ class InvestigateSearchForm(forms.Form):
     types = [(t.short_name, t.name) for t in ObservableType.objects.all()]
     type = forms.ChoiceField(choices=types)
     value = forms.CharField(max_length=128)
+    force_update = forms.BooleanField(required=False, label='Update results from vendors.')
 
 
 class DocumentationForm(forms.Form):

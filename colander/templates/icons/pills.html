@@ -1,8 +1,8 @@
 {% if elt %}
   {% if elt.color %}
-    <i class="fa fa-circle {{ c }}" style="color: {{ elt.color }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type }}"></i>
+    <i class="fa fa-circle {{ c }}" style="color: {{ elt.color }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type.name }}"></i>
   {% else %}
-    <i class="fa fa-circle {{ c }}" style="color: #aaaaaa"></i>
+    <i class="fa fa-circle {{ c }}" style="color: #aaaaaa" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type.name }}"></i>
   {% endif %}
   {% if elt.tlp == "WHITE" or elt.tlp == "CLEAR" %}
     <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="TLP:CLEAR"></i>
@@ -28,6 +28,8 @@
   {% endif %}
 
   {% if elt.associated_threat %}
+    <i class="fa fa-circle text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Malicious"></i>
+  {% elif elt.attributes.is_malicious %}
     <i class="fa fa-circle text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Malicious"></i>
   {% else %}
     <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="No threat"></i>

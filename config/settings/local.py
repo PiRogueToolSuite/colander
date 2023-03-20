@@ -62,3 +62,23 @@ INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+# SOCIALACCOUNT_PROVIDERS = {
+#     "openid_connect": {
+#         "SERVERS": [
+#             {
+#                 "id": "keycloak",  # 30 characters or less
+#                 "name": "Colander authentication",
+#                 "server_url": "http://192.168.0.12:8003/realms/Colander",
+#                 # Optional token endpoint authentication method.
+#                 # May be one of "client_secret_basic", "client_secret_post"
+#                 # If omitted, a method from the the server's
+#                 # token auth methods list is used
+#                 "token_auth_method": "client_secret_basic",
+#                 "APP": {
+#                     "client_id": "colander",
+#                     "secret": "aJnfi6xIsvaxm6SEDehKoP7GBt4FADyj",
+#                 },
+#             },
+#         ]
+#     }
+# }

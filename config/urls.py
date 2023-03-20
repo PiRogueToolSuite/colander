@@ -1,4 +1,4 @@
-from allauth_2fa.views import TwoFactorSetup, TwoFactorAuthenticate, TwoFactorBackupTokens, TwoFactorRemove
+from allauth_2fa.views import TwoFactorAuthenticate, TwoFactorBackupTokens, TwoFactorRemove
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -18,15 +18,14 @@ from colander.core.views.enrich_view import enrich_observable
 from colander.core.views.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
     PiRogueExperimentDetailsView, start_decryption, delete_experiment_view, save_decoded_content_view
 from colander.core.views.investigate_views import investigate_search_view
-from colander.core.views.obversable_views import ObservableCreateView, ObservableRelationCreateView, \
-    ObservableUpdateView, \
-    ObservableRelationUpdateView, ObservableDetailsView, ObservableRelationDetailsView, delete_observable_view
-from colander.core.views.proxys import cyber_chef_view
+from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
+    ObservableDetailsView, delete_observable_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.views import collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
-    save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view
+    save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
+    forward_auth
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
 from colander.users.views import UserTwoFactorSetup
@@ -124,9 +123,7 @@ urlpatterns = [
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),
       path("comment/<slug:pk>/delete", delete_comment_view, name="delete_comment_view"),
 
-      path("cyberchef", cyber_chef_view, name="cyberchef_view"),
-      # path("cyberchef_input/<path:path>", cyber_chef_input_view, name="cyberchef_view_input"),
-      path("cyberchef/<path:path>", cyber_chef_view, name="cyberchef_view_with_path")
+      path("_auth", forward_auth, name="forward-auth_view"),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

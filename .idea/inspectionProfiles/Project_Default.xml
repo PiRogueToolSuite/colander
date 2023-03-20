@@ -11,7 +11,7 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="31">
+          <list size="33">
             <item index="0" class="java.lang.String" itemvalue="python-mimeparse" />
             <item index="1" class="java.lang.String" itemvalue="six" />
             <item index="2" class="java.lang.String" itemvalue="Werkzeug" />
@@ -43,6 +43,8 @@
             <item index="28" class="java.lang.String" itemvalue="python-magic" />
             <item index="29" class="java.lang.String" itemvalue="djoser" />
             <item index="30" class="java.lang.String" itemvalue="djangorestframework_simplejwt" />
+            <item index="31" class="java.lang.String" itemvalue="django-revproxy" />
+            <item index="32" class="java.lang.String" itemvalue="django-allauth" />
           </list>
         </value>
       </option>

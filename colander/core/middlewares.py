@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from colander.core.forms import DocumentationForm
 from colander.core.models import Case
 
@@ -33,4 +35,5 @@ def active_case(request):
     return {
         'active_case': active_case,
         'user_cases': user_cases,
+        'cyberchef_base_url': settings.CYBERCHEF_BASE_URL,
     }

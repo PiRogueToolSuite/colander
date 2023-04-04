@@ -37,7 +37,8 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: colander_local_django
     container_name: colander_local_django
-    platform: linux/x86_64
+    # special case for docker build toolchain
+    # platform: linux/x86_64
     depends_on:
       - postgres
       - minio
@@ -73,7 +74,8 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: colander_local_worker
     container_name: colander_local_worker
-    platform: linux/x86_64
+    # special case for docker build toolchain
+    # platform: linux/x86_64
     depends_on:
       - postgres
       - minio

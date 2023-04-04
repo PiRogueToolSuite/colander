@@ -1387,6 +1387,8 @@ class PiRogueExperiment(Entity):
             links.append(f'{self.id}-- generated -->{self.sslkeylog_id}')
         if self.screencast:
             links.append(f'{self.id}-- generated -->{self.screencast_id}')
+        if self.aes_trace:
+            links.append(f'{self.id}-- generated -->{self.aes_trace_id}')
         return nodes, clicks, links
 
     @property

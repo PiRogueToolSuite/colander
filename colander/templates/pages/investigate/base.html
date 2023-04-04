@@ -60,7 +60,7 @@
               </tr>
               </thead>
               <tbody>
-              {% for id, entity in results.entities.items %}
+              {% for entity in results.entities.values|dictsort:"type.name" %}
                 {% if entity.super_type.short_name == "OBSERVABLE" %}
                   {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
                 {% endif %}
@@ -68,21 +68,83 @@
               </tbody>
             </table>
           {% endif %}
+          {% if results.events %}
+            <h3>Related events</h3>
+            <div class="">
+              <ul class="timeline-with-icons">
+                {% for entity in results.events %}
+                  <li class="timeline-item mb-2">
+                    {% if entity.type.nf_icon %}
+                      <span class="timeline-icon">
+                        <i class="text-white nf {{ entity.type.nf_icon }}"></i>
+                      </span>
+                    {% else %}
+                      <span class="timeline-icon">
+                        <i class="fas fa-rocket text-white fa-sm fa-fw"></i>
+                      </span>
+                    {% endif %}
+                    <h6 class="pt-1 mb-0"><b>{{ entity.type.name }}</b> {{ entity.name }} </h6>
+                    {% if entity.attributes.category or entity.attributes.tags %}
+                      <div>
+                        {% if entity.attributes.category %}
+                          {% for t in entity.attributes.category|split:"," %}
+                            <span class="badge bg-info"><i class="nf nf-fa-tag"></i> {{ t|striptags }}</span>
+                          {% endfor %}
+                        {% endif %}
+                        {% if entity.attributes.tags %}
+                          {% for t in entity.attributes.tags|split:"," %}
+                            <span class="badge bg-dark"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+                          {% endfor %}
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                    <div class="text-muted small">{{ entity.first_seen }} - {{ entity.last_seen }} ({{ entity.count }}
+                      time{{ entity.count|pluralize }})</div>
+                    <div class="text-muted">
+                      <ul class="list-unstyled small">
+                        {% if entity.description %}
+                          <li><b>Description</b>: {{ entity.description }}</li>
+                        {% endif %}
+                        {% if entity.source_url %}
+                          <li><b>Source URL</b>:
+                            <a href="{{ entity.source_url }}" target="_blank">
+                              {{ entity.source_url }}
+                              <i class="nf nf-fa-external_link text-primary"></i>
+                            </a>
+                          </li>
+                        {% endif %}
+{#                        <li><b>Created at</b>: {{ entity.created_at }}</li>#}
+{#                        <li><b>Updated at</b>: {{ entity.updated_at }}</li>#}
+                        {% if entity.attributes %}
+                          {% for k_, v_ in entity.attributes.items %}
+                            {% if "tag" not in k_ %}
+                              <li><b>{{ k_|to_title }}</b>:
+                                <samp>{{ v_ }}</samp></li>
+                            {% endif %}
+                          {% endfor %}
+                        {% endif %}
+                      </ul>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
           <div class="col-md-12">
             {% for short_name, super_type in types_to_display.items %}
               {% if short_name != "OBSERVABLE" %}
                 <h3>Related {{ super_type.name|lower }}s</h3>
                 <div class="row" data-masonry='{"percentPosition": true }'>
-                {% for id, entity in results.entities.items %}
-                  {% if entity.super_type.short_name == super_type.short_name %}
-                    <div class="col-md-4 text-wrap mb-2">
-                      <div class="card card-body bg-secondary-light">
-                        {% include "pages/investigate/generic_entity_details_list.html" with entity=entity %}
+                  {% for id, entity in results.entities.items %}
+                    {% if entity.super_type.short_name == super_type.short_name %}
+                      <div class="col-md-4 text-wrap mb-2">
+                        <div class="card card-body bg-secondary-light">
+                          {% include "pages/investigate/generic_entity_details_list.html" with entity=entity %}
+                        </div>
                       </div>
-                    </div>
-                  {% endif %}
-                {% endfor %}
-              </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
               {% endif %}
             {% endfor %}
           </div>

@@ -1,0 +1,103 @@
+{% load static i18n compress %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>{% block title %}colander{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Assets storage and analysis">
+  <meta name="author" content="Esther Onfroy">
+
+  <link rel="icon" href="{% static 'images/favicons/favicon-16x16.png' %}">
+
+  {% block css %}
+    <!-- This file stores project-specific CSS -->
+    {% compress css %}
+      <link href="{% static 'css/project.css' %}" rel="stylesheet">
+      <link href="{% static 'css/bootstrap-vue.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/fork-awesome.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/tempus-dominus.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/flag-icons.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/nf.min.css' %}" rel="stylesheet">
+      <link href="{% static 'css/myLib.css' %}" rel="stylesheet">
+      <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+    {% endcompress %}
+  {% endblock %}
+  <!-- Le javascript
+  ================================================== -->
+  {# Placed at the top of the document so pages load faster with defer #}
+  {% block javascript %}
+    <!-- place project specific Javascript in this file -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    {% compress js %}
+      <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
+      <script src="{% static 'js/vue.min.js' %}"></script>
+      <script src="{% static 'js/myLib.umd.js' %}"></script>
+      <script src="{% static 'js/popper.min.js' %}"></script>
+      <script src="{% static 'js/bootstrap.min.js' %}"></script>
+      <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
+      <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
+      <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
+      <!-- markdown editor -->
+      <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/ext-language_tools.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/theme-github.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/typo.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/spellcheck.js' %}"></script>
+{#      <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>#}
+      <script type="text/javascript" src="{% static 'plugins/js/resizable.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'plugins/js/emojis.min.js' %}"></script>
+      <script type="text/javascript" src="{% static 'martor/js/martor.bootstrap.min.js' %}"></script>
+    {% endcompress %}
+  {% endblock javascript %}
+
+</head>
+<body>
+  {% url 'home' as home_url %}
+  {% url 'collect_base_view' as collect_base_view_url %}
+  {% url 'investigate_base_view' as investigate_base_view_url %}
+  {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
+  {% url 'report_base_view' as report_base_view_url %}
+  {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
+  {% block container %}
+  <div class="container-fluid justify-content-center">
+    <div class="row">
+      {#      <main class="mt-2 {% if request.session.show_documentation_editor %}col-md-7{% else %}col-md-10{% endif %}">#}
+      <main class="mt-2 col-md-12">
+        <div class="">
+          {#        <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">#}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          <div class="row">
+            <div class="col-md-12">
+              {% block content %}
+                <p>Use this document as a way to quick start any new project.</p>
+              {% endblock content %}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div> <!-- /container -->
+  {% endblock container %}
+  {% block inline_javascript %}
+    {% comment %}
+      Script tags with only code, no src (defer by default). To run
+      with a "defer" so that you run inline code:
+      <script>
+        window.addEventListener('DOMContentLoaded', () => {/* Run whatever you want */});
+      </script>
+      {% endcomment %}
+  {% endblock inline_javascript %}
+</body>
+</html>

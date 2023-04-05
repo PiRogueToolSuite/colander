@@ -9,6 +9,9 @@ from django.views.generic import CreateView, UpdateView, DetailView
 from colander.core.forms import DocumentationForm, CommentForm
 from colander.core.models import Case, colander_models
 
+@login_required
+def landing_view(request):
+    return render(request, 'pages/home.html')
 
 class CaseRequiredMixin(AccessMixin):
     """Verify that the current user has an active case."""

@@ -21,7 +21,7 @@ from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
     ObservableDetailsView, delete_observable_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
-from colander.core.views.views import collect_base_view, \
+from colander.core.views.views import landing_view, collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
@@ -31,7 +31,8 @@ from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView,
 from colander.users.views import UserTwoFactorSetup
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
-      path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
+      #path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
+      path("", landing_view, name="home"),
       # path("about/", TemplateView.as_view(template_name="index.html"), name="about"),
       path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
       # Django Admin, use {% url 'admin:index' %}

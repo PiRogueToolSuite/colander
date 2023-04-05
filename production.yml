@@ -1,35 +1,110 @@
 version: '3'
 
 volumes:
-  production_postgres_data: {}
-  production_postgres_data_backups: {}
   production_traefik: {}
+  production_colander_postgres_data: {}
+  production_colander_postgres_data_backups: {}
+  production_threatr_postgres_data: {}
+  production_threatr_postgres_data_backups: {}
+  production_keycloak_postgres_data: {}
+  production_keycloak_postgres_data_backups: {}
+  production_colander_minio_data: { }
+  production_colander_es_data: { }
 
 services:
-  django:
-    build:
-      context: .
-      dockerfile: ./compose/production/django/Dockerfile
-    image: colander_production_django
-    platform: linux/x86_64
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - ./.envs/.production/.django
-      - ./.envs/.production/.postgres
-    command: /start
-
-  postgres:
+  # Databases
+  colander-postgres:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_postgres
     volumes:
-      - production_postgres_data:/var/lib/postgresql/data:Z
-      - production_postgres_data_backups:/backups:z
+      - production_colander_postgres_data:/var/lib/postgresql/data:Z
+      - production_colander_postgres_data_backups:/backups:z
     env_file:
-      - ./.envs/.production/.postgres
+      - ./.envs/.production/.colander-postgres
+
+  threatr-postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: colander_production_threatr_postgres
+    volumes:
+      - production_threatr_postgres_data:/var/lib/postgresql/data:Z
+      - production_threatr_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.production/.threatr-postgres
+
+  keycloak-postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: colander_production_keycloak_postgres
+    volumes:
+      - production_keycloak_postgres_data:/var/lib/postgresql/data:Z
+      - production_keycloak_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.production/.keycloak-postgres
+
+  colander-front:
+    image: ghcr.io/piroguetoolsuite/colander:main
+    depends_on:
+      - colander-postgres
+      - cyberchef
+      - elasticsearch
+      - keycloak
+      - minio
+      - redis
+    env_file:
+      - ./.envs/.production/.base
+      - ./.envs/.production/.minio
+      - ./.envs/.production/.colander
+      - ./.envs/.production/.colander-postgres
+    command: /start
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  colander-worker:
+    image: ghcr.io/piroguetoolsuite/colander:main
+    depends_on:
+      - colander-postgres
+      - elasticsearch
+      - minio
+      - redis
+    env_file:
+      - ./.envs/.production/.base
+      - ./.envs/.production/.minio
+      - ./.envs/.production/.colander
+      - ./.envs/.production/.colander-postgres
+    command: /start-worker
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  threatr-front:
+    image: ghcr.io/piroguetoolsuite/threatr:main
+    depends_on:
+      - threatr-postgres
+      - redis
+    env_file:
+      - ./.envs/.production/.base
+      - ./.envs/.production/.threatr
+      - ./.envs/.production/.threatr-postgres
+    command: /start
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  threatr-worker:
+    image: ghcr.io/piroguetoolsuite/threatr:main
+    depends_on:
+      - threatr-postgres
+      - redis
+    env_file:
+      - ./.envs/.production/.base
+      - ./.envs/.production/.threatr
+      - ./.envs/.production/.threatr-postgres
+    command: /start-worker
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   traefik:
     build:
@@ -37,12 +112,73 @@ services:
       dockerfile: ./compose/production/traefik/Dockerfile
     image: colander_production_traefik
     depends_on:
-      - django
+      - colander-front
+      - threatr-front
+      - keycloak
     volumes:
       - production_traefik:/etc/traefik/acme:z
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
+
+  cyberchef:
+    image: mpepping/cyberchef:latest
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  elasticsearch:
+    image: elasticsearch:8.4.1
+    volumes:
+      - production_colander_es_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type='single-node'
+      - xpack.security.enabled='false'
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2022-09-22T18-57-27Z
+    volumes:
+      - production_colander_minio_data:/data
+    env_file:
+      - ./.envs/.production/.minio
+    command: server /data
+    networks:
+      - web
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  keycloak:
+#    https://hub.docker.com/r/bitnami/keycloak
+    image: bitnami/keycloak:20.0.5
+    env_file:
+      - ./.envs/.production/.base
+      - ./.envs/.production/.keycloak
+      - ./.envs/.production/.keycloak-postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - keycloak-db
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_POLL_INTERVAL=12*60*60
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   redis:
     image: redis:6

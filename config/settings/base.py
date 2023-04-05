@@ -187,10 +187,10 @@ MEDIA_ROOT = str(APPS_DIR / "media")
 MEDIA_URL = "/media/"
 
 DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
-MINIO_STORAGE_ENDPOINT = 'minio:9000'
+MINIO_STORAGE_ENDPOINT = env('MINIO_ENDPOINT', default='minio:9000')
 MINIO_STORAGE_ACCESS_KEY = env('MINIO_ACCESS_KEY')
 MINIO_STORAGE_SECRET_KEY = env('MINIO_SECRET_KEY')
-MINIO_STORAGE_USE_HTTPS = False
+MINIO_STORAGE_USE_HTTPS = env.bool('MINIO_USE_HTTPS', False)
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'local-media'
 MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
 
@@ -373,9 +373,6 @@ Q_CLUSTER = {
     'redis': env("REDIS_URL")
 }
 
-# Authentication
-GITHUB_AUTH_CALLBACK = 'http://localhost:8000/dj-rest-auth/github/'
-
 # Markdown options
 MARTOR_TOOLBAR_BUTTONS = [
     'bold', 'italic', 'horizontal', 'heading', 'pre-code',
@@ -393,5 +390,7 @@ MARTOR_ENABLE_CONFIGS = {
 }
 
 # 3rd-party services
-CYBERCHEF_BASE_URL = env('CYBERCHEF_BASE_URL', default='http://cyberchef.radis:88')
-THREATR_BASE_URL = env('THREATR_BASE_URL', default='http://threatr.radis:9000')
+CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='192.168.0.12:8001')
+THREATR_FQDN = env('THREATR_FQDN', default='threatr.radis:9000')
+CYBERCHEF_BASE_URL = f'//{CYBERCHEF_FQDN}'
+THREATR_BASE_URL = f'//{THREATR_FQDN}'

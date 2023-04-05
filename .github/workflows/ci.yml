@@ -4,6 +4,10 @@ name: CI
 env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
 
 on:
   pull_request:
@@ -13,6 +17,7 @@ on:
   push:
     branches: [ "master", "main" ]
     paths-ignore: [ "docs/**" ]
+    tags: [ 'v*.*.*' ]
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -22,39 +27,84 @@ jobs:
   linter:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Code Repository
         uses: actions/checkout@v3
-
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
-          cache: pip
-          cache-dependency-path: |
-            requirements/base.txt
-            requirements/local.txt
-
-      - name: Run pre-commit
-        uses: pre-commit/action@v2.0.3
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+      - name: Lint with flake8
+        run: |
+          echo $PWD
+          flake8
+#      - name: Reformat
+#        uses: psf/black@stable
+#        with:
+#          options: "--check --verbose --extend-exclude ./threatr/core/migrations"
+#          src: "./threatr/core"
+#          version: "~= 22.0"
 
   # With no caching at all the entire ci process takes 4m 30s to complete!
   pytest:
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout Code Repository
         uses: actions/checkout@v3
-
       - name: Build the Stack
         run:  docker-compose -f local.yml build
-
       - name: Run DB Migrations
         run:  docker-compose -f local.yml run --rm django python manage.py migrate
-
       - name: Run Django Tests
         run:  docker-compose -f local.yml run django pytest
-
       - name: Tear down the Stack
         run:  docker-compose -f local.yml down
+
+  docker-build:
+    if: github.event_name == 'push'
+    needs: [linter, pytest]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./compose/production/django/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

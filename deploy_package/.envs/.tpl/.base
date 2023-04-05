@@ -1,0 +1,8 @@
+ACME_EMAIL=esther@pts-project.org
+ADMIN_NAME="Esther Onfroy"
+ADMIN_EMAIL=esther@pts-project.org
+ROOT_DOMAIN=pts-project.org
+KEYCLOAK_FQDN=auth.${ROOT_DOMAIN}
+COLANDER_FQDN=colander.${ROOT_DOMAIN}
+THREATR_FQDN=threatr.${ROOT_DOMAIN}
+CYBERCHEF_FQDN=cyberchef.${ROOT_DOMAIN}

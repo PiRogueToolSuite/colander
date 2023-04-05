@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=threatr-postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=threatr
+POSTGRES_USER=$(pwgen -B 32 1)
+POSTGRES_PASSWORD=$(pwgen -B 64 1)

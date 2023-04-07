@@ -60,240 +60,156 @@
 </head>
 
 <body>
-{% url 'home' as home_url %}
-{% url 'collect_base_view' as collect_base_view_url %}
-{% url 'investigate_base_view' as investigate_base_view_url %}
-{% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
-{% url 'report_base_view' as report_base_view_url %}
-{% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
+  {% url 'home' as home_url %}
+  {% url 'collect_base_view' as collect_base_view_url %}
+  {% url 'investigate_base_view' as investigate_base_view_url %}
+  {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
+  {% url 'report_base_view' as report_base_view_url %}
+  {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
 
-<header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-lg-auto col-md-3 me-0 px-3" href="#">Colander</a>
-  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
-          data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
-          aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <form method="post" action="{% url "quick_search_view" %}" class="w-100">
-    {% csrf_token %}
-    <input class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search">
-  </form>
-  <div class="navbar-nav">
-    <div class="nav-item text-nowrap">
-      {% if request.user.is_authenticated %}
-        {# URL provided by django-allauth/account/urls.py #}
-        <a class="nav-link px-3" href="{% url 'account_logout' %}">{% translate "Log Out" %}</a>
-      {% else %}
-        {% if ACCOUNT_ALLOW_REGISTRATION %}
-          {# URL provided by django-allauth/account/urls.py #}
-          <a id="sign-up-link" class="nav-link px-3" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
-        {% endif %}
-        {# URL provided by django-allauth/account/urls.py #}
-        <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Log In" %}</a>
-      {% endif %}
+  <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-lg-auto col-md-3 me-0 px-3" href="#">Colander</a>
+    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <form method="post" action="{% url "quick_search_view" %}">
+      {% csrf_token %}
+      <input class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search">
+    </form>
+    <div class="navbar-nav">
+
     </div>
+  </header>
 
-  </div>
-</header>
-
-
-{% block container %}
-  <div class="container-fluid justify-content-center">
-    <div class="row">
-      {% block sidebar %}
-        <nav id="sidebarMenu" class="" style="width: 200px; height: 100vh">
-          <div class="position-fixed">
-            <div class="position-sticky">
-              {% if request.user.is_authenticated %}
-                <div class="p-2">
-                  {% if request.active_case %}
-                    <div>
-                      <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
-                        {% include "icons/case_icon.html" with c="text-primary" %}
-                        {{ request.active_case.name }}
-                      </a>
-                    </div>
-                    <div class="small text-muted">
-                      {% include "icons/date_icon.html" %}
-                      {{ request.active_case.created_at }}
-                    </div>
-                  {% else %}
-                    No case selected, select one.
-                  {% endif %}
-                </div>
-                <div class="text-center">
-                  <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
-                          data-bs-target="#caseSwitchModal">
-                    <i class="nf nf-cod-arrow_swap"></i>
-                    Switch case
-                  </button>
-                  <br>
-                  <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
-                          data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-                    <i class="nf nf-fa-file_text"></i>
-                    Doc editor
-                  </button>
-                  {#                  {% if not request.session.show_documentation_editor %}#}
-                  {#                    <a href="{% url "enable_documentation_editor_view" %}"#}
-                  {#                       class="btn btn-primary text-white mt-2" type="button">#}
-                  {#                      <i class="nf nf-fa-file_text"></i>#}
-                  {#                      Start writing doc#}
-                  {#                    </a>#}
-                  {#                  {% else %}#}
-                  {#                    <a href="{% url "disable_documentation_editor_view" %}"#}
-                  {#                       class="btn btn-primary text-white mt-2" type="button">#}
-                  {#                      <i class="nf nf-fa-file_text"></i>#}
-                  {#                      Stop writing doc#}
-                  {#                    </a>#}
-                  {#                  {% endif %}#}
-                </div>
-              {% endif %}
-              <hr>
-              <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                <span>Workspaces</span>
-              </h6>
-              <ul class="nav flex-column">
-                <li class="nav-item">
-                  <a class="nav-link{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
-                    <i class="nf nf-fa-home"></i>
-                    Home
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link{% if collect_base_view_url in request.path %} active {% endif %}"
-                     href="{{ collect_base_view_url }}">
-                    <i class="fa fa-th" aria-hidden="true"></i>
-                    Collect
-                  </a>
-                </li>
-                {#              <li class="nav-item">#}
-                {#                <a class="nav-link{% if analyze_base_view_url in request.path %} active {% endif %}"#}
-                {#                   href="{{ analyze_base_view_url }}">#}
-                {#                  <i class="fa fa-cubes" aria-hidden="true"></i>#}
-                {#                  Analyze#}
-                {#                </a>#}
-                {#              </li>#}
-                <li class="nav-item">
-                  <a class="nav-link{% if document_cases_write_doc_url in request.path %} active {% endif %}"
-                     href="{{ document_cases_write_doc_url }}">
-                    <i class="nf nf-fa-file_text" aria-hidden="true"></i>
-                    Document
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
-                     href="{{ investigate_base_view_url }}">
-                    <i class="nf nf-fa-search" aria-hidden="true"></i>
-                    Investigate
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link{% if investigate_base_view_url in request.path %} active {% endif %}"
-                     href="{{ cyberchef_base_url }}" target="_blank">
-                    <img height="12px" src="{% static "images/cyberchef_hat.svg" %}">
-                    Cyberchef
-                  </a>
-                </li>
-                {#              <li class="nav-item">#}
-                {#                <a class="nav-link{% if report_base_view_url in request.path %} active {% endif %}"#}
-                {#                   href="{{ report_base_view_url }}">#}
-                {#                  <i class="fa fa-file-text" aria-hidden="true"></i>#}
-                {#                  Report#}
-                {#                </a>#}
-                {#              </li>#}
-{#                <li class="nav-item">#}
-{#                  <a class="nav-link" href="{% url 'about' %}">#}
-{#                    <i class="nf nf-fa-question" aria-hidden="true"></i>#}
-{#                    About#}
-{#                  </a>#}
-{#                </li>#}
-                {% if request.user.is_authenticated %}
-                  <li class="nav-item text-nowrap">
-                    {# URL provided by django-allauth/account/urls.py #}
-                    <a class="nav-link px-3" href="{% url 'users:detail' request.user.username %}">
-                      <i class="nf nf-fa-user" aria-hidden="true"></i>
-                      {% translate "My Profile" %}
-                    </a>
-                  </li>
-                {% endif %}
-              </ul>
-              {% block sidebar-items %}
-              {% endblock sidebar-items %}
-            </div>
+  <div id="main-wrapper" class="d-flex">
+    <aside id="sidebar-wrapper">
+      <div>
+        {% if request.active_case %}
+          <div>
+            <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+              {% include "icons/case_icon.html" with c="text-primary" %}
+              {{ request.active_case.name }}
+            </a>
           </div>
-        </nav>
-      {% endblock sidebar %}
-      {#      <main class="mt-2 {% if request.session.show_documentation_editor %}col-md-7{% else %}col-md-10{% endif %}">#}
-      <main class="mt-2 col-md-10" style="margin-bottom: 30vh;">
-        <div class="">
-          {#        <div class="justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">#}
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          {% endif %}
-          <div class="row">
-            <div class="col-md-12">
-              {% block content %}
-                <p>Use this document as a way to quick start any new project.</p>
-              {% endblock content %}
-            </div>
+          <div class="small text-muted">
+            {% include "icons/date_icon.html" %}
+            {{ request.active_case.created_at }}
           </div>
-        </div>
+        {% else %}
+          No case selected, select one.
+        {% endif %}
+      </div>
+      <div>
+        <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
+                data-bs-target="#caseSwitchModal">
+          <i class="nf nf-cod-arrow_swap"></i>
+          Switch case
+        </button>
+        <br>
+        <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+          <i class="nf nf-fa-file_text"></i>
+          Doc editor
+        </button>
+      </div>
+      <div class="list-group list-group-flush">
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+          <span>Workspaces</span>
+        </h6>
+        <a class="list-group-item list-group-item-action list-group-item-light{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
+          <i class="nf nf-fa-home"></i>
+          <span class="d-none d-sm-inline">Home</span>
+        </a>
+        <a class="list-group-item list-group-item-action list-group-item-light{% if collect_base_view_url in request.path %} active {% endif %}"
+           href="{{ collect_base_view_url }}">
+          <i class="fa fa-th" aria-hidden="true"></i>
+          Collect
+        </a>
+        <a class="list-group-item list-group-item-action list-group-item-light{% if document_cases_write_doc_url in request.path %} active {% endif %}"
+           href="{{ document_cases_write_doc_url }}">
+          <i class="nf nf-fa-file_text" aria-hidden="true"></i>
+          Document
+        </a>
+        <a class="list-group-item list-group-item-action list-group-item-light{% if investigate_base_view_url in request.path %} active {% endif %}"
+           href="{{ investigate_base_view_url }}">
+          <i class="nf nf-fa-search" aria-hidden="true"></i>
+          Investigate
+        </a>
+        <a class="list-group-item list-group-item-action list-group-item-light{% if cyberchef_base_url in request.path %} active {% endif %}"
+           href="{{ cyberchef_base_url }}" target="_blank">
+          <img height="12px" src="{% static "images/cyberchef_hat.svg" %}">
+          Cyberchef
+        </a>
+      {% if request.user.is_authenticated %}
+          {# URL provided by django-allauth/account/urls.py #}
+          <a class="list-group-item list-group-item-action list-group-item-light" href="{% url 'users:detail' request.user.username %}">
+            <i class="nf nf-fa-user" aria-hidden="true"></i>
+            {% translate "My Profile" %}
+          </a>
+      {% endif %}
+      {% block sidebar-items %}{% endblock sidebar-items %}
+      </div>
+    </aside>
+    <div id="page-content-wrapper">
+      <main class="container-fluid">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+        {% block content %}
+          <p>Use this document as a way to quick start any new project.</p>
+        {% endblock content %}
       </main>
     </div>
-  </div> <!-- /container -->
-{% endblock container %}
-
-
-{% block offcanvas %}
-  <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
-       id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">
-    <div class="offcanvas-header pb-1">
-      <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body mt-0 pt-0">
-      {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
-    </div>
   </div>
-{% endblock %}
-
-{% block modal %}
-  <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="caseSwitchModalLabel">{% translate "Switch to another case" %}</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <ul>
-            {% for case in request.user_cases %}
-              <li>
-                {{ case.name }} <a href="{% url "collect_cases_select_view" pk=case.id %}">Select</a>
-              </li>
-            {% endfor %}
-          </ul>
+  {% block offcanvas %}
+    <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+         id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">
+      <div class="offcanvas-header pb-1">
+        <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body mt-0 pt-0">
+        {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+      </div>
+    </div>
+  {% endblock offcanvas %}
+  {% block modal %}
+    <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="caseSwitchModalLabel">{% translate "Switch to another case" %}</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <ul>
+              {% for case in request.user_cases %}
+                <li>
+                  {{ case.name }} <a href="{% url "collect_cases_select_view" pk=case.id %}">Select</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-{% endblock modal %}
-
-{% block inline_javascript %}
-  {% comment %}
-    Script tags with only code, no src (defer by default). To run
-    with a "defer" so that you run inline code:
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {/* Run whatever you want */});
-    </script>
-    {% endcomment %}
-{% endblock inline_javascript %}
-{% block vue_javascript %}
-{% endblock vue_javascript %}
+  {% endblock modal %}
+  {% block inline_javascript %}
+    {% comment %}
+      Script tags with only code, no src (defer by default). To run
+      with a "defer" so that you run inline code:
+      <script>
+        window.addEventListener('DOMContentLoaded', () => {/* Run whatever you want */});
+      </script>
+      {% endcomment %}
+  {% endblock inline_javascript %}
+  {% block vue_javascript %}{% endblock vue_javascript %}
 </body>
 </html>

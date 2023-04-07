@@ -1,4 +1,4 @@
-@import "./custom_bootstrap_variables";
+@import "custom_bootstrap_variables";
 @import "../vendors/bootstrap/bootstrap";
 
 html, body {
@@ -10,12 +10,15 @@ body {
   flex-direction: column;
 }
 
-body, a {
+body
+/*, a*/
+{
   position: relative;
   min-height: 100%;
   font-family: "Open Sans", sans-serif !important;
   font-size: 13px;
 }
+
 
 samp {
   font-size: 0.9em;
@@ -109,6 +112,7 @@ samp {
   font-size: 1rem;
   background-color: rgba(0, 0, 0, .25);
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+  width: 13rem;
 }
 
 .navbar .navbar-toggler {
@@ -161,4 +165,72 @@ samp {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* TODO: Properly clean properties */
+
+
+header
+{
+  height: 3rem;
+}
+
+#main-wrapper {
+	overflow-x: hidden;
+}
+
+#sidebar-wrapper {
+  --sidebar-width: 13rem;
+  --sidebar-closed-width: 10rem;
+	height: calc(100vh - 3rem);
+  overflow: hidden auto;
+	margin-left: calc( -1 * var(--sidebar-width) );
+  min-width: var(--sidebar-width);
+	-webkit-transition: margin .25s ease-out;
+	-moz-transition: margin .25s ease-out;
+	-o-transition: margin .25s ease-out;
+	transition: margin .25s ease-out;
+}
+
+#sidebar-wrapper .list-group
+{
+  --bs-list-group-item-padding-y: 0.6rem;
+  --bs-list-group-item-padding-x: 0.6rem;
+}
+
+/*
+#sidebar-wrapper .sidebar-heading {
+  display: block;
+	padding: 0.875rem 1.25rem;
+	font-size: 1.2rem;
+}
+*/
+
+#sidebar-wrapper .list-group {
+	width: var(--sidebar-width);
+}
+
+#page-content-wrapper {
+	min-width: 100vw;
+	background-color: #EEE;
+  overflow-y: auto;
+}
+
+body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
+	margin-left: 0;
+}
+
+@media (min-width: 768px) {
+	#sidebar-wrapper {
+		margin-left: 0;
+	}
+
+	#page-content-wrapper {
+		min-width: 0;
+		width: 100%;
+	}
+
+	body.sb-sidenav-toggled #wrapper #sidebar-wrapper {
+		margin-left: calc(-1 * var(--sidebar-width));
+	}
 }

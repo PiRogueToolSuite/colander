@@ -18,71 +18,51 @@
       <i class="nf nf-fa-plus_square"></i>
     </a>
   </h6>
-  <ul class="nav flex-column mb-2">
-    <li class="nav-item">
-      <a class="nav-link{% if collect_cases_view_url in request.path %} active {% endif %}"
-         href="{{ collect_cases_view_url }}">
-        {% include "icons/case_icon.html" %}
-        Cases
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_actor_view_url in request.path %} active {% endif %}"
-         href="{{ collect_actor_view_url }}">
-        {% include "icons/actor_icon.html" %}
-        Actors
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_artifact_view_url in request.path %} active {% endif %}"
-         href="{{ collect_artifact_view_url }}">
-        {% include "icons/artifact_icon.html" %}
-        Artifacts
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_device_view_url in request.path %} active {% endif %}"
-         href="{{ collect_device_view_url }}">
-        {% include "icons/device_icon.html" %}
-        Devices
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_event_view_url in request.path %} active {% endif %}"
-         href="{{ collect_event_view_url }}">
-        {% include "icons/event_icon.html" %}
-        Events
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_observable_create_view_url in request.path %} active {% endif %}"
-         href="{{ collect_observable_create_view_url }}">
-        {% include "icons/observable_icon.html" %}
-        Observables
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_relation_create_view_url in request.path %} active {% endif %}"
-         href="{{ collect_relation_create_view_url }}">
-        {% include "icons/relation_icon.html" %}
-        Relations
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_threat_create_view_url in request.path %} active {% endif %}"
-         href="{{ collect_threat_create_view_url }}">
-        {% include "icons/threat_icon.html" %}
-        Threats
-      </a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link{% if collect_experiment_create_view_url in request.path %} active {% endif %}"
-         href="{{ collect_experiment_create_view_url }}">
-        {% include "icons/experiment_icon.html" %}
-        PiRogue experiment
-      </a>
-    </li>
-  </ul>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_cases_view_url in request.path %} active {% endif %}"
+     href="{{ collect_cases_view_url }}">
+    {% include "icons/case_icon.html" %}
+    Cases
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_actor_view_url in request.path %} active {% endif %}"
+     href="{{ collect_actor_view_url }}">
+    {% include "icons/actor_icon.html" %}
+    Actors
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_artifact_view_url in request.path %} active {% endif %}"
+     href="{{ collect_artifact_view_url }}">
+    {% include "icons/artifact_icon.html" %}
+    Artifacts
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_device_view_url in request.path %} active {% endif %}"
+     href="{{ collect_device_view_url }}">
+    {% include "icons/device_icon.html" %}
+    Devices
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_event_view_url in request.path %} active {% endif %}"
+     href="{{ collect_event_view_url }}">
+    {% include "icons/event_icon.html" %}
+    Events
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_observable_create_view_url in request.path %} active {% endif %}"
+     href="{{ collect_observable_create_view_url }}">
+    {% include "icons/observable_icon.html" %}
+    Observables
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_relation_create_view_url in request.path %} active {% endif %}"
+     href="{{ collect_relation_create_view_url }}">
+    {% include "icons/relation_icon.html" %}
+    Relations
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_threat_create_view_url in request.path %} active {% endif %}"
+     href="{{ collect_threat_create_view_url }}">
+    {% include "icons/threat_icon.html" %}
+    Threats
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_experiment_create_view_url in request.path %} active {% endif %}"
+     href="{{ collect_experiment_create_view_url }}">
+    {% include "icons/experiment_icon.html" %}
+    PiRogue experiment
+  </a>
 {% endblock sidebar-items %}
 
 {% block content %}

@@ -7,8 +7,8 @@ from django.contrib import messages
 from django_q.tasks import async_task
 
 from colander.core.forms import CommentForm
-from colander.core.models import PiRogueExperiment, Artifact, PiRogueExperimentAnalysis
-from colander.core.pcap_tasks import save_decrypted_traffic
+from colander.core.models import PiRogueExperiment, Artifact, PiRogueExperimentAnalysis, DetectionRule
+from colander.core.experiment_tasks import save_decrypted_traffic, apply_detection_rules
 from colander.core.views.views import get_active_case, CaseRequiredMixin
 
 
@@ -75,6 +75,36 @@ class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detail
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['comment_form'] = CommentForm()
+        inbound = {}
+        outbound = {}
+        if self.object.analysis:
+            for record in self.object.analysis:
+                if 'yara' in record.detections and record.result.direction == 'outbound':
+                    host = record.result.dst.host
+                    ip = record.result.dst.ip
+                    process = record.result.full_stack_trace.process
+                    key = f'{host} - ({ip}) - {process}'
+                    geo_data = record.result.dst.geoip
+                    if key not in outbound:
+                        outbound[key] = {
+                            'host': host,
+                            'ip': ip,
+                            'process': process,
+                            'geoip': geo_data,
+                            'rules': {},
+                        }
+                    for y in record.detections.yara:
+                        if y.rule not in outbound[key]['rules']:
+                            outbound[key]['rules'][y.rule] = {
+                                'rule_object': DetectionRule.objects.get(id=y.rule_id),  # ToDo: improve this
+                                'tags': y.tags,
+                                'hits': 0,
+                                'dates': [],
+                            }
+                        outbound[key]['rules'][y.rule]['hits'] += 1
+                        outbound[key]['rules'][y.rule]['dates'].append(record.timestamp)
+        print(outbound)
+        ctx['outbound_summary'] = outbound
         return ctx
 
 
@@ -115,4 +145,38 @@ def start_decryption(request, pk):
             # async_task(save_decrypted_traffic, pk)
         else:
             messages.error(request, 'Cannot decrypt traffic since your experiment does not have both a PCAP file and an SSL keylog file.')
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def start_detection(request, pk):
+    if PiRogueExperiment.objects.filter(id=pk).exists():
+        experiment = PiRogueExperiment.objects.get(id=pk)
+        if experiment.analysis:
+            messages.success(request, 'Traffic analysis is in progress, refresh this page in a few minutes.')
+            apply_detection_rules(pk)
+            # ToDo switch to async task
+            # async_task(apply_detection_rules, pk)
+        else:
+            messages.error(request, 'Cannot analyze traffic since the traffic has not been decrypted yet.')
+    return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def detection_summary(request, pk):
+    if PiRogueExperiment.objects.filter(id=pk).exists():
+        experiment = PiRogueExperiment.objects.get(id=pk)
+        inbound = {}
+        outbound = {}
+        if experiment.analysis:
+            for record in experiment.analysis:
+                if 'yara' in record.detections:
+                    rules = {}
+                    host = record.result.dst.host
+                    ip = record.result.dst.ip
+                    key = f'{host} - ({ip})'
+                    geo_data = record.result.dst.geoip
+                    for y in record.detections.yara:
+                        print(y)
+
     return redirect(request.META.get('HTTP_REFERER'))

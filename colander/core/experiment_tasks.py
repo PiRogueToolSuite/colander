@@ -9,10 +9,10 @@ import communityid
 import requests
 from django.utils import timezone
 from elasticsearch_dsl import Index
+from yara import StringMatchInstance
 
 from colander.core.es_utils import geoip_pipeline_id
-from colander.core.models import PiRogueExperiment, PiRogueExperimentAnalysis
-
+from colander.core.models import PiRogueExperiment, PiRogueExperimentAnalysis, DetectionRule, DetectionRuleType
 
 external_packages = [
     'com.android.org.conscrypt.',
@@ -65,10 +65,11 @@ def compute_community_id(trace):
     }
 
 
-def build_community_id_stack_traces(socket_trace_file):
+def build_stack_traces(socket_trace_file):
     with open(socket_trace_file) as f:
         socket_traces = json.load(f)
-    stack_traces = {}
+    community_id_stack_trace = {}
+    traces = []
 
     for trace in socket_traces:
         flow_data = compute_community_id(trace)
@@ -76,11 +77,26 @@ def build_community_id_stack_traces(socket_trace_file):
         trace['data']['local_ip'] = flow_data.get('src_ip')
         trace['data']['dest_ip'] = flow_data.get('dst_ip')
         trace['data']['community_id'] = flow_data.get('community_id')
-        if not flow_data.get('community_id') in stack_traces:
-            stack_traces[flow_data.get('community_id')] = trace
+        traces.append(trace)
+        if not flow_data.get('community_id') in community_id_stack_trace:
+            community_id_stack_trace[flow_data.get('community_id')] = trace
 
-    return stack_traces
+    return community_id_stack_trace, traces
 
+
+def get_stack_trace(traces, community_id, timestamp, operation):
+    best_guess = None
+    min_time = 99999999
+    for t in traces:
+        if t['data']['community_id'] == community_id and t['data']['socket_event_type'] == operation:
+            # print('Found -----')
+            trace_timestamp = t['timestamp']
+            delta = abs(int(trace_timestamp) - int(timestamp))
+            if delta < min_time:
+                min_time = delta
+                best_guess = t
+    print(f'Best guess with delta {min_time/1000} for {community_id}, {timestamp}, {operation}')
+    return best_guess
 
 def _compact_stack_trace(trace):
     clean_stack = []
@@ -429,7 +445,7 @@ def save_decrypted_traffic(pirogue_dump_id):
             return
 
         socket_traces_file = f'{tmp_dir}/{socket_trace}'
-        socket_traces = build_community_id_stack_traces(socket_traces_file)
+        socket_traces, traces  = build_stack_traces(socket_traces_file)
 
         aes_traces_file = f'{tmp_dir}/{aes_trace}'
         with open(aes_traces_file, 'r') as aes:
@@ -440,10 +456,17 @@ def save_decrypted_traffic(pirogue_dump_id):
         if response.status_code == 200:
             tracker_definitions = response.json()
 
+        time_windows = {}
+
         with open(f'{tmp_dir}/{json_traffic}') as traffic_json_file:
             for line in traffic_json_file.readlines():
                 if line.startswith('{"timestamp":'):
                     packet = json.loads(line)
+                    c_id = packet.get('layers').get('communityid_communityid')
+                    p_timestamp = packet.get('timestamp')
+                    if c_id not in time_windows:
+                        time_windows[c_id] = []
+                    time_windows[c_id].append(p_timestamp)
                     d = dispatch(packet)
                     if not d:
                         continue
@@ -452,8 +475,12 @@ def save_decrypted_traffic(pirogue_dump_id):
                             if p.get('data'):
                                 p['experiment_id'] = pirogue_dump_id
                                 if socket_traces and p.get('community_id') in socket_traces:
-                                    p['full_stack_trace'] = socket_traces.get(p.get('community_id'))
-                                    p['stack_trace'] = _compact_stack_trace(socket_traces.get(p.get('community_id')))
+                                    operation = 'write'
+                                    if '10.8.0.' in packet.get('destination'):
+                                        operation = 'read'
+                                    full_stack_trace = get_stack_trace(traces, p.get('community_id'), p.get('timestamp'), operation)
+                                    p['full_stack_trace'] = full_stack_trace
+                                    p['stack_trace'] = _compact_stack_trace(full_stack_trace)
                                 try:
                                     data = json.loads(p.get('data'))
                                     p['data'] = json.dumps(data, indent=2)
@@ -477,3 +504,62 @@ def save_decrypted_traffic(pirogue_dump_id):
                         except Exception as e:
                             print('Oooooops')
                             print(e)
+
+
+def _extract_matching_snippet(match: StringMatchInstance, content):
+    content_length = len(content)
+    context = 64
+    match_off_start = match.offset
+    match_off_end = match_off_start + match.matched_length
+    snippet_off_start = max(0, match_off_start - context)
+    snippet_off_end = min(content_length, match_off_end + context)
+    snippet = content[snippet_off_start:match_off_start] + '<mark>' + content[match_off_start:match_off_end] + '</mark>' + content[match_off_end:snippet_off_end]
+    return snippet
+
+def apply_detection_rules(pirogue_dump_id):
+    import yara
+    from elasticsearch_dsl import connections
+    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    pirogue_dump: PiRogueExperiment = PiRogueExperiment.objects.get(id=pirogue_dump_id)
+    detection_rules: list[DetectionRule] = DetectionRule.get_user_detection_rules(pirogue_dump.owner, pirogue_dump.case)
+    print(len(detection_rules))
+    analysis = pirogue_dump.analysis
+    for record in analysis:
+        matches = []
+        content = record.decoded_data if record.decoded_data else record.result.data
+        whole_content = ''
+        if hasattr(record.result, 'headers') and record.result.headers:
+            for k, v in record.result.headers:
+                whole_content += f'{k}: {v}\n'
+        whole_content += '\n' + content
+        for rule in detection_rules:
+            if rule.type.short_name == 'YARA':
+                try:
+                    compiled_rule = yara.compile(source=rule.content)
+                except Exception as e:
+                    print(e)
+                    continue
+
+                rule_matches = compiled_rule.match(data=whole_content)
+                match_objects = []
+                for match in rule_matches:
+                    match_object = {
+                        'rule_id': str(rule.id),
+                        'rule': match.rule,
+                        'tags': match.tags,
+                        'strings': [],
+                    }
+                    for s in match.strings:
+                        instances = []
+                        for i in s.instances:
+                            instances.append(_extract_matching_snippet(i, whole_content))
+                        match_object['strings'].append({
+                            'identifier': s.identifier,
+                            'instances': instances,
+                        })
+                        match_objects.append(match_object)
+                matches.extend(match_objects)
+                print(rule_matches)
+                record.detections['yara'] = matches
+                record.save()
+

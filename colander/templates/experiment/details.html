@@ -12,17 +12,17 @@
       {% endif %}
     </div>
 
-    {% include "experiment/controls.html" with exclude="details" btn_class=""%}
-{#    <div class="btn-group" role="group">#}
-{#      <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary">#}
-{#        <i class="nf nf-mdi-key_remove"></i>#}
-{#        {% translate "Decrypt" %}#}
-{#      </a>#}
-{#      <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">#}
-{#        <i class="nf nf-fa-edit"></i>#}
-{#        {% translate "Edit" %}#}
-{#      </a>#}
-{#    </div>#}
+    {% include "experiment/controls.html" with exclude="details" btn_class="" %}
+    {#    <div class="btn-group" role="group">#}
+    {#      <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary">#}
+    {#        <i class="nf nf-mdi-key_remove"></i>#}
+    {#        {% translate "Decrypt" %}#}
+    {#      </a>#}
+    {#      <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">#}
+    {#        <i class="nf nf-fa-edit"></i>#}
+    {#        {% translate "Edit" %}#}
+    {#      </a>#}
+    {#    </div>#}
   </div>
 
   <div class="col mt-2">
@@ -169,6 +169,51 @@
     {% endfor %}
     {% include "comment/form.html" with elt_id=experiment.id %}
   </div>
+
+  {% if outbound_summary %}
+  <div class="col-md-12 mt-2">
+    <h3>{% translate "Outbound detection summary" %}</h3>
+    <table class="table table-sm">
+      <thead>
+      <tr>
+        <th>Host</th>
+        <th>Organization</th>
+        <th>Application/Process</th>
+        <th>Rule</th>
+      </tr>
+      </thead>
+      <tbody>
+        {% for host, info in outbound_summary.items %}
+          <tr>
+            <td><samp style="font-size: 1.1em">{{ info.host }}</samp><br> resolved by <code>{{ info.ip }}</code></td>
+            <td>
+              {{ info.geoip.asn.organization_name }} <br>
+              {{ info.geoip.country_name }} <span
+                  class="fi fi-{{ info.geoip.country_iso_code|lower }} text-primary"></span>
+                  / {{ info.geoip.continent_name }}
+            </td>
+            <td>
+              <code>{{ info.process }}</code>
+            </td>
+            <td>
+              {% for rule, details in info.rules.items %}
+                Rule <b><samp>{{ rule }}</samp></b> matched {{ details.hits }} time{{ details.hits|pluralize:"s" }} on
+                <ul class="mb-0">
+                {% for d in details.dates %}
+                  <li>{{ d }}</li>
+                {% endfor %}
+                </ul>
+                {% for t in details.tags %}
+                  <span class="badge bg-warning small"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+                {% endfor %}<br>
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
   <div class="col-md-12 mt-2">
     <h3>{% translate "Decrypted traffic" %}</h3>

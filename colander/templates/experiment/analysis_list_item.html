@@ -21,13 +21,23 @@
         <samp>{{ analysis.result.dst.ip }}</samp> /
         <samp>{{ analysis.result.dst.host }}</samp>
       </div>
-      {% if analysis.tracker %}
+      {% if analysis.tracker or analysis.detections %}
         <div class="row mt-2">
           <div class="col">
-            <span class="badge bg-dark">{{ analysis.tracker.name }}</span>
-            {% for cat in analysis.tracker.categories %}
-              <span class="badge bg-dark">{{ cat }}</span>
-            {% endfor %}
+            {% if analysis.tracker %}
+              <span class="badge bg-dark"><b>ε</b>: {{ analysis.tracker.name }}</span>
+              {% for cat in analysis.tracker.categories %}
+                <span class="badge bg-dark"><i class="nf nf-fa-tag"></i> {{ cat }}</span>
+              {% endfor %}
+            {% endif %}
+            {% if analysis.detections.yara %}
+              {% for info in analysis.detections.yara %}
+                <span class="badge bg-warning"><b>Y</b>: {{ info.rule }}</span>
+                {% for t in info.tags %}
+                  <span class="badge bg-warning"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
           </div>
         </div>
       {% endif %}
@@ -193,10 +203,12 @@
                 <i class="nf nf-md-chef_hat"></i> CyberChef
               </button>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ cyberchef_base_url }}#input={{ analysis.result.raw_data|b64 }}" target="_blank">
+                <li><a class="dropdown-item" href="{{ cyberchef_base_url }}#input={{ analysis.result.raw_data|b64 }}"
+                       target="_blank">
                   Raw data</a></li>
                 {% if analysis.result.aes_info.decrypted %}
-                  <li><a class="dropdown-item" href="{{ cyberchef_base_url }}#input={{ analysis.result.aes_info.decrypted|b64 }}"
+                  <li><a class="dropdown-item"
+                         href="{{ cyberchef_base_url }}#input={{ analysis.result.aes_info.decrypted|b64 }}"
                          target="_blank">
                     Decrypted data
                   </a></li>

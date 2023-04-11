@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from colander.core.models import ObservableType, Observable, Case, Threat, ObservableRelation, \
-    Artifact, ArtifactType, Event, Actor, EventType, Comment, PiRogueExperiment, EntityRelation, BackendCredentials
+    Artifact, ArtifactType, Event, Actor, EventType, Comment, PiRogueExperiment, EntityRelation, BackendCredentials, \
+    DetectionRule
 
 
 class ArtifactTypeAdmin(admin.ModelAdmin):
@@ -73,6 +74,12 @@ class ObservableRelationAdmin(admin.ModelAdmin):
     list_display = ('name', 'observable_from', 'observable_to')
     list_filter = ('name', 'observable_from', 'observable_to')
 admin.site.register(ObservableRelation, ObservableRelationAdmin)
+
+
+class DetectionRuleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type')
+    list_filter = ('name', 'type')
+admin.site.register(DetectionRule, DetectionRuleAdmin)
 
 
 class EntityRelationAdmin(admin.ModelAdmin):

@@ -12,8 +12,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Double, Integer
+from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Nested
 from cryptography.hazmat.primitives.asymmetric import rsa
 from martor.models import MartorField
 from cryptography.hazmat.primitives import serialization
@@ -1096,8 +1097,11 @@ class DetectionRule(Entity):
         on_delete=models.CASCADE,
         help_text=_('Type of this detection rule.')
     )
-    detected_observables = models.ManyToManyField(
+    content = models.TextField()
+    targeted_observables = models.ManyToManyField(
         Observable,
+        blank=True,
+        null=True
     )
     detection_index = models.UUIDField(
         default=uuid.uuid4,
@@ -1123,7 +1127,7 @@ class DetectionRule(Entity):
     def get_user_detection_rules(user, case=None):
         if case:
             return DetectionRule.objects.filter(case=case)
-        return DetectionRule.objects.all()
+        return DetectionRule.objects.filter(owner=user)
 
 
 class Event(Entity):
@@ -1342,7 +1346,7 @@ class PiRogueExperiment(Entity):
     def super_type(self):
         return self.__class__.__name__
 
-    @property
+    @cached_property
     def analysis(self):
         from elasticsearch_dsl import connections
         connections.create_connection(hosts=['elasticsearch'], timeout=20)
@@ -1459,6 +1463,7 @@ class PiRogueExperimentAnalysis(Document):
     experiment_id = Keyword()
     decoded_data = Text()
     analysis_date = Date()
+    detections = Object()
     result = Object()
     tracker = Object()
     timestamp = Date()

@@ -16,7 +16,7 @@ from colander.core.views.device_views import DeviceDetailsView, DeviceCreateView
 from colander.core.views.documentation_views import write_documentation_view
 from colander.core.views.enrich_view import enrich_observable
 from colander.core.views.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
-    PiRogueExperimentDetailsView, start_decryption, delete_experiment_view, save_decoded_content_view
+    PiRogueExperimentDetailsView, start_decryption, delete_experiment_view, save_decoded_content_view, start_detection
 from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
     ObservableDetailsView, delete_observable_view
@@ -107,6 +107,7 @@ urlpatterns = [
       path("collect/experiment/<slug:pk>/details", PiRogueExperimentDetailsView.as_view(), name="collect_experiment_details_view"),
       path("collect/experiment/<slug:pk>/delete", delete_experiment_view, name="collect_experiment_delete_view"),
       path("collect/experiment/<slug:pk>/decrypt", start_decryption, name="collect_experiment_decryption_view"),
+      path("collect/experiment/<slug:pk>/detect", start_detection, name="collect_experiment_detection_view"),
       path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
 
       path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),

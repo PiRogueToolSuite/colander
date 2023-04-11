@@ -34,6 +34,7 @@ django-allauth-2fa==0.10.0
 
 # Analysis
 communityid==1.4
+yara-python==4.3.0  # https://github.com/VirusTotal/yara-python
 
 # Documentation
 martor==1.6.18

@@ -15,7 +15,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
   # dependencies for building Python packages
   build-essential \
   # psycopg2 dependencies
-  libpq-dev libmagic1 tshark wireshark-common
+  libpq-dev libmagic1 tshark wireshark-common libssl-dev python3-dev
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -46,7 +46,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
-  gettext tshark wireshark-common \
+  gettext tshark wireshark-common libssl-dev python3-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*

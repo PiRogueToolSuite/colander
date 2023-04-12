@@ -22,7 +22,7 @@ services:
       - django
       - cyberchef
       - keycloak
-    restart: always
+    restart: unless-stopped
     ports:
       - "88:80"
       - "8088:8080" # The Web UI (enabled by --api)

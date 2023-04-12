@@ -12,56 +12,56 @@
   {% url 'collect_entity_relation_create_view' as collect_relation_create_view_url %}
   {% url 'collect_threat_create_view' as collect_threat_create_view_url %}
   {% url 'collect_experiment_create_view' as collect_experiment_create_view_url %}
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
     <span>Knowledge</span>
     <a href="{% url "collect_quick_creation_view" %}" class="text-primary">
       <i class="nf nf-fa-plus_square"></i>
     </a>
   </h6>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_cases_view_url in request.path %} active {% endif %}"
-     href="{{ collect_cases_view_url }}">
+     href="{{ collect_cases_view_url }}" title="Cases">
     {% include "icons/case_icon.html" %}
-    Cases
+    <span class="list-group-item-label">Cases</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_actor_view_url in request.path %} active {% endif %}"
-     href="{{ collect_actor_view_url }}">
+     href="{{ collect_actor_view_url }}" title="Actors">
     {% include "icons/actor_icon.html" %}
-    Actors
+    <span class="list-group-item-label">Actors</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_artifact_view_url in request.path %} active {% endif %}"
-     href="{{ collect_artifact_view_url }}">
+     href="{{ collect_artifact_view_url }}" title="Artifacts">
     {% include "icons/artifact_icon.html" %}
-    Artifacts
+    <span class="list-group-item-label">Artifacts</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_device_view_url in request.path %} active {% endif %}"
-     href="{{ collect_device_view_url }}">
+     href="{{ collect_device_view_url }}" title="Devices">
     {% include "icons/device_icon.html" %}
-    Devices
+    <span class="list-group-item-label">Devices</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_event_view_url in request.path %} active {% endif %}"
-     href="{{ collect_event_view_url }}">
+     href="{{ collect_event_view_url }}" title="Events">
     {% include "icons/event_icon.html" %}
-    Events
+    <span class="list-group-item-label">Events</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_observable_create_view_url in request.path %} active {% endif %}"
-     href="{{ collect_observable_create_view_url }}">
+     href="{{ collect_observable_create_view_url }}" title="Observable">
     {% include "icons/observable_icon.html" %}
-    Observables
+    <span class="list-group-item-label">Observables</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_relation_create_view_url in request.path %} active {% endif %}"
-     href="{{ collect_relation_create_view_url }}">
+     href="{{ collect_relation_create_view_url }}" title="Relations">
     {% include "icons/relation_icon.html" %}
-    Relations
+    <span class="list-group-item-label">Relations</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_threat_create_view_url in request.path %} active {% endif %}"
-     href="{{ collect_threat_create_view_url }}">
+     href="{{ collect_threat_create_view_url }}" title="Threats">
     {% include "icons/threat_icon.html" %}
-    Threats
+    <span class="list-group-item-label">Threats</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_experiment_create_view_url in request.path %} active {% endif %}"
-     href="{{ collect_experiment_create_view_url }}">
+     href="{{ collect_experiment_create_view_url }}" title="PiRogue experiment">
     {% include "icons/experiment_icon.html" %}
-    PiRogue experiment
+    <span class="list-group-item-label">PiRogue experiment</span>
   </a>
 {% endblock sidebar-items %}
 

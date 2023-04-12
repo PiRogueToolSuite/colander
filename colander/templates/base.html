@@ -14,16 +14,17 @@
   {% block css %}
     <!-- This file stores project-specific CSS -->
     {% compress css %}
-      <link href="{% static 'css/project.css' %}" rel="stylesheet">
-      <link href="{% static 'css/bootstrap-vue.min.css' %}" rel="stylesheet">
-      <link href="{% static 'css/fork-awesome.min.css' %}" rel="stylesheet">
-      <link href="{% static 'css/tempus-dominus.min.css' %}" rel="stylesheet">
-      <link href="{% static 'css/flag-icons.min.css' %}" rel="stylesheet">
-      <link href="{% static 'css/nf.min.css' %}" rel="stylesheet">
-      <link href="{% static 'css/myLib.css' %}" rel="stylesheet">
+      <link href="{% static 'css/project.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/bootstrap-vue.min.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/fork-awesome.min.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/tempus-dominus.min.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/flag-icons.min.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/nf.min.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/myLib.css' %}" type="text/css" rel="stylesheet">
       <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
       <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
       <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'pts-assets/css/pts-assets.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
   {% endblock %}
   <!-- Le javascript
@@ -67,86 +68,110 @@
   {% url 'report_base_view' as report_base_view_url %}
   {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
 
-  <header class="navbar navbar-dark sticky-top bg-primary flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-lg-auto col-md-3 me-0 px-3" href="#">Colander</a>
+  <header class="navbar navbar-dark sticky-top bg-primary flex-nowrap p-0 shadow">
+    <div class="navbar-brand col-lg-auto col-md-3">
+      <a class="me-0 px-3" href="#">
+        <i class="icon-pts-project" aria-hidden="true"></i>
+        <span>Colander</span>
+      </a>
+    </div>
+    <!--
     <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
             data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
             aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <form method="post" action="{% url "quick_search_view" %}">
+    -->
+    <form method="post" action="{% url "quick_search_view" %}" class="w-100">
       {% csrf_token %}
       <input class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search">
     </form>
     <div class="navbar-nav">
-
+      <div class="nav-item">
+        {% if request.user.is_authenticated %}
+         {# URL provided by django-allauth/account/urls.py #}
+          <a class="nav-link px-3" href="{% url 'account_logout' %}">{% translate "Log Out" %}</a>
+        {% else %}
+          {% if ACCOUNT_ALLOW_REGISTRATION %}
+            {# URL provided by django-allauth/account/urls.py #}
+            <a id="sign-up-link" class="nav-link px-3" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
+          {% endif %}
+          {# URL provided by django-allauth/account/urls.py #}
+          <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Log In" %}</a>
+        {% endif %}
+      </div>
     </div>
   </header>
 
   <div id="main-wrapper" class="d-flex">
     <aside id="sidebar-wrapper">
-      <div>
-        {% if request.active_case %}
-          <div>
-            <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
-              {% include "icons/case_icon.html" with c="text-primary" %}
-              {{ request.active_case.name }}
-            </a>
-          </div>
-          <div class="small text-muted">
-            {% include "icons/date_icon.html" %}
-            {{ request.active_case.created_at }}
-          </div>
-        {% else %}
-          No case selected, select one.
-        {% endif %}
-      </div>
-      <div>
-        <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
-                data-bs-target="#caseSwitchModal">
-          <i class="nf nf-cod-arrow_swap"></i>
-          Switch case
-        </button>
-        <br>
-        <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
-                data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-          <i class="nf nf-fa-file_text"></i>
-          Doc editor
-        </button>
+      <div class="p-3">
+        <div>
+          {% if request.active_case %}
+            <div>
+              <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+                {% include "icons/case_icon.html" with c="text-primary" %}
+                {{ request.active_case.name }}
+              </a>
+            </div>
+            <div class="small text-muted">
+              {% include "icons/date_icon.html" %}
+              {{ request.active_case.created_at }}
+            </div>
+          {% else %}
+            No case selected, select one.
+          {% endif %}
+        </div>
+        <div>
+          <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
+                  data-bs-target="#caseSwitchModal">
+            <i class="nf nf-cod-arrow_swap"></i>
+            Switch case
+          </button>
+          <!--
+          <br>
+          <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
+                  data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+            <i class="nf nf-fa-file_text"></i>
+            Doc editor
+          </button>
+          -->
+        </div>
       </div>
       <div class="list-group list-group-flush">
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
           <span>Workspaces</span>
         </h6>
         <a class="list-group-item list-group-item-action list-group-item-light{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
-          <i class="nf nf-fa-home"></i>
-          <span class="d-none d-sm-inline">Home</span>
+          <i class="nf nf-fa-home list-group-item-icon"></i>
+          <span class="d-none d-sm-inline list-group-item-label">Home</span>
         </a>
         <a class="list-group-item list-group-item-action list-group-item-light{% if collect_base_view_url in request.path %} active {% endif %}"
            href="{{ collect_base_view_url }}">
           <i class="fa fa-th" aria-hidden="true"></i>
-          Collect
+          <span class="d-none d-sm-inline list-group-item-label">Collect</span>
         </a>
         <a class="list-group-item list-group-item-action list-group-item-light{% if document_cases_write_doc_url in request.path %} active {% endif %}"
            href="{{ document_cases_write_doc_url }}">
-          <i class="nf nf-fa-file_text" aria-hidden="true"></i>
-          Document
+          <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
+          <span class="d-none d-sm-inline list-group-item-label">Document</span>
         </a>
         <a class="list-group-item list-group-item-action list-group-item-light{% if investigate_base_view_url in request.path %} active {% endif %}"
            href="{{ investigate_base_view_url }}">
-          <i class="nf nf-fa-search" aria-hidden="true"></i>
-          Investigate
+          <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
+          <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
         </a>
         <a class="list-group-item list-group-item-action list-group-item-light{% if cyberchef_base_url in request.path %} active {% endif %}"
            href="{{ cyberchef_base_url }}" target="_blank">
-          <img height="12px" src="{% static "images/cyberchef_hat.svg" %}">
-          Cyberchef
+          <i class="icon-cyberchef_hat" aria-hidden="true"></i>
+          <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
+          <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
         </a>
       {% if request.user.is_authenticated %}
           {# URL provided by django-allauth/account/urls.py #}
           <a class="list-group-item list-group-item-action list-group-item-light" href="{% url 'users:detail' request.user.username %}">
-            <i class="nf nf-fa-user" aria-hidden="true"></i>
-            {% translate "My Profile" %}
+            <i class="nf nf-fa-user list-group-item-icon" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline list-group-item-label">{% translate "My Profile" %}</span>
           </a>
       {% endif %}
       {% block sidebar-items %}{% endblock sidebar-items %}
@@ -171,13 +196,43 @@
   {% block offcanvas %}
     <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
          id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">
-      <div class="offcanvas-header pb-1">
+      <div id="documentation-actions" class="btn-group" role="group">
+        <button id="documentationToggle" class='btn btn-primary' data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+          <i class="nf nf-fa-file_text"></i>
+          <span>Documentation editor</span>
+        </button>
+        <!--
+        FIXME: Try to use another Markdown editor plugin
+        Using Martor adds lot of convoluted code to access Ace JS Editor.
+        E.g: a simple reset form functionality is hard to achieve since reseting the form is not sufficient enough ... the Ace JS UI have to be triggered to refresh ... and we can not 'simply' do that for now.
+        <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="#documentationOffCanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+          Cancel & Close
+        </button>
+        -->
+        <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+          Hide
+        </button>
+        <button id='documentation-save' class="btn btn-primary text-white" role="button">
+          <i class="nf nf-fa-save"></i> Save & Close
+        </button>
+      </div>
+      <!--div class="offcanvas-header pb-1">
         <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body mt-0 pt-0">
+      </div-->
+      <div class="offcanvas-body mt-0 p-0">
         {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
       </div>
+      <script type="text/javascript">
+        $(function() {
+          $('#documentation-save').click(() => {
+            $('#case_documentation_form').submit();
+          });
+          $('#documentation-cancel').click(() => {
+            $('#case_documentation_form').trigger("reset");
+          });
+        });
+      </script>
     </div>
   {% endblock offcanvas %}
   {% block modal %}

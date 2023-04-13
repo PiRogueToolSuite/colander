@@ -68,6 +68,7 @@
   {% url 'report_base_view' as report_base_view_url %}
   {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
 
+  {% block top_bar %}
   <header class="navbar navbar-dark sticky-top bg-primary flex-nowrap p-0 shadow">
     <div class="navbar-brand col-lg-auto col-md-3">
       <a class="me-0 px-3" href="#">
@@ -102,7 +103,9 @@
       </div>
     </div>
   </header>
+  {% endblock %}
 
+  {% block main_wrapper %}
   <div id="main-wrapper" class="d-flex">
     <aside id="sidebar-wrapper">
       <div class="p-3">
@@ -193,6 +196,8 @@
       </main>
     </div>
   </div>
+  {% endblock %}
+
   {% block offcanvas %}
     <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
          id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">

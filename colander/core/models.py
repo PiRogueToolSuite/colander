@@ -1120,6 +1120,10 @@ class DetectionRule(Entity):
         return color_scheme.get(c, '')
 
     @property
+    def value(self):
+        return self.name
+
+    @property
     def super_type(self):
         return self.__class__.__name__
 

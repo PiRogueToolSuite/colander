@@ -67,6 +67,57 @@ class PiRogueExperimentUpdateView(PiRogueExperimentCreateView, UpdateView):
         return ctx
 
 
+def __compute_detection_summary(analysis, direction):
+    items = {}
+    rules = {}
+    if analysis:
+        for record in analysis:
+            if 'yara' in record.detections and record.result.direction == direction:
+                if direction == 'outbound':
+                    host = record.result.dst.host
+                    ip = record.result.dst.ip
+                else:
+                    host = record.result.src.host
+                    ip = record.result.src.ip
+                process = record.result.full_stack_trace.process
+                key = f'{host} - ({ip}) - {process}'
+                if direction == 'outbound':
+                    geo_data = record.result.dst.geoip
+                else:
+                    geo_data = record.result.src.geoip
+                if key not in items:
+                    items[key] = {
+                        'host': host,
+                        'ip': ip,
+                        'process': process,
+                        'geoip': geo_data,
+                        'rules': {},
+                    }
+                for y in record.detections.yara:
+                    if y.rule not in items[key]['rules']:
+                        try:
+                            rule_object = DetectionRule.objects.get(id=y.rule_id)  # ToDo: improve this
+                        except Exception:
+                            # This rules does not exist
+                            return {}, {}
+                        rules[str(rule_object.id)] = rule_object
+                        items[key]['rules'][y.rule] = {
+                            'rule_object': rule_object,
+                            'tags': y.tags,
+                            'hits': 0,
+                            'dates': [],
+                        }
+                    items[key]['rules'][y.rule]['hits'] += 1
+                    items[key]['rules'][y.rule]['dates'].append(record.timestamp)
+    return items, rules
+
+
+def get_detection_summary(analysis):
+    inbound, r1 = __compute_detection_summary(analysis, 'inbound')
+    outbound, r2 = __compute_detection_summary(analysis, 'outbound')
+    r1.update(r2)
+    return inbound, outbound, r1
+
 class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = PiRogueExperiment
     template_name = 'pages/collect/experiment_details.html'
@@ -75,36 +126,23 @@ class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detail
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['comment_form'] = CommentForm()
-        inbound = {}
-        outbound = {}
-        if self.object.analysis:
-            for record in self.object.analysis:
-                if 'yara' in record.detections and record.result.direction == 'outbound':
-                    host = record.result.dst.host
-                    ip = record.result.dst.ip
-                    process = record.result.full_stack_trace.process
-                    key = f'{host} - ({ip}) - {process}'
-                    geo_data = record.result.dst.geoip
-                    if key not in outbound:
-                        outbound[key] = {
-                            'host': host,
-                            'ip': ip,
-                            'process': process,
-                            'geoip': geo_data,
-                            'rules': {},
-                        }
-                    for y in record.detections.yara:
-                        if y.rule not in outbound[key]['rules']:
-                            outbound[key]['rules'][y.rule] = {
-                                'rule_object': DetectionRule.objects.get(id=y.rule_id),  # ToDo: improve this
-                                'tags': y.tags,
-                                'hits': 0,
-                                'dates': [],
-                            }
-                        outbound[key]['rules'][y.rule]['hits'] += 1
-                        outbound[key]['rules'][y.rule]['dates'].append(record.timestamp)
-        print(outbound)
+        inbound, outbound, rules = get_detection_summary(self.object.analysis)
+        ctx['inbound_summary'] = inbound
         ctx['outbound_summary'] = outbound
+        ctx['rules'] = rules
+        return ctx
+
+class PiRogueExperimentAnalysisReportView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+    model = PiRogueExperiment
+    template_name = 'experiment/analysis_report.html'
+    context_object_name = 'experiment'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        inbound, outbound, rules = get_detection_summary(self.object.analysis)
+        ctx['inbound_summary'] = inbound
+        ctx['outbound_summary'] = outbound
+        ctx['rules'] = rules
         return ctx
 
 

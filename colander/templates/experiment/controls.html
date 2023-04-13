@@ -26,6 +26,14 @@
       {% translate "Detect" %}
     </a>
   {% endif %}
+  {% if "report" not in exclude %}
+    <a href="{% url "collect_experiment_analysis_report_view" pk=experiment.id %}"
+       target="_blank"
+       class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-file_text"></i>
+      {% translate "View report" %}
+    </a>
+  {% endif %}
 {#  <a href="{% url "collect_experiment_delete_view" pk=experiment.id %}"#}
 {#     class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">#}
 {#    <i class="nf nf-fa-trash"></i>#}

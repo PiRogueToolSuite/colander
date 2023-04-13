@@ -1,0 +1,98 @@
+{% load i18n %}
+
+<div class="row small">
+  <div class="col-md-7">
+    <table class="table table-sm">
+      <tbody>
+      <tr>
+        <td>ID</td>
+        <td>
+          <span class="font-monospace">{{ artifact.id }}</span>
+        </td>
+      </tr>
+      <tr>
+        <td>Case</td>
+        <td>
+          {{ artifact.case.name }}
+        </td>
+      </tr>
+      <tr>
+        <td>Owner</td>
+        <td>
+          {{ artifact.owner }}
+        </td>
+      </tr>
+      <tr>
+        <td>Type</td>
+        <td>
+          {{ artifact.type.name }}
+        </td>
+      </tr>
+      <tr>
+        <td>Created at</td>
+        <td>
+          {{ artifact.created_at }}
+        </td>
+      </tr>
+      <tr>
+        <td>Updated at</td>
+        <td>
+          {{ artifact.updated_at }}
+        </td>
+      </tr>
+      <tr>
+        <td>TLP/PAP</td>
+        <td>
+          {% include "tlp/show_tlp_pap.html" with element=artifact %}
+        </td>
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td>
+          <span class="font-monospace">{{ artifact.original_name }}</span>
+        </td>
+      </tr>
+      <tr>
+        <td>Mimetype</td>
+        <td>
+          {{ artifact.mime_type }}
+        </td>
+      </tr>
+      <tr>
+        <td>Size</td>
+        <td>
+          {{ artifact.size_in_bytes|filesizeformat }} ({{ artifact.size_in_bytes }} bytes)
+        </td>
+      </tr>
+      <tr>
+        <td>MD5</td>
+        <td>
+          <span class="font-monospace">
+              {{ artifact.md5 }}
+            </span>
+        </td>
+      </tr>
+      <tr>
+        <td>SHA1</td>
+        <td>
+          <span class="font-monospace">
+              {{ artifact.sha1 }}
+            </span>
+        </td>
+      </tr>
+      <tr>
+        <td>SHA256</td>
+        <td>
+          <span class="font-monospace">
+              {{ artifact.sha256 }}
+            </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col">
+    <pre class="text-wrap bg-dark text-white rounded-2 p-2"><code>{{ artifact.detached_signature }}</code></pre>
+    <p class="text-muted">Artifact signature encoded in base64</p>
+  </div>
+</div>

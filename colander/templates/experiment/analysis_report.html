@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block main_wrapper %}
+  {% language 'en' %}
+    <main class="container-fluid">
+      <div class="row">
+        <div class="col-md-12 mt-2">
+          <div class="text-primary display-2">
+            <img src="{% static "images/pts_logo.svg" %}" height="80px">
+            Colander
+          </div>
+        </div>
+        <div class="col-md-12 mt-2">
+          <h1 class="">Detection report</h1>
+          <div>
+            This report has been automatically issued on {% now "DATE_FORMAT" %}. It is based on detection rules being
+            automatically applied on the input materials such as the PCAP file listed below.
+          </div>
+          <div class="col-md-6">
+            <table class="table table-responsive table-sm table-bordered mt-3">
+              <tbody>
+              <tr>
+                <td class="text-end fw-bold">Report ID</td>
+                <td class="text-start"><samp style="font-size: 1em">#{{ experiment.id }}</samp></td>
+              </tr>
+              <tr>
+                <td class="text-end fw-bold">Analyst name</td>
+                <td class="text-start">{{ experiment.owner }}</td>
+              </tr>
+              <tr>
+                <td class="text-end fw-bold">Date of report</td>
+                <td class="text-start">{% now "DATE_FORMAT" %}</td>
+              </tr>
+              <tr>
+                <td class="text-end fw-bold">Case</td>
+                <td class="text-start">{{ experiment.case.name }} (<samp
+                  style="font-size: 1em">#{{ experiment.case_id }}</samp>)
+                </td>
+              </tr>
+              <tr>
+                <td class="text-end fw-bold">Case public key</td>
+                <td class="text-start">
+                  <pre style="font-size: 0.9em"><code>{{ experiment.case.verify_key }}</code></pre>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-md-12 mt-2">
+          <h2>Analysis material</h2>
+        </div>
+
+        <div class="col-md-12 mt-2">
+          <h3>Artifacts</h3>
+          <p>This report is based on the automatic analysis of the following artifacts</p>
+          {% if experiment.pcap %}
+            <h4><span class="font-monospace">{{ experiment.pcap.name }}</span> ({{ experiment.pcap.type.name }})</h4>
+            {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.pcap %}
+          {% endif %}
+          {% if experiment.sslkeylog %}
+            <h4><span class="font-monospace">{{ experiment.sslkeylog.name }}</span>
+              ({{ experiment.sslkeylog.type.name }})
+            </h4>
+            {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.sslkeylog %}
+          {% endif %}
+          {% if experiment.screencast %}
+            <h4><span class="font-monospace">{{ experiment.screencast.name }}</span>
+              ({{ experiment.screencast.type.name }})</h4>
+            {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.screencast %}
+          {% endif %}
+          {% if experiment.aes_trace %}
+            <h4><span class="font-monospace">{{ experiment.aes_trace.name }}</span>
+              ({{ experiment.aes_trace.type.name }})
+            </h4>
+            {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.aes_trace %}
+          {% endif %}
+          {% if experiment.socket_trace %}
+            <h4><span class="font-monospace">{{ experiment.socket_trace.name }}</span>
+              ({{ experiment.socket_trace.type.name }})</h4>
+            {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.socket_trace %}
+          {% endif %}
+          {% if experiment.target_artifact %}
+            <h4><span class="font-monospace">{{ experiment.target_artifact.name }}</span>
+              ({{ experiment.target_artifact.type.name }})</h4>
+            This report is based on the execution of this artifact.
+            {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.target_artifact %}
+          {% endif %}
+        </div>
+        <div class="col-md-12 mt-2 d-print-block">
+          <h3>Detection rules</h3>
+          {% for id, rule in rules.items %}
+            <h4>{{ rule.name }} ({{ rule.type.name }})</h4>
+            {% if rule.description %}
+              <p>Description: {{ rule.description }}</p>
+            {% endif %}
+            <div>
+              <pre class="bg-dark text-white rounded-2 p-2"><code>{{ rule.content }}</code></pre>
+            </div>
+          {% endfor %}
+        </div>
+        {% if inbound_summary or outbound_summary %}
+          <div class="col-md-12 mt-2">
+            <h2>Detection summary</h2>
+            {% if inbound_summary  %}
+              <h3>{% translate "Detections on inbound transmissions" %}</h3>
+              {% include "experiment/analysis_summary.html" with summary=inbound_summary %}
+            {% endif %}
+            {% if outbound_summary  %}
+              <h3>{% translate "Detections on outbound transmissions" %}</h3>
+              {% include "experiment/analysis_summary.html" with summary=outbound_summary %}
+            {% endif %}
+          </div>
+        {% endif %}
+        <div class="col-md-12 mt-2">
+          <h2>Details</h2>
+          {% for a in experiment.analysis %}
+            {% if a.detections.yara %}
+              {% include "experiment/m_analysis_report_flow_list_item.html" with analysis=a %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </main>
+  {% endlanguage %}
+{% endblock main_wrapper %}
+
+{% block top_bar %}
+{% endblock top_bar %}
+
+{% block offcanvas %}
+{% endblock offcanvas %}

@@ -1,0 +1,43 @@
+{% load i18n %}
+
+{% if summary %}
+  <table class="table table-sm">
+    <thead>
+    <tr>
+      <th>Host</th>
+      <th>Organization (Geoip)</th>
+      <th>Application</th>
+      <th>Rule</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for host, info in summary.items %}
+      <tr>
+        <td><samp style="font-size: 1.1em">{{ info.host }}</samp><br> resolved to <code>{{ info.ip }}</code></td>
+        <td>
+          {{ info.geoip.asn.organization_name }} <br>
+          {{ info.geoip.country_name }} <span
+          class="fi fi-{{ info.geoip.country_iso_code|lower }} text-primary"></span>
+          / {{ info.geoip.continent_name }}
+        </td>
+        <td>
+          <code>{{ info.process }}</code>
+        </td>
+        <td>
+          {% for rule, details in info.rules.items %}
+            Rule <b><samp>{{ rule }}</samp></b> matched {{ details.hits }} time{{ details.hits|pluralize:"s" }} on
+            <ul class="mb-0">
+              {% for d in details.dates %}
+                <li>{{ d }}</li>
+              {% endfor %}
+            </ul>
+            {% for t in details.tags %}
+              <span class="badge bg-warning small"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+            {% endfor %}<br>
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

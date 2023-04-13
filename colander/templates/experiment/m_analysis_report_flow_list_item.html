@@ -1,0 +1,170 @@
+{% load i18n %}
+{% load static %}
+{% load colander_tags %}
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-header">
+    <div class="text-truncate">
+      <div class="h5">
+        {% if analysis.result.direction == "outbound" %}
+          <i class="nf nf-fa-sign_out text-primary h3" data-bs-toggle="tooltip"
+             data-bs-title="{{ analysis.result.direction }} communication"></i>
+        {% else %}
+          <i class="nf nf-fa-sign_in text-primary h3" data-bs-toggle="tooltip"
+             data-bs-title="{{ analysis.result.direction }} communication"></i>
+        {% endif %}
+        <span class="badge bg-info">{{ analysis.result.protocol }}</span>
+        <span class="badge bg-dark">{{ analysis.result.length|filesizeformat }}</span>
+        <samp>{{ analysis.result.src.ip }}</samp> /
+        <samp>{{ analysis.result.src.host }}</samp>
+        <i class="nf nf-fa-long_arrow_right text-primary"></i>
+        <samp>{{ analysis.result.dst.ip }}</samp> /
+        <samp>{{ analysis.result.dst.host }}</samp>
+      </div>
+      {% if analysis.tracker or analysis.detections %}
+        <div class="row mt-2">
+          <div class="col">
+            {% if analysis.tracker %}
+              <span class="badge bg-dark"><b>ε</b>: {{ analysis.tracker.name }}</span>
+              {% for cat in analysis.tracker.categories %}
+                <span class="badge bg-dark"><i class="nf nf-fa-tag"></i> {{ cat }}</span>
+              {% endfor %}
+            {% endif %}
+            {% if analysis.detections.yara %}
+              {% for info in analysis.detections.yara %}
+                <span class="badge bg-warning"><b>Y</b>: {{ info.rule }}</span>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      <div class="row mt-2">
+        <div class="col-md-5">
+          <div class="small">
+            <ul class="list-unstyled">
+              <li>
+                <b>Community ID</b>:
+                <code>{{ analysis.result.community_id }}</code>
+              </li>
+              {% if analysis.result.direction == "outbound" %}
+                <li>
+                  <b>ASN</b>: {{ analysis.result.dst.geoip.asn.asn }}
+                  (<samp>{{ analysis.result.dst.geoip.asn.ip }}</samp>) -
+                  <samp>{{ analysis.result.dst.geoip.asn.network }}</samp>
+                </li>
+                <li>
+                  <b>Organization</b>: <span
+                  class="badge bg-info">{{ analysis.result.dst.geoip.asn.organization_name }}</span>
+                </li>
+                <li>
+                  <b>Country</b>: {{ analysis.result.dst.geoip.country_name }} <span
+                  class="fi fi-{{ analysis.result.dst.geoip.country_iso_code|lower }} text-primary"></span>
+                  / {{ analysis.result.dst.geoip.continent_name }}
+                </li>
+              {% else %}
+                <li>
+                  <b>ASN</b>: {{ analysis.result.src.geoip.asn.asn }}
+                  (<samp>{{ analysis.result.src.geoip.asn.ip }}</samp>) -
+                  <samp>{{ analysis.result.src.geoip.asn.network }}</samp>
+                </li>
+                <li>
+                  <b>Organization</b>: <span
+                  class="badge bg-info">{{ analysis.result.src.geoip.asn.organization_name }}</span>
+                </li>
+                <li>
+                  <b>Country</b>: {{ analysis.result.src.geoip.country_name }} <span
+                  class="fi fi-{{ analysis.result.src.geoip.country_iso_code|lower }} text-primary"></span>
+                  / {{ analysis.result.src.geoip.continent_name }}
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="small">
+            <ul class="list-unstyled">
+              <li><b>Timestamp</b>: <code>{{ analysis.result.timestamp }}</code> <span
+                class="small">({{ analysis.timestamp }})</span></li>
+              <li>
+                <b>Process name</b>:
+                <samp>{{ analysis.result.full_stack_trace.process|default:"unknown" }}</samp>
+              </li>
+              <li><b>PID</b>: {{ analysis.result.full_stack_trace.pid|default:"unknown" }}</li>
+              <li><b>Thread ID</b>: {{ analysis.result.full_stack_trace.data.thread_id|default:"unknown" }}</li>
+              <li><b>Socket FD</b>: {{ analysis.result.full_stack_trace.data.socket_fd|default:"unknown" }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-8 text-wrap border-secondary border-end">
+        <b>Headers</b>
+        <div class="small">
+          <ul class="list-unstyled">
+            {% for h, v in analysis.result.headers %}
+              {#              {% if h != "uri" %}#}
+              <li><b><samp>{{ h }}</samp></b>: <samp>{{ v }}</samp></li>
+              {#              {% endif %}#}
+            {% empty %}
+              <i>no headers</i>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-4 text-wrap">
+        <b>Stack trace</b>
+        <div class="small">
+          <ul class="list-unstyled">
+            {% for s in analysis.result.stack_trace %}
+              <li class=""><samp>{{ s }}</samp></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="text-wrap">
+      {# Detections #}
+      {% for rule in analysis.detections.yara %}
+        <div class="row">
+          <div class="col-md-12">
+            <p class="h4">Detections based on the rule <span class="font-monospace">{{ rule.rule }}</span></p>
+            {% for s in rule.strings %}
+              {% for match in s.instances %}
+                <pre class="bg-dark text-white rounded-2 p-2"><code>[...]
+{{ match|safe }}
+[...]</code></pre>
+              {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+      {# Full data #}
+      <div class="row">
+        <div class="col-auto me-auto h4">
+          {% if analysis.result.aes_info.decrypted %}
+            <span class="badge bg-warning">encrypted</span>
+          {% endif %}
+          <span class="mr-5">Full transmitted data</span>
+        </div>
+      </div>
+      {% if analysis.result.aes_info.decrypted %}
+        <p class="small text-muted">Data has been encrypted before being transmitted.</p>
+      {% endif %}
+      {# Panel containing data #}
+      <div class="rounded text-wrap">
+        {% if analysis.decoded_data %}
+          <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.decoded_data }}</pre>
+        {% else %}
+          <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.result.data }}</pre>
+        {% endif %}
+        </pre>
+      </div>
+    </div>
+  </div>
+</div>
+

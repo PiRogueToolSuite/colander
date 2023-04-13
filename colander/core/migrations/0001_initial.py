@@ -8,7 +8,6 @@ from django.contrib.postgres.operations import HStoreExtension
 from django.db import migrations, models
 import django.db.models.deletion
 from django.utils.timezone import utc
-import martor.models
 import uuid
 
 
@@ -63,7 +62,7 @@ class Migration(migrations.Migration):
                 ('es_prefix', models.CharField(default='4qwcjl95yexqy1f2', editable=False, max_length=16)),
                 ('signing_key', models.TextField(default='')),
                 ('verify_key', models.TextField(default='')),
-                ('documentation', martor.models.MartorField(blank=True, null=True)),
+                ('documentation', models.TextField(blank=True, null=True)),
                 ('owner', models.ForeignKey(help_text='Who owns the current case.', on_delete=django.db.models.deletion.CASCADE, related_name='cases', to=settings.AUTH_USER_MODEL)),
                 ('parent_case', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='sub_cases', to='core.case')),
             ],

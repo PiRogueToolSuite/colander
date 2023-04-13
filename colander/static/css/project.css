@@ -10944,6 +10944,7 @@ body {
 }
 
 header .navbar-brand {
+  margin-right: 0;
   margin-left: calc(-1 * (var(--sidebar-width) - var(--sidebar-closed-width)));
   -webkit-transition: margin 0.25s ease-out;
   -moz-transition: margin 0.25s ease-out;
@@ -11085,13 +11086,32 @@ body.sb-sidenav-toggled #sidebar-wrapper {
 #documentationOffCanvas :is(form, .form-group, .form-group > div, textarea) {
   margin: 0 !important;
   border: none;
-  height: 100%;
+  min-height: 100%;
   resize: none;
 }
 #documentationOffCanvas #documentation-save-hidden-in-offcanvas {
   visibility: hidden;
   height: 0;
   overflow: hidden;
+}
+
+#case_documentation_form .editor-toolbar.fullscreen, #case_documentation_form .editor-toolbar.fullscreen:after, #case_documentation_form .editor-toolbar.fullscreen:before {
+  z-index: 2000;
+  top: 3rem;
+}
+#case_documentation_form .CodeMirror-fullscreen {
+  top: calc(50px + 3rem);
+}
+#case_documentation_form .editor-toolbar:not(.fullscreen) {
+  position: sticky;
+  top: 0px;
+  z-index: 100;
+  opacity: initial;
+  background-color: white;
+  border-bottom: 1px solid #bbb;
+}
+#case_documentation_form .editor-toolbar:not(.fullscreen):hover {
+  opacity: initial;
 }
 
 #documentation-actions {
@@ -11123,6 +11143,12 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   /*color: red !important;*/
 }
 
+#documentationToggle:hover {
+  opacity: 1;
+}
+#documentationToggle:hover > span {
+  max-width: 10rem;
+}
 #documentationToggle > span {
   display: inline-block;
   transition: max-width 0.25s ease-out;
@@ -11130,13 +11156,6 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   white-space: nowrap;
   overflow: hidden;
   vertical-align: middle;
-}
-
-#documentationToggle:hover {
-  opacity: 1;
-}
-#documentationToggle:hover > span {
-  max-width: 10rem;
 }
 
 #documentationOffCanvas.show #documentationToggle {

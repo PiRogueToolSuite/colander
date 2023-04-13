@@ -178,6 +178,7 @@ body {
 }
 
 header .navbar-brand {
+  margin-right: 0;
   margin-left: calc(-1 * (var(--sidebar-width) - var(--sidebar-closed-width)));
 
   -webkit-transition: margin 0.25s ease-out;
@@ -332,7 +333,7 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   :is(form, .form-group, .form-group > div, textarea) {
     margin: 0 !important;
     border: none;
-    height: 100%;
+    min-height: 100%;
     resize: none;
   }
 
@@ -340,6 +341,33 @@ body.sb-sidenav-toggled #sidebar-wrapper {
     visibility: hidden;
     height: 0;
     overflow: hidden;
+  }
+}
+
+
+
+#case_documentation_form {
+  .editor-toolbar {
+    &.fullscreen, &.fullscreen:after, &.fullscreen:before {
+      z-index: 2000;
+      top: 3rem;
+    }
+  }
+  .CodeMirror-fullscreen {
+
+    top: calc(50px + 3rem);
+  }
+
+  .editor-toolbar:not(.fullscreen) {
+    &:hover {
+      opacity: initial;
+    }
+    position: sticky;
+    top: 0px;
+    z-index: 100;
+    opacity: initial;
+    background-color: white;
+    border-bottom: 1px solid #bbb;
   }
 }
 
@@ -374,20 +402,21 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   /*color: red !important;*/
 }
 
-#documentationToggle > span {
-  display: inline-block;
-  transition: max-width 0.25s ease-out;
-  max-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  vertical-align: middle;
-}
+#documentationToggle {
+  &:hover {
+    opacity: 1;
 
-#documentationToggle:hover {
-  opacity: 1;
-
+    & > span {
+      max-width: 10rem;
+    }
+  }
   & > span {
-    max-width: 10rem;
+    display: inline-block;
+    transition: max-width 0.25s ease-out;
+    max-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: middle;
   }
 }
 

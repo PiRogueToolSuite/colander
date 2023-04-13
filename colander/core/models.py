@@ -16,7 +16,6 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Nested
 from cryptography.hazmat.primitives.asymmetric import rsa
-from martor.models import MartorField
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -176,7 +175,12 @@ class Case(models.Model):
         editable=True,
         default=''
     )
-    documentation = MartorField(blank=True, null=True)
+    documentation = models.TextField(
+        help_text=_('Case documentation.'),
+        blank=True,
+        null=True,
+        editable=True
+    )
 
     def save(self, *args, **kwargs):
         self.generate_key_pair(save=False)

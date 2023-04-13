@@ -56,22 +56,4 @@ $(function () {
 
     handle_comment_controls();
     handle_entity_delete_control();
-
-    // $('.martor-preview pre').each(function(i, block){
-    //     hljs.highlightBlock(block);
-    // });
-
-    // $('a, button').click(function (e) {
-    //     const documentation_form = $('#case_documentation_form')
-    //     if (documentation_form !== undefined) {
-    //         $.ajax({
-    //             async: false,
-    //             type: documentation_form.attr('method'),
-    //             url: documentation_form.attr('action'),
-    //             data: documentation_form.serialize()
-    //         }).done(function (data) {
-    //         }).fail(function (data) {
-    //         });
-    //     }
-    // })
 })

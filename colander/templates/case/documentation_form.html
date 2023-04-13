@@ -1,9 +1,10 @@
+{% load crispy_forms_tags %}
 {% if documentation_form %}
   <form class="form" method="post" id="case_documentation_form"
         action="{% url "collect_cases_save_doc_view" pk=request.active_case.id %}">
     {% csrf_token %}
     <div class="form-group">
-      {{ documentation_form }}
+      {{ documentation_form | crispy}}
     </div>
     <div id='documentation-save-hidden-in-offcanvas' class="form-group text-end">
       <button id='documentation-save' class="btn btn-primary text-white" type="submit" role="button">

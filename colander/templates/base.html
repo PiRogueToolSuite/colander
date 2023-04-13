@@ -79,7 +79,10 @@
       <div class="nav-item">
         {% if request.user.is_authenticated %}
          {# URL provided by django-allauth/account/urls.py #}
-          <a class="nav-link px-3" href="{% url 'account_logout' %}">{% translate "Log Out" %}</a>
+          <a class="nav-link px-3 text-nowrap" href="{% url 'users:detail' request.user.username %}">
+            <i class="nf nf-fa-user list-group-item-icon nav-link-label" aria-hidden="true"></i>
+            <span class="nav-link-label d-none d-md-inline">{% translate "My Profile" %}</span>
+          </a>
         {% else %}
           {% if ACCOUNT_ALLOW_REGISTRATION %}
             {# URL provided by django-allauth/account/urls.py #}
@@ -158,6 +161,7 @@
           <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
           <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
         </a>
+      {% comment "FIXEME: To clean since My Profile has moved to header" %}
       {% if request.user.is_authenticated %}
           {# URL provided by django-allauth/account/urls.py #}
           <a class="list-group-item list-group-item-action list-group-item-light" href="{% url 'users:detail' request.user.username %}">
@@ -165,6 +169,7 @@
             <span class="d-none d-sm-inline list-group-item-label">{% translate "My Profile" %}</span>
           </a>
       {% endif %}
+      {% endcomment %}
       {% block sidebar-items %}{% endblock sidebar-items %}
       </div>
     </aside>

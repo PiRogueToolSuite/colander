@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}User: {{ object.username }}{% endblock %}
 
@@ -18,7 +18,7 @@
     <!-- Action buttons -->
     <div class="row">
 
-      <div class="col-md-8">
+      <div class="col-md-12">
         <table class="table table-sm">
           <tbody>
           <tr>
@@ -59,6 +59,16 @@
             </td>
             <td>
 
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td>
+              <a class="btn btn-sm btn-primary text-nowrap" role='button' href="{% url 'account_logout' %}">
+                <i class="fa fa-sign-out" aria-hidden="true"></i>
+                {% translate "Log Out" %}
+              </a>
             </td>
           </tr>
           </tbody>

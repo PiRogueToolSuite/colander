@@ -1,0 +1,132 @@
+{% load i18n %}
+
+<div class="row justify-content-center">
+  <div class="col-md-12 mt-2">
+    <h2><i class="nf {{ detection_rule.type.nf_icon }} text-primary"></i> {{ detection_rule.name }}</h2>
+    <div class="mb-3">
+      {% if detection_rule.description %}
+        {{ detection_rule.description }}
+      {% else %}
+        {% translate "No description" %}
+      {% endif %}
+    </div>
+    {% include "detection_rule/controls.html" with exclude="details" %}
+  </div>
+  <div class="col-md-12 mt-2">
+    <h3>{% translate "Details" %}</h3>
+    <table class="table table-sm">
+      <tbody>
+      <tr>
+        <td>ID</td>
+        <td>
+          {% include "icons/id_icon.html" with c="text-primary" %}
+          <span class="font-monospace">
+              {{ detection_rule.id }}
+            </span>
+        </td>
+      </tr>
+      <tr>
+        <td>Case</td>
+        <td>
+          {% include "icons/case_icon.html" with c="text-primary" %}
+          <a href="{% url "collect_case_details_view" pk=detection_rule.case.id %}">
+            {{ detection_rule.case.name }}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Owner</td>
+        <td>
+          {% include "icons/user_icon.html" with c="text-primary" %}
+          {{ detection_rule.owner }}
+        </td>
+      </tr>
+      <tr>
+        <td>Type</td>
+        <td>
+          <i class="nf {{ detection_rule.type.nf_icon }} text-primary"></i>
+          {{ detection_rule.type.name }}
+        </td>
+      </tr>
+      <tr>
+        <td>Created at</td>
+        <td>
+          {% include "icons/date_icon.html" with c="text-primary" %}
+          {{ detection_rule.created_at }}
+        </td>
+      </tr>
+      <tr>
+        <td>Updated at</td>
+        <td>
+          {% include "icons/date_icon.html" with c="text-primary" %}
+          {{ detection_rule.updated_at }}
+        </td>
+      </tr>
+      <tr>
+        <td>TLP/PAP</td>
+        <td>
+          {% include "tlp/show_tlp_pap.html" with element=detection_rule %}
+        </td>
+      </tr>
+      <tr>
+        <td>Source</td>
+        <td>
+          {% if detection_rule.source_url %}
+            <i class="nf {{ detection_rule.extracted_from.type.nf_icon }} text-primary"></i>
+            <a href="{{ detection_rule.source_url }}" target="_blank">
+              {{ detection_rule.source_url }}
+              <i class="nf nf-fa-external_link text-primary"></i>
+            </a>
+          {% else %}
+            {% translate "No source specified" %}
+          {% endif %}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col-md-12 mt-2">
+    <h3>{% translate "Details" %}</h3>
+    <pre class="bg-dark text-white rounded-2 p-2"><code>{{ detection_rule.content }}</code></pre>
+  </div>
+
+
+
+  {% include "helpers/extra_attributes.html" with attributes=detection_rule.attributes %}
+
+  {% with targets=detection_rule.out_relations origins=detection_rule.in_relations %}
+    {% if origins or targets %}
+      <div class="col-md-12 mt-2">
+        <h3>{% translate "Related entities" %}</h3>
+        <table class="table table-sm">
+          <thead class="bg-secondary-light">
+          <tr>
+            <td>Type</td>
+            <td>Entity</td>
+            <td></td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for relation in origins %}
+            {% include "entity_relation/table_item.html" with direction="from" %}
+          {% endfor %}
+          {% for relation in targets %}
+            {% include "entity_relation/table_item.html" with direction="to" %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="col-md-12 mt-2">
+    <h3>{% translate "Comments" %}</h3>
+    {% for comment in detection_rule.sorted_comments %}
+      {% include "comment/list_item.html" %}
+    {% empty %}
+      {% translate "No comment" %}
+    {% endfor %}
+    {% include "comment/form.html" with elt_id=detection_rule.id %}
+  </div>
+</div>

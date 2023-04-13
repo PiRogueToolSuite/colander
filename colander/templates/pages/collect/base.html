@@ -11,6 +11,7 @@
   {% url 'collect_observable_create_view' as collect_observable_create_view_url %}
   {% url 'collect_entity_relation_create_view' as collect_relation_create_view_url %}
   {% url 'collect_threat_create_view' as collect_threat_create_view_url %}
+  {% url 'collect_detection_rule_create_view' as collect_detection_rule_create_view_url %}
   {% url 'collect_experiment_create_view' as collect_experiment_create_view_url %}
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
     <span>Knowledge</span>
@@ -37,6 +38,11 @@
      href="{{ collect_device_view_url }}" title="Devices">
     {% include "icons/device_icon.html" %}
     <span class="list-group-item-label">Devices</span>
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_detection_rule_view_url in request.path %} active {% endif %}"
+     href="{{ collect_detection_rule_create_view_url }}" title="Detection rules">
+    {% include "icons/detection_rule_icon.html" %}
+    <span class="list-group-item-label">Detection rules</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_event_view_url in request.path %} active {% endif %}"
      href="{{ collect_event_view_url }}" title="Events">

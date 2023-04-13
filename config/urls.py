@@ -12,6 +12,8 @@ from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, A
 from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
     download_artifact_signature
 from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
+from colander.core.views.detection_rule_views import delete_detection_rule_view, DetectionRuleCreateView, \
+    DetectionRuleUpdateView, DetectionRuleDetailsView
 from colander.core.views.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView, delete_device_view
 from colander.core.views.documentation_views import write_documentation_view
 from colander.core.views.enrich_view import enrich_observable
@@ -58,6 +60,7 @@ urlpatterns = [
 
       path("collect/", collect_base_view, name="collect_base_view"),
       path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
+
       path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
       path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
       path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
@@ -103,6 +106,11 @@ urlpatterns = [
       path("collect/threat/<slug:pk>", ThreatUpdateView.as_view(), name="collect_threat_update_view"),
       path("collect/threat/<slug:pk>/details", ThreatDetailsView.as_view(), name="collect_threat_details_view"),
       path("collect/threat/<slug:pk>/delete", delete_threat_view, name="collect_threat_delete_view"),
+
+      path("collect/detection_rule", DetectionRuleCreateView.as_view(), name="collect_detection_rule_create_view"),
+      path("collect/detection_rule/<slug:pk>", DetectionRuleUpdateView.as_view(), name="collect_detection_rule_update_view"),
+      path("collect/detection_rule/<slug:pk>/details", DetectionRuleDetailsView.as_view(), name="collect_detection_rule_details_view"),
+      path("collect/detection_rule/<slug:pk>/delete", delete_detection_rule_view, name="collect_detection_rule_delete_view"),
 
       path("collect/experiment", PiRogueExperimentCreateView.as_view(), name="collect_experiment_create_view"),
       path("collect/experiment/<slug:pk>", PiRogueExperimentUpdateView.as_view(), name="collect_experiment_update_view"),

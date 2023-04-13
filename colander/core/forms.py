@@ -1,8 +1,6 @@
 from django import forms
 
 from colander.core.models import Case, Comment, ObservableType
-from martor.fields import MartorFormField
-
 
 class CaseForm(forms.ModelForm):
     class Meta:
@@ -47,8 +45,7 @@ class InvestigateSearchForm(forms.Form):
 
 
 class DocumentationForm(forms.Form):
-    documentation = MartorFormField()
-
+    documentation = forms.CharField(widget=forms.Textarea(), label=False)
 
 class EntityRelationForm(forms.Form):
     name = forms.CharField(

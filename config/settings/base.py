@@ -88,8 +88,6 @@ THIRD_PARTY_APPS = [
     "django_otp.plugins.otp_static",
     # Enable two-factor auth.
     "allauth_2fa",
-    # Documentation
-    "martor",
 ]
 
 LOCAL_APPS = [
@@ -371,22 +369,6 @@ Q_CLUSTER = {
     'cpu_affinity': 4,
     'label': 'Django Q',
     'redis': env("REDIS_URL")
-}
-
-# Markdown options
-MARTOR_TOOLBAR_BUTTONS = [
-    'bold', 'italic', 'horizontal', 'heading', 'pre-code',
-    'blockquote', 'unordered-list', 'ordered-list',
-    'link', 'image-link', 'emoji', 'toggle-maximize', 'help'
-]
-MARTOR_ENABLE_CONFIGS = {
-    'emoji': 'true',        # to enable/disable emoji icons.
-    'imgur': 'true',        # to enable/disable imgur/custom uploader.
-    'mention': 'false',     # to enable/disable mention
-    'jquery': 'true',       # to include/revoke jquery (require for admin default django)
-    'living': 'false',      # to enable/disable live updates in preview
-    'spellcheck': 'false',  # to enable/disable spellcheck in form textareas
-    'hljs': 'false',        # to enable/disable hljs highlighting in preview
 }
 
 # 3rd-party services

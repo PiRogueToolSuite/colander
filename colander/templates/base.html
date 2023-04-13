@@ -21,9 +21,6 @@
       <link href="{% static 'css/flag-icons.min.css' %}" type="text/css" rel="stylesheet">
       <link href="{% static 'css/nf.min.css' %}" type="text/css" rel="stylesheet">
       <link href="{% static 'css/myLib.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'plugins/css/ace.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
-      <link href="{% static 'plugins/css/resizable.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
-      <link href="{% static 'martor/css/martor.bootstrap.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
       <link href="{% static 'pts-assets/css/pts-assets.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
   {% endblock %}
@@ -44,17 +41,6 @@
       <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
       <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
-      <!-- markdown editor -->
-      <script type="text/javascript" src="{% static 'plugins/js/ace.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/mode-markdown.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/ext-language_tools.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/theme-github.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/typo.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/spellcheck.js' %}"></script>
-{#      <script type="text/javascript" src="{% static 'plugins/js/highlight.min.js' %}"></script>#}
-      <script type="text/javascript" src="{% static 'plugins/js/resizable.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'plugins/js/emojis.min.js' %}"></script>
-      <script type="text/javascript" src="{% static 'martor/js/martor.bootstrap.min.js' %}"></script>
     {% endcompress %}
   {% endblock javascript %}
 
@@ -206,16 +192,8 @@
           <i class="nf nf-fa-file_text"></i>
           <span>Documentation editor</span>
         </button>
-        <!--
-        FIXME: Try to use another Markdown editor plugin
-        Using Martor adds lot of convoluted code to access Ace JS Editor.
-        E.g: a simple reset form functionality is hard to achieve since reseting the form is not sufficient enough ... the Ace JS UI have to be triggered to refresh ... and we can not 'simply' do that for now.
-        <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="#documentationOffCanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-          Cancel & Close
-        </button>
-        -->
         <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-          Hide
+          Cancel & Close
         </button>
         <button id='documentation-save' class="btn btn-primary text-white" role="button">
           <i class="nf nf-fa-save"></i> Save & Close

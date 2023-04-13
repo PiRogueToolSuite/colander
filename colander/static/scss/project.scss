@@ -324,18 +324,23 @@ body.sb-sidenav-toggled #sidebar-wrapper {
 /*Documentation offanvas customisation */
 #documentationOffCanvas {
   box-shadow: 0 0 2rem -1rem black;
-}
 
-#documentationOffCanvas .offcanvas-body
-{
-  border-top: 2px var(--bs-purple) solid;
-}
+  .offcanvas-body {
+    border-top: 2px var(--bs-purple) solid;
+  }
 
-#documentationOffCanvas #documentation-save-hidden-in-offcanvas
-{
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
+  :is(form, .form-group, .form-group > div, textarea) {
+    margin: 0 !important;
+    border: none;
+    height: 100%;
+    resize: none;
+  }
+
+  #documentation-save-hidden-in-offcanvas {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+  }
 }
 
 #documentation-actions {

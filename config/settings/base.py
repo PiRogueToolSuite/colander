@@ -356,7 +356,7 @@ RUNSERVERPLUS_POLLER_RELOADER_TYPE='stat'
 
 # Django Q
 Q_CLUSTER = {
-    'name': 'Backend',
+    'name': 'Colander worker backend',
     'workers': 4,
     'recycle': 1,
     'retry': 36*60,

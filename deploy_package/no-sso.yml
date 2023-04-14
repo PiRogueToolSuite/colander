@@ -6,8 +6,6 @@ volumes:
   production_colander_postgres_data_backups: {}
   production_threatr_postgres_data: {}
   production_threatr_postgres_data_backups: {}
-  production_keycloak_postgres_data: {}
-  production_keycloak_postgres_data_backups: {}
   production_colander_minio_data: { }
   production_colander_es_data: { }
 
@@ -35,24 +33,12 @@ services:
     env_file:
       - .envs/.production/.threatr-postgres
 
-  keycloak-postgres:
-    build:
-      context: .
-      dockerfile: ./compose/postgres/Dockerfile
-    image: colander_production_keycloak_postgres
-    volumes:
-      - production_keycloak_postgres_data:/var/lib/postgresql/data:Z
-      - production_keycloak_postgres_data_backups:/backups:z
-    env_file:
-      - .envs/.production/.keycloak-postgres
-
   colander-front:
     image: ghcr.io/piroguetoolsuite/colander:main
     depends_on:
       - colander-postgres
       - cyberchef
       - elasticsearch
-      - keycloak
       - minio
       - redis
     env_file:
@@ -117,7 +103,6 @@ services:
       - colander-front
       - threatr-front
       - cyberchef
-      - keycloak
     volumes:
       - production_traefik:/etc/traefik/acme:z
     ports:
@@ -153,21 +138,6 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-
-  keycloak:
-#    https://hub.docker.com/r/bitnami/keycloak
-    image: bitnami/keycloak:20.0.5
-    env_file:
-      - .envs/.production/.base
-      - .envs/.production/.keycloak
-      - .envs/.production/.keycloak-postgres
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    depends_on:
-      - keycloak-db
 
   watchtower:
     image: containrrr/watchtower

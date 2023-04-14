@@ -56,17 +56,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
 
 # STORAGES
 # ------------------------------------------------------------------------------
-# https://django-storages.readthedocs.io/en/latest/#installation
-INSTALLED_APPS += ["storages"]  # noqa F405
-GS_BUCKET_NAME = env("DJANGO_GCP_STORAGE_BUCKET_NAME")
-GS_DEFAULT_ACL = "publicRead"
 # STATIC
 # ------------------------
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-# MEDIA
-# ------------------------------------------------------------------------------
-DEFAULT_FILE_STORAGE = "colander.utils.storages.MediaRootGoogleCloudStorage"
-MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
+
 
 # EMAIL
 # ------------------------------------------------------------------------------
@@ -91,11 +84,18 @@ ADMIN_URL = env("DJANGO_ADMIN_URL")
 # Anymail
 # ------------------------------------------------------------------------------
 # https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
-INSTALLED_APPS += ["anymail"]  # noqa F405
+# INSTALLED_APPS += ["anymail"]  # noqa F405
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
 # https://anymail.readthedocs.io/en/stable/esps
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+EMAIL_USE_SSL = env("EMAIL_USE_SSL")
+
 ANYMAIL = {}
 
 # django-compressor

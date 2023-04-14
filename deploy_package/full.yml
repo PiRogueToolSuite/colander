@@ -146,8 +146,6 @@ services:
     env_file:
       - .envs/.production/.minio
     command: server /data
-    networks:
-      - web
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s

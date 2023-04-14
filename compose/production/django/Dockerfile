@@ -46,7 +46,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
   # psycopg2 dependencies
   libpq-dev \
   # Translations dependencies
-  gettext tshark wireshark-common libssl-dev python3-dev \
+  gettext libmagic1 tshark wireshark-common libssl-dev python3-dev \
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*

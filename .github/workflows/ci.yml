@@ -94,7 +94,7 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
       - name: Archive deployment package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: deployment-package
           path: deploy_package

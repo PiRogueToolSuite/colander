@@ -1131,6 +1131,9 @@ class DetectionRule(Entity):
     def super_type(self):
         return self.__class__.__name__
 
+    def __str__(self):
+        return f'{self.value} ({self.type.name.lower()})'
+
     @staticmethod
     def get_user_detection_rules(user, case=None):
         if case:

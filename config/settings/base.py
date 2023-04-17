@@ -82,6 +82,8 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "django_q",
     "minio_storage",
+    # Markdown
+    "markdownify.apps.MarkdownifyConfig",
     # Configure the django-otp package.
     "django_otp",
     "django_otp.plugins.otp_totp",
@@ -370,6 +372,21 @@ Q_CLUSTER = {
     'label': 'Django Q',
     'redis': env("REDIS_URL")
 }
+
+# Markdown
+# https://django-markdownify.readthedocs.io/en/latest/
+# https://python-markdown.github.io/extensions/
+MARKDOWNIFY = {
+    "default": {
+        "BLEACH": False
+    }
+}
+MARKDOWNIFY_MARKDOWN_EXTENSIONS = [
+    'markdown.extensions.extra',
+    'markdown.extensions.nl2br',
+    'markdown.extensions.toc',
+    'markdown.extensions.smarty',
+]
 
 # 3rd-party services
 CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='192.168.0.12:8001')

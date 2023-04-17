@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load static %}
+{% load markdownify %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
@@ -94,7 +95,7 @@
   {% if case.documentation %}
     <div class="col-md-12 mt-2">
       <h3>Documentation</h3>
-      {{ case.documentation }}
+      {{ case.documentation|markdownify }}
     </div>
   {% endif %}
 </div>

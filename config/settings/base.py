@@ -2,8 +2,7 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-from datetime import timedelta
-from rest_framework.settings import api_settings
+
 import environ
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -276,7 +275,7 @@ LOGGING = {
     "formatters": {
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+                      "%(process)d %(thread)d %(message)s"
         }
     },
     "handlers": {
@@ -288,7 +287,6 @@ LOGGING = {
     },
     "root": {"level": "INFO", "handlers": ["console"]},
 }
-
 
 # django-allauth
 # ------------------------------------------------------------------------------
@@ -354,16 +352,16 @@ SPECTACULAR_SETTINGS = {
 }
 
 # To fix absurd reloading
-RUNSERVERPLUS_POLLER_RELOADER_TYPE='stat'
+RUNSERVERPLUS_POLLER_RELOADER_TYPE = 'stat'
 
 # Django Q
 Q_CLUSTER = {
     'name': 'Colander worker backend',
     'workers': 4,
     'recycle': 1,
-    'retry': 36*60,
+    'retry': 36 * 60,
     'max_attempts': 5,
-    'timeout': 35*60,
+    'timeout': 35 * 60,
     'compress': True,
     'save_limit': 25,
     'max_rss': 1024 * 1024,
@@ -378,15 +376,20 @@ Q_CLUSTER = {
 # https://python-markdown.github.io/extensions/
 MARKDOWNIFY = {
     "default": {
+        "MARKDOWN_EXTENSIONS": [
+            'markdown.extensions.extra',
+            'markdown.extensions.nl2br',
+            'markdown.extensions.toc',
+            'markdown.extensions.fenced_code',
+            'markdown.extensions.smarty',
+        ],"MARKDOWN_EXTENSION_CONFIGS": {
+            "markdown.extensions.toc": {
+                "title": "Table of content"
+            }
+        },
         "BLEACH": False
     }
 }
-MARKDOWNIFY_MARKDOWN_EXTENSIONS = [
-    'markdown.extensions.extra',
-    'markdown.extensions.nl2br',
-    'markdown.extensions.toc',
-    'markdown.extensions.smarty',
-]
 
 # 3rd-party services
 CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='192.168.0.12:8001')

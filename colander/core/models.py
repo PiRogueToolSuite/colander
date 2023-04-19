@@ -21,6 +21,13 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric import utils
 
+import os
+from datetime import timedelta
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from django_q.models import Schedule
+from django_q.tasks import async_task, schedule
+
 class ColanderTeam(models.Model):
     contributors = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -1502,6 +1509,78 @@ class PiRogueExperimentAnalysis(Document):
 #     ie.owner = instance.owner.id
 #     ie.super_type = "Observable"
 
+
+class UploadRequest(models.Model):
+    class Status(models.TextChoices):
+        CREATED = 'CREATED', _('Created')
+        PROCESSING = 'PROCESSING', _('Processing')
+        SUCCEEDED = 'SUCCEEDED', _('Succeeded')
+        FAILED = 'FAILED', _('Failed')
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+
+    eof = models.BooleanField(default=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        editable=False
+    )
+    name = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True
+    )
+    size = models.IntegerField(
+        default=0
+    )
+    next_addr = models.IntegerField(
+        default=0
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.CREATED,
+    )
+    chunks = models.JSONField(blank=True, null=True)
+
+    @property
+    def path(self):
+        import pathlib
+        extension = pathlib.Path(self.name).suffix
+        return f'/tmp/upload.{self.id}{extension}'
+
+    def cleanup(self):
+        if os.path.exists(self.path):
+            os.remove(self.path)
+
+    def schedule_cleanup(self):
+        schedule(
+            'video_downloading_platform.core.models.cleanup_upload_request',
+            str(self.id),
+            schedule_type=Schedule.ONCE,
+            next_run=timezone.now() + timedelta(days=2)
+        )
+
+def cleanup_upload_request(request_id):
+    try:
+        upload_request = UploadRequest.objects.get(id=request_id)
+        upload_request.cleanup()
+    except Exception as e:
+        print(e)
+
+@receiver(pre_delete, sender=UploadRequest, dispatch_uid='delete_upload_request_file')
+def delete_upload_request_stored_files(sender, instance: UploadRequest, using, **kwargs):
+    instance.cleanup()
 
 colander_models = {
     'Case': Case,

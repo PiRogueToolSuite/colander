@@ -32,6 +32,8 @@ from colander.core.views.views import landing_view, collect_base_view, \
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
 from colander.users.views import UserTwoFactorSetup
+from colander.core.views.upload_views import initialize_upload, append_to_upload
+
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
       #path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -73,10 +75,13 @@ urlpatterns = [
       path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
 
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
+      path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
+      path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
       path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
       path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
       path("collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
       path("collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
+
 
       path("collect/device", DeviceCreateView.as_view(), name="collect_device_create_view"),
       path("collect/device/<slug:pk>", DeviceUpdateView.as_view(), name="collect_device_update_view"),

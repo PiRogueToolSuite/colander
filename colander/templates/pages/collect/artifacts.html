@@ -13,28 +13,42 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <form method="post" enctype="multipart/form-data">
+          <form id="artifact-upload-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="row justify-content-center">
-              <div class="col-md-4">
-                {{ form.type|as_crispy_field }}
-              </div>
-              <div class="col">
-              {% if not is_editing %}
-                {{ form.file|as_crispy_field }}
-              {% endif %}
-                {{ form.tlp|as_crispy_field }}
-                {{ form.pap|as_crispy_field }}
-                {{ form.extracted_from|as_crispy_field }}
-                {{ form.source_url|as_crispy_field }}
-                {{ form.description|as_crispy_field }}
-                {% if is_editing %}
-                  <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Update" %}</button>
-                {% else %}
-                  <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
-                {% endif %}
-              </div>
-            </div>
+            <fieldset class='disableable'>
+                <div class="row justify-content-center">
+                  <div class="col-md-4">
+                    {{ form.type|as_crispy_field }}
+                  </div>
+                  <div class="col">
+                    {% comment %}
+                    {% if not is_editing %}
+                      {{ form.file|as_crispy_field }}
+                    {% endif %}
+                    {% endcomment %}
+                    {% if not is_editing %}
+                      {% if form.filename %}
+                        {{ form.filename|as_crispy_field }}
+                      {% endif %}
+                      {% if form.file %}
+                        {{ form.file|as_crispy_field }}
+                      {% endif %}
+                      {{ form.upload_request_ref }}
+                    {% endif %}
+                    {{ form.tlp|as_crispy_field }}
+                    {{ form.pap|as_crispy_field }}
+                    {{ form.extracted_from|as_crispy_field }}
+                    {{ form.source_url|as_crispy_field }}
+                    {{ form.description|as_crispy_field }}
+                    {% if is_editing %}
+                      <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Update" %}</button>
+                    {% else %}
+                      <button id='upload_btn' class="btn btn-primary" type="submit" name="upload_artifact">{% translate "Upload" %}</button>
+                      <button id='upload_submit_btn' class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
+                    {% endif %}
+                  </div>
+                </div>
+            </fieldset>
           </form>
         </div>
       </div>
@@ -54,38 +68,59 @@
 
 {% block inline_javascript %}
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
+    $( () => {
+      if ( $('#id_upload_request_ref').val().trim() ) {
+          $('#upload_btn').prop('disabled', true);
+          $('#upload_btn').hide();
+          return;
+      }
       $('#upload_submit_btn').prop('disabled', true);
       $('#upload_submit_btn').hide();
 
       function upload_success(data) {
-        $('#id_upload_request').val(data.id)
-        $('#upload_submit_btn').prop('disabled', false);
+        $('#artifact-upload-form .disableable').prop('disabled', false);
+        $('#id_upload_request_ref').val(data.id);
+        $('#id_file').prop('disabled', true);
+        $('#upload_btn').prop('disabled', true);
         $('#upload_btn').hide();
+        $('#upload_submit_btn').prop('disabled', false);
         $('#upload_submit_btn').show();
+
+        $('#artifact-upload-form').submit();
       }
 
       function upload_error(data) {
-        alert('Unable to upload your file. Please refresh this page and contact your administrator.')
+        $('#id_file').prop('disabled', false);
+        $('#artifact-upload-form .disableable').prop('disabled', false);
+        $('#upload_btn').prop('disabled', false);
+        console.error('upload_error', data);
+        if (typeof data === 'string') {
+          alert(data);
+        }
+        else {
+          alert('Unable to upload your file. Please refresh this page and contact your administrator.');
+        }
       }
 
       function upload_progress(data, sent, total) {
+        console.log('upload_progress', arguments);
       }
 
-      (function ($) {
-        $('#upload_btn').on('click', (event) => {
-          $('#upload_btn').prop('disabled', true);
-          $.ajaxSetup({
-            async: false
-          });
-          event.preventDefault();
-          var uploader = new FileUpload(document.querySelector('#fileupload'),
-            upload_success, upload_progress, upload_error
-          )
-          $('#fileupload').hide()
-          uploader.upload();
+      $('#upload_btn').on('click', (event) => {
+        $('#artifact-upload-form .disableable').prop('disabled', true);
+        $('#upload_btn').prop('disabled', true);
+        $.ajaxSetup({
+          async: false
         });
-      })(jQuery);
+        event.preventDefault();
+        const uploader = new FileUpload(
+          $('#id_file')[0],
+          //$('#artifact-upload-file')[0],
+          upload_success, upload_progress, upload_error,
+          '/collect/artifact/upload',
+        );
+        uploader.upload();
+      });
     });
   </script>
 {% endblock inline_javascript %}

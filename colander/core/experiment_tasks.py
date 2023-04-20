@@ -12,7 +12,7 @@ from elasticsearch_dsl import Index
 from yara import StringMatchInstance
 
 from colander.core.es_utils import geoip_pipeline_id
-from colander.core.models import PiRogueExperiment, PiRogueExperimentAnalysis, DetectionRule, DetectionRuleType
+from colander.core.models import PiRogueExperiment, PiRogueExperimentAnalysis, DetectionRule
 
 external_packages = [
     'com.android.org.conscrypt.',
@@ -84,18 +84,18 @@ def build_stack_traces(socket_trace_file):
     return community_id_stack_trace, traces
 
 
-def get_stack_trace(traces, community_id, timestamp, operation):
+def get_stack_trace(traces, community_id, timestamp, operations):
     best_guess = None
     min_time = 99999999
     for t in traces:
-        if t['data']['community_id'] == community_id and t['data']['socket_event_type'] == operation:
+        if t['data']['community_id'] == community_id and t['data']['socket_event_type'] in operations:
             # print('Found -----')
             trace_timestamp = t['timestamp']
             delta = abs(int(trace_timestamp) - int(timestamp))
             if delta < min_time:
                 min_time = delta
                 best_guess = t
-    print(f'Best guess with delta {min_time/1000} for {community_id}, {timestamp}, {operation}')
+    print(f'Best guess with delta {min_time/1000} for {community_id}, {timestamp}, {operations}')
     return best_guess
 
 def _compact_stack_trace(trace):
@@ -402,10 +402,10 @@ def save_decrypted_traffic(pirogue_dump_id):
     except Exception as e:
         print(e)
 
-    pcap = pirogue_dump.pcap.original_name
-    ssl_keylog = pirogue_dump.sslkeylog.original_name
-    socket_trace = pirogue_dump.socket_trace.original_name
-    aes_trace = pirogue_dump.aes_trace.original_name
+    pcap = 'pcap.file'
+    ssl_keylog = 'sslkeylog.file'
+    socket_trace = 'socket_trace.file'
+    aes_trace = 'aes_trace.file'
     pcapng = 'xx_decrypted_traffic.pcapng'
     json_traffic = 'xx_json_traffic.json'
 
@@ -475,10 +475,10 @@ def save_decrypted_traffic(pirogue_dump_id):
                             if p.get('data'):
                                 p['experiment_id'] = pirogue_dump_id
                                 if socket_traces and p.get('community_id') in socket_traces:
-                                    operation = 'write'
+                                    operations = ['write', 'sendto']
                                     if '10.8.0.' in packet.get('destination'):
-                                        operation = 'read'
-                                    full_stack_trace = get_stack_trace(traces, p.get('community_id'), p.get('timestamp'), operation)
+                                        operations = ['read', 'recvfrom']
+                                    full_stack_trace = get_stack_trace(traces, p.get('community_id'), p.get('timestamp'), operations)
                                     p['full_stack_trace'] = full_stack_trace
                                     p['stack_trace'] = _compact_stack_trace(full_stack_trace)
                                 try:

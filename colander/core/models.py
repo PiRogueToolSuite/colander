@@ -518,7 +518,7 @@ class Device(Entity):
     )
     operated_by = models.ForeignKey(
         Actor,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='devices',
         null=True,
         blank=True,
@@ -619,7 +619,7 @@ class Artifact(Entity):
     )
     extracted_from = models.ForeignKey(
         Device,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='artifacts',
         null=True,
         blank=True,
@@ -735,6 +735,9 @@ class Artifact(Entity):
             return Artifact.objects.filter(case=case)
         return Artifact.objects.filter(owner=user)
 
+@receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
+def delete_upload_request_stored_files(sender, instance: Artifact, using, **kwargs):
+    instance.file.delete()
 
 class Threat(Entity):
     class Meta:
@@ -831,14 +834,14 @@ class Observable(Entity):
     )
     extracted_from = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='observables',
         null=True,
         blank=True,
     )
     associated_threat = models.ForeignKey(
         Threat,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='observables',
         null=True,
         blank=True,
@@ -850,7 +853,7 @@ class Observable(Entity):
     )
     operated_by = models.ForeignKey(
         Actor,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='observables',
         null=True,
         blank=True,
@@ -988,10 +991,10 @@ class EntityRelation(models.Model):
         null=True
     )
     obj_from_id = models.UUIDField()
-    obj_from_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, related_name='obj_from_types')
+    obj_from_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='obj_from_types')
     obj_from = GenericForeignKey('obj_from_type', 'obj_from_id')
     obj_to_id = models.UUIDField()
-    obj_to_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, related_name='obj_to_types')
+    obj_to_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='obj_to_types')
     obj_to = GenericForeignKey('obj_to_type', 'obj_to_id')
 
     def __str__(self):
@@ -1033,6 +1036,17 @@ class EntityRelation(models.Model):
         clicks = []
         return nodes, clicks, links
 
+@receiver(pre_delete, sender=Entity, dispatch_uid="entity_relation_cascade")
+def entity_relation_cascade(sender, instance, using, **kwargs):
+    EntityRelation.objects.filter(
+        #obj_from_type=ContentType.objects.get_for_model(instance),
+        obj_from_id=str(instance.pk)
+    ).delete()
+
+    EntityRelation.objects.filter(
+        #obj_to_type=ContentType.objects.get_for_model(instance),
+        obj_to_id=str(instance.pk)
+    ).delete()
 
 class ObservableRelation(Entity):
     class Meta:
@@ -1181,7 +1195,7 @@ class Event(Entity):
     extracted_from = models.ForeignKey(
         Artifact,
         help_text=_('Select the artifact from which this event was extracted.'),
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='events',
         null=True,
         blank=True,
@@ -1189,7 +1203,7 @@ class Event(Entity):
     observed_on = models.ForeignKey(
         Device,
         help_text=_('Select the device on which this event was observed.'),
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='events',
         null=True,
         blank=True,
@@ -1197,7 +1211,7 @@ class Event(Entity):
     detected_by = models.ForeignKey(
         DetectionRule,
         help_text=_('Select the rule which has detected this event.'),
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='events',
         null=True,
         blank=True,
@@ -1288,49 +1302,49 @@ class PiRogueExperiment(Entity):
     )
     pcap = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_dump_pcap_file'
     )
     socket_trace = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_dump_socket_trace_file'
     )
     target_device = models.ForeignKey(
         Device,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_dump_device'
     )
     target_artifact = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_dump_artifact'
     )
     sslkeylog = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_dump_ssl_keys'
     )
     screencast = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_dump_screencast'
     )
     aes_trace = models.ForeignKey(
         Artifact,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='pirogue_aes_trace'
@@ -1578,13 +1592,6 @@ class UploadRequest(models.Model):
     def cleanup(self):
         if os.path.exists(self.path):
             os.remove(self.path)
-
-def cleanup_upload_request(request_id):
-    try:
-        upload_request = UploadRequest.objects.get(id=request_id)
-        upload_request.cleanup()
-    except Exception as e:
-        print(e)
 
 @receiver(pre_delete, sender=UploadRequest, dispatch_uid='delete_upload_request_file')
 def delete_upload_request_stored_files(sender, instance: UploadRequest, using, **kwargs):

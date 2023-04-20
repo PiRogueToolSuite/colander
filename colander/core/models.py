@@ -610,6 +610,7 @@ class Artifact(Entity):
     file = models.FileField(
         upload_to=_get_evidence_upload_dir,
         max_length=512,
+        blank = True, null = True
     )
     analysis_index = models.UUIDField(
         default=uuid.uuid4,
@@ -653,6 +654,10 @@ class Artifact(Entity):
 
     @property
     def has_valid_signature(self):
+        # TODO: FIX: In fact ... it's not applicable here
+        if not self.has_been_processed:
+            return False
+
         public_key = serialization.load_pem_public_key(
             self.case.verify_key.encode('utf-8'),
         )
@@ -670,6 +675,10 @@ class Artifact(Entity):
             return True
         except InvalidSignature:
             return False
+
+    @property
+    def has_been_processed(self):
+        return self.sha256 and self.detached_signature
 
     @property
     def value(self):
@@ -1553,6 +1562,13 @@ class UploadRequest(models.Model):
     )
     chunks = models.JSONField(blank=True, null=True)
 
+    # Weak reference style
+    target_artifact_id = models.CharField(
+        max_length=36,
+        blank=True,
+        null=True
+    )
+
     @property
     def path(self):
         import pathlib
@@ -1562,14 +1578,6 @@ class UploadRequest(models.Model):
     def cleanup(self):
         if os.path.exists(self.path):
             os.remove(self.path)
-
-    def schedule_cleanup(self):
-        schedule(
-            'video_downloading_platform.core.models.cleanup_upload_request',
-            str(self.id),
-            schedule_type=Schedule.ONCE,
-            next_run=timezone.now() + timedelta(days=2)
-        )
 
 def cleanup_upload_request(request_id):
     try:

@@ -93,37 +93,53 @@
       <tr>
         <td>MD5</td>
         <td>
-          {% include "icons/id_icon.html" with c="text-primary" %}
-          <span class="font-monospace">
-              {{ artifact.md5 }}
-            </span>
+          {% if artifact.has_been_processed %}
+              {% include "icons/id_icon.html" with c="text-primary" %}
+              <span class="font-monospace">
+                  {{ artifact.md5 }}
+              </span>
+          {% else %}
+              <span class="badge bg-info">Processing ...</span>
+          {% endif %}
         </td>
       </tr>
       <tr>
         <td>SHA1</td>
         <td>
-          {% include "icons/id_icon.html" with c="text-primary" %}
-          <span class="font-monospace">
-              {{ artifact.sha1 }}
-            </span>
+          {% if artifact.has_been_processed %}
+              {% include "icons/id_icon.html" with c="text-primary" %}
+              <span class="font-monospace">
+                  {{ artifact.sha1 }}
+              </span>
+          {% else %}
+              <span class="badge bg-info">Processing ...</span>
+          {% endif %}
         </td>
       </tr>
       <tr>
         <td>SHA256</td>
         <td>
-          {% include "icons/id_icon.html" with c="text-primary" %}
-          <span class="font-monospace">
-              {{ artifact.sha256 }}
-            </span>
+          {% if artifact.has_been_processed %}
+              {% include "icons/id_icon.html" with c="text-primary" %}
+              <span class="font-monospace">
+                  {{ artifact.sha256 }}
+              </span>
+          {% else %}
+              <span class="badge bg-info">Processing ...</span>
+          {% endif %}
         </td>
       </tr>
       <tr>
         <td>Signature</td>
         <td>
-          {% if artifact.has_valid_signature %}
-            <span class="badge bg-success">Valid signature</span>
+          {% if artifact.has_been_processed %}
+              {% if artifact.has_valid_signature %}
+                <span class="badge bg-success">Valid signature</span>
+              {% else %}
+                <span class="badge bg-danger">Incorrect signature (file potentially tempered)</span>
+              {% endif %}
           {% else %}
-            <span class="badge bg-danger">Incorrect signature (file potentially tempered)</span>
+              <span class="badge bg-info">Processing ...</span>
           {% endif %}
         </td>
       </tr>
@@ -178,17 +194,21 @@
         If the file has not been tampered, the command above should prompt <code>Verified OK</code>
       </div>
       <div class="card-footer text-center">
-        <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}"
-           class="btn btn-sm btn-primary text-white">
-          Download case key
-        </a>
-        <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
-          Download artifact
-        </a>
-        <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}"
-           class="btn btn-sm btn-primary text-white">
-          Download artifact signature
-        </a>
+        {% if artifact.has_been_processed %}
+            <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}"
+               class="btn btn-sm btn-primary text-white">
+              Download case key
+            </a>
+            <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
+              Download artifact
+            </a>
+            <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}"
+               class="btn btn-sm btn-primary text-white">
+              Download artifact signature
+            </a>
+        {% else %}
+            <span class="badge bg-info">Processing ...</span>
+        {% endif %}
       </div>
     </div>
   </div>

@@ -5,7 +5,6 @@ import magic
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.files import File
 from django.forms.widgets import Textarea, RadioSelect
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect
@@ -16,9 +15,8 @@ from nacl.encoding import Base64Encoder
 
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, ArtifactType, Device, UploadRequest
-from colander.core.utils import hash_file
 from colander.core.views.views import get_active_case, CaseRequiredMixin
-
+from colander.core.signals import process_hash_and_signing
 
 class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     model = Artifact
@@ -56,8 +54,8 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         active_case = get_active_case(self.request)
 
         if form.is_valid() and active_case:
-            evidence = form.save(commit=False)
-            evidence.owner = self.request.user
+            artifact = form.save(commit=False)
+            artifact.owner = self.request.user
 
             upr = UploadRequest.objects.get(pk=form.cleaned_data['upload_request_ref'])
 
@@ -65,23 +63,33 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
             mime_type = magic.from_file(upr.path, mime=True)
 
-            with open(upr.path, 'rb') as f:
-                sha256, sha1, md5, size = hash_file(f)
+            #TODO: To clean
+            # delegate to an 'async'ish task
+            # with open(upr.path, 'rb') as f:
+            #   sha256, sha1, md5, size = hash_file(f)
 
             extension = pathlib.Path(file_name).suffix
 
-            evidence.file = File(file=open(upr.path, 'rb'), name=file_name)
-            evidence.sha256 = sha256
-            evidence.sha1 = sha1
-            evidence.md5 = md5
-            evidence.size_in_bytes = size
-            evidence.extension = extension
-            evidence.mime_type = mime_type
-            evidence.name = file_name
-            evidence.original_name = file_name
-            evidence.case = active_case
-            evidence.save()
+            #TODO: To clean
+            # delegate to an 'async'ish task
+            # artifact.file = File(file=open(upr.path, 'rb'), name=file_name)
+            # artifact.sha256 = sha256
+            # artifact.sha1 = sha1
+            # artifact.md5 = md5
+            artifact.size_in_bytes = upr.size
+
+            artifact.extension = extension
+            artifact.mime_type = mime_type
+            artifact.name = file_name
+            artifact.original_name = file_name
+            artifact.case = active_case
+            artifact.save()
             form.save_m2m()
+
+            upr.target_artifact_id = str(artifact.id)
+            upr.save()
+
+            process_hash_and_signing.send(sender=self.__class__, upload_request_id=str(upr.id))
 
         return super().form_valid(form)
 

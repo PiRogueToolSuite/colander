@@ -14,7 +14,7 @@
       {% translate "Edit" %}
     </a>
   {% endif %}
-  <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-primary text-white {{ btn_class }}">
+  <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-primary text-white {{ btn_class }} {% if not artifact.has_been_processed %}disabled{% endif %}">
     <i class="nf nf-fa-download"></i>
     {% translate "Download" %}
   </a>

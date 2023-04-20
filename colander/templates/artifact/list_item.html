@@ -37,8 +37,12 @@
           <div class="col">
             {% include "tlp/show_tlp_pap.html" with element=artifact %}
             <div class="small">
-              {% include "icons/id_icon.html" with c="text-primary" %}
-              {{ artifact.sha1 }}
+              {% if artifact.has_been_processed %}
+                {% include "icons/id_icon.html" with c="text-primary" %}
+                {{ artifact.sha1 }}
+              {% else %}
+                <span class="badge bg-info">Processing ...</span>
+              {% endif %}
             </div>
             <div class="small">
               {{ artifact.mime_type }}

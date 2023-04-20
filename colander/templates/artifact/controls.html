@@ -18,6 +18,12 @@
     <i class="nf nf-fa-download"></i>
     {% translate "Download" %}
   </a>
+  {% if artifact.has_been_processed %}
+      <a href="{% url "collect_artifact_delete_view" pk=artifact.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+        <i class="nf nf-fa-trash"></i>
+        Delete
+      </a>
+  {% endif %}
   {#  <a href="{% url "collect_artifact_delete_view" pk=artifact.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">#}
   {#    <i class="nf nf-fa-trash"></i>#}
   {#    Delete#}

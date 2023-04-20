@@ -172,6 +172,5 @@ def download_artifact_signature(request, pk):
 @login_required
 def delete_artifact_view(request, pk):
     obj = Artifact.objects.get(id=pk)
-    # Todo handle the more complicated stuff such as delete file on FS
     obj.delete()
     return redirect("collect_artifact_create_view")

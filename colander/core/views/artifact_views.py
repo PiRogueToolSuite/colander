@@ -119,6 +119,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
     template_name = 'pages/collect/artifacts.html'
     success_url = reverse_lazy('collect_artifact_create_view')
     fields = [
+        'original_name',
         'type',
         'description',
         'extracted_from',
@@ -135,6 +136,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
             for t in artifact_types
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
+        form.fields['original_name'] = forms.CharField(disabled=True)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         return form
 

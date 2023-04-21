@@ -16,38 +16,40 @@
           <form id="artifact-upload-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <fieldset class='disableable'>
-                <div class="row justify-content-center">
-                  <div class="col-md-4">
-                    {{ form.type|as_crispy_field }}
-                  </div>
-                  <div class="col">
-                    {% comment %}
-                    {% if not is_editing %}
+              <div class="row justify-content-center">
+                <div class="col-md-4">
+                  {{ form.type|as_crispy_field }}
+                </div>
+                <div class="col">
+                  {% comment %}
+                  {% if not is_editing %}
+                    {{ form.file|as_crispy_field }}
+                  {% endif %}
+                  {% endcomment %}
+                  {% if not is_editing %}
+                    {% if form.filename %}
+                      {{ form.filename|as_crispy_field }}
+                    {% endif %}
+                    {% if form.file %}
                       {{ form.file|as_crispy_field }}
                     {% endif %}
-                    {% endcomment %}
-                    {% if not is_editing %}
-                      {% if form.filename %}
-                        {{ form.filename|as_crispy_field }}
-                      {% endif %}
-                      {% if form.file %}
-                        {{ form.file|as_crispy_field }}
-                      {% endif %}
-                      {{ form.upload_request_ref }}
-                    {% endif %}
-                    {{ form.tlp|as_crispy_field }}
-                    {{ form.pap|as_crispy_field }}
-                    {{ form.extracted_from|as_crispy_field }}
-                    {{ form.source_url|as_crispy_field }}
-                    {{ form.description|as_crispy_field }}
-                    {% if is_editing %}
-                      <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Update" %}</button>
-                    {% else %}
-                      <button id='upload_btn' class="btn btn-primary" type="submit" name="upload_artifact">{% translate "Upload" %}</button>
-                      <button id='upload_submit_btn' class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
-                    {% endif %}
-                  </div>
+                    {{ form.upload_request_ref }}
+                  {% else %}
+                    {{ form.original_name|as_crispy_field }}
+                  {% endif %}
+                  {{ form.tlp|as_crispy_field }}
+                  {{ form.pap|as_crispy_field }}
+                  {{ form.extracted_from|as_crispy_field }}
+                  {{ form.source_url|as_crispy_field }}
+                  {{ form.description|as_crispy_field }}
+                  {% if is_editing %}
+                    <button class="btn btn-primary" type="submit" name="save_artifact">{% translate "Update" %}</button>
+                  {% else %}
+                    <button id='upload_btn' class="btn btn-primary" type="submit" name="upload_artifact">{% translate "Upload" %}</button>
+                    <button id='upload_submit_btn' class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
+                  {% endif %}
                 </div>
+              </div>
             </fieldset>
           </form>
         </div>

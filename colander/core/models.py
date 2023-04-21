@@ -1608,7 +1608,7 @@ colander_models = {
 icons = {
     Actor: 'fa-users',
     Artifact: 'fa-archive',
-    DetectionRule: 'fa-',
+    DetectionRule: 'fa-magic',
     Device: 'fa-server',
     Event: 'fa-bolt',
     Observable: 'fa-bullseye',

@@ -7,6 +7,7 @@ from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from django_serverless_cron.views import RunJobsView
 
 from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView, delete_actor_view
 from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
@@ -28,7 +29,7 @@ from colander.core.views.views import landing_view, collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
-    forward_auth
+    forward_auth, cron_ish_view
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
 from colander.users.views import UserTwoFactorSetup
@@ -140,6 +141,8 @@ urlpatterns = [
       path("comment/<slug:pk>/delete", delete_comment_view, name="delete_comment_view"),
 
       path("_auth", forward_auth, name="forward-auth_view"),
+
+      path("cron", cron_ish_view, name='cron-jobs')
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -5,6 +5,8 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
+from django.views.decorators.cache import cache_page
+from django_serverless_cron.services import RunJobs
 
 from colander.core.forms import DocumentationForm, CommentForm
 from colander.core.models import Case, colander_models
@@ -240,3 +242,10 @@ def forward_auth(request):
     return HttpResponse("OK")
     # return redirect('http://spiderfoot.localhost:88')
     # return HttpResponse(status=200,headers=request.headers)
+
+@login_required
+@cache_page(60)
+def cron_ish_view(request):
+    if request.method == 'GET':
+        RunJobs.run_all_jobs()
+        return HttpResponse('')

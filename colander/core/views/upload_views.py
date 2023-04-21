@@ -3,7 +3,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
 import json
 from colander.core.models import UploadRequest
-from colander.core.serializers import UploadRequestSerializer
+from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
 import logging
 import hashlib
 

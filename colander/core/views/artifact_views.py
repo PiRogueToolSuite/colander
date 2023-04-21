@@ -1,10 +1,10 @@
 import pathlib
-from tempfile import NamedTemporaryFile
 
 import magic
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.forms.widgets import Textarea, RadioSelect
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect
@@ -89,7 +89,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
             upr.target_artifact_id = str(artifact.id)
             upr.save()
 
-            process_hash_and_signing.send(sender=self.__class__, upload_request_id=str(upr.id))
+            transaction.on_commit(lambda: process_hash_and_signing.send(sender=self.__class__, upload_request_id=str(upr.id)))
 
         return super().form_valid(form)
 

@@ -89,6 +89,8 @@ THIRD_PARTY_APPS = [
     "django_otp.plugins.otp_static",
     # Enable two-factor auth.
     "allauth_2fa",
+    # 'cron'ish stuff
+    "django_serverless_cron",
 ]
 
 LOCAL_APPS = [
@@ -390,6 +392,20 @@ MARKDOWNIFY = {
         "BLEACH": False
     }
 }
+
+# 'Cron'ish configuration
+SERVERLESS_CRONJOBS = [
+    (
+        '1_hours',
+        'colander.core.crons.clean_upload_request_orphans',
+        {} # No specific args
+    ),
+    (
+        '10_minutes',
+        'colander.core.crons.compute_non_signed_artifacts',
+        { 'batch':1 } # if some, compute 'batch' Artifacts at a time
+    )
+]
 
 # 3rd-party services
 CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='192.168.0.12:8001')

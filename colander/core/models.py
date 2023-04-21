@@ -1577,6 +1577,7 @@ class UploadRequest(models.Model):
     chunks = models.JSONField(blank=True, null=True)
 
     # Weak reference style
+    # Will be set only at Artifact (first data) POST
     target_artifact_id = models.CharField(
         max_length=36,
         blank=True,

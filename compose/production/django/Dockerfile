@@ -13,7 +13,7 @@ ARG BUILD_ENVIRONMENT=production
 # Install apt packages
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
-  build-essential \
+  build-essential git \
   # psycopg2 dependencies
   libpq-dev libmagic1 tshark wireshark-common libssl-dev python3-dev
 

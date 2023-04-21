@@ -55,6 +55,7 @@
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
   {% url 'report_base_view' as report_base_view_url %}
   {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
+  {% url 'cron-jobs' as cron_url %}
 
   {% block top_bar %}
   <header class="navbar navbar-dark sticky-top bg-primary flex-nowrap p-0 shadow">
@@ -256,5 +257,6 @@
       {% endcomment %}
   {% endblock inline_javascript %}
   {% block vue_javascript %}{% endblock vue_javascript %}
+  <img alt='Cron Job triggering' width="1" height="1" src="{{cron_url}}" style="display: none;" />
 </body>
 </html>

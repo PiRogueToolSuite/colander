@@ -1302,16 +1302,12 @@ class PiRogueExperiment(Entity):
     )
     pcap = models.ForeignKey(
         Artifact,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.CASCADE,
         related_name='pirogue_dump_pcap_file'
     )
     socket_trace = models.ForeignKey(
         Artifact,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.CASCADE,
         related_name='pirogue_dump_socket_trace_file'
     )
     target_device = models.ForeignKey(
@@ -1330,9 +1326,7 @@ class PiRogueExperiment(Entity):
     )
     sslkeylog = models.ForeignKey(
         Artifact,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.CASCADE,
         related_name='pirogue_dump_ssl_keys'
     )
     screencast = models.ForeignKey(

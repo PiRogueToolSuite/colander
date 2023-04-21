@@ -178,9 +178,9 @@ def start_decryption(request, pk):
         experiment = PiRogueExperiment.objects.get(id=pk)
         if experiment.pcap and experiment.sslkeylog:
             messages.success(request, 'Traffic decryption is in progress, refresh this page in a few minutes.')
-            # save_decrypted_traffic(pk)
+            save_decrypted_traffic(pk)
             # ToDo switch to async task
-            async_task(save_decrypted_traffic, pk)
+            # async_task(save_decrypted_traffic, pk)
         else:
             messages.error(request, 'Cannot decrypt traffic since your experiment does not have both a PCAP file and an SSL keylog file.')
     return redirect(request.META.get('HTTP_REFERER'))
@@ -192,9 +192,9 @@ def start_detection(request, pk):
         experiment = PiRogueExperiment.objects.get(id=pk)
         if experiment.analysis:
             messages.success(request, 'Traffic analysis is in progress, refresh this page in a few minutes.')
-            # apply_detection_rules(pk)
+            apply_detection_rules(pk)
             # ToDo switch to async task
-            async_task(apply_detection_rules, pk)
+            # async_task(apply_detection_rules, pk)
         else:
             messages.error(request, 'Cannot analyze traffic since the traffic has not been decrypted yet.')
     return redirect(request.META.get('HTTP_REFERER'))

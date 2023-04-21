@@ -30,13 +30,13 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
 
     def get_form(self, form_class=None):
         active_case = get_active_case(self.request)
-        artifacts_qset = Artifact.get_user_artifacts(self.request.user, active_case)
+        artifacts_qset = Artifact.get_user_artifacts(self.request.user, active_case).filter(sha256__isnull=False)
         form = super(PiRogueExperimentCreateView, self).get_form(form_class)
-        form.fields['pcap'].queryset = artifacts_qset.filter(type__short_name='PCAP')
-        form.fields['socket_trace'].queryset = artifacts_qset.filter(type__short_name='SOCKET_T')
-        form.fields['aes_trace'].queryset = artifacts_qset.filter(type__short_name='CRYPTO_T')
-        form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG')
-        form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO')
+        form.fields['pcap'].queryset = artifacts_qset.filter(type__short_name='PCAP', sha256__isnull=False)
+        form.fields['socket_trace'].queryset = artifacts_qset.filter(type__short_name='SOCKET_T', sha256__isnull=False)
+        form.fields['aes_trace'].queryset = artifacts_qset.filter(type__short_name='CRYPTO_T', sha256__isnull=False)
+        form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG', sha256__isnull=False)
+        form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO', sha256__isnull=False)
         form.fields['target_artifact'].queryset = artifacts_qset
         return form
 

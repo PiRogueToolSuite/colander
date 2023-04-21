@@ -140,19 +140,28 @@ def parse_sll_layer(sll_layer: dict):
 def parse_single_http2_layer(http2_layer: dict):
     data, headers, raw_data = None, None, ''
     if 'http2_http2_body_reassembled_data' in http2_layer:
-        raw_data = http2_layer.get('http2_http2_body_reassembled_data', '').replace(':', '')
+        raw_data = http2_layer.get('http2_http2_body_reassembled_data', '')
+        if type(raw_data) is list:
+            raw_data = ':'.join(http2_layer.get('http2_http2_body_reassembled_data', ''))
+        raw_data = raw_data.replace(':', '')
+
         data = binascii.unhexlify(raw_data)
         try:
             data = data.decode('utf-8')
         except Exception:
-            data = http2_layer.get('http2_http2_body_reassembled_data')
+            data = raw_data
     elif 'http2_http2_data_data' in http2_layer:
-        raw_data = http2_layer.get('http2_http2_data_data', '').replace(':', '')
+        raw_data = http2_layer.get('http2_http2_data_data', '')
+        if type(raw_data) is list:
+            raw_data = ':'.join(http2_layer.get('http2_http2_data_data', ''))
+        raw_data = raw_data.replace(':', '')
+
         data = binascii.unhexlify(raw_data)
         try:
             data = data.decode('utf-8')
         except Exception:
-            data = http2_layer.get('http2_http2_data_data')
+            data = raw_data
+
     if 'http2_http2_headers' in http2_layer:
         header_name = http2_layer.get('http2_http2_header_name')
         header_value = http2_layer.get('http2_http2_header_value')
@@ -420,9 +429,10 @@ def save_decrypted_traffic(pirogue_dump_id):
         with open(f'{tmp_dir}/{socket_trace}', mode='wb') as out:
             for chunk in pirogue_dump.socket_trace.file.chunks():
                 out.write(chunk)
-        with open(f'{tmp_dir}/{aes_trace}', mode='wb') as out:
-            for chunk in pirogue_dump.aes_trace.file.chunks():
-                out.write(chunk)
+        if pirogue_dump.aes_trace:
+            with open(f'{tmp_dir}/{aes_trace}', mode='wb') as out:
+                for chunk in pirogue_dump.aes_trace.file.chunks():
+                    out.write(chunk)
         # Generate the PCAPNG file
         try:
             subprocess.check_call(
@@ -447,9 +457,11 @@ def save_decrypted_traffic(pirogue_dump_id):
         socket_traces_file = f'{tmp_dir}/{socket_trace}'
         socket_traces, traces  = build_stack_traces(socket_traces_file)
 
-        aes_traces_file = f'{tmp_dir}/{aes_trace}'
-        with open(aes_traces_file, 'r') as aes:
-            aes_traces = json.load(aes)
+        aes_traces = []
+        if pirogue_dump.aes_trace:
+            aes_traces_file = f'{tmp_dir}/{aes_trace}'
+            with open(aes_traces_file, 'r') as aes:
+                aes_traces = json.load(aes)
 
         tracker_definitions = {}
         response = requests.get('https://reports.exodus-privacy.eu.org/api/trackers')

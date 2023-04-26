@@ -217,10 +217,10 @@
 <div class="row justify-content-center">
   <div class="col-md-4 mt-2">
     {% if artifact.type.short_name == "IMAGE" %}
-      <img src="{% url "collect_artifact_view_view" pk=artifact.id %}" class="img-thumbnail" alt="{{ artifact.name }}">
+      <img src="{% url "collect_artifact_download_view" pk=artifact.id %}" class="img-thumbnail" alt="{{ artifact.name }}">
     {% elif artifact.type.short_name == "VIDEO" %}
        <video controls>
-        <source src="{% url "collect_artifact_view_view" pk=artifact.id %}">
+        <source src="{% url "collect_artifact_download_view" pk=artifact.id %}">
       Your browser does not support the video tag.
       </video>
     {% endif %}

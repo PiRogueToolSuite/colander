@@ -121,7 +121,7 @@
         <td>
           {% if experiment.screencast %}
             <i class="nf {{ experiment.screencast.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=experiment.sslkeylog.id %}">
+            <a href="{% url "collect_artifact_details_view" pk=experiment.screencast.id %}">
               {{ experiment.screencast.original_name }}
             </a>
             ({{ experiment.screencast.type }})

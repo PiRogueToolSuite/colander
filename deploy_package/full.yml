@@ -16,7 +16,7 @@ services:
   colander-postgres:
     build:
       context: .
-      dockerfile: ./compose/postgres/Dockerfile
+      dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_postgres
     volumes:
       - production_colander_postgres_data:/var/lib/postgresql/data:Z
@@ -27,7 +27,7 @@ services:
   threatr-postgres:
     build:
       context: .
-      dockerfile: ./compose/postgres/Dockerfile
+      dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_threatr_postgres
     volumes:
       - production_threatr_postgres_data:/var/lib/postgresql/data:Z
@@ -38,7 +38,7 @@ services:
   keycloak-postgres:
     build:
       context: .
-      dockerfile: ./compose/postgres/Dockerfile
+      dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_keycloak_postgres
     volumes:
       - production_keycloak_postgres_data:/var/lib/postgresql/data:Z
@@ -113,7 +113,7 @@ services:
   traefik:
     build:
       context: .
-      dockerfile: ./compose/traefik/Dockerfile
+      dockerfile: ./compose/production/traefik/Dockerfile
     image: colander_production_traefik
     depends_on:
       - colander-front

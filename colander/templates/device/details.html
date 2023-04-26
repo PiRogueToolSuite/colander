@@ -102,6 +102,8 @@
 
   {% include "helpers/extra_attributes.html" with attributes=device.attributes %}
 
+  {% include "entity_relation/related_entities.html" with entity=device %}
+
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
     {% for comment in device.sorted_comments %}

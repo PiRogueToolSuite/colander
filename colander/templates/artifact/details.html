@@ -94,12 +94,12 @@
         <td>MD5</td>
         <td>
           {% if artifact.has_been_processed %}
-              {% include "icons/id_icon.html" with c="text-primary" %}
-              <span class="font-monospace">
+            {% include "icons/id_icon.html" with c="text-primary" %}
+            <span class="font-monospace">
                   {{ artifact.md5 }}
               </span>
           {% else %}
-              <span class="badge bg-info">Processing ...</span>
+            <span class="badge bg-info">Processing ...</span>
           {% endif %}
         </td>
       </tr>
@@ -107,12 +107,12 @@
         <td>SHA1</td>
         <td>
           {% if artifact.has_been_processed %}
-              {% include "icons/id_icon.html" with c="text-primary" %}
-              <span class="font-monospace">
+            {% include "icons/id_icon.html" with c="text-primary" %}
+            <span class="font-monospace">
                   {{ artifact.sha1 }}
               </span>
           {% else %}
-              <span class="badge bg-info">Processing ...</span>
+            <span class="badge bg-info">Processing ...</span>
           {% endif %}
         </td>
       </tr>
@@ -120,12 +120,12 @@
         <td>SHA256</td>
         <td>
           {% if artifact.has_been_processed %}
-              {% include "icons/id_icon.html" with c="text-primary" %}
-              <span class="font-monospace">
+            {% include "icons/id_icon.html" with c="text-primary" %}
+            <span class="font-monospace">
                   {{ artifact.sha256 }}
               </span>
           {% else %}
-              <span class="badge bg-info">Processing ...</span>
+            <span class="badge bg-info">Processing ...</span>
           {% endif %}
         </td>
       </tr>
@@ -133,13 +133,13 @@
         <td>Signature</td>
         <td>
           {% if artifact.has_been_processed %}
-              {% if artifact.has_valid_signature %}
-                <span class="badge bg-success">Valid signature</span>
-              {% else %}
-                <span class="badge bg-danger">Incorrect signature (file potentially tempered)</span>
-              {% endif %}
+            {% if artifact.has_valid_signature %}
+              <span class="badge bg-success">Valid signature</span>
+            {% else %}
+              <span class="badge bg-danger">Incorrect signature (file potentially tempered)</span>
+            {% endif %}
           {% else %}
-              <span class="badge bg-info">Processing ...</span>
+            <span class="badge bg-info">Processing ...</span>
           {% endif %}
         </td>
       </tr>
@@ -195,19 +195,19 @@
       </div>
       <div class="card-footer text-center">
         {% if artifact.has_been_processed %}
-            <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}"
-               class="btn btn-sm btn-primary text-white">
-              Download case key
-            </a>
-            <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
-              Download artifact
-            </a>
-            <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}"
-               class="btn btn-sm btn-primary text-white">
-              Download artifact signature
-            </a>
+          <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}"
+             class="btn btn-sm btn-primary text-white">
+            Download case key
+          </a>
+          <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
+            Download artifact
+          </a>
+          <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}"
+             class="btn btn-sm btn-primary text-white">
+            Download artifact signature
+          </a>
         {% else %}
-            <span class="badge bg-info">Processing ...</span>
+          <span class="badge bg-info">Processing ...</span>
         {% endif %}
       </div>
     </div>
@@ -215,7 +215,23 @@
 </div>
 
 <div class="row justify-content-center">
+  <div class="col-md-4 mt-2">
+    {% if artifact.type.short_name == "IMAGE" %}
+      <img src="{% url "collect_artifact_view_view" pk=artifact.id %}" class="img-thumbnail" alt="{{ artifact.name }}">
+    {% elif artifact.type.short_name == "VIDEO" %}
+       <video controls>
+        <source src="{% url "collect_artifact_view_view" pk=artifact.id %}">
+      Your browser does not support the video tag.
+      </video>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row justify-content-center">
   {% include "helpers/extra_attributes.html" with attributes=artifact.attributes %}
+
+  {% include "entity_relation/related_entities.html" with entity=observable %}
+
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
     {% for comment in artifact.sorted_comments %}

@@ -8,6 +8,7 @@
   {"short_name": "IOS_SAMPLE", "name":  "iOS sample", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-apple_ios"},
   {"short_name": "F_DUMP", "name":  "Forensic dump", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-harddisk"},
   {"short_name": "PCAP", "name":  "PCAP file", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-download_network"},
+  {"short_name": "HAR", "name":  "HAR file", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-download_network"},
   {"short_name": "SOCKET_T", "name":  "Socket activity trace", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-plus_network"},
   {"short_name": "CRYPTO_T", "name":  "Cryptographic activity trace", "description": "", "svg_icon": "", "nf_icon": "nf-cod-key"},
   {"short_name": "SSLKEYLOG", "name":  "SSL keylog file", "description": "", "svg_icon": "", "nf_icon": "nf-cod-key"},

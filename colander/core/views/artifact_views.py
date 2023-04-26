@@ -164,6 +164,13 @@ def download_artifact(request, pk):
     return response
 
 @login_required
+def view_artifact(request, pk):
+    content = Artifact.objects.get(id=pk)
+    response = StreamingHttpResponse(content.file, content_type=content.mime_type)
+    response['Content-Disposition'] = 'inline; filename=' + content.name
+    return response
+
+@login_required
 def download_artifact_signature(request, pk):
     content = Artifact.objects.get(id=pk)
     raw = Base64Encoder.decode(content.detached_signature)

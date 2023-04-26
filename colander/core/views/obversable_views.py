@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
@@ -5,9 +6,11 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
+from django_q.tasks import async_task
 
 from colander.core.forms import CommentForm
 from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact, Threat, Actor
+from colander.core.observable_tasks import capture_url
 from colander.core.views.views import get_active_case, CaseRequiredMixin
 
 
@@ -147,3 +150,12 @@ def delete_observable_view(request, pk):
     obj = Observable.objects.get(id=pk)
     obj.delete()
     return redirect("collect_observable_create_view")
+
+
+@login_required()
+def capture_observable_view(request, pk):
+    obj = Observable.objects.get(id=pk)
+    if obj.type.short_name == 'URL':
+        async_task(capture_url, obj.id)
+        messages.success(request, 'The capture of this URL has started, refresh this page in a few minutes.')
+    return redirect(request.META.get('HTTP_REFERER'))

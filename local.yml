@@ -44,6 +44,7 @@ services:
       - minio
       - elasticsearch
       - redis
+      - playwright
       - cyberchef
     volumes:
       - .:/app:z
@@ -79,6 +80,7 @@ services:
     depends_on:
       - postgres
       - minio
+      - playwright
       - elasticsearch
       - redis
     volumes:
@@ -147,6 +149,13 @@ services:
       - "traefik.docker.network=web"
       # This is the port that traefik should proxy
       - "traefik.http.services.cyberchef.loadbalancer.server.port=8000"
+
+  playwright:
+    image: ghcr.io/piroguetoolsuite/playwright-rest-api:main
+    container_name: colander_local_playwright
+    restart: unless-stopped
+    networks:
+      - web
 
   elasticsearch:
     image: elasticsearch:8.4.1

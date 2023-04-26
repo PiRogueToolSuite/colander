@@ -685,6 +685,10 @@ class Artifact(Entity):
         return self.name
 
     @property
+    def can_be_displayed(self):
+        return self.type.short_name in ['IMAGE', 'VIDEO']
+
+    @property
     def icon(self):
         c = self.__class__
         return icons.get(c, '')

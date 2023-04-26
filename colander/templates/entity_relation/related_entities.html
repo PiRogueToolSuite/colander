@@ -1,0 +1,26 @@
+{% load i18n %}
+
+{% with targets=entity.out_relations origins=entity.in_relations %}
+    {% if origins or targets %}
+      <div class="col-md-12 mt-2">
+        <h3>{% translate "Related entities" %}</h3>
+        <table class="table table-sm">
+          <thead class="bg-secondary-light">
+          <tr>
+            <td>Type</td>
+            <td>Entity</td>
+            <td></td>
+          </tr>
+          </thead>
+          <tbody>
+          {% for relation in origins %}
+            {% include "entity_relation/table_item.html" with direction="from" %}
+          {% endfor %}
+          {% for relation in targets %}
+            {% include "entity_relation/table_item.html" with direction="to" %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% endwith %}

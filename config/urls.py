@@ -10,8 +10,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django_serverless_cron.views import RunJobsView
 
 from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView, delete_actor_view
-from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, download_artifact, \
-    download_artifact_signature, delete_artifact_view
+from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, \
+    download_artifact, \
+    download_artifact_signature, delete_artifact_view, view_artifact
 from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
 from colander.core.views.detection_rule_views import delete_detection_rule_view, DetectionRuleCreateView, \
     DetectionRuleUpdateView, DetectionRuleDetailsView
@@ -23,7 +24,7 @@ from colander.core.views.experiment_views import PiRogueExperimentCreateView, Pi
     PiRogueExperimentAnalysisReportView
 from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
-    ObservableDetailsView, delete_observable_view
+    ObservableDetailsView, delete_observable_view, capture_observable_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.views import landing_view, collect_base_view, \
     report_base_view, collect_cases_select_view, CaseCreateView, \
@@ -80,6 +81,7 @@ urlpatterns = [
       path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
       path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
       path("collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
+      path("collect/artifact/<slug:pk>/view", view_artifact, name="collect_artifact_view_view"),
       path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
       path("collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
       path("collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
@@ -97,6 +99,7 @@ urlpatterns = [
 
       path("collect/observable", ObservableCreateView.as_view(), name="collect_observable_create_view"),
       path("collect/observable/<slug:pk>", ObservableUpdateView.as_view(), name="collect_observable_update_view"),
+      path("collect/observable/<slug:pk>/capture", capture_observable_view, name="collect_observable_capture_view"),
       path("collect/observable/<slug:pk>/details", ObservableDetailsView.as_view(), name="collect_observable_details_view"),
       path("collect/observable/<slug:pk>/delete", delete_observable_view, name="collect_observable_delete_view"),
 

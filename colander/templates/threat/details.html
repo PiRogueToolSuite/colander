@@ -88,6 +88,8 @@
 
   {% include "helpers/extra_attributes.html" with attributes=threat.attributes %}
 
+  {% include "entity_relation/related_entities.html" with entity=threat %}
+
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
     {% for comment in threat.sorted_comments %}

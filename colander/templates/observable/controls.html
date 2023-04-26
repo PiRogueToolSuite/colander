@@ -14,6 +14,12 @@
       {% translate "Edit" %}
     </a>
   {% endif %}
+  {% if "capture" not in exclude and observable.type.short_name == "URL" %}
+    <a href="{% url "collect_observable_capture_view" pk=observable.id %}" class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-camera"></i>
+      {% translate "Capture" %}
+    </a>
+  {% endif %}
   {% if "analyze" not in exclude %}
     <form class="form-inline" action="{% url "investigate_base_view" %}" method="get" id="investigate-{{ observable.id }}">
       <input type="hidden" name="type" value="{{ observable.type.short_name }}">

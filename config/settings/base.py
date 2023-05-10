@@ -321,7 +321,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    #"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
@@ -347,9 +348,11 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Documentation of API endpoints of colander",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+    'SWAGGER_UI_DIST': '/static/vendors/swagger-ui-4.18.2',
+    'SWAGGER_UI_FAVICON_HREF': '/static/vendors/swagger-ui-4.18.2/favicon-32x32.png',
+    #'REDOC_DIST': 'https://cdn.jsdelivr.net/npm/redoc@latest',
     "SERVERS": [
-        {"url": "http://127.0.0.1:8000", "description": "Local Development server"},
-        {"url": "https://example.com", "description": "Production server"},
+        {"url": "/", "description": "This server"}
     ],
 }
 

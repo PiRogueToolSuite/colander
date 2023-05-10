@@ -6,8 +6,9 @@ from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularJSONAPIView, SpectacularSwaggerView
 from django_serverless_cron.views import RunJobsView
+from rest_framework.schemas import get_schema_view
 
 from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView, delete_actor_view
 from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, \
@@ -149,22 +150,19 @@ urlpatterns = [
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
 # API URLS
 urlpatterns += [
-    # API base url
     path("api/", include("config.api_router")),
-    # DRF auth token
-    # path("api/auth-token/", obtain_auth_token),
-    # path("api/artifacts/<slug:pk>", ApiArtifactDetails.as_view(), name='api_list_artifacts'),
-    # path("api/artifacts/<slug:pk>/download", ApiArtifactDownload.as_view(), name='api_download_artifact'),
-    # API Schema
-    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
-    path(
-        "api/docs/",
-        SpectacularSwaggerView.as_view(url_name="api-schema"),
-        name="api-docs",
-    ),
+    path('api/schema/', get_schema_view(
+        title='Colander Client API',
+        version="0.1.0"
+    ), name='api-schema'),
+    # path("api/schema/", SpectacularJSONAPIView.as_view(), name="api-schema"),
+    # path(
+    #     "api/docs/",
+    #     SpectacularSwaggerView.as_view(url_name="api-schema"),
+    #     name="api-docs",
+    # ),
 ]
 
 if settings.DEBUG:

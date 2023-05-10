@@ -2,6 +2,7 @@ import base64
 import random
 import string
 import uuid
+from hashlib import sha256
 
 import django
 from django.db.models import Q
@@ -1588,13 +1589,49 @@ class UploadRequest(models.Model):
         extension = pathlib.Path(self.name).suffix
         return f'/tmp/upload.{self.id}{extension}'
 
+    def touch(self):
+        if not self.name:
+            raise Exception("Can't touch file without name")
+        if self.size == 0:
+            raise Exception("Can't touch zero sized file")
+        with open(self.path, 'wb') as f:
+            f.seek(self.size - 1)
+            f.write(b'\0')
+
+    def append_chunk(self, addr, buf):
+        if str(addr) not in self.chunks:
+            raise Exception(f"Invalid chunk addr@{addr}")
+
+        expected_hash = self.chunks.get(str(addr))
+        buf_hash = sha256(buf).hexdigest()
+
+        if not expected_hash == buf_hash:
+            raise Exception(f"Integrity fail for chunk addr@{addr}")
+
+        with open(self.path, mode='r+b') as destination:
+            destination.seek(int(addr))
+            destination.write(buf)
+            destination.flush()
+
+        self.chunks.pop(str(addr))
+
+        if len(self.chunks) > 0:
+            self.next_addr = list(self.chunks.keys())[0]
+            self.status = UploadRequest.Status.PROCESSING
+        else:
+            self.eof = True
+            self.next_addr = -1
+            self.status = UploadRequest.Status.SUCCEEDED
+
     def cleanup(self):
         if os.path.exists(self.path):
             os.remove(self.path)
 
+
 @receiver(pre_delete, sender=UploadRequest, dispatch_uid='delete_upload_request_file')
 def delete_upload_request_stored_files(sender, instance: UploadRequest, using, **kwargs):
     instance.cleanup()
+
 
 colander_models = {
     'Case': Case,

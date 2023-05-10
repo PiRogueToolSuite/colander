@@ -6,9 +6,6 @@ volumes:
   colander_local_minio_data: { }
   colander_local_es_data: { }
 
-networks:
-  web:
-
 services:
   traefik:
     image: traefik:v2.9.8
@@ -28,8 +25,6 @@ services:
       - "8088:8080" # The Web UI (enabled by --api)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - web
 
   django: &django
     build:
@@ -51,8 +46,6 @@ services:
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
-    networks:
-      - web
     ports:
       - "8000:8000"
     command: /start
@@ -89,8 +82,6 @@ services:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
     command: /start-worker
-    networks:
-      - web
     ports: [ ]
     labels:
       # This is enableing treafik to proxy this service
@@ -98,8 +89,6 @@ services:
 
   redis:
     image: redis:6
-    networks:
-      - web
 
   postgres:
     build:
@@ -107,8 +96,6 @@ services:
       dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_postgres
     container_name: colander_local_postgres
-    networks:
-      - web
     volumes:
       - colander_local_postgres_data:/var/lib/postgresql/data:Z
       - colander_local_postgres_data_backups:/backups:z
@@ -122,8 +109,6 @@ services:
     env_file:
       - ./.envs/.local/.django
     command: server /data
-    networks:
-      - web
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
@@ -133,8 +118,6 @@ services:
   cyberchef:
     image: mpepping/cyberchef:latest
     container_name: colander_local_cyberchef
-    networks:
-      - web
     ports:
       - 8001:8000
     restart: unless-stopped
@@ -154,13 +137,9 @@ services:
     image: ghcr.io/piroguetoolsuite/playwright-rest-api:main
     container_name: colander_local_playwright
     restart: unless-stopped
-    networks:
-      - web
 
   elasticsearch:
     image: elasticsearch:8.4.1
-    networks:
-      - web
     ports:
       - 9200:9200
       - 9300:9300
@@ -181,8 +160,6 @@ services:
       - POSTGRES_DB=keycloakdb
       - POSTGRES_USER=hhGArHWVrVQjuDcgBUNNlQqZNfqyNPfQ
       - POSTGRES_PASSWORD=vW9WtXmFWpsq5tATgcYNAi62cC1tWar1BsSrksBodMrra2bv4NHVvRyIm9k29Ro9
-    networks:
-      - web
 
   keycloak:
 #    https://hub.docker.com/r/bitnami/keycloak
@@ -196,8 +173,6 @@ services:
       retries: 3
     depends_on:
       - keycloak-db
-    networks:
-      - web
     ports:
       - 8003:8080
     labels:

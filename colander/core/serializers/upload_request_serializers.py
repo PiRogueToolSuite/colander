@@ -15,8 +15,6 @@ class UploadRequestSerializer(serializers.ModelSerializer):
             'status',
             'next_addr',
             'created_at',
-            'size',
-            'name',
         ]
 
     addr = serializers.IntegerField(required=False, allow_null=False, write_only=True)

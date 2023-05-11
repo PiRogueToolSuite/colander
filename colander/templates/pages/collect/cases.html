@@ -18,37 +18,9 @@
       </div>
       <div class="col"></div>
     {% endif %}
-    <div class="col-md-6 mt-2">
-      {% if is_editing %}
-        <h2>{% translate "Edit this case" %}</h2>
-      {% else %}
-        <h2>{% translate "New case" %}</h2>
-      {% endif %}
-      <div class="card mb-4 bg-secondary-light">
-        <div class="card-body">
-          <form method="post" autocomplete="off">
-            {% csrf_token %}
-            {{ form|crispy }}
-            {% if is_editing %}
-              <button class="btn btn-primary" type="submit" name="save_case">{% translate "Update" %}</button>
-            {% else %}
-              <button class="btn btn-primary" type="submit" name="save_case">{% translate "Create" %}</button>
-            {% endif %}
-          </form>
-        </div>
-      </div>
-    </div>
+    {% include 'case/create_update.html' %}
   </div>
-  <div class="row justify-content-center">
-    <div class="col-md-12">
-      <h2>{% translate "Latest cases" %}</h2>
-      {% if cases %}
-        {% for case in cases %}
-          {% include "case/list_item.html" %}
-        {% endfor %}
-      {% endif %}
-    </div>
-  </div>
+  {%  include 'case/list.html' %}
 {% endblock inner-content %}
 
 {% block inline_javascript %}

@@ -1,0 +1,12 @@
+{% load crispy_forms_tags %}
+{% load i18n %}
+<div class="row justify-content-center">
+  <div class="col-md-12">
+    <h2>{% translate "Latest cases" %}</h2>
+    {% if cases %}
+      {% for case in cases %}
+        {% include "case/list_item.html" %}
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>

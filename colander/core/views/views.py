@@ -13,7 +13,9 @@ from colander.core.models import Case, colander_models
 
 @login_required
 def landing_view(request):
-    return render(request, 'pages/home.html')
+    ctx = dict()
+    ctx['cases'] = Case.get_user_cases(request.user)
+    return render(request, 'pages/home.html', context=ctx)
 
 class CaseRequiredMixin(AccessMixin):
     """Verify that the current user has an active case."""
@@ -108,7 +110,6 @@ def quick_creation_view(request):
         'models': model_data,
         'entities': active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
     }
-
 
     return render(request, 'pages/quick_creation/base.html', context=ctx)
 

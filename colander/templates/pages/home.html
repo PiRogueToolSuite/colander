@@ -1,1 +1,14 @@
 {% extends "base.html" %}
+{%  block content %}
+  <div class='row'>
+    <div class='col-6'>
+      Yoyla
+      {% for h in request.GET %}
+        <pre>{{ h }}</pre>
+      {% endfor %}
+    </div>
+    <div class='col-6'>
+      {% include 'case/list.html' %}
+    </div>
+  </div>
+{% endblock content %}

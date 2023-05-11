@@ -1,0 +1,22 @@
+{% load crispy_forms_tags %}
+{% load i18n %}
+<div class="col-md-6 mt-2">
+  {% if is_editing %}
+    <h2>{% translate "Edit this case" %}</h2>
+  {% else %}
+    <h2>{% translate "New case" %}</h2>
+  {% endif %}
+  <div class="card mb-4 bg-secondary-light">
+    <div class="card-body">
+      <form method="post" autocomplete="off">
+        {% csrf_token %}
+        {{ form|crispy }}
+        {% if is_editing %}
+          <button class="btn btn-primary" type="submit" name="save_case">{% translate "Update" %}</button>
+        {% else %}
+          <button class="btn btn-primary" type="submit" name="save_case">{% translate "Create" %}</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>

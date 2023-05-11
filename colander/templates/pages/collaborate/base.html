@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load colander_tags %}
+
+
+{% block sidebar-items %}
+  {% url 'collaborate_team_create_view' as collaborate_team_create_view_url %}
+
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
+    <span>Channels</span>
+  </h6>
+  <a
+    class="list-group-item list-group-item-action list-group-item-light{% if collaborate_team_create_view_url in request.path %} active {% endif %}"
+    href="{% url "collaborate_team_create_view" %}" title="Teams">
+    {% include "icons/team_icon.html" %}
+    <span class="list-group-item-label">Teams</span>
+  </a>
+{% endblock sidebar-items %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center mt-2">
+      <div class="col-md-12">
+        <h2>My teams</h2>
+      </div>
+      <div class="col-md-5">
+        <div class="card bg-secondary-light">
+          <div class="card-body">
+            <h3>The teams I manage</h3>
+            <ul class="list-unstyled">
+              {% for team in request.user.my_teams %}
+                <li>
+                  <i class="nf nf-fa-users text-primary"></i>
+                  {{ team.name }} ({{ team.contributors.count }}
+                  contributor{{ team.contributors.count|pluralize:"s" }})
+                </li>
+              {% empty %}
+                No team
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="card bg-secondary-light">
+          <div class="card-body">
+            <h3>The teams I contribute to</h3>
+            <ul class="list-unstyled">
+              {% for team in request.user.my_teams_as_collaborator %}
+                <li>
+                  <i class="nf nf-fa-users text-primary"></i>
+                  {{ team.name }} ({{ team.contributors.count }}
+                  contributor{{ team.contributors.count|pluralize:"s" }})
+                </li>
+              {% empty %}
+                No team
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endblock inner-content %}
+{% endblock content %}
+

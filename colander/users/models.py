@@ -1,8 +1,11 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models import CharField
+from django.db.models import CharField, Q
 from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
+
+from colander.core.models import Case
 
 
 class User(AbstractUser):
@@ -33,6 +36,33 @@ class User(AbstractUser):
     @property
     def token(self):
         return self.get_auth_token()
+
+    @cached_property
+    def all_my_teams(self):
+        return self.get_my_teams()
+
+    @cached_property
+    def my_teams(self):
+        return self.teams_as_owner.all()
+
+    @cached_property
+    def my_teams_as_collaborator(self):
+        return self.teams_as_contrib.all()
+
+    @cached_property
+    def my_cases(self):
+        return Case.objects.filter(owner=self)
+
+    @cached_property
+    def all_my_cases(self):
+        teams = self.all_my_teams
+        return Case.objects.filter(Q(teams__in=teams) | Q(owner=self)).all()
+
+    def get_my_teams(self):
+        teams = []
+        teams.extend(self.teams_as_owner.all())
+        teams.extend(self.teams_as_contrib.all())
+        return list(set(teams))
 
     def get_auth_token(self, reset=False):
         if reset:

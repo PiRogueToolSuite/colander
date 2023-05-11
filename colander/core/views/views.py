@@ -134,10 +134,18 @@ def collect_base_view(request):
 
 
 @login_required
+def collaborate_base_view(request):
+    return render(request, 'pages/collaborate/base.html')
+
+
+@login_required
 def cases_select_view(request, pk):
     if request.method == 'GET':
         case = get_object_or_404(Case, id=pk)
-        request.session['active_case'] = str(case.id)
+        if case.can_contribute(request.user):
+           request.session['active_case'] = str(case.id)
+        else:
+            print(f'{request.user} can not contribute to {case}!')
         #return redirect('case_create_view')
         return redirect('case_details_view', case.id)
 
@@ -145,7 +153,9 @@ def cases_select_view(request, pk):
 def get_active_case(request):
     if 'active_case' in request.session:
         try:
-            return Case.objects.get(id=request.session['active_case'])
+            case = Case.objects.get(id=request.session['active_case'])
+            if case.can_contribute(request.user):
+                return case
         except Exception:
             pass
     return None
@@ -194,6 +204,11 @@ class CaseDetailsView(LoginRequiredMixin, DetailView):
     context_object_name = 'case'
     template_name = 'pages/case/details.html'
 
+    def get_object(self, queryset=None):
+        case: Case = super().get_object(queryset)
+        if case.can_contribute(self.request.user):
+            return case
+        raise Case.DoesNotExist()
 
 @login_required
 def download_case_public_key(request, pk):

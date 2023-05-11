@@ -2,7 +2,13 @@ from django.contrib import admin
 
 from colander.core.models import ObservableType, Observable, Case, Threat, ObservableRelation, \
     Artifact, ArtifactType, Event, Actor, EventType, Comment, PiRogueExperiment, EntityRelation, BackendCredentials, \
-    DetectionRule, UploadRequest
+    DetectionRule, UploadRequest, ColanderTeam
+
+
+class ColanderTeamAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    list_filter = ('name',)
+admin.site.register(ColanderTeam, ColanderTeamAdmin)
 
 
 class ArtifactTypeAdmin(admin.ModelAdmin):

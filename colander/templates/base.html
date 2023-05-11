@@ -52,6 +52,7 @@
   {% url 'home' as home_url %}
   {% url 'case_create_view' as case_create_view_url %}
   {% url 'collect_base_view' as collect_base_view_url %}
+  {% url 'collaborate_base_view' as collaborate_base_view_url %}
   {% url 'investigate_base_view' as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
   {% url 'report_base_view' as report_base_view_url %}
@@ -83,7 +84,7 @@
          {# URL provided by django-allauth/account/urls.py #}
           <a class="nav-link px-3 text-nowrap" href="{% url 'users:detail' request.user.username %}">
             <i class="nf nf-fa-user list-group-item-icon nav-link-label" aria-hidden="true"></i>
-            <span class="nav-link-label d-none d-md-inline">{% translate "My Profile" %}</span>
+            <span class="nav-link-label d-none d-md-inline">{{ request.user }}</span>
           </a>
         {% else %}
           {% if ACCOUNT_ALLOW_REGISTRATION %}
@@ -151,6 +152,11 @@
            href="{{ collect_base_view_url }}">
           <i class="fa fa-th" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Collect</span>
+        </a>
+        <a class="list-group-item list-group-item-action list-group-item-light{% if collaborate_base_view_url in request.path %} active {% endif %}"
+           href="{{ collaborate_base_view_url }}">
+          <i class="nf nf-fa-share_alt" aria-hidden="true"></i>
+          <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
         </a>
         <div class="list-group list-group-flush list-group-secondary">
           {% block sidebar-items %}{% endblock sidebar-items %}

@@ -14,6 +14,8 @@ from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, A
 from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, \
     download_artifact, \
     download_artifact_signature, delete_artifact_view, view_artifact
+from colander.core.views.collaborate_views import ColanderTeamCreateView, ColanderTeamUpdateView, delete_team_view, \
+    ColanderTeamDetailsView
 from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
 from colander.core.views.detection_rule_views import delete_detection_rule_view, DetectionRuleCreateView, \
     DetectionRuleUpdateView, DetectionRuleDetailsView
@@ -31,7 +33,7 @@ from colander.core.views.views import landing_view, collect_base_view, \
     report_base_view, cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
-    forward_auth, cron_ish_view
+    forward_auth, cron_ish_view, collaborate_base_view
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
 from colander.users.views import UserTwoFactorSetup
@@ -60,6 +62,12 @@ urlpatterns = [
       # Your stuff: custom urls includes go here
 
       path("quick_search/", quick_search, name='quick_search_view'),
+
+      path("collaborate/", collaborate_base_view, name="collaborate_base_view"),
+      path("collaborate/team", ColanderTeamCreateView.as_view(), name="collaborate_team_create_view"),
+      path("collaborate/team/<slug:pk>", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
+      path("collaborate/team/<slug:pk>/details", ColanderTeamDetailsView.as_view(), name="collaborate_team_details_view"),
+      path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
 
       path("collect/", collect_base_view, name="collect_base_view"),
       path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),

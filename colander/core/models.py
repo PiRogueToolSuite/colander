@@ -1,47 +1,80 @@
 import base64
+import os
 import random
 import string
 import uuid
 from hashlib import sha256
 
 import django
-from django.db.models import Q
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import utils
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
+from django.db.models import Q
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Nested
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.asymmetric import utils
-
-import os
-from datetime import timedelta
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 from django_q.models import Schedule
-from django_q.tasks import async_task, schedule
+from elasticsearch_dsl import Document, Keyword, Date, Object, Text
+
 
 class ColanderTeam(models.Model):
+    name = models.CharField(
+        max_length=512,
+        verbose_name=_('name'),
+        help_text=_('Give a meaningful name to this team.'),
+        default=''
+    )
     contributors = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        related_name='teams',
+        related_name='teams_as_contrib',
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.DO_NOTHING
+        on_delete=models.DO_NOTHING,
+        related_name='teams_as_owner',
     )
+
+    def get_all_contributors(self):
+        users = []
+        users.extend(self.contributors.all())
+        users.append(self.owner)
+        return list(set(users))
+
+    @cached_property
+    def team_cases(self):
+        return self.get_team_cases()
+
+    def get_team_cases(self):
+        return Case.objects.filter(teams=self).all()
+
+    @staticmethod
+    def get_my_teams(user):
+        return ColanderTeam.objects.filter(Q(contributors=user) | Q(owner=user)).distinct().all()
 
     @staticmethod
     def get_my_teams_as_contrib(user):
-        return ColanderTeam.objects.filter(contributors=user)
+        return ColanderTeam.objects.filter(contributors=user).all()
+
+    @staticmethod
+    def get_my_teams_as_owner(user):
+        return ColanderTeam.objects.filter(owner=user).all()
+
+    @staticmethod
+    def get_user_teams(user):
+        return user.my_teams
+
+    def __str__(self):
+        return f'{self.name} owned by {self.owner}'
 
 
 def _get_evidence_upload_dir(instance, filename):
@@ -140,6 +173,12 @@ class Case(models.Model):
         help_text=_('Latest modification of the case.'),
         auto_now=True
     )
+    teams = models.ManyToManyField(
+        ColanderTeam,
+        related_name='cases',
+        blank=True,
+        null=True,
+    )
     name = models.CharField(
         max_length=512,
         verbose_name=_('name'),
@@ -157,13 +196,6 @@ class Case(models.Model):
         related_name='cases',
         editable=True
     )
-    team = models.ForeignKey(
-        ColanderTeam,
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-        related_name='cases'
-    )
     parent_case = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -178,7 +210,7 @@ class Case(models.Model):
     es_prefix = models.CharField(
         max_length=16,
         editable=True,
-        default=_random_id  )
+        default=_random_id)
     verify_key = models.TextField(
         editable=True,
         default=''
@@ -193,6 +225,9 @@ class Case(models.Model):
     def save(self, *args, **kwargs):
         self.generate_key_pair(save=False)
         super().save(*args, **kwargs)
+
+    def can_contribute(self, user):
+        return self in user.all_my_cases
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -212,21 +247,21 @@ class Case(models.Model):
                 key_size=4096,
             )
             private_pem = private_key.private_bytes(
-               encoding=serialization.Encoding.PEM,
-               format=serialization.PrivateFormat.TraditionalOpenSSL,
-               encryption_algorithm=serialization.NoEncryption()
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption()
             )
             public_key = private_key.public_key()
             public_pem = public_key.public_bytes(
-               encoding=serialization.Encoding.PEM,
-               format=serialization.PublicFormat.SubjectPublicKeyInfo
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
             self.signing_key = private_pem.decode('utf-8')
             self.verify_key = public_pem.decode('utf-8')
             if save:
                 self.save()
 
-    def quick_search(self, value, type=None, exclude_types=['EntityRelation']):
+    def quick_search(self, value, type=None, exclude_types=['EntityRelation', 'Case']):
         models = colander_models
         if type and type in models:
             models = {type: models.get(type)}
@@ -241,10 +276,11 @@ class Case(models.Model):
                 field_name = 'value'
             try:
                 if hasattr(model, 'case'):
+                    # objects = model.objects.filter(**{f'{field_name}__icontains': value, 'case__in': self.owner.all_my_cases})
                     objects = model.objects.filter(**{f'{field_name}__icontains': value, 'case': self})
-                else:
-                    objects = model.objects.filter(**{f'{field_name}__icontains': value})
-                results.extend(objects.all())
+                    # else:
+                    #     objects = model.objects.filter(**{f'{field_name}__icontains': value})
+                    results.extend(objects.all())
             except Exception as e:
                 print(model, e)
                 pass
@@ -291,7 +327,6 @@ class Case(models.Model):
                 graph += f'\n\t{event.name}: {event.id}, {first_seen}, {last_seen}'
         return graph
 
-
     @property
     def to_mermaid(self):
         return self.get_mermaid()
@@ -302,7 +337,7 @@ class Case(models.Model):
 
     @staticmethod
     def get_user_cases(user):
-        return Case.objects.filter(owner=user)
+        return user.all_my_cases
 
 
 class Entity(models.Model):
@@ -528,8 +563,8 @@ class Actor(Entity):
     @staticmethod
     def get_user_actors(user, case):
         if case:
-            return Actor.objects.filter(case=case)
-        return Actor.objects.all()
+            return Actor.objects.filter(case=case).all()
+        return Actor.objects.filter(case__in=user.all_my_cases).all()
 
 
 class Device(Entity):
@@ -587,7 +622,7 @@ class Device(Entity):
         label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
         nodes = [
             f'{self.id}("{icon} {label}")',
-            ]
+        ]
         clicks = [
             f'click {self.id} "{self.get_absolute_url()}"',
             f'class {self.id} Device'
@@ -610,8 +645,8 @@ class Device(Entity):
     @staticmethod
     def get_user_devices(user, case=None):
         if case:
-            return Device.objects.filter(case=case)
-        return []
+            return Device.objects.filter(case=case).all()
+        return Device.objects.filter(case__in=user.all_my_cases).all()
 
 
 class Artifact(Entity):
@@ -635,7 +670,7 @@ class Artifact(Entity):
     file = models.FileField(
         upload_to=_get_evidence_upload_dir,
         max_length=512,
-        blank = True, null = True
+        blank=True, null=True
     )
     analysis_index = models.UUIDField(
         default=uuid.uuid4,
@@ -743,7 +778,7 @@ class Artifact(Entity):
         label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
         nodes = [
             f'{self.id}("{icon} {label}")',
-            ]
+        ]
         clicks = [
             f'click {self.id} "{self.get_absolute_url()}"',
             f'class {self.id} Artifact'
@@ -761,12 +796,14 @@ class Artifact(Entity):
     @staticmethod
     def get_user_artifacts(user, case=None):
         if case:
-            return Artifact.objects.filter(case=case)
-        return Artifact.objects.filter(owner=user)
+            return Artifact.objects.filter(case=case).all()
+        return Artifact.objects.filter(case__in=user.all_my_cases).all()
+
 
 @receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
 def delete_upload_request_stored_files(sender, instance: Artifact, using, **kwargs):
     instance.file.delete()
+
 
 class Threat(Entity):
     class Meta:
@@ -815,7 +852,7 @@ class Threat(Entity):
         links = []
         nodes = [
             f'{self.id}("{icon} {self.name}")',
-            ]
+        ]
         clicks = [
             f'click {self.id} "{self.get_absolute_url()}"',
             f'class {self.id} Threat'
@@ -837,8 +874,8 @@ class Threat(Entity):
     @staticmethod
     def get_user_threats(user, case=None):
         if case:
-            return Threat.objects.filter(case=case)
-        return Threat.objects.all()
+            return Threat.objects.filter(case=case).all()
+        return Threat.objects.filter(case__in=user.all_my_cases).all()
 
 
 class Observable(Entity):
@@ -895,7 +932,8 @@ class Observable(Entity):
     es_prefix = models.CharField(
         max_length=16,
         editable=False,
-        default=_random_id   )
+        default=_random_id)
+
     @property
     def icon(self):
         c = self.__class__
@@ -936,7 +974,7 @@ class Observable(Entity):
             label += f'<br><small>fa:fa-bug {self.associated_threat.name}</small>'
         nodes = [
             f'{self.id}("{icon} {label}")',
-            ]
+        ]
         clicks = [
             f'click {self.id} "{self.get_absolute_url()}"',
             f'class {self.id} Observable'
@@ -975,8 +1013,8 @@ class Observable(Entity):
     @staticmethod
     def get_user_observables(user, case=None):
         if case:
-            return Observable.objects.filter(case=case)
-        return Observable.objects.filter(owner=user)
+            return Observable.objects.filter(case=case).all()
+        return Observable.objects.filter(case__in=user.all_my_cases).all()
 
 
 class EntityRelation(models.Model):
@@ -1051,7 +1089,7 @@ class EntityRelation(models.Model):
     def get_user_entity_relations(user, case=None):
         if case:
             return EntityRelation.objects.filter(case=case)
-        return EntityRelation.objects.filter(owner=user)
+        return EntityRelation.objects.filter(case__in=user.all_my_cases).all()
 
     @property
     def to_mermaid(self):
@@ -1065,17 +1103,19 @@ class EntityRelation(models.Model):
         clicks = []
         return nodes, clicks, links
 
+
 @receiver(pre_delete, sender=Entity, dispatch_uid="entity_relation_cascade")
 def entity_relation_cascade(sender, instance, using, **kwargs):
     EntityRelation.objects.filter(
-        #obj_from_type=ContentType.objects.get_for_model(instance),
+        # obj_from_type=ContentType.objects.get_for_model(instance),
         obj_from_id=str(instance.pk)
     ).delete()
 
     EntityRelation.objects.filter(
-        #obj_to_type=ContentType.objects.get_for_model(instance),
+        # obj_to_type=ContentType.objects.get_for_model(instance),
         obj_to_id=str(instance.pk)
     ).delete()
+
 
 class ObservableRelation(Entity):
     class Meta:
@@ -1146,8 +1186,8 @@ class ObservableRelation(Entity):
     @staticmethod
     def get_user_relations(user, case=None):
         if case:
-            return ObservableRelation.objects.filter(case=case)
-        return ObservableRelation.objects.all()
+            return ObservableRelation.objects.filter(case=case).all()
+        return ObservableRelation.objects.filter(case__in=user.all_my_cases).all()
 
 
 class DetectionRule(Entity):
@@ -1196,8 +1236,8 @@ class DetectionRule(Entity):
     @staticmethod
     def get_user_detection_rules(user, case=None):
         if case:
-            return DetectionRule.objects.filter(case=case)
-        return DetectionRule.objects.filter(owner=user)
+            return DetectionRule.objects.filter(case=case).all()
+        return DetectionRule.objects.filter(case__in=user.all_my_cases).all()
 
 
 class Event(Entity):
@@ -1286,7 +1326,7 @@ class Event(Entity):
         label = f'{self.name}<br><small><i>{self.type.name}</i></small>'
         nodes = [
             f'{self.id}("{icon} {label}")',
-            ]
+        ]
         clicks = [
             f'click {self.id} "{self.get_absolute_url()}"',
             f'class {self.id} Event'
@@ -1313,8 +1353,8 @@ class Event(Entity):
     @staticmethod
     def get_user_events(user, case=None):
         if case:
-            return Event.objects.filter(case=case)
-        return Event.objects.all()
+            return Event.objects.filter(case=case).all()
+        return Event.objects.filter(case__in=user.all_my_cases).all()
 
     @staticmethod
     def get_if_exists(name, case_id):
@@ -1389,6 +1429,7 @@ class PiRogueExperiment(Entity):
         help_text=_('Elasticsearch index storing the analysis.'),
         editable=True
     )
+
     @property
     def value(self):
         return self.name
@@ -1438,7 +1479,7 @@ class PiRogueExperiment(Entity):
         links = []
         nodes = [
             f'{self.id}("{icon} {self.name}")',
-            ]
+        ]
         clicks = [
             f'click {self.id} "{self.get_absolute_url()}"',
             f'class {self.id} PiRogueExperiment'
@@ -1466,8 +1507,8 @@ class PiRogueExperiment(Entity):
     @staticmethod
     def get_user_pirogue_dumps(user, case=None):
         if case:
-            return PiRogueExperiment.objects.filter(case=case)
-        return PiRogueExperiment.objects.all()
+            return PiRogueExperiment.objects.filter(case=case).all()
+        return PiRogueExperiment.objects.filter(case__in=user.all_my_cases).all()
 
 
 class ObservableAnalysisEngine(models.Model):
@@ -1496,6 +1537,7 @@ class ObservableAnalysisEngine(models.Model):
         null=True,
         blank=True
     )
+
 
 class BackendCredentials(models.Model):
     class Meta:

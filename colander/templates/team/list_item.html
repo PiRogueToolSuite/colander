@@ -1,0 +1,40 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-8 text-truncate border-end border-secondary">
+        <div class="border-bottom border-secondary">
+          <i class="nf nf-fa-users h4 text-primary"></i>
+          <a class="h4" href="{% url "collaborate_team_details_view" pk=team.id %}">
+            {{ team.name }}
+          </a>
+        </div>
+        <div>
+          <div class="text-tiny text-muted">
+            {% include "icons/user_icon.html" %}
+            {{ team.owner }} {% if team.owner == request.user %}(me){% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-truncate ">
+        <div class="row">
+          <div class="col">
+            <ul class="list-unstyled">
+              {% for c in team.contributors.all %}
+                <li>{% include "icons/user_icon.html" %} {{ c }}</li>
+              {% empty %}
+                Nobody
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    {% include "team/controls.html" with exclude="" btn_class="btn-sm" %}
+  </div>
+
+</div>

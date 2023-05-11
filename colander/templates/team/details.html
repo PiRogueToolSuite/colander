@@ -1,0 +1,54 @@
+{% load i18n %}
+
+<div class="row justify-content-center">
+  <div class="col-md-12 mt-2">
+    <h2><i class="nf nf-fa-users text-primary"></i> {{ team.name }}</h2>
+    {% include "team/controls.html" with exclude="details" btn_class="" %}
+  </div>
+  <div class="col-md-12 mt-2">
+    <h3>{% translate "Details" %}</h3>
+    <table class="table table-sm">
+      <tbody>
+      <tr>
+        <td>ID</td>
+        <td>
+          {% include "icons/id_icon.html" with c="text-primary" %}
+          <span class="font-monospace">
+              {{ team.id }}
+            </span>
+        </td>
+      </tr>
+      <tr>
+        <td>Owner</td>
+        <td>
+          {% include "icons/user_icon.html" with c="text-primary" %}
+          {{ team.owner }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col-md-6 mt-2">
+    <h3>{% translate "Contributors" %}</h3>
+    <ul class="list-unstyled">
+      {% for c in team.contributors.all %}
+        <li>{% include "icons/user_icon.html" with c="text-primary" %} {{ c }}</li>
+      {% empty %}
+        Nobody
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-6 mt-2">
+    <h3>{% translate "Shared cases" %}</h3>
+    <ul class="list-unstyled">
+      {% for c in team.team_cases %}
+        <li>
+          {% include "icons/case_icon.html" with c="text-primary" %}
+          <a href="{% url "collect_case_details_view" pk=c.id %}">{{ c }}</a>
+        </li>
+      {% empty %}
+        None
+      {% endfor %}
+    </ul>
+  </div>
+</div>

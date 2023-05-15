@@ -2,8 +2,8 @@
 {% load i18n %}
 {% load colander_tags %}
 {%  block content %}
-  <div class='row'>
-    <div class='col-6 mt-2'>
+  <div class='row mt-2'>
+    <div class='col-6'>
       <h2>Colander quick How-To</h2>
       <div class="ps-4">
         <ul class='timeline-with-icons'>
@@ -34,6 +34,10 @@
       {% comment %}
       {% include 'case/create_update.html' %}
       {% endcomment %}
+      <h2>Not latest ?</h2>
+      <div>
+        <a href="{% url 'case_create_view' %}">View all or create it</a>
+      </div>
       {% include 'case/list.html' with compact=True %}
     </div>
   </div>

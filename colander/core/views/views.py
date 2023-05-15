@@ -172,6 +172,8 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
     ]
 
     def get_form(self, form_class=None):
+        if self.request.user != self.object.owner:
+            raise Exception("You cannot edit this case")
         form = super(CaseCreateView, self).get_form(form_class)
         form.fields['teams'].widget.attrs['size'] = 10
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})

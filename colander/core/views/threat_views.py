@@ -39,8 +39,9 @@ class ThreatCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         active_case = get_active_case(self.request)
         if form.is_valid() and active_case:
             threat = form.save(commit=False)
-            threat.owner = self.request.user
-            threat.case = active_case
+            if not hasattr(threat, 'owner'):
+                threat.owner = self.request.user
+                threat.case = active_case
             threat.save()
             form.save_m2m()
         return super().form_valid(form)

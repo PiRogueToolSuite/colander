@@ -56,8 +56,9 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         active_case = get_active_case(self.request)
         if form.is_valid() and active_case:
             event = form.save(commit=False)
-            event.owner = self.request.user
-            event.case = active_case
+            if not hasattr(event, 'owner'):
+                event.owner = self.request.user
+                event.case = active_case
             event.save()
             form.save_m2m()
         return super().form_valid(form)

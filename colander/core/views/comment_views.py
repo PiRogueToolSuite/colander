@@ -14,7 +14,8 @@ def create_comment_view(request):
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
-            comment.owner = owner
+            if not hasattr(comment, 'owner'):
+                comment.owner = owner
             comment.save()
             form.save_m2m()
             return redirect(request.META.get('HTTP_REFERER'))

@@ -58,11 +58,9 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         active_case = get_active_case(self.request)
         if form.is_valid() and active_case:
             observable = form.save(commit=False)
-            observable.owner = self.request.user
-            observable.case = active_case
-            artifact = form.cleaned_data['extracted_from']
-            if artifact:
-                observable.case = artifact.case
+            if not hasattr(observable, 'owner'):
+                observable.owner = self.request.user
+                observable.case = active_case
             observable.save()
             form.save_m2m()
         return super().form_valid(form)

@@ -43,8 +43,9 @@ class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         active_case = get_active_case(self.request)
         if form.is_valid() and active_case:
             device = form.save(commit=False)
-            device.owner = self.request.user
-            device.case = active_case
+            if not hasattr(device, 'owner'):
+                device.owner = self.request.user
+                device.case = active_case
             device.save()
             form.save_m2m()
         return super().form_valid(form)

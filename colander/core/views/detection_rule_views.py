@@ -40,8 +40,9 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView)
         active_case = get_active_case(self.request)
         if form.is_valid() and active_case:
             rule = form.save(commit=False)
-            rule.owner = self.request.user
-            rule.case = active_case
+            if not hasattr(rule, 'owner'):
+                rule.owner = self.request.user
+                rule.case = active_case
             rule.save()
             form.save_m2m()
         return super().form_valid(form)

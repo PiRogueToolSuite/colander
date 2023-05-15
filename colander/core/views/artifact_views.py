@@ -55,7 +55,9 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
         if form.is_valid() and active_case:
             artifact = form.save(commit=False)
-            artifact.owner = self.request.user
+            if not hasattr(artifact, 'owner'):
+                artifact.owner = self.request.user
+                artifact.case = active_case
 
             upr = UploadRequest.objects.get(pk=form.cleaned_data['upload_request_ref'])
 
@@ -82,7 +84,6 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
             artifact.mime_type = mime_type
             artifact.name = file_name
             artifact.original_name = file_name
-            artifact.case = active_case
             artifact.save()
             form.save_m2m()
 

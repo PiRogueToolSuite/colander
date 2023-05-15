@@ -182,7 +182,8 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         if form.is_valid():
             case = form.save(commit=False)
-            case.owner = self.request.user
+            if not hasattr(case, 'owner'):
+                case.owner = self.request.user
             case.save()
             form.save_m2m()
         return super().form_valid(form)

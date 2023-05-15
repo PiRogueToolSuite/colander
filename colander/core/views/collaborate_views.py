@@ -26,7 +26,8 @@ class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     def form_valid(self, form):
         if form.is_valid():
             team = form.save(commit=False)
-            team.owner = self.request.user
+            if not hasattr(team, 'owner'):
+                team.owner = self.request.user
             team.save()
             form.save_m2m()
         return super().form_valid(form)

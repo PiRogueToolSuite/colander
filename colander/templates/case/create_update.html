@@ -15,9 +15,11 @@
             {{ form.name|as_crispy_field }}
             {{ form.description|as_crispy_field }}
           </div>
-          <div class="col-md-4">
-            {{ form.teams|as_crispy_field }}
-          </div>
+          {% if request.user == case.owner %}
+            <div class="col-md-4">
+              {{ form.teams|as_crispy_field }}
+            </div>
+          {% endif %}
         </div>
         {% if is_editing %}
           <button class="btn btn-primary" type="submit" name="save_case">{% translate "Update" %}</button>

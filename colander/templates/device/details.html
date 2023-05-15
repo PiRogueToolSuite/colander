@@ -29,7 +29,7 @@
         <td>Case</td>
         <td>
           {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="{% url "collect_case_details_view" pk=device.case.id %}">
+          <a href="{% url "case_details_view" pk=device.case.id %}">
             {{ device.case.name }}
           </a>
         </td>

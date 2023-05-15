@@ -1,8 +1,9 @@
+{% load colander_tags %}
 {% if elt %}
   {% if elt.color %}
-    <i class="fa fa-circle {{ c }}" style="color: {{ elt.color }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type.name }}"></i>
+    <i class="fa fa-circle {{ c }}" style="color: {{ elt.color }}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt|model_name|capfirst }}"></i>
   {% else %}
-    <i class="fa fa-circle {{ c }}" style="color: #aaaaaa" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type.name }}"></i>
+    <i class="fa fa-circle {{ c }}" style="color: #aaaaaa" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt|model_name|capfirst }}"></i>
   {% endif %}
   {% if elt.tlp == "WHITE" or elt.tlp == "CLEAR" %}
     <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="TLP:CLEAR"></i>
@@ -37,6 +38,6 @@
   {% if elt.type and elt.type.nf_icon %}
     <i class="nf {{ elt.type.nf_icon }} text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.type.name }}"></i>
   {% else %}
-    <i class="fa {{ r.icon }} text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt.super_type }}"></i>
+    <i class="fa {{ r.icon }} text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ elt|model_name|capfirst }}"></i>
   {% endif %}
 {% endif %}

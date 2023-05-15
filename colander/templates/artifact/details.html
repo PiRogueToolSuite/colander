@@ -33,7 +33,7 @@
         <td>Case</td>
         <td>
           {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="{% url "collect_case_details_view" pk=artifact.case.id %}">
+          <a href="{% url "case_details_view" pk=artifact.case.id %}">
             {{ artifact.case.name }}
           </a>
         </td>
@@ -195,7 +195,7 @@
       </div>
       <div class="card-footer text-center">
         {% if artifact.has_been_processed %}
-          <a href="{% url "collect_cases_download_key_view" pk=artifact.case.id %}"
+          <a href="{% url "cases_download_key_view" pk=artifact.case.id %}"
              class="btn btn-sm btn-primary text-white">
             Download case key
           </a>

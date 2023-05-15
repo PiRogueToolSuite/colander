@@ -1,14 +1,79 @@
 {% extends "base.html" %}
+{% load i18n %}
+{% load colander_tags %}
 {%  block content %}
   <div class='row'>
-    <div class='col-6'>
-      Yoyla
-      {% for h in request.GET %}
-        <pre>{{ h }}</pre>
-      {% endfor %}
+    <div class='col-6 mt-2'>
+      <h2>Colander quick How-To</h2>
+      <div class="ps-4">
+        <ul class='timeline-with-icons'>
+          <li class="timeline-item mb-2">
+            <span class="timeline-icon text-white fs-4">1</span>
+            <h3 class="pt-1 mb-0">Select or create a case</h3>
+            <div class="text-muted">All collected data, investigations done and documentation written are attached to a case</div>
+          </li>
+          <li class="timeline-item mb-2">
+            <span class="timeline-icon text-white fs-4">2</span>
+            <h3 class="pt-1 mb-0">Collect data</h3>
+            <div class="text-muted">Populate your case with all kind of meaningfully data, from actors identification to low-level technical information</div>
+          </li>
+          <li class="timeline-item mb-2">
+            <span class="timeline-icon text-white fs-4">3</span>
+            <h3 class="pt-1 mb-0">Investigate within data</h3>
+            <div class="text-muted">Use all the available tools to explore and link identified data togethers</div>
+          </li>
+          <li class="timeline-item">
+            <span class="timeline-icon text-white fs-4">4</span>
+            <h3 class="pt-1 mb-0">Document the case</h3>
+            <div class="text-muted">Write the documentation of your case. Pro tip: you can access the documentation editor at any time with its bottom-right shortcut</div>
+          </li>
+        </ul>
+      </div>
     </div>
     <div class='col-6'>
-      {% include 'case/list.html' %}
+      {% comment %}
+      {% include 'case/create_update.html' %}
+      {% endcomment %}
+      {% include 'case/list.html' with compact=True %}
+    </div>
+  </div>
+  <div class='row'>
+    <div class='col-12'>
+      <h2>Latest entity overview</h2>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Case</th>
+            <th scope="col">Update</th>
+            <th scope="col" class="text-nowrap">Type</th>
+            <th scope="col" class="text-nowrap">Entity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in entities %}
+            <tr>
+              <td class="text-nowrap">
+                <a href="{% url 'cases_select_view' e.case.id %}" title="Select case: {{ e.case }}" data-bs-toggle="tooltip" data-bs-placement="top">{{ e.case }}</a>
+              </td>
+              <td class="text-nowrap">{{ e.updated_at }}</td>
+              <td>
+                {{ e|model_name|capfirst }}
+                {% if e.type %}
+                 - <i>{{ e.type }}</i>
+                {% endif %}
+              </td>
+              <td class="text-nowrap">
+                {% include "icons/pills.html" with elt=e %}
+                {% if request.session.active_case and request.session.active_case == e.case %}
+                  <a href="{{ e.absolute_url }}"><samp>{{ e.value }}</samp></a>
+                {% else %}
+                  <samp>{{ e.value }}</samp>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 {% endblock content %}

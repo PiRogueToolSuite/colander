@@ -28,7 +28,7 @@ from colander.core.views.obversable_views import ObservableCreateView, Observabl
     ObservableDetailsView, delete_observable_view, capture_observable_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.views import landing_view, collect_base_view, \
-    report_base_view, collect_cases_select_view, CaseCreateView, \
+    report_base_view, cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
     forward_auth, cron_ish_view
@@ -69,13 +69,20 @@ urlpatterns = [
       path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
       path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
-      path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
+      path("case", CaseCreateView.as_view(), name="case_create_view"),
+      path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
+      path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
+      path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
+      path("case/<slug:pk>/doc/save", save_case_documentation_view, name="cases_save_doc_view"),
+      path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+
       path("document/case", write_documentation_view, name="document_case_write_doc_view"),
-      path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
-      path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
-      path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
-      path("collect/case/<slug:pk>/doc/save", save_case_documentation_view, name="collect_cases_save_doc_view"),
-      path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
+      #path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
+      #path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
+      #path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
+      #path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
+      #path("collect/case/<slug:pk>/doc/save", save_case_documentation_view, name="collect_cases_save_doc_view"),
+      #path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
 
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
       path("collect/artifact/upload", initialize_upload, name="initialize_upload"),

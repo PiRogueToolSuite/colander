@@ -14,7 +14,7 @@ from colander.core.views.views import get_active_case
 def create_or_edit_entity_relation_view(request):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
     form = EntityRelationForm()
     entities = active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
     choices = [

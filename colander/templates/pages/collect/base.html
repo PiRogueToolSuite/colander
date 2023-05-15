@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block sidebar-items %}
-  {% url 'collect_case_create_view' as collect_cases_view_url %}
   {% url 'collect_actor_create_view' as collect_actor_view_url %}
   {% url 'collect_device_create_view' as collect_device_view_url %}
   {% url 'collect_event_create_view' as collect_event_view_url %}
@@ -13,16 +11,16 @@
   {% url 'collect_threat_create_view' as collect_threat_create_view_url %}
   {% url 'collect_detection_rule_create_view' as collect_detection_rule_create_view_url %}
   {% url 'collect_experiment_create_view' as collect_experiment_create_view_url %}
+  {% comment %}
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
     <span>Knowledge</span>
     <a href="{% url "collect_quick_creation_view" %}" class="text-primary">
       <i class="nf nf-fa-plus_square"></i>
     </a>
   </h6>
-  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_cases_view_url in request.path %} active {% endif %}"
-     href="{{ collect_cases_view_url }}" title="Cases">
-    {% include "icons/case_icon.html" %}
-    <span class="list-group-item-label">Cases</span>
+  {% endcomment %}
+  <a id='quick-add-entity' href="{% url "collect_quick_creation_view" %}" title="Quick entity creation">
+    <i class="nf nf-fa-plus_square"></i>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_actor_view_url in request.path %} active {% endif %}"
      href="{{ collect_actor_view_url }}" title="Actors">
@@ -39,30 +37,30 @@
     {% include "icons/device_icon.html" %}
     <span class="list-group-item-label">Devices</span>
   </a>
-  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_detection_rule_view_url in request.path %} active {% endif %}"
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_detection_rule_create_view_url in request.path %} active {% endif %}"
      href="{{ collect_detection_rule_create_view_url }}" title="Detection rules">
     {% include "icons/detection_rule_icon.html" %}
     <span class="list-group-item-label">Detection rules</span>
   </a>
-  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_event_view_url in request.path %} active {% endif %}"
-     href="{{ collect_event_view_url }}" title="Events">
-    {% include "icons/event_icon.html" %}
-    <span class="list-group-item-label">Events</span>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_threat_create_view_url in request.path %} active {% endif %}"
+     href="{{ collect_threat_create_view_url }}" title="Threats">
+    {% include "icons/threat_icon.html" %}
+    <span class="list-group-item-label">Threats</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_observable_create_view_url in request.path %} active {% endif %}"
      href="{{ collect_observable_create_view_url }}" title="Observable">
     {% include "icons/observable_icon.html" %}
     <span class="list-group-item-label">Observables</span>
   </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_event_view_url in request.path %} active {% endif %}"
+     href="{{ collect_event_view_url }}" title="Events">
+    {% include "icons/event_icon.html" %}
+    <span class="list-group-item-label">Events</span>
+  </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_relation_create_view_url in request.path %} active {% endif %}"
      href="{{ collect_relation_create_view_url }}" title="Relations">
     {% include "icons/relation_icon.html" %}
     <span class="list-group-item-label">Relations</span>
-  </a>
-  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_threat_create_view_url in request.path %} active {% endif %}"
-     href="{{ collect_threat_create_view_url }}" title="Threats">
-    {% include "icons/threat_icon.html" %}
-    <span class="list-group-item-label">Threats</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_experiment_create_view_url in request.path %} active {% endif %}"
      href="{{ collect_experiment_create_view_url }}" title="PiRogue experiment">
@@ -91,7 +89,7 @@
             <td>Case</td>
             <td>
               {% include "icons/case_icon.html" with c="text-primary" %}
-              <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+              <a href="{% url "case_details_view" pk=request.active_case.id %}">
                 {{ request.active_case.name }}
               </a>
             </td>

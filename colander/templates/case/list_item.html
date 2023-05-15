@@ -1,49 +1,50 @@
 {% load i18n %}
-
-
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
-  <div class="card-body p-2">
-    <div class="row">
-      <div class="col-md-12 text-truncate">
-        <div class="border-bottom border-secondary">
-          {% include "icons/case_icon.html" with c="h4 text-primary" %}
-          <a class="h4" href="{% url "collect_case_details_view" pk=case.id %}">
-            {{ case.name }}
-          </a>
-          <div class="text-muted small">
-            {{ case.type.name }}
-          </div>
-        </div>
-        <div>
-          <div class="text-tiny font-monospace text-muted mt-1">
-            {% include "icons/id_icon.html" %}{{ case.id }}
-          </div>
-          <div class="text-tiny text-muted">
-            {% include "icons/date_icon.html" %}
-            {{ case.created_at }}
-          </div>
-          <div class="text-tiny text-muted">
-            {% include "icons/user_icon.html" %}
-            {{ case.owner }} {% if case.owner == request.user %}(me){% endif %}
+  <div class="card-header align-middle">
+    <a class="h4 mb-0 align-middle" href="{% url "case_details_view" pk=case.id %}">
+      {% include "icons/case_icon.html" with c="text-primary" %}
+      {{ case.name }}
+    </a>
+    {% if compact %}
+      <span class="text-tiny text-muted">
+        {% include "icons/date_icon.html" %}
+        Updated at: {{ case.updated_at }}
+      </span>
+      <span style='float: right;'>
+        {% include 'case/controls.html' with c='btn-group-sm' %}
+      </span>
+    {% endif %}
+  </div>
+  {% if not compact %}
+    <div class="card-body p-2">
+      <div class="row">
+        <div class="col-md-12 text-truncate">
+          {% comment %}
+            <div class="border-bottom border-secondary">
+              {% include "icons/case_icon.html" with c="h4 text-primary" %}
+              <a class="h4" href="{% url "collect_case_details_view" pk=case.id %}">
+                {{ case.name }}
+              </a>
+            </div>
+          {% endcomment %}
+          <div>
+            <div class="text-tiny font-monospace text-muted mt-1">
+              {% include "icons/id_icon.html" %}{{ case.id }}
+            </div>
+            <div class="text-tiny text-muted">
+              {% include "icons/date_icon.html" %}
+              {{ case.created_at }}
+            </div>
+            <div class="text-tiny text-muted">
+              {% include "icons/user_icon.html" %}
+              {{ case.owner }} {% if case.owner == request.user %}(me){% endif %}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
-    <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="{% url "collect_case_details_view" pk=case.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-eye"></i>
-        {% translate "Details" %}
-      </a>
-      <a href="{% url "collect_cases_select_view" pk=case.id %}" class="btn btn-primary">
-        <i class="nf nf-cod-arrow_swap"></i>
-        {% translate "Select" %}
-      </a>
-      <a href="{% url "collect_case_update_view" pk=case.id %}" class="btn btn-primary">
-        <i class="nf nf-fa-edit"></i>
-        {% translate "Edit" %}
-      </a>
+    <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+      {% include 'case/controls.html' %}
     </div>
-  </div>
+  {% endif %}
 </div>

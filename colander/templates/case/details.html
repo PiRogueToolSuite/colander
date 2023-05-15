@@ -13,11 +13,11 @@
       {% endif %}
     </div>
     <div class="btn-group" role="group">
-      <a href="{% url "collect_case_update_view" pk=case.id %}" class="btn btn-primary">
+      <a href="{% url "case_update_view" pk=case.id %}" class="btn btn-primary">
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>
-      <a href="{% url "collect_cases_select_view" pk=case.id %}" class="btn btn-primary">
+      <a href="{% url "cases_select_view" pk=case.id %}" class="btn btn-primary">
         <i class="nf nf-cod-arrow_swap"></i>
         {% translate "Select" %}
       </a>
@@ -42,7 +42,7 @@
           <a href="#" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#pubKeyModal">
             View key
           </a>
-          <a href="{% url "collect_cases_download_key_view" pk=case.id %}" class="btn btn-sm btn-secondary">
+          <a href="{% url "cases_download_key_view" pk=case.id %}" class="btn btn-sm btn-secondary">
             Download key
           </a>
           <div class="modal fade modal-lg" id="pubKeyModal" tabindex="-1"

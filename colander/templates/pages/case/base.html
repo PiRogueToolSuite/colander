@@ -1,8 +1,8 @@
-{% extends "pages/collect/base.html" %}
+{% extends "base.html" %}
 {% load crispy_forms_tags %}
 {% load i18n %}
 
-{% block inner-content %}
+{% block content %}
   <div class="row justify-content-center">
     {% if not request.active_case %}
       <div class="col-md-4 mt-5">
@@ -20,7 +20,7 @@
     {% include 'case/create_update.html' %}
   </div>
   {%  include 'case/list.html' %}
-{% endblock inner-content %}
+{% endblock content %}
 
 {% block inline_javascript %}
   <script>

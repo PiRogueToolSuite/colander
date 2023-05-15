@@ -8,7 +8,7 @@ from colander.core.views.views import get_active_case
 def write_documentation_view(request):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
 
     return render(request,
                   'pages/document/base.html')

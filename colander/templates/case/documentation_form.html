@@ -1,7 +1,7 @@
 {% load crispy_forms_tags %}
 {% if documentation_form %}
   <form class="form" method="post" id="case_documentation_form"
-        action="{% url "collect_cases_save_doc_view" pk=request.active_case.id %}">
+        action="{% url "cases_save_doc_view" pk=request.active_case.id %}">
     {% csrf_token %}
     <div class="form-group">
       {{ documentation_form | crispy }}

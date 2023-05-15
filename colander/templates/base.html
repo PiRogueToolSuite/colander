@@ -50,6 +50,7 @@
 
 <body>
   {% url 'home' as home_url %}
+  {% url 'case_create_view' as case_create_view_url %}
   {% url 'collect_base_view' as collect_base_view_url %}
   {% url 'investigate_base_view' as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
@@ -104,7 +105,7 @@
         <div>
           {% if request.active_case %}
             <div>
-              <a href="{% url "collect_case_details_view" pk=request.active_case.id %}">
+              <a href="{% url "case_details_view" pk=request.active_case.id %}">
                 {% include "icons/case_icon.html" with c="text-primary" %}
                 {{ request.active_case.name }}
               </a>
@@ -137,26 +138,34 @@
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
           <span>Workspaces</span>
         </h6>
-        <a class="list-group-item list-group-item-action list-group-item-light{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
           <i class="nf nf-fa-home list-group-item-icon"></i>
           <span class="d-none d-sm-inline list-group-item-label">Home</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light{% if collect_base_view_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if case_create_view_url in request.path %} active {% endif %}"
+           href="{{ case_create_view_url }}" title="Cases">
+          {% include "icons/case_icon.html" %}
+          <span class="list-group-item-label">Cases</span>
+        </a>
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if collect_base_view_url in request.path %} active {% endif %}"
            href="{{ collect_base_view_url }}">
           <i class="fa fa-th" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Collect</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light{% if document_cases_write_doc_url in request.path %} active {% endif %}"
+        <div class="list-group list-group-flush list-group-secondary">
+          {% block sidebar-items %}{% endblock sidebar-items %}
+        </div>
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if document_cases_write_doc_url in request.path %} active {% endif %}"
            href="{{ document_cases_write_doc_url }}">
           <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Document</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light{% if investigate_base_view_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if investigate_base_view_url in request.path %} active {% endif %}"
            href="{{ investigate_base_view_url }}">
           <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light{% if cyberchef_base_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if cyberchef_base_url in request.path %} active {% endif %}"
            href="{{ cyberchef_base_url }}" target="_blank">
           <i class="icon-cyberchef_hat" aria-hidden="true"></i>
           <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
@@ -171,7 +180,6 @@
           </a>
       {% endif %}
       {% endcomment %}
-      {% block sidebar-items %}{% endblock sidebar-items %}
       </div>
     </aside>
     <div id="page-content-wrapper">
@@ -238,7 +246,7 @@
             <ul>
               {% for case in request.user_cases %}
                 <li>
-                  {{ case.name }} <a href="{% url "collect_cases_select_view" pk=case.id %}">Select</a>
+                  {{ case.name }} <a href="{% url "cases_select_view" pk=case.id %}">Select</a>
                 </li>
               {% endfor %}
             </ul>

@@ -196,7 +196,7 @@ class Case(models.Model):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_case_details_view', kwargs={'pk': self.id})
+        return reverse('case_details_view', kwargs={'pk': self.id})
 
     @property
     def value(self):
@@ -403,6 +403,30 @@ class Entity(models.Model):
     def sorted_comments(self):
         return self.comments.order_by('created_at')
 
+    @staticmethod
+    def filter_by_name_or_value(owner, name_or_value='', q_type=None, exclude_types=['EntityRelation']):
+        q_sub_models = colander_models
+        if q_type and q_type in q_sub_models:
+            q_sub_models = {q_type: q_sub_models.get(q_type)}
+        field_name = ''
+        results = []
+        for name, model in q_sub_models.items():
+            if name is 'Case':
+                continue
+            if name in exclude_types:
+                continue
+            if hasattr(model, 'name'):
+                field_name = 'name'
+            elif hasattr(model, 'value'):
+                field_name = 'value'
+            try:
+                objects = model.objects.filter(**{f'{field_name}__icontains': name_or_value, 'owner': owner})
+                results.extend(objects.all())
+            except Exception as e:
+                print(model, e)
+                pass
+        results.sort(key=lambda a: a.updated_at, reverse=True)
+        return results
 
 class Comment(models.Model):
     class Meta:

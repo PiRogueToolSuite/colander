@@ -52,25 +52,27 @@
           </div>
           {% if "OBSERVABLE" in types_to_display %}
             <h3>Related observables</h3>
-            <table class="table table-hover table-responsive table-sm">
-              <thead class="bg-secondary-light">
-              <tr>
-                <th>Entity</th>
-                <th class="text-end">Actions</th>
-              </tr>
-              </thead>
-              <tbody>
-              {% for entity in results.entities.values|dictsort:"type.name" %}
-                {% if entity.super_type.short_name == "OBSERVABLE" %}
-                  {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
-                {% endif %}
-              {% endfor %}
-              </tbody>
-            </table>
+            <div class="px-2">
+              <table class="table table-hover table-responsive table-sm">
+                <thead class="bg-secondary-light">
+                <tr>
+                  <th>Entity</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for entity in results.entities.values|dictsort:"type.name" %}
+                  {% if entity.super_type.short_name == "OBSERVABLE" %}
+                    {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
+                  {% endif %}
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
           {% endif %}
           {% if results.events %}
             <h3>Related events</h3>
-            <div class="">
+            <div class="ps-4">
               <ul class="timeline-with-icons">
                 {% for entity in results.events %}
                   <li class="timeline-item mb-2">

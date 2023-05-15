@@ -9,12 +9,17 @@ from django.views.decorators.cache import cache_page
 from django_serverless_cron.services import RunJobs
 
 from colander.core.forms import DocumentationForm, CommentForm
-from colander.core.models import Case, colander_models
+from colander.core.models import Entity, Case, colander_models
+
+from pprint import pprint
 
 @login_required
 def landing_view(request):
     ctx = dict()
-    ctx['cases'] = Case.get_user_cases(request.user)
+    #ctx['cases'] = Case.get_user_cases(request.user)
+    ctx['cases'] = Case.objects.filter(owner=request.user)[:3]
+    #ctx['entities'] = Entity.objects.filter(owner=request.user)[:10]
+    ctx['entities'] = Entity.filter_by_name_or_value(owner=request.user)[:10]
     return render(request, 'pages/home.html', context=ctx)
 
 class CaseRequiredMixin(AccessMixin):
@@ -22,14 +27,14 @@ class CaseRequiredMixin(AccessMixin):
 
     def dispatch(self, request, *args, **kwargs):
         if not request.session.get('active_case'):
-            return redirect('collect_case_create_view')
+            return redirect('case_create_view')
         return super().dispatch(request, *args, **kwargs)
 
 
 @login_required
 def evidences_view(request):
     if not request.session.get('active_case'):
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
     return render(request, 'pages/evidences.html')
 
 
@@ -37,7 +42,7 @@ def evidences_view(request):
 def enable_documentation_editor(request):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
     request.session['show_documentation_editor'] = True
     return redirect(request.META.get('HTTP_REFERER'))
 
@@ -46,7 +51,7 @@ def enable_documentation_editor(request):
 def disable_documentation_editor(request):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
     request.session['show_documentation_editor'] = False
     return redirect(request.META.get('HTTP_REFERER'))
 
@@ -55,7 +60,7 @@ def disable_documentation_editor(request):
 def save_case_documentation_view(request, pk):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
 
     if request.method == 'POST':
         form = DocumentationForm(request.POST)
@@ -69,7 +74,7 @@ def save_case_documentation_view(request, pk):
 def quick_creation_view(request):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
 
     if request.method == 'POST':
         if 'create_entity' in request.POST:
@@ -118,7 +123,7 @@ def quick_creation_view(request):
 def collect_base_view(request):
     active_case = get_active_case(request)
     if not active_case:
-        return redirect('collect_case_create_view')
+        return redirect('case_create_view')
 
     form = DocumentationForm(initial={'documentation': active_case.documentation})
 
@@ -129,12 +134,12 @@ def collect_base_view(request):
 
 
 @login_required
-def collect_cases_select_view(request, pk):
+def cases_select_view(request, pk):
     if request.method == 'GET':
         case = get_object_or_404(Case, id=pk)
         request.session['active_case'] = str(case.id)
-        return redirect('collect_base_view')
-
+        #return redirect('case_create_view')
+        return redirect('case_details_view', case.id)
 
 @login_required
 def get_active_case(request):
@@ -148,8 +153,8 @@ def get_active_case(request):
 
 class CaseCreateView(LoginRequiredMixin, CreateView):
     model = Case
-    template_name = 'pages/collect/cases.html'
-    success_url = reverse_lazy('collect_case_create_view')
+    template_name = 'pages/case/base.html'
+    success_url = reverse_lazy('case_create_view')
     fields = [
         'name',
         'description',
@@ -187,7 +192,7 @@ class CaseUpdateView(CaseCreateView, UpdateView):
 class CaseDetailsView(LoginRequiredMixin, DetailView):
     model = Case
     context_object_name = 'case'
-    template_name = 'pages/collect/case_details.html'
+    template_name = 'pages/case/details.html'
 
 
 @login_required

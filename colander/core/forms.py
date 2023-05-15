@@ -61,3 +61,10 @@ class EntityRelationForm(forms.Form):
         label='Target entity',
         required=True
     )
+
+
+class AddRemoveTeamContributorForm(forms.Form):
+    contributor_id = forms.UUIDField(
+        label='ID of the contributor to add',
+        required=True
+    )

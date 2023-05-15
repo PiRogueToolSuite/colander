@@ -153,13 +153,16 @@
           <i class="fa fa-th" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Collect</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light{% if collaborate_base_view_url in request.path %} active {% endif %}"
+        <div class="list-group list-group-flush list-group-secondary">
+          {% block sidebar-items %}{% endblock sidebar-items %}
+        </div>
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if collaborate_base_view_url in request.path %} active {% endif %}"
            href="{{ collaborate_base_view_url }}">
           <i class="nf nf-fa-share_alt" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
         </a>
         <div class="list-group list-group-flush list-group-secondary">
-          {% block sidebar-items %}{% endblock sidebar-items %}
+          {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
         </div>
         <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if document_cases_write_doc_url in request.path %} active {% endif %}"
            href="{{ document_cases_write_doc_url }}">

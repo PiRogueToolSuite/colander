@@ -2,10 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.contrib import messages
 from django.views.generic import CreateView, UpdateView, DetailView
 
+from colander.core.forms import AddRemoveTeamContributorForm
 from colander.core.models import ColanderTeam
 from colander.core.views.views import CaseRequiredMixin
+from colander.users.models import User
 
 
 class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
@@ -14,7 +17,6 @@ class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     success_url = reverse_lazy('collaborate_team_create_view')
     fields = [
         'name',
-        'contributors',
     ]
 
     def get_form(self, form_class=None):
@@ -51,7 +53,35 @@ class ColanderTeamDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['form'] = AddRemoveTeamContributorForm()
         return ctx
+
+
+@login_required
+def add_remove_team_contributor(request, pk):
+    team = ColanderTeam.objects.get(id=pk)
+    print(';oish df piusDhfp iughui')
+    if request.method == 'POST':
+        form = AddRemoveTeamContributorForm(request.POST)
+        if form.is_valid():
+            contributor_id = form.cleaned_data['contributor_id']
+            try:
+                contributor = User.objects.get(contributor_id=contributor_id)
+                if 'add_contributor' in request.POST \
+                    and contributor is not team.owner \
+                    and contributor not in team.contributors.all():
+                    team.contributors.add(contributor)
+                    team.save()
+                    messages.success(request, f'{contributor} has been added to the team {team.name}.')
+                if 'remove_contributor' in request.POST \
+                    and contributor is not team.owner \
+                    and contributor in team.contributors.all():
+                    team.contributors.remove(contributor)
+                    team.save()
+                    messages.success(request, f'{contributor} has been removed from the team {team.name}.')
+            except User.DoesNotExist:
+                messages.error(request, f'Contributor {contributor_id} does not exist.')
+    return redirect("collaborate_team_details_view", pk=team.id)
 
 
 @login_required

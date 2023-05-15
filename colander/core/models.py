@@ -176,6 +176,7 @@ class Case(models.Model):
     teams = models.ManyToManyField(
         ColanderTeam,
         related_name='cases',
+        help_text=_('Share this case with the selected teams. Press ctrl on your keyboard to select/deselect teams.'),
         blank=True,
         null=True,
     )
@@ -446,7 +447,7 @@ class Entity(models.Model):
         field_name = ''
         results = []
         for name, model in q_sub_models.items():
-            if name is 'Case':
+            if name == 'Case':
                 continue
             if name in exclude_types:
                 continue

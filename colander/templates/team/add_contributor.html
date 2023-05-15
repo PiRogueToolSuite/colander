@@ -1,0 +1,22 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+
+<div class="mt-2">
+  <form method="post" action="{% url "collaborate_team_add_remove_contributor" pk=team.id %}" autocomplete="off">
+    {% csrf_token %}
+    <div class="input-group mb-1">
+      <input type="text" class="form-control form-control-sm" name="contributor_id" required="required"
+             placeholder="ID of the contributor to be added to this team"
+             aria-label="ID of the contributor to be added to this team"
+             aria-describedby="add-contributor-btn">
+      <button class="btn btn-primary btn-sm" type="submit" name="add_contributor">
+        {% translate "Add contributor" %}
+      </button>
+    </div>
+  </form>
+  <div class="small mb-1">
+    The user you want to add as a team contributor has to share their Contributor ID with you. The Contributor ID
+    can be found in the user's profile.
+  </div>
+</div>

@@ -168,10 +168,12 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
     fields = [
         'name',
         'description',
+        'teams'
     ]
 
     def get_form(self, form_class=None):
         form = super(CaseCreateView, self).get_form(form_class)
+        form.fields['teams'].widget.attrs['size'] = 10
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         return form
 

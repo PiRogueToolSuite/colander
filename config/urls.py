@@ -15,7 +15,7 @@ from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCrea
     download_artifact, \
     download_artifact_signature, delete_artifact_view, view_artifact
 from colander.core.views.collaborate_views import ColanderTeamCreateView, ColanderTeamUpdateView, delete_team_view, \
-    ColanderTeamDetailsView
+    ColanderTeamDetailsView, add_remove_team_contributor
 from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
 from colander.core.views.detection_rule_views import delete_detection_rule_view, DetectionRuleCreateView, \
     DetectionRuleUpdateView, DetectionRuleDetailsView
@@ -66,6 +66,7 @@ urlpatterns = [
       path("collaborate/", collaborate_base_view, name="collaborate_base_view"),
       path("collaborate/team", ColanderTeamCreateView.as_view(), name="collaborate_team_create_view"),
       path("collaborate/team/<slug:pk>", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
+      path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/details", ColanderTeamDetailsView.as_view(), name="collaborate_team_details_view"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
 

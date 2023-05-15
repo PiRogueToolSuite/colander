@@ -6,19 +6,15 @@
 {% load colander_tags %}
 
 
-{% block sidebar-items %}
+{% block collaborate-sidebar-items %}
   {% url 'collaborate_team_create_view' as collaborate_team_create_view_url %}
-
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
-    <span>Channels</span>
-  </h6>
   <a
     class="list-group-item list-group-item-action list-group-item-light{% if collaborate_team_create_view_url in request.path %} active {% endif %}"
     href="{% url "collaborate_team_create_view" %}" title="Teams">
     {% include "icons/team_icon.html" %}
     <span class="list-group-item-label">Teams</span>
   </a>
-{% endblock sidebar-items %}
+{% endblock collaborate-sidebar-items %}
 
 {% block content %}
   {% block inner-content %}

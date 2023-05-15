@@ -6,7 +6,7 @@
 
 {% block inner-content %}
   <div class="row justify-content-center">
-    <div class="col-md-12 mt-2">
+    <div class="col-md-6 mt-2">
       {% if is_editing %}
         <h2>{% translate "Edit this team" %}</h2>
       {% else %}
@@ -16,12 +16,7 @@
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
-            <div class="row justify-content-center">
-              <div class="col-md-4">
-                {{ form.contributors|as_crispy_field }}
-              </div>
-              <div class="col">
-                {{ form.name|as_crispy_field }}
+            {{ form.name|as_crispy_field }}
             {% if is_editing %}
               <button class="btn btn-primary" type="submit" name="save_team">{% translate "Update" %}</button>
             {% else %}
@@ -35,11 +30,11 @@
   <div class="row justify-content-center mt-4">
     <div class="col-md-12">
       <h2>{% translate "Latest teams" %}</h2>
-        {% if teams %}
-          {% for team in teams %}
-            {% include "team/list_item.html" %}
-          {% endfor %}
-        {% endif %}
-      </div>
+      {% if teams %}
+        {% for team in teams %}
+          {% include "team/list_item.html" %}
+        {% endfor %}
+      {% endif %}
+    </div>
   </div>
 {% endblock inner-content %}

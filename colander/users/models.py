@@ -1,9 +1,12 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db.models import CharField, Q
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
+from django.db import models
 
 from colander.core.models import Case
 
@@ -31,6 +34,11 @@ class User(AbstractUser):
         max_length=16,
         choices=USER_TYPE,
         default=USER,
+    )
+    contributor_id = models.UUIDField(
+        default=uuid.uuid4,
+        help_text=_('Contributor ID.'),
+        editable=False
     )
 
     @property

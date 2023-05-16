@@ -10,22 +10,22 @@
           <li class="timeline-item mb-2">
             <span class="timeline-icon text-white fs-5">1</span>
             <h4 class="pt-1 mb-0">Select or create a case</h4>
-            <div class="text-muted">All collected data, investigations done and documentation written are attached to a case</div>
+            <div class="text-muted">All collected data, investigations done and documentation written are attached to a case.</div>
           </li>
           <li class="timeline-item mb-2">
             <span class="timeline-icon text-white fs-5">2</span>
             <h4 class="pt-1 mb-0">Collect data</h4>
-            <div class="text-muted">Populate your case with all kind of meaningfully data, from actors identification to low-level technical information</div>
+            <div class="text-muted">Populate your case with all kind of meaningfully data, from actors identification to low-level technical information.</div>
           </li>
           <li class="timeline-item mb-2">
             <span class="timeline-icon text-white fs-5">3</span>
             <h4 class="pt-1 mb-0">Investigate within data</h4>
-            <div class="text-muted">Use all the available tools to explore and link identified data togethers</div>
+            <div class="text-muted">Use all the available tools to explore and link identified data togethers.</div>
           </li>
           <li class="timeline-item">
             <span class="timeline-icon text-white fs-5">4</span>
             <h4 class="pt-1 mb-0">Document the case</h4>
-            <div class="text-muted">Write the documentation of your case. Pro tip: you can access the documentation editor at any time with its bottom-right shortcut</div>
+            <div class="text-muted">Write the documentation of your case. Pro tip: you can access the documentation editor at any time with its bottom-right shortcut.</div>
           </li>
         </ul>
       </div>
@@ -35,11 +35,8 @@
       {% include 'case/create_update.html' %}
       {% endcomment %}
       {% include 'case/list.html' with compact=True %}
-      <div class="mt-2">
-        <h2>Not latest ?</h2>
-        <div>
-          <a href="{% url 'case_create_view' %}">View all or create it</a>
-        </div>
+      <div class="mt-2 p-2">
+        <p>Go to the <a href="{% url 'case_create_view' %}">cases management page</a> to view all cases or to create a new case.</p>
       </div>
     </div>
   </div>
@@ -70,7 +67,7 @@
               </td>
               <td class="text-nowrap">
                 {% include "icons/pills.html" with elt=e %}
-                {% if request.session.active_case and request.session.active_case == e.case %}
+                {% if request.active_case == e.case %}
                   <a href="{{ e.absolute_url }}"><samp>{{ e.value }}</samp></a>
                 {% else %}
                   <samp>{{ e.value }}</samp>

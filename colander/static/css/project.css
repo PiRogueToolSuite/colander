@@ -10989,6 +10989,7 @@ header .navbar-brand span {
   overflow: hidden auto;
   margin-left: calc(-1 * (var(--sidebar-width) - var(--sidebar-closed-width)));
   min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
   scrollbar-width: none;
   -webkit-transition: margin 0.25s ease-out;
   -moz-transition: margin 0.25s ease-out;
@@ -11164,6 +11165,9 @@ body.sb-sidenav-toggled #sidebar-wrapper {
 #case_documentation_form .CodeMirror-fullscreen {
   top: calc(50px + 3rem);
 }
+#case_documentation_form .editor-preview-active-side {
+  top: calc(50px + 3rem);
+}
 #case_documentation_form .editor-toolbar:not(.fullscreen) {
   position: sticky;
   top: 0px;
@@ -11209,7 +11213,7 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   opacity: 1;
 }
 #documentationToggle:hover > span {
-  max-width: 10rem;
+  max-width: 50rem;
 }
 #documentationToggle > span {
   display: inline-block;
@@ -11224,7 +11228,7 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   opacity: 1;
 }
 #documentationOffCanvas.show #documentationToggle > span {
-  max-width: 10rem;
+  max-width: 50vw;
 }
 #documentationOffCanvas.show #documentation-actions button:not(:first-child) {
   max-width: 10rem;

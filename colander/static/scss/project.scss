@@ -227,6 +227,7 @@ header .navbar-brand span {
   overflow: hidden auto;
   margin-left: calc(-1 * (var(--sidebar-width) - var(--sidebar-closed-width)));
   min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
 
   scrollbar-width: none;
 
@@ -433,6 +434,10 @@ body.sb-sidenav-toggled #sidebar-wrapper {
     top: calc(50px + 3rem);
   }
 
+  .editor-preview-active-side {
+    top: calc(50px + 3rem);
+  }
+
   .editor-toolbar:not(.fullscreen) {
     &:hover {
       opacity: initial;
@@ -482,7 +487,7 @@ body.sb-sidenav-toggled #sidebar-wrapper {
     opacity: 1;
 
     & > span {
-      max-width: 10rem;
+      max-width: 50rem;
     }
   }
   & > span {
@@ -500,7 +505,7 @@ body.sb-sidenav-toggled #sidebar-wrapper {
     opacity: 1;
   }
   #documentationToggle > span {
-    max-width: 10rem;
+    max-width: 50vw;
   }
 
   #documentation-actions button:not(:first-child)

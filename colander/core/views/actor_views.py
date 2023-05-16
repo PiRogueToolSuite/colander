@@ -23,6 +23,7 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'tlp',
         'pap'
     ]
+    case_required_message_action = "create actors"
 
     def get_form(self, form_class=None):
         form = super(ActorCreateView, self).get_form(form_class)
@@ -54,6 +55,7 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 
 class ActorUpdateView(ActorCreateView, UpdateView):
+    case_required_message_action = "update actor"
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['actors'] = Actor.get_user_actors(self.request.user, self.request.session.get('active_case'))
@@ -64,6 +66,7 @@ class ActorUpdateView(ActorCreateView, UpdateView):
 class ActorDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Actor
     template_name = 'pages/collect/actor_details.html'
+    case_required_message_action = "view actor details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

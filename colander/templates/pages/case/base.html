@@ -4,6 +4,7 @@
 
 {% block content %}
   <div class="row justify-content-center">
+    {% comment %}
     {% if not request.active_case %}
       <div class="col-md-4 mt-5">
         <div class="card border-warning">
@@ -17,6 +18,7 @@
       </div>
       <div class="col"></div>
     {% endif %}
+    {% endcomment %}
     {% include 'case/create_update.html' %}
   </div>
   {%  include 'case/list.html' %}

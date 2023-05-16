@@ -9,7 +9,7 @@
         <h2>Quickly create a new entity</h2>
         <div class="card mb-4 bg-secondary-light">
           <div class="card-body">
-            <form method="post" target="{% url "collect_quick_creation_view" %}" autocomplete="off">
+            <form method="post" autocomplete="off">
               {% csrf_token %}
               <div class="row">
                 <div class="col">

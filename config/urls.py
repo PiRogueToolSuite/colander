@@ -29,7 +29,7 @@ from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
     ObservableDetailsView, delete_observable_view, capture_observable_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
-from colander.core.views.views import landing_view, collect_base_view, \
+from colander.core.views.views import case_close, landing_view, collect_base_view, \
     report_base_view, cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
@@ -79,6 +79,7 @@ urlpatterns = [
       path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
       path("case", CaseCreateView.as_view(), name="case_create_view"),
+      path("case/close", case_close, name="case_close"),
       path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
       path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),

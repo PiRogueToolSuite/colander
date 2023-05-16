@@ -1,4 +1,4 @@
-{% load static i18n compress %}<!DOCTYPE html>
+{% load static i18n compress %}{% load colander_tags %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
@@ -136,27 +136,16 @@
         </div>
       </div>
       <div class="list-group list-group-flush">
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
-          <span>Workspaces</span>
-        </h6>
         <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
           <i class="nf nf-fa-home list-group-item-icon"></i>
           <span class="d-none d-sm-inline list-group-item-label">Home</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if case_create_view_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link case_create_view_url %}"
            href="{{ case_create_view_url }}" title="Cases">
           {% include "icons/case_icon.html" %}
           <span class="list-group-item-label">Cases</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if collect_base_view_url in request.path %} active {% endif %}"
-           href="{{ collect_base_view_url }}">
-          <i class="fa fa-th" aria-hidden="true"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Collect</span>
-        </a>
-        <div class="list-group list-group-flush list-group-secondary">
-          {% block sidebar-items %}{% endblock sidebar-items %}
-        </div>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if collaborate_base_view_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collaborate_base_view_url %}"
            href="{{ collaborate_base_view_url }}">
           <i class="nf nf-fa-share_alt" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
@@ -164,17 +153,25 @@
         <div class="list-group list-group-flush list-group-secondary">
           {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
         </div>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if document_cases_write_doc_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_base_view_url %}"
+           href="{{ collect_base_view_url }}">
+          <i class="fa fa-th" aria-hidden="true"></i>
+          <span class="d-none d-sm-inline list-group-item-label">Collect</span>
+        </a>
+        <div class="list-group list-group-flush list-group-secondary">
+          {% block sidebar-items %}{% endblock sidebar-items %}
+        </div>
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
            href="{{ document_cases_write_doc_url }}">
           <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Document</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if investigate_base_view_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
            href="{{ investigate_base_view_url }}">
           <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
         </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if cyberchef_base_url in request.path %} active {% endif %}"
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link cyberchef_base_url %}"
            href="{{ cyberchef_base_url }}" target="_blank">
           <i class="icon-cyberchef_hat" aria-hidden="true"></i>
           <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
@@ -195,7 +192,19 @@
       <main class="container-fluid">
         {% if messages %}
           {% for message in messages %}
-            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            <div class="mt-2 alert alert-dismissible alert-{{ message.level_tag | bs_alert_level_class }}">
+              {% if message.level_tag == 'success' %}
+                <i class="fa fa-check" aria-hidden="true"></i>
+              {% endif %}
+              {% if message.level_tag == 'info' %}
+                <i class="fa fa-info-circle" aria-hidden="true"></i>
+              {% endif %}
+              {% if message.level_tag == 'warning' %}
+                <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+              {% endif %}
+              {% if message.level_tag == 'error' %}
+                <i class="fa fa-ambulance" aria-hidden="true"></i>
+              {% endif %}
               {{ message }}
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

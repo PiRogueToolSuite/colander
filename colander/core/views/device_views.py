@@ -24,6 +24,7 @@ class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'tlp',
         'pap'
     ]
+    case_required_message_action = "create devices"
 
     def get_form(self, form_class=None):
         active_case = get_active_case(self.request)
@@ -58,6 +59,8 @@ class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 
 class DeviceUpdateView(DeviceCreateView, UpdateView):
+    case_required_message_action = "update device"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['devices'] = Device.get_user_devices(self.request.user, self.request.session.get('active_case'))
@@ -68,6 +71,7 @@ class DeviceUpdateView(DeviceCreateView, UpdateView):
 class DeviceDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Device
     template_name = 'pages/collect/device_details.html'
+    case_required_message_action = "view device details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

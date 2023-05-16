@@ -31,6 +31,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'tlp',
         'pap',
     ]
+    case_required_message_action = "create artifacts"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -128,6 +129,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
         'tlp',
         'pap',
     ]
+    case_required_message_action = "edit artifact"
 
     def get_form(self, form_class=None):
         form = super(ArtifactUpdateView, self).get_form(form_class)
@@ -151,6 +153,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
 class ArtifactDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Artifact
     template_name = 'pages/collect/artifact_details.html'
+    case_required_message_action = "view artifact details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

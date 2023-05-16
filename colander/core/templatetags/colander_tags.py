@@ -56,3 +56,30 @@ def split(instance, delim):
         return instance
     words = instance.split(delim)
     return words
+
+
+@register.simple_tag(takes_context=True)
+def active_link(context, view_url, *args, **kwargs):
+    """
+    Returns 'active' class name if the given view url in the current context path.
+
+    :param context: the view rendering context
+    :param view_url: the view url tested
+    :return: 'active' string or empty string ('')
+    """
+    request = context.get('request')
+    if request is None:
+        # Can't work without the request object.
+        return ''
+
+    if request.path.startswith(view_url):
+        return 'active'
+    else:
+        return ''
+
+
+@register.filter(name="bs_alert_level_class")
+def bs_alert_level_class(message_tag_level):
+    if message_tag_level == 'error':
+        return 'danger'
+    return message_tag_level

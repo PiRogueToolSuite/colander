@@ -29,6 +29,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'pap',
         'source_url',
     ]
+    case_required_message_action = "create observables"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -67,6 +68,8 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 
 class ObservableUpdateView(ObservableCreateView, UpdateView):
+    case_required_message_action = "update observable"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['observables'] = Observable.get_user_observables(self.request.user, self.request.session.get('active_case'))
@@ -77,6 +80,7 @@ class ObservableUpdateView(ObservableCreateView, UpdateView):
 class ObservableDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Observable
     template_name = 'pages/collect/observable_details.html'
+    case_required_message_action = "view observable details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -96,6 +100,7 @@ class ObservableRelationCreateView(LoginRequiredMixin, CaseRequiredMixin, Create
         'pap',
         'description',
     ]
+    case_required_message_action = "create observable relations"
 
     def get_form(self, form_class=None):
         observable_qset = Observable.get_user_observables(self.request.user, self.request.session.get('active_case'))
@@ -124,6 +129,8 @@ class ObservableRelationCreateView(LoginRequiredMixin, CaseRequiredMixin, Create
 
 
 class ObservableRelationUpdateView(ObservableRelationCreateView, UpdateView):
+    case_required_message_action = "update observable relation"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['relations'] = ObservableRelation.get_user_relations(self.request.user,
@@ -136,6 +143,7 @@ class ObservableRelationDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detai
     model = ObservableRelation
     context_object_name = 'relation'
     template_name = 'pages/collect/relation_details.html'
+    case_required_message_action = "view observable relation details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

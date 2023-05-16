@@ -24,6 +24,7 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView)
         'pap',
         'content'
     ]
+    case_required_message_action = "create detection rules"
 
     def get_form(self, form_class=None):
         form = super(DetectionRuleCreateView, self).get_form(form_class)
@@ -56,6 +57,8 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView)
 
 class DetectionRuleUpdateView(DetectionRuleCreateView, UpdateView):
     context_object_name = 'detection_rule'
+    case_required_message_action = "update detection rule"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.request.session.get('active_case'))
@@ -67,6 +70,7 @@ class DetectionRuleDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView
     model = DetectionRule
     template_name = 'pages/collect/detection_rule_details.html'
     context_object_name = 'detection_rule'
+    case_required_message_action = "view detection rule details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

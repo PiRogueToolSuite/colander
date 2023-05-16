@@ -4623,75 +4623,75 @@ textarea.form-control-lg {
 }
 
 .alert-primary {
-  --bs-alert-color: #441483;
-  --bs-alert-bg: #e3d3f8;
-  --bs-alert-border-color: #d4bdf4;
+  --bs-alert-color: #8d4ee1;
+  --bs-alert-bg: #fefdff;
+  --bs-alert-border-color: #7122da;
 }
 .alert-primary .alert-link {
-  color: #361069;
+  color: #713eb4;
 }
 
 .alert-secondary {
-  --bs-alert-color: #65577f;
-  --bs-alert-bg: #eee9f6;
-  --bs-alert-border-color: #e5def2;
+  --bs-alert-color: #221d2a;
+  --bs-alert-bg: #fefeff;
+  --bs-alert-border-color: #a991d4;
 }
 .alert-secondary .alert-link {
-  color: #514666;
+  color: #1b1722;
 }
 
 .alert-success {
-  --bs-alert-color: #0b6f33;
-  --bs-alert-bg: #d0f1dd;
-  --bs-alert-border-color: #b8eacc;
+  --bs-alert-color: #042511;
+  --bs-alert-bg: #fdfefd;
+  --bs-alert-border-color: #13b955;
 }
 .alert-success .alert-link {
-  color: #095929;
+  color: #031e0e;
 }
 
 .alert-info {
-  --bs-alert-color: #005e84;
-  --bs-alert-bg: #ccebf8;
-  --bs-alert-border-color: #b3e1f5;
+  --bs-alert-color: #001f2c;
+  --bs-alert-bg: #fcfeff;
+  --bs-alert-border-color: #009cdc;
 }
 .alert-info .alert-link {
-  color: #004b6a;
+  color: #001923;
 }
 
 .alert-warning {
-  --bs-alert-color: #8f6211;
-  --bs-alert-bg: #fcedd2;
-  --bs-alert-border-color: #fae3bb;
+  --bs-alert-color: #302106;
+  --bs-alert-bg: #fffefd;
+  --bs-alert-border-color: #efa31d;
 }
 .alert-warning .alert-link {
-  color: #724e0e;
+  color: #261a05;
 }
 
 .alert-danger {
-  --bs-alert-color: #972222;
-  --bs-alert-bg: #fed7d7;
-  --bs-alert-border-color: #fec4c4;
+  --bs-alert-color: #320b0b;
+  --bs-alert-bg: #fffdfd;
+  --bs-alert-border-color: #fc3939;
 }
 .alert-danger .alert-link {
-  color: #791b1b;
+  color: #280909;
 }
 
 .alert-light {
-  --bs-alert-color: #646365;
-  --bs-alert-bg: #fefefe;
-  --bs-alert-border-color: #fdfdfe;
+  --bs-alert-color: #323232;
+  --bs-alert-bg: white;
+  --bs-alert-border-color: #f9f8fc;
 }
 .alert-light .alert-link {
-  color: #504f51;
+  color: #282828;
 }
 
 .alert-dark {
-  --bs-alert-color: #0e0c13;
-  --bs-alert-bg: #d1d0d2;
-  --bs-alert-border-color: #b9b9bc;
+  --bs-alert-color: #45434c;
+  --bs-alert-bg: #fdfdfd;
+  --bs-alert-border-color: #17141f;
 }
 .alert-dark .alert-link {
-  color: #0b0a0f;
+  color: #37363d;
 }
 
 @keyframes progress-bar-stripes {
@@ -10799,6 +10799,13 @@ samp {
   width: 16px;
   height: 16px;
   vertical-align: text-bottom;
+}
+
+.alert i.fa {
+  font-size: 1.5em;
+  color: var(--bs-alert-border-color);
+  vertical-align: middle;
+  margin-right: 0.5em;
 }
 
 /*

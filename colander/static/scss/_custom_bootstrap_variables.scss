@@ -41,6 +41,10 @@ $enable-gradients: false;
 $spacer: 1.2rem;
 $border-width: 1px;
 
+$alert-bg-scale: -99%;
+$alert-border-scale: 0%;
+$alert-color-scale: -20%;
+
 .bg-secondary-light {
   background-color: rgba($secondary, 0.1) !important;
 }

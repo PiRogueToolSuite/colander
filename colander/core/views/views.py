@@ -1,5 +1,9 @@
+from typing import Optional
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
+from django.contrib import messages
+from django.db import models
 from django.forms.widgets import Textarea
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -24,9 +28,12 @@ def landing_view(request):
 
 class CaseRequiredMixin(AccessMixin):
     """Verify that the current user has an active case."""
+    case_required_message_action = "proceed"
 
     def dispatch(self, request, *args, **kwargs):
         if not request.session.get('active_case'):
+            messages.add_message(request, messages.WARNING,
+                                 f"In order to {self.case_required_message_action}, you must first select a case to work on")
             return redirect('case_create_view')
         return super().dispatch(request, *args, **kwargs)
 
@@ -69,6 +76,10 @@ def save_case_documentation_view(request, pk):
             active_case.save()
     return redirect(request.META.get('HTTP_REFERER'))
 
+@login_required
+def case_close(request):
+    request.session.pop('active_case')
+    return redirect('home')
 
 @login_required
 def quick_creation_view(request):
@@ -123,6 +134,8 @@ def quick_creation_view(request):
 def collect_base_view(request):
     active_case = get_active_case(request)
     if not active_case:
+        messages.add_message(request, messages.WARNING,
+                             "In order to collect data, you must first select a case to work on")
         return redirect('case_create_view')
 
     form = DocumentationForm(initial={'documentation': active_case.documentation})
@@ -143,7 +156,7 @@ def cases_select_view(request, pk):
     if request.method == 'GET':
         case = get_object_or_404(Case, id=pk)
         if case.can_contribute(request.user):
-           request.session['active_case'] = str(case.id)
+            request.session['active_case'] = str(case.id)
         else:
             print(f'{request.user} can not contribute to {case}!')
         #return redirect('case_create_view')
@@ -186,21 +199,37 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
                 case.owner = self.request.user
             case.save()
             form.save_m2m()
+            messages.add_message(self.request, messages.SUCCESS,
+                                 f"Case {case.name} saved.")
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['cases'] = Case.get_user_cases(self.request.user)
         ctx['is_editing'] = False
+
+        if 'active_case' not in self.request.session:
+            messages.add_message(self.request, messages.INFO,
+                                 "Create a new case or select one from the list below.")
+
         return ctx
 
 
 class CaseUpdateView(CaseCreateView, UpdateView):
+    def get_object(self, queryset=None):
+        edited_case = super().get_object(queryset)
+        if 'active_case' in self.request.session:
+            ac = Case.objects.get(pk=self.request.session['active_case'])
+            if edited_case != ac:
+                messages.add_message(self.request, messages.WARNING,
+                                     f"The edited case {edited_case.name} is not the current selected case {ac.name}")
+        return edited_case
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['cases'] = Case.get_user_cases(self.request.user)
         ctx['is_editing'] = True
+
         return ctx
 
 
@@ -210,9 +239,14 @@ class CaseDetailsView(LoginRequiredMixin, DetailView):
     template_name = 'pages/case/details.html'
 
     def get_object(self, queryset=None):
-        case: Case = super().get_object(queryset)
-        if case.can_contribute(self.request.user):
-            return case
+        viewed_case: Case = super().get_object(queryset)
+        if viewed_case.can_contribute(self.request.user):
+            if 'active_case' in self.request.session:
+                ac = Case.objects.get(pk=self.request.session['active_case'])
+                if viewed_case != ac:
+                    messages.add_message(self.request, messages.WARNING,
+                                         f"The viewed case {viewed_case.name} is not the current selected case {ac.name}")
+            return viewed_case
         raise Case.DoesNotExist()
 
 @login_required

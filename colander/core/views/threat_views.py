@@ -23,6 +23,7 @@ class ThreatCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'tlp',
         'pap'
     ]
+    case_required_message_action = "create threats"
 
     def get_form(self, form_class=None):
         form = super(ThreatCreateView, self).get_form(form_class)
@@ -54,6 +55,8 @@ class ThreatCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 
 class ThreatUpdateView(ThreatCreateView, UpdateView):
+    case_required_message_action = "update threat"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['threats'] = Threat.get_user_threats(self.request.user, self.request.session.get('active_case'))
@@ -64,6 +67,7 @@ class ThreatUpdateView(ThreatCreateView, UpdateView):
 class ThreatDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Threat
     template_name = 'pages/collect/threat_details.html'
+    case_required_message_action = "view threat details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

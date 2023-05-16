@@ -18,6 +18,7 @@ class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     fields = [
         'name',
     ]
+    case_required_message_action = "create teams"
 
     def get_form(self, form_class=None):
         form = super(ColanderTeamCreateView, self).get_form(form_class)
@@ -40,6 +41,7 @@ class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 
 class ColanderTeamUpdateView(ColanderTeamCreateView, UpdateView):
+    case_required_message_action = "update team"
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['teams'] = ColanderTeam.get_user_teams(self.request.user)
@@ -51,6 +53,7 @@ class ColanderTeamDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView)
     model = ColanderTeam
     template_name = 'pages/collaborate/team_details.html'
     context_object_name = 'team'
+    case_required_message_action = "view team details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

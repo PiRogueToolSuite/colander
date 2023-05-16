@@ -30,6 +30,7 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         'tlp',
         'pap'
     ]
+    case_required_message_action = "create events"
 
     def get_form(self, form_class=None):
         active_case = get_active_case(self.request)
@@ -71,6 +72,8 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 
 class EventUpdateView(EventCreateView, UpdateView):
+    case_required_message_action = "update event"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['events'] = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
@@ -81,6 +84,7 @@ class EventUpdateView(EventCreateView, UpdateView):
 class EventDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = Event
     template_name = 'pages/collect/event_details.html'
+    case_required_message_action = "view event details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

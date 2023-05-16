@@ -27,6 +27,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         'tlp',
         'pap'
     ]
+    case_required_message_action = "create PiRogue experiments"
 
     def get_form(self, form_class=None):
         active_case = get_active_case(self.request)
@@ -60,6 +61,8 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
 
 
 class PiRogueExperimentUpdateView(PiRogueExperimentCreateView, UpdateView):
+    case_required_message_action = "update PiRogue experiment"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user,
@@ -123,6 +126,7 @@ class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detail
     model = PiRogueExperiment
     template_name = 'pages/collect/experiment_details.html'
     context_object_name = 'experiment'
+    case_required_message_action = "view PiRogue experiment details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -137,6 +141,8 @@ class PiRogueExperimentAnalysisReportView(LoginRequiredMixin, CaseRequiredMixin,
     model = PiRogueExperiment
     template_name = 'experiment/analysis_report.html'
     context_object_name = 'experiment'
+
+    case_required_message_action = "view PiRogue experiment report"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

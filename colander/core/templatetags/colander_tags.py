@@ -5,6 +5,8 @@ register = template.Library()
 
 @register.filter(name="model_name")
 def model_name(instance):
+    if type(instance) is dict:
+        return ''
     return instance._meta.verbose_name
 
 @register.filter(name="escape_space")

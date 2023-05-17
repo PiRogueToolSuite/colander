@@ -5,11 +5,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
 from django.db import models
 from django.forms.widgets import Textarea
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
+from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
 
 from colander.core.forms import DocumentationForm, CommentForm
@@ -37,6 +38,11 @@ class CaseRequiredMixin(AccessMixin):
             return redirect('case_create_view')
         return super().dispatch(request, *args, **kwargs)
 
+class OwnershipRequiredMixin(SingleObjectMixin):
+    def dispatch(self, request, *args, **kwargs):
+        if self.get_object().owner != self.request.user:
+            return HttpResponseForbidden()
+        return super().dispatch(request, *args, **kwargs)
 
 @login_required
 def evidences_view(request):
@@ -188,6 +194,7 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         if self.object and self.request.user != self.object.owner:
             raise Exception("You cannot edit this case")
         form = super(CaseCreateView, self).get_form(form_class)
+        form.fields['teams'].queryset = self.request.user.my_teams_as_qset
         form.fields['teams'].widget.attrs['size'] = 10
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         return form
@@ -215,7 +222,7 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         return ctx
 
 
-class CaseUpdateView(CaseCreateView, UpdateView):
+class CaseUpdateView(CaseCreateView, OwnershipRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         edited_case = super().get_object(queryset)
         if 'active_case' in self.request.session:

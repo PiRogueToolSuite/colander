@@ -74,7 +74,7 @@ class ColanderTeam(models.Model):
         return user.my_teams
 
     def __str__(self):
-        return f'{self.name} owned by {self.owner}'
+        return f'{self.name} managed by {self.owner}'
 
 
 def _get_evidence_upload_dir(instance, filename):

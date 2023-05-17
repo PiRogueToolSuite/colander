@@ -30,8 +30,18 @@
               {% for team in request.user.my_teams %}
                 <li>
                   <i class="nf nf-fa-users text-primary"></i>
-                  {{ team.name }} ({{ team.contributors.count }}
+                  <a href="{% url "collaborate_team_details_view" pk=team.id %}" title="View details">{{ team.name }}</a>
+                  ({{ team.contributors.count }}
                   contributor{{ team.contributors.count|pluralize:"s" }})
+                  <ul class="small">
+                    <li class="">
+                      <i class="nf nf-fa-user_circle_o text-muted"></i>
+                      {{ team.owner }} (owner)
+                    </li>
+                    {% for c in team.contributors.all %}
+                      <li><i class="nf nf-fa-user text-muted"></i> {{ c }}</li>
+                    {% endfor %}
+                  </ul>
                 </li>
               {% empty %}
                 No team
@@ -50,6 +60,15 @@
                   <i class="nf nf-fa-users text-primary"></i>
                   {{ team.name }} ({{ team.contributors.count }}
                   contributor{{ team.contributors.count|pluralize:"s" }})
+                  <ul class="small">
+                    <li class="">
+                      <i class="nf nf-fa-user_circle_o text-muted"></i>
+                      {{ team.owner }} (owner)
+                    </li>
+                    {% for c in team.contributors.all %}
+                      <li><i class="nf nf-fa-user text-muted"></i> {{ c }}</li>
+                    {% endfor %}
+                  </ul>
                 </li>
               {% empty %}
                 No team

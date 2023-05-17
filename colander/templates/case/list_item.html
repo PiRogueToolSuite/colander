@@ -2,7 +2,7 @@
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
   <div class="card-body p-2">
     <div class="row">
-      <div class="col-md-12 text-truncate">
+      <div class="{% if not compact %}col-md-8 border-end border-secondary{% else %}col-md-12{% endif %} text-truncate">
         <div class="{% if not compact %}border-bottom border-secondary{% endif %}">
           {% include "icons/case_icon.html" with c="h4 text-primary" %}
           <a class="h4" href="{% url "case_details_view" pk=case.id %}">
@@ -34,6 +34,21 @@
           </div>
         {% endif %}
       </div>
+      {% if not compact %}
+        <div class="col-md-4 text-truncate ">
+        <div class="row">
+          <div class="col small">
+            Shared with:<br>
+            {% for team in case.teams.all %}
+              <i class="nf nf-fa-users text-primary"></i>
+              {{ team }}<br>
+            {% empty %}
+              Nobody
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
   {% if not compact %}

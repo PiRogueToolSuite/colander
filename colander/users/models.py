@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 from django.db import models
 
-from colander.core.models import Case
+from colander.core.models import Case, ColanderTeam
 
 
 class User(AbstractUser):
@@ -71,6 +71,10 @@ class User(AbstractUser):
         teams.extend(self.teams_as_owner.all())
         teams.extend(self.teams_as_contrib.all())
         return list(set(teams))
+
+    @cached_property
+    def my_teams_as_qset(self):
+        return ColanderTeam.objects.filter(Q(owner=self) | Q(contributors=self)).all()
 
     def get_auth_token(self, reset=False):
         if reset:

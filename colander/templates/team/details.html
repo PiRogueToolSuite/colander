@@ -7,43 +7,48 @@
   </div>
 </div>
 <div class="row justify-content-center">
-  <div class="col-md-4 mt-2">
-    <h3>{% translate "Contributors" %}</h3>
-    {% include "team/add_contributor.html" %}
-    <ul class="list-unstyled">
-      <li class="">
-        {% include "icons/user_icon.html" with c="text-primary" %}
-        {{ team.owner }} (owner)
-      </li>
-      {% for c in team.contributors.all %}
-        <li>
-          <form method="post" action="{% url "collaborate_team_add_remove_contributor" pk=team.id %}"
-                id="delete-{{ c.contributor_id }}">
-            {% csrf_token %}
-            <input type="hidden" name="contributor_id" value="{{ c.contributor_id }}">
-          </form>
-          {% include "icons/user_icon.html" with c="text-primary" %} {{ c }}
-          <button class="btn text-danger btn-sm m-0 p-0"
-                  type="submit"
-                  name="remove_contributor"
-                  form="delete-{{ c.contributor_id }}">
-            <i class="nf nf-md-delete"></i>
-          </button>
+  <div class="col-md-5 mt-2">
+    <div class="card card-body bg-secondary-light">
+      <h3>{% translate "Contributors" %}</h3>
+      {% include "team/add_contributor.html" %}
+      <ul class="mt-3">
+        <li class="">
+          <i class="nf nf-fa-user_circle_o text-primary"></i>
+          {{ team.owner }} (owner)
         </li>
-      {% endfor %}
-    </ul>
+        {% for c in team.contributors.all %}
+          <li>
+            <form method="post" action="{% url "collaborate_team_add_remove_contributor" pk=team.id %}"
+                  id="delete-{{ c.contributor_id }}">
+              {% csrf_token %}
+              <input type="hidden" name="contributor_id" value="{{ c.contributor_id }}">
+            </form>
+            {% include "icons/user_icon.html" with c="text-primary" %} {{ c }}
+            <button class="btn text-danger btn-sm m-0 p-0"
+                    type="submit"
+                    name="remove_contributor"
+                    data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Remove this contributor"
+                    form="delete-{{ c.contributor_id }}">
+              <i class="nf nf-md-delete"></i>
+            </button>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  <div class="col-md-6 offset-2 mt-2">
-    <h3>{% translate "Shared cases" %}</h3>
-    <ul class="list-unstyled">
-      {% for c in team.team_cases %}
-        <li>
-          {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="{% url "case_details_view" pk=c.id %}">{{ c }}</a>
-        </li>
-      {% empty %}
-        None
-      {% endfor %}
-    </ul>
+  <div class="col-md-5 offset-1 mt-2">
+    <div class="card card-body bg-secondary-light">
+      <h3>{% translate "Shared cases" %}</h3>
+      <ul class="list-unstyled">
+        {% for c in team.team_cases %}
+          <li>
+            {% include "icons/case_icon.html" with c="text-primary" %}
+            <a href="{% url "case_details_view" pk=c.id %}" title="View case details">{{ c }}</a>
+          </li>
+        {% empty %}
+          None
+        {% endfor %}
+      </ul>
+    </div>
   </div>
 </div>

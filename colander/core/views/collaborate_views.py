@@ -7,11 +7,11 @@ from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import AddRemoveTeamContributorForm
 from colander.core.models import ColanderTeam
-from colander.core.views.views import CaseRequiredMixin
+from colander.core.views.views import OwnershipRequiredMixin
 from colander.users.models import User
 
 
-class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class ColanderTeamCreateView(LoginRequiredMixin, CreateView):
     model = ColanderTeam
     template_name = 'pages/collaborate/teams.html'
     success_url = reverse_lazy('collaborate_team_create_view')
@@ -40,7 +40,7 @@ class ColanderTeamCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         return ctx
 
 
-class ColanderTeamUpdateView(ColanderTeamCreateView, UpdateView):
+class ColanderTeamUpdateView(ColanderTeamCreateView, OwnershipRequiredMixin, UpdateView):
     case_required_message_action = "update team"
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -49,7 +49,7 @@ class ColanderTeamUpdateView(ColanderTeamCreateView, UpdateView):
         return ctx
 
 
-class ColanderTeamDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class ColanderTeamDetailsView(LoginRequiredMixin, OwnershipRequiredMixin, DetailView):
     model = ColanderTeam
     template_name = 'pages/collaborate/team_details.html'
     context_object_name = 'team'
@@ -64,8 +64,7 @@ class ColanderTeamDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView)
 @login_required
 def add_remove_team_contributor(request, pk):
     team = ColanderTeam.objects.get(id=pk)
-    print(';oish df piusDhfp iughui')
-    if request.method == 'POST':
+    if request.method == 'POST' and team.owner == request.user:
         form = AddRemoveTeamContributorForm(request.POST)
         if form.is_valid():
             contributor_id = form.cleaned_data['contributor_id']

@@ -64,7 +64,7 @@ class User(AbstractUser):
     @cached_property
     def all_my_cases(self):
         teams = self.all_my_teams
-        return Case.objects.filter(Q(teams__in=teams) | Q(owner=self)).all()
+        return Case.objects.filter(Q(teams__in=teams) | Q(owner=self)).distinct().all()
 
     def get_my_teams(self):
         teams = []

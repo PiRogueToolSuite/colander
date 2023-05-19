@@ -63,11 +63,11 @@ class ColanderTeam(models.Model):
 
     @staticmethod
     def get_my_teams_as_contrib(user):
-        return ColanderTeam.objects.filter(contributors=user).all()
+        return ColanderTeam.objects.filter(contributors=user).distinct().all()
 
     @staticmethod
     def get_my_teams_as_owner(user):
-        return ColanderTeam.objects.filter(owner=user).all()
+        return ColanderTeam.objects.filter(owner=user).distinct().all()
 
     @staticmethod
     def get_user_teams(user):

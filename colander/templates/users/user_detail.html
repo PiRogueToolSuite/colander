@@ -15,9 +15,7 @@
   </div>
 
   {% if object == request.user %}
-    <!-- Action buttons -->
     <div class="row">
-
       <div class="col-md-12">
         <table class="table table-sm">
           <tbody>
@@ -79,9 +77,18 @@
           </tbody>
         </table>
       </div>
-
+      <div class="col-md-12 mt-2">
+        <h3>Connect your PiRogue</h3>
+        <p>
+          If you have a <a href="https://pts-project.org/docs/pirogue/overview/" title="PiRogue documentation">PiRogue</a>,
+          you can connect it to Colander and start collecting artifacts from it. To do so, run the following commands on
+          your PiRogue:
+        </p>
+        <pre class="bg-dark text-white text-wrap p-3 rounded"><code>sudo apt update<br>
+sudo apt install -y pirogue-colander-connector<br>
+pirogue-colander config -u "{{ request.scheme }}://{{ request.META.HTTP_HOST }}/" -k "{{ request.user.token }}"</code></pre>
+      </div>
     </div>
-    <!-- End Action buttons -->
   {% endif %}
 
 {% endblock content %}

@@ -48,6 +48,16 @@
                     <button id='upload_btn' class="btn btn-primary" type="submit" name="upload_artifact">{% translate "Upload" %}</button>
                     <button id='upload_submit_btn' class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
                   {% endif %}
+                  {% if not is_editing %}
+                    <hr>
+                    <p class="mt-2">
+                      Alternatively, you can upload an artifact from your PiRogue by running the following command on it:
+                    </p>
+                    <pre class="bg-dark text-white text-wrap p-3 rounded"><code>pirogue-colander collect-artifact -c "{{ request.active_case.id }}" [path of the file to be uploaded]</code></pre>
+                    <p>
+                    Check <a href="{% url "users:detail" username=request.user.username %}">your profile</a> to learn how to configure Colander on your PiRogue.
+                    </p>
+                  {% endif %}
                 </div>
               </div>
             </fieldset>

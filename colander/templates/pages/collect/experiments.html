@@ -31,6 +31,17 @@
                 {% else %}
                   <button class="btn btn-primary" type="submit" name="save_experiment">{% translate "Create" %}</button>
                 {% endif %}
+                {% if not is_editing %}
+                  <hr>
+                  <p class="mt-2">
+                    Alternatively, you can upload an entire experiment from your PiRogue by running the following command on it:
+                  </p>
+                  <pre class="bg-dark text-white text-wrap p-3 rounded"><code>pirogue-colander collect-experiment -c "{{ request.active_case.id }}" [path of the folder containing your experiment]</code></pre>
+                  <p>
+                  If you want to specify the artifact you were running during this experiment, use the option <samp>-t [path to the file]</samp>.
+                  Check <a href="{% url "users:detail" username=request.user.username %}">your profile</a> to learn how to configure Colander on your PiRogue.
+                  </p>
+                {% endif %}
               </div>
             </div>
           </form>

@@ -156,7 +156,7 @@ services:
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_LABEL_ENABLE=true
       - WATCHTOWER_INCLUDE_RESTARTING=true
-      - WATCHTOWER_POLL_INTERVAL=12*60*60
+      - WATCHTOWER_POLL_INTERVAL=3600
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 

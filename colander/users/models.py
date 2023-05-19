@@ -74,7 +74,7 @@ class User(AbstractUser):
 
     @cached_property
     def my_teams_as_qset(self):
-        return ColanderTeam.objects.filter(Q(owner=self) | Q(contributors=self)).all()
+        return ColanderTeam.objects.filter(Q(owner=self) | Q(contributors=self)).distinct().all()
 
     def get_auth_token(self, reset=False):
         if reset:

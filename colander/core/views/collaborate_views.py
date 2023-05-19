@@ -68,22 +68,25 @@ def add_remove_team_contributor(request, pk):
         form = AddRemoveTeamContributorForm(request.POST)
         if form.is_valid():
             contributor_id = form.cleaned_data['contributor_id']
-            try:
-                contributor = User.objects.get(contributor_id=contributor_id)
-                if 'add_contributor' in request.POST \
-                    and contributor is not team.owner \
-                    and contributor not in team.contributors.all():
-                    team.contributors.add(contributor)
-                    team.save()
-                    messages.success(request, f'{contributor} has been added to the team {team.name}.')
-                if 'remove_contributor' in request.POST \
-                    and contributor is not team.owner \
-                    and contributor in team.contributors.all():
-                    team.contributors.remove(contributor)
-                    team.save()
-                    messages.success(request, f'{contributor} has been removed from the team {team.name}.')
-            except User.DoesNotExist:
-                messages.error(request, f'Contributor {contributor_id} does not exist.')
+            if contributor_id == request.user.contributor_id and 'add_contributor' in request.POST:
+                messages.warning(request, f'You can not add the owner of this team as a contributor too.')
+            else:
+                try:
+                    contributor = User.objects.get(contributor_id=contributor_id)
+                    if 'add_contributor' in request.POST \
+                        and contributor is not team.owner \
+                        and contributor not in team.contributors.all():
+                        team.contributors.add(contributor)
+                        team.save()
+                        messages.success(request, f'{contributor} has been added to the team {team.name}.')
+                    if 'remove_contributor' in request.POST \
+                        and contributor is not team.owner \
+                        and contributor in team.contributors.all():
+                        team.contributors.remove(contributor)
+                        team.save()
+                        messages.success(request, f'{contributor} has been removed from the team {team.name}.')
+                except User.DoesNotExist:
+                    messages.error(request, f'Contributor {contributor_id} does not exist.')
     return redirect("collaborate_team_details_view", pk=team.id)
 
 

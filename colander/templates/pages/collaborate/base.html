@@ -20,6 +20,10 @@
   {% block inner-content %}
     <div class="row justify-content-center mt-2">
       <div class="col-md-12">
+        <div class="alert alert-info text-muted">
+          <i class="fa fa-info-circle" aria-hidden="true"></i>
+          Your contributor ID is: <samp>{{ request.user.contributor_id }}</samp>
+        </div>
         <h2>My teams</h2>
       </div>
       <div class="col-md-5">

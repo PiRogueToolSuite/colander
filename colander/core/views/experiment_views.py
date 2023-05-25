@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.contrib import messages
 from django_q.tasks import async_task
-
+from datetime import datetime
 from colander.core.forms import CommentForm
 from colander.core.models import PiRogueExperiment, Artifact, PiRogueExperimentAnalysis, DetectionRule
 from colander.core.experiment_tasks import save_decrypted_traffic, apply_detection_rules
@@ -147,8 +147,16 @@ class PiRogueExperimentAnalysisReportView(LoginRequiredMixin, CaseRequiredMixin,
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         inbound, outbound, rules = get_detection_summary(self.object.analysis)
+        start_experiment_date = 'Unknown'
+        try:
+            if self.object.pcap.attributes and 'start_capture_time' in self.object.pcap.attributes:
+                t = float(self.object.pcap.attributes.get('start_capture_time'))/1000.
+                start_experiment_date = datetime.fromtimestamp(int(t))
+        except Exception:
+            pass
         ctx['inbound_summary'] = inbound
         ctx['outbound_summary'] = outbound
+        ctx['start_experiment_date'] = start_experiment_date
         ctx['rules'] = rules
         return ctx
 

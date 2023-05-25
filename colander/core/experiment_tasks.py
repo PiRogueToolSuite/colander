@@ -20,6 +20,8 @@ external_packages = [
     'okhttp3.internal.',
     'okhttp3.logging.',
     'java.util.',
+    'java.util.',
+    'java.io.',
     'java.lang.',
     'android.os.',
 ]

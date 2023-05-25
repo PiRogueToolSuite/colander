@@ -31,7 +31,11 @@
               </tr>
               <tr>
                 <td class="text-end fw-bold">Date of report</td>
-                <td class="text-start">{% now "DATE_FORMAT" %}</td>
+                <td class="text-start">{% now "DATETIME_FORMAT" %}</td>
+              </tr>
+              <tr>
+                <td class="text-end fw-bold">Date of run</td>
+                <td class="text-start">{{ start_experiment_date }}</td>
               </tr>
               <tr>
                 <td class="text-end fw-bold">Case</td>
@@ -58,28 +62,33 @@
           <p>This report is based on the automatic analysis of the following artifacts</p>
           {% if experiment.pcap %}
             <h4><span class="font-monospace">{{ experiment.pcap.name }}</span> ({{ experiment.pcap.type.name }})</h4>
+            This file contains the entire network traffic captured during the analysis.
             {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.pcap %}
           {% endif %}
           {% if experiment.sslkeylog %}
             <h4><span class="font-monospace">{{ experiment.sslkeylog.name }}</span>
               ({{ experiment.sslkeylog.type.name }})
             </h4>
+            This file contains the TLS encryption keys in the NSS key log format.
             {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.sslkeylog %}
           {% endif %}
           {% if experiment.screencast %}
             <h4><span class="font-monospace">{{ experiment.screencast.name }}</span>
               ({{ experiment.screencast.type.name }})</h4>
+            This file contains the video recording of the device’s screen.
             {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.screencast %}
           {% endif %}
           {% if experiment.aes_trace %}
             <h4><span class="font-monospace">{{ experiment.aes_trace.name }}</span>
               ({{ experiment.aes_trace.type.name }})
             </h4>
+            This file contains all AES and RSA encryption/decryption operations with both cleartext and ciphertext.
             {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.aes_trace %}
           {% endif %}
           {% if experiment.socket_trace %}
             <h4><span class="font-monospace">{{ experiment.socket_trace.name }}</span>
               ({{ experiment.socket_trace.type.name }})</h4>
+            This file contains the stack trace of all operations on sockets (open, close, read, write…).
             {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.socket_trace %}
           {% endif %}
           {% if experiment.target_artifact %}

@@ -108,10 +108,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['extracted_from'].queryset = devices_qset
         form.fields['upload_request_ref'] = forms.CharField(widget = forms.HiddenInput(), required = True)
-        #
         form.fields['file'] = forms.FileField(required=False)
-
-        #print(f'')
 
         return form
 
@@ -132,7 +129,9 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
     case_required_message_action = "edit artifact"
 
     def get_form(self, form_class=None):
+        active_case = get_active_case(self.request)
         form = super(ArtifactUpdateView, self).get_form(form_class)
+        devices_qset = Device.get_user_devices(self.request.user, active_case)
         artifact_types = ArtifactType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -141,6 +140,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['original_name'] = forms.CharField(disabled=True)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['extracted_from'].queryset = devices_qset
         return form
 
     def get_context_data(self, **kwargs):

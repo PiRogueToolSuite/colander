@@ -86,7 +86,7 @@
         </p>
         <pre class="bg-dark text-white text-wrap p-3 rounded"><code>sudo apt update<br>
 sudo apt install -y pirogue-colander-connector<br>
-pirogue-colander config -u "{{ request.scheme }}://{{ request.META.HTTP_HOST }}/" -k "{{ request.user.token }}"</code></pre>
+pirogue-colander config -u "{{ request.scheme }}://{{ request.META.HTTP_HOST }}" -k "{{ request.user.token }}"</code></pre>
       </div>
     </div>
   {% endif %}

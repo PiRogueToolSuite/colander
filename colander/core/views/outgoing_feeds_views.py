@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView
+from django.core.cache import cache
 
 from colander.core.exporters.json import JsonCaseExporter
 from colander.core.models import DetectionRuleOutgoingFeed, \
@@ -158,8 +159,15 @@ def outgoing_entities_feed_view(request, pk):
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
 
+    cache_key = f'feed_{feed.id}_{feed.secret}'
+    cached = cache.get(cache_key)
+    if cached:
+        return JsonResponse(cached, json_dumps_params={})
+
     entities = feed.get_entities()
     exporter = JsonCaseExporter(feed.case, entities)
+    export = exporter.export()
+    cache.set(cache_key, export, 3600)
     return JsonResponse(exporter.export(), json_dumps_params={})
 
 
@@ -178,6 +186,12 @@ def outgoing_detection_rules_feed_view(request, pk):
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
 
+    cache_key = f'feed_{feed.id}_{feed.secret}'
+    cached = cache.get(cache_key)
+    if cached:
+        return HttpResponse(cached, status=200, content_type='text/plain')
+
     rules = feed.get_entities()
     export = '\n'.join([r.content for r in rules.all()])
+    cache.set(cache_key, export, 3600)
     return HttpResponse(export, status=200, content_type='text/plain')

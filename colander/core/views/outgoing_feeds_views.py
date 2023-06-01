@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView
 from django.core.cache import cache
 
+from colander.core.exporters.csv import CsvCaseExporter
 from colander.core.exporters.json import JsonCaseExporter
 from colander.core.models import DetectionRuleOutgoingFeed, \
     DetectionRuleType, EntityOutgoingFeed
@@ -159,16 +160,27 @@ def outgoing_entities_feed_view(request, pk):
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
 
-    cache_key = f'feed_{feed.id}_{feed.secret}'
+    format = request.GET.get('format', 'json')
+
+    cache_key = f'feed_{feed.id}_{format}_{feed.secret}'
     cached = cache.get(cache_key)
     if cached:
-        return JsonResponse(cached, json_dumps_params={})
+        if format == 'json':
+            return JsonResponse(cached, json_dumps_params={})
+        elif format == 'csv':
+            return HttpResponse(cached, status=200, content_type='text/plain')
 
     entities = feed.get_entities()
-    exporter = JsonCaseExporter(feed.case, entities)
-    export = exporter.export()
-    cache.set(cache_key, export, 3600)
-    return JsonResponse(exporter.export(), json_dumps_params={})
+    if format == 'json':
+        exporter = JsonCaseExporter(feed.case, entities)
+        export = exporter.export()
+        cache.set(cache_key, export, 3600)
+        return JsonResponse(export, json_dumps_params={})
+    elif format == 'csv':
+        exporter = CsvCaseExporter(feed.case, entities)
+        export = exporter.export()
+        cache.set(cache_key, export, 3600)
+        return HttpResponse(export, status=200, content_type='text/plain')
 
 
 def outgoing_detection_rules_feed_view(request, pk):

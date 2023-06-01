@@ -1,8 +1,11 @@
+import csv
+import io
+
 from colander.core.models import Case
 from colander.core.serializers.generic import *
 
 
-class JsonCaseExporter:
+class CsvCaseExporter:
     case: Case
     __entities: dict = None
 
@@ -24,28 +27,31 @@ class JsonCaseExporter:
             return self.__entities
         self.__entities = {}
         for entity in self.input_entities:
-            entity_model = entity.__class__
-            serializer = self.serializers.get(entity_model, 'None')
+            serializer = EntitySerializer(entity)
             if serializer:
                 self.__entity_ids.append(str(entity.id))
-                self.__entities[str(entity.id)] = serializer(entity, many=False).data
+                self.__entities[str(entity.id)] = serializer.data
         return self.__entities
 
-    def __get_relations(self):
-        if not self.__entities:
-            self.__entities = self.__get_entities()
-        relations = EntityRelation.objects.filter(
-            obj_from_id__in=self.__entity_ids,
-            obj_to_id__in=self.__entity_ids,
-            case=self.case,
-        )
-        objects = {}
-        for r in relations.all():
-            objects[str(r.id)] = EntityRelationSerializer(r).data
-        return objects
-
     def export(self):
-        return {
-            'entities': self.__get_entities(),
-            'relations': self.__get_relations(),
-        }
+        fields = [
+            'id',
+            'super_type',
+            'type',
+            'type_name',
+            'value',
+            'created_at',
+            'updated_at',
+            'sha256',
+            'tlp',
+            'pap',
+            'source_url',
+            'description',
+        ]
+        with io.StringIO() as out:
+            writer = csv.DictWriter(out, fieldnames=fields)
+            writer.writeheader()
+            for _, entity in self.__get_entities().items():
+                writer.writerow(entity)
+            out.seek(0)
+            return out.read()

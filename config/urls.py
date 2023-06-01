@@ -28,6 +28,9 @@ from colander.core.views.experiment_views import PiRogueExperimentCreateView, Pi
 from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
     ObservableDetailsView, delete_observable_view, capture_observable_view
+from colander.core.views.outgoing_feeds_views import DetectionRuleOutgoingFeedCreateView, \
+    DetectionRuleOutgoingFeedUpdateView, delete_detection_rule_out_feed_view, outgoing_detection_rules_feed_view, \
+    delete_entity_out_feed_view, EntityOutgoingFeedCreateView, EntityOutgoingFeedUpdateView, outgoing_entities_feed_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.views import case_close, landing_view, collect_base_view, \
     report_base_view, cases_select_view, CaseCreateView, \
@@ -69,6 +72,15 @@ urlpatterns = [
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/details", ColanderTeamDetailsView.as_view(), name="collaborate_team_details_view"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
+      path("collaborate/detection_rule_out_feed", DetectionRuleOutgoingFeedCreateView.as_view(), name="collaborate_detection_rule_out_feed_create_view"),
+      path("collaborate/detection_rule_out_feed/<slug:pk>", DetectionRuleOutgoingFeedUpdateView.as_view(), name="collaborate_detection_rule_out_feed_update_view"),
+      path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
+      path("collaborate/detection_rule_out_feed/<slug:pk>/delete", delete_detection_rule_out_feed_view, name="collaborate_detection_rule_out_feed_delete_view"),
+
+      path("collaborate/entity_out_feed", EntityOutgoingFeedCreateView.as_view(), name="collaborate_entity_out_feed_create_view"),
+      path("collaborate/entity_out_feed/<slug:pk>", EntityOutgoingFeedUpdateView.as_view(), name="collaborate_entity_out_feed_update_view"),
+      path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
+      path("collaborate/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="collaborate_entity_out_feed_delete_view"),
 
       path("collect/", collect_base_view, name="collect_base_view"),
       path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),

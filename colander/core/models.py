@@ -27,6 +27,17 @@ from django_q.models import Schedule
 from elasticsearch_dsl import Document, Keyword, Date, Object, Text
 
 
+def list_accepted_levels(input_level: str):
+    triggered = False
+    levels = []
+    for _, level in Entity.TLP_PAP_CHOICES:
+        if input_level.upper() == level:
+            triggered = True
+        if triggered:
+            levels.append(level)
+    return levels
+
+
 class ColanderTeam(models.Model):
     name = models.CharField(
         max_length=512,
@@ -463,6 +474,7 @@ class Entity(models.Model):
                 pass
         results.sort(key=lambda a: a.updated_at, reverse=True)
         return results
+
 
 class Comment(models.Model):
     class Meta:
@@ -1698,6 +1710,145 @@ class UploadRequest(models.Model):
 @receiver(pre_delete, sender=UploadRequest, dispatch_uid='delete_upload_request_file')
 def delete_upload_request_stored_files(sender, instance: UploadRequest, using, **kwargs):
     instance.cleanup()
+
+
+class OutgoingFeed(models.Model):
+    RED = 'RED'
+    AMBER = 'AMBER'
+    GREEN = 'GREEN'
+    WHITE = 'WHITE'
+    TLP_PAP_CHOICES = [
+        (RED, 'RED'),
+        (AMBER, 'AMBER'),
+        (GREEN, 'GREEN'),
+        (WHITE, 'WHITE'),
+    ]
+
+    class Meta:
+        abstract: True
+        ordering = ['name']
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    name = models.CharField(
+        max_length=512,
+    )
+    secret = models.CharField(
+        max_length=512,
+        help_text=_('Feeds are protected by a secret. You can reset it at anytime invalidating the previous one.'),
+        default=_random_id
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this feed.'),
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this feed.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+    max_tlp = models.CharField(
+        max_length=6,
+        choices=TLP_PAP_CHOICES,
+        help_text=_('Traffic Light Protocol, designed to indicate the sharing boundaries to be applied.'),
+        verbose_name='Maximum TLP level of exported data',
+        default=WHITE
+    )
+    max_pap = models.CharField(
+        max_length=6,
+        choices=TLP_PAP_CHOICES,
+        help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
+        verbose_name='Maximum PAP level of exported data',
+        default=WHITE
+    )
+
+
+class EntityOutgoingFeed(OutgoingFeed):
+    content_type = models.ManyToManyField(
+        ContentType,
+        related_name='entity_out_feed_types',
+        limit_choices_to={
+            'model__in': ['actor', 'artifact', 'device', 'observable', 'threat'],
+            'app_label': 'core',
+        },
+    )
+
+    @property
+    def feed_type(self):
+        return 'entities'
+
+    def get_entities(self):
+        tlp_levels = list_accepted_levels(self.max_tlp)
+        pap_levels = list_accepted_levels(self.max_pap)
+        entities = []
+        for entity_type in self.content_type.all():
+            if hasattr(entity_type.model_class(), 'tlp'):
+                entities.extend(entity_type.model_class().objects.filter(
+                    case=self.case,
+                    tlp__in=tlp_levels,
+                    pap__in=pap_levels).all())
+            else:
+                entities.extend(entity_type.model_class().objects.filter(case=self.case).all())
+        return entities
+
+    @cached_property
+    def entities(self):
+        return self.get_entities()
+
+    @staticmethod
+    def get_user_entity_out_feeds(user, case=None):
+        if case:
+            return EntityOutgoingFeed.objects.filter(case=case).all()
+        return EntityOutgoingFeed.objects.filter(case__in=user.all_my_cases).all()
+
+
+class DetectionRuleOutgoingFeed(OutgoingFeed):
+    content_type = models.ForeignKey(
+        DetectionRuleType,
+        on_delete=models.CASCADE
+    )
+
+    @staticmethod
+    def get_user_detection_rule_out_feeds(user, case=None):
+        if case:
+            return DetectionRuleOutgoingFeed.objects.filter(case=case).all()
+        return DetectionRuleOutgoingFeed.objects.filter(case__in=user.all_my_cases).all()
+
+    @property
+    def feed_type(self):
+        return 'detection_rules'
+
+    def get_entities(self):
+        tlp_levels = list_accepted_levels(self.max_tlp)
+        pap_levels = list_accepted_levels(self.max_pap)
+        rules = DetectionRule.objects.filter(
+            case=self.case,
+            type=self.content_type,
+            tlp__in=tlp_levels,
+            pap__in=pap_levels)
+        return rules.all()
 
 
 colander_models = {

@@ -1,0 +1,98 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-10 text-truncate border-end border-secondary">
+        <div class="border-bottom border-secondary">
+          <h4>
+            {% if feed.feed_type == "detection_rules" %}
+              <i class="nf {{ feed.content_type.nf_icon }} h4 text-primary"></i>
+            {% else %}
+              <i class="nf nf-md-code_json h4 text-primary"></i>
+            {% endif %}
+            {{ feed.name }}
+          </h4>
+          <span class="font-monospace">
+            {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
+          </span>
+        </div>
+        <div class="row">
+          <div class="col-md-3">
+            <div class="text-tiny font-monospace text-muted mt-1">
+              {% include "icons/id_icon.html" %}{{ feed.id }}
+            </div>
+            <div class="text-tiny text-muted">
+              {% include "icons/date_icon.html" %}
+              {{ feed.created_at }}
+            </div>
+            <div class="text-tiny text-muted">
+              {% include "icons/case_icon.html" %}
+              {{ feed.case.name }}
+            </div>
+            <div class="text-tiny text-muted">
+              {% include "icons/user_icon.html" %}
+              {{ feed.owner }} {% if feed.owner == request.user %}(me){% endif %}
+            </div>
+          </div>
+          <div class="col-md-9">
+            <p class="font-monospace small bg-dark text-white p-2 mt-1 rounded-2 shadow text-wrap">
+              curl {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}&info
+            </p>
+            {% if feed.content_type.short_name == "YARA" %}
+              <p class="font-monospace small bg-dark text-white p-2 mt-2 rounded-2 shadow text-wrap">
+                curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
+                -o rules-{{ feed.id }}.yar \ <br>
+                {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
+              </p>
+            {% endif %}
+            {% if feed.content_type.short_name == "SURICATA" %}
+              <p class="font-monospace small bg-dark text-white p-2 mt-2 rounded-2 shadow text-wrap">
+                suricata-update add-source Colander_<b>[custom value]</b> {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}<br>
+                suricata-update update-sources <br>
+                suricata-update
+              </p>
+            {% endif %}
+            {% if feed.feed_type == "entities" %}
+              <p class="font-monospace small bg-dark text-white p-2 mt-2 rounded-2 shadow text-wrap">
+                curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
+                -o entities-{{ feed.id }}.json \ <br>
+                {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 text-truncate ">
+        <div class="row">
+          <div class="col">
+            {% include "tlp/badge_tlp.html" with tlp=feed.max_tlp c="small" %}
+            {% include "tlp/badge_pap.html" with pap=feed.max_pap c="small" %}
+            {% if feed.feed_type == "detection_rules" %}
+              <div class="small">
+                <i class="nf nf-fa-filter"></i> {{ feed.content_type.name }}
+              </div>
+            {% else %}
+              {% for t in feed.content_type.all %}
+              <div class="small">
+                <i class="nf nf-fa-filter"></i> {{ t.name }}
+              </div>
+              {% endfor %}
+            {% endif %}
+            <div class="small">
+              <i class="nf nf-fa-lock"></i> <code>{{ feed.secret }}</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    {% if feed.feed_type == "detection_rules" %}
+      {% include "feed/detection_rule_out_feed_controls.html" with exclude="" btn_class="btn-sm" %}
+    {% else %}
+      {% include "feed/entity_out_feed_controls.html" with exclude="" btn_class="btn-sm" %}
+    {% endif %}
+  </div>
+</div>

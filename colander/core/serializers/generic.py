@@ -1,0 +1,96 @@
+from rest_framework import serializers
+
+from colander.core.models import Artifact, Device, Actor, Threat, CommonModelType, Observable, EntityRelation
+
+
+class EntityTypeSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    short_name = serializers.CharField()
+    description = serializers.CharField()
+    nf_icon = serializers.CharField()
+
+class ArtifactSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    type = EntityTypeSerializer()
+
+    class Meta:
+        model = Artifact
+        exclude = [
+            'case',
+            'stored_name',
+            'storage_name',
+            'storage_location',
+            'analysis_index',
+            'owner',
+            'file'
+        ]
+
+    def get_super_type(self, obj):
+        return {'name': 'artifact', 'short_name': 'ARTIFACT'}
+
+
+class ActorSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    type = EntityTypeSerializer()
+
+    class Meta:
+        model = Actor
+        exclude = ['owner', 'case']
+
+    def get_super_type(self, obj):
+        return {'name': 'actor', 'short_name': 'ACTOR'}
+
+
+class DeviceSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    type = EntityTypeSerializer()
+
+    class Meta:
+        model = Device
+        exclude = ['owner', 'case']
+
+    def get_super_type(self, obj):
+        return {'name': 'device', 'short_name': 'DEVICE'}
+
+
+
+class ThreatSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    type = EntityTypeSerializer()
+
+    class Meta:
+        model = Threat
+        exclude = ['owner', 'case']
+
+    def get_super_type(self, obj):
+        return {'name': 'threat', 'short_name': 'THREAT'}
+
+
+class ObservableSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    type = EntityTypeSerializer()
+
+    class Meta:
+        model = Observable
+        exclude = ['owner', 'case', 'es_prefix', 'analysis_index', 'raw_value']
+
+    def get_super_type(self, obj):
+        return {'name': 'observable', 'short_name': 'OBSERVABLE'}
+
+
+class EntityRelationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EntityRelation
+        exclude = ['owner', 'case', 'obj_from_type', 'obj_to_type']
+
+    def get_super_type(self, obj):
+        return {'name': 'entity_relation', 'short_name': 'ENTITY_RELATION'}
+
+
+class OutgoingFeedSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    description = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    max_tlp = serializers.CharField()
+    max_pap = serializers.CharField()

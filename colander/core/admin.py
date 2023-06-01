@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from colander.core.models import ObservableType, Observable, Case, Threat, ObservableRelation, \
     Artifact, ArtifactType, Event, Actor, EventType, Comment, PiRogueExperiment, EntityRelation, BackendCredentials, \
-    DetectionRule, UploadRequest, ColanderTeam
+    DetectionRule, UploadRequest, ColanderTeam, DetectionRuleOutgoingFeed, EntityOutgoingFeed
 
 
 class ColanderTeamAdmin(admin.ModelAdmin):
@@ -104,3 +104,13 @@ class UploadRequestAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner', 'created_at', 'status')
     # list_filter = ('name', 'observable_from', 'observable_to')
 admin.site.register(UploadRequest, UploadRequestAdmin)
+
+
+class EntityOutFeedAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+admin.site.register(EntityOutgoingFeed, EntityOutFeedAdmin)
+
+
+class DetectionRuleOutFeedAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+admin.site.register(DetectionRuleOutgoingFeed, DetectionRuleOutFeedAdmin)

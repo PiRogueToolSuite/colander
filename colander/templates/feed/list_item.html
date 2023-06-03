@@ -37,28 +37,39 @@
             </div>
           </div>
           <div class="col-md-9">
-            <p class="font-monospace small bg-dark text-white p-2 mt-1 rounded-2 shadow text-wrap">
+            Get feed information:
+            <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
               curl {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}&info
             </p>
             {% if feed.content_type.short_name == "YARA" %}
-              <p class="font-monospace small bg-dark text-white p-2 mt-2 rounded-2 shadow text-wrap">
+              Download <a href="https://yara.readthedocs.io/en/stable/index.html" title="Yara documentation" target="_blank">Yara</a> rules:
+              <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
                 curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
                 -o rules-{{ feed.id }}.yar \ <br>
                 {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
               </p>
             {% endif %}
             {% if feed.content_type.short_name == "SURICATA" %}
-              <p class="font-monospace small bg-dark text-white p-2 mt-2 rounded-2 shadow text-wrap">
+              Download rules and use with <a href="https://suricata.io/" title="Suricata documentation" target="_blank">Suricata</a>:
+              <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
                 suricata-update add-source Colander_<b>[custom value]</b> {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}<br>
                 suricata-update update-sources <br>
                 suricata-update
               </p>
             {% endif %}
             {% if feed.feed_type == "entities" %}
-              <p class="font-monospace small bg-dark text-white p-2 mt-2 rounded-2 shadow text-wrap">
+              Download as a JSON file:
+              <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
                 curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
                 -o entities-{{ feed.id }}.json \ <br>
                 {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
+              </p>
+              Download as a STIX2 file and use with <a href="https://docs.mvt.re" title="MVT documentation" target="_blank">mvt</a>:
+              <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
+                curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
+                -o ~/entities-{{ feed.id }}.stix2 \ <br>
+                {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?format=stix2 <br>
+                mvt-[ios|android] check-backup --iocs ~/entities-{{ feed.id }}.stix2 [...]
               </p>
             {% endif %}
           </div>

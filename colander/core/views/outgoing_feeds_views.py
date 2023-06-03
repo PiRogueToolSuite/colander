@@ -162,6 +162,8 @@ def outgoing_entities_feed_view(request, pk):
         return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
 
     format = request.GET.get('format', 'json')
+    if format not in ['json', 'stix2', 'csv']:
+        format = 'json'
 
     cache_key = f'feed_{feed.id}_{format}_{feed.secret}'
     cached = cache.get(cache_key)

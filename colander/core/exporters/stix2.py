@@ -180,21 +180,35 @@ class Stix2CaseExporter:
     def __get_relations(self):
         if not self.__entities:
             self.__entities = self.__get_entities()
+        ids = [e.id for e in self.input_entities]
         relations = EntityRelation.objects.filter(
-            obj_from_id__in=self.__entity_ids,
-            obj_to_id__in=self.__entity_ids,
+            obj_from_id__in=ids,
+            obj_to_id__in=ids,
             case=self.case,
         )
         objects = {}
         for r in relations.all():
-            objects[str(r.id)] = EntityRelationSerializer(r).data
+            if r.obj_from.type.stix2_type and r.obj_to.type.stix2_type:
+                _r_id = f'relationship--{r.id}'
+                _r = {
+                    'type': 'relationship',
+                    'spec_version': '2.1',
+                    'id': _r_id,
+                    'created': r.created_at.isoformat(),
+                    'modified': r.updated_at.isoformat(),
+                    'relationship_type': r.name,
+                    'source_ref': f'{r.obj_from.type.stix2_type}--{r.obj_from.id}',
+                    'target_ref': f'{r.obj_to.type.stix2_type}--{r.obj_to.id}'
+                }
+                objects[_r_id] = _r
         return objects
 
     def export(self):
         entities = list(self.__get_entities().values())
         relations = list(self.__relations.values())
+        other_relations = list(self.__get_relations().values())
         return {
             'type': 'bundle',
             'id': f'bundle--{self.feed.id}',
-            'objects': entities + relations
+            'objects': entities + relations + other_relations
         }

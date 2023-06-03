@@ -1,7 +1,68 @@
 [
-  {"short_name": "NGO", "name": "NGO", "description": "", "svg_icon": "", "nf_icon": "nf-fae-cc_nc"},
-  {"short_name": "COMPANY", "name": "Private company", "description": "", "svg_icon": "", "nf_icon": "nf-fa-dollar"},
-  {"short_name": "APT", "name": "APT", "description": "", "svg_icon": "", "nf_icon": "nf-fae-virus"},
-  {"short_name": "INDIVIDUAL", "name": "Individual", "description": "", "svg_icon": "", "nf_icon": "nf-cod-person"},
-  {"short_name": "PUB_INST", "name": "Public institution", "description": "", "svg_icon": "", "nf_icon": "nf-fa-bank"}
+  {
+    "short_name": "NGO",
+    "name": "NGO",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fae-cc_nc",
+    "stix2_type": "identity",
+    "stix2_value_field_name": "name:organization",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
+    "short_name": "COMPANY",
+    "name": "Private company",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-dollar",
+    "stix2_type": "identity",
+    "stix2_value_field_name": "name:organization",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
+    "short_name": "APT",
+    "name": "APT",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fae-virus",
+    "stix2_type": "threat-actor",
+    "stix2_value_field_name": "name",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
+    "short_name": "THREAT_ACTOR",
+    "name": "Threat actor",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fae-virus",
+    "stix2_type": "threat-actor",
+    "stix2_value_field_name": "name",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
+    "short_name": "INDIVIDUAL",
+    "name": "Individual",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-cod-person",
+    "stix2_type": "identity",
+    "stix2_value_field_name": "name:individual",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
+    "short_name": "PUB_INST",
+    "name": "Public institution",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-bank",
+    "stix2_type": "identity",
+    "stix2_value_field_name": "name:organization",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  }
 ]

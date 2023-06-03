@@ -32,5 +32,9 @@ class Command(BaseCommand):
                         'description': obj_type.get('description'),
                         'svg_icon': obj_type.get('svg_icon'),
                         'nf_icon': obj_type.get('nf_icon'),
+                        'stix2_type': obj_type.get('stix2_type'),
+                        'stix2_value_field_name': obj_type.get('stix2_value_field_name'),
+                        'stix2_pattern': obj_type.get('stix2_pattern'),
+                        'stix2_pattern_type': obj_type.get('stix2_pattern_type'),
                     }
                 )

@@ -10,6 +10,7 @@ from django.core.cache import cache
 
 from colander.core.exporters.csv import CsvCaseExporter
 from colander.core.exporters.json import JsonCaseExporter
+from colander.core.exporters.stix2 import Stix2CaseExporter
 from colander.core.models import DetectionRuleOutgoingFeed, \
     DetectionRuleType, EntityOutgoingFeed
 from colander.core.serializers.generic import OutgoingFeedSerializer
@@ -167,12 +168,19 @@ def outgoing_entities_feed_view(request, pk):
     if cached:
         if format == 'json':
             return JsonResponse(cached, json_dumps_params={})
+        elif format == 'stix2':
+            return JsonResponse(cached, json_dumps_params={})
         elif format == 'csv':
             return HttpResponse(cached, status=200, content_type='text/plain')
 
     entities = feed.get_entities()
     if format == 'json':
         exporter = JsonCaseExporter(feed.case, entities)
+        export = exporter.export()
+        cache.set(cache_key, export, 3600)
+        return JsonResponse(export, json_dumps_params={})
+    elif format == 'stix2':
+        exporter = Stix2CaseExporter(feed.case, feed, entities)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return JsonResponse(export, json_dumps_params={})

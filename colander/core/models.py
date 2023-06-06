@@ -17,6 +17,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
+from django.db.models import F
 from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -301,7 +302,9 @@ class Case(models.Model):
     def quick_search(self, value, type=None, exclude_types=['EntityRelation', 'Case']):
         models = colander_models
         if type and type in models:
+            # If type is used, force no type exclusion
             models = {type: models.get(type)}
+            exclude_types = []
         field_name = ''
         results = []
         for name, model in models.items():
@@ -371,6 +374,19 @@ class Case(models.Model):
     @property
     def to_mermaid_events(self):
         return self.get_mermaid_events()
+
+    @property
+    def entities(self):
+        return self.quick_search('')
+        #return Entity.objects.filter(case=self)
+
+    @property
+    def relations(self):
+        return self.quick_search('', type='EntityRelation')
+
+    @property
+    def overrides(self):
+        return {}
 
     @staticmethod
     def get_user_cases(user):
@@ -448,20 +464,35 @@ class Entity(models.Model):
     )
 
     def get_relations(self):
-        relations = EntityRelation.objects.filter(Q(obj_from_id=self.id) | Q(obj_to_id=self.id)).all()
+        relations = self.get_in_relations()
+        relations += self.get_out_relations()
         return relations
 
     def get_in_relations(self):
-        relations = EntityRelation.objects.filter(obj_to_id=self.id).all()
+        relations = []
+        relations += EntityRelation.objects.filter(obj_to_id=self.id).all()
+        relations += self.in_immutable_relations
         return relations
 
     def get_out_relations(self):
-        relations = EntityRelation.objects.filter(obj_from_id=self.id).all()
+        relations = []
+        relations += EntityRelation.objects\
+            .filter(obj_from_id=self.id)\
+            .exclude(obj_from_id=F('obj_to_id')).all()
+        relations += self.out_immutable_relations
         return relations
 
     @property
     def relations(self):
         return self.get_relations()
+
+    @property
+    def in_immutable_relations(self):
+        return []
+
+    @property
+    def out_immutable_relations(self):
+        return []
 
     @property
     def in_relations(self):
@@ -686,6 +717,19 @@ class Device(Entity):
             return Device.objects.filter(case=case).all()
         return Device.objects.filter(case__in=user.all_my_cases).all()
 
+    @property
+    def in_immutable_relations(self):
+        relations = []
+        if self.operated_by:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="operates",
+                    source=self.operated_by,
+                    target=self
+                )
+            )
+        return relations
+
 
 class Artifact(Entity):
     type = models.ForeignKey(
@@ -836,6 +880,19 @@ class Artifact(Entity):
         if case:
             return Artifact.objects.filter(case=case).all()
         return Artifact.objects.filter(case__in=user.all_my_cases).all()
+
+    @property
+    def out_immutable_relations(self):
+        relations = []
+        if self.extracted_from:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="extracted from",
+                    source=self,
+                    target=self.extracted_from
+                )
+            )
+        return relations
 
 
 @receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
@@ -1054,6 +1111,40 @@ class Observable(Entity):
             return Observable.objects.filter(case=case).all()
         return Observable.objects.filter(case__in=user.all_my_cases).all()
 
+    @property
+    def out_immutable_relations(self):
+        relations = []
+        if self.extracted_from:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="extracted from",
+                    source=self,
+                    target=self.extracted_from
+                )
+            )
+        if self.associated_threat:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="indicates",
+                    source=self,
+                    target=self.associated_threat
+                )
+            )
+        return relations
+
+    @property
+    def in_immutable_relations(self):
+        relations = []
+        if self.operated_by:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="operated by",
+                    source=self.operated_by,
+                    target=self
+                )
+            )
+        return relations
+
 
 class EntityRelation(models.Model):
     class Meta:
@@ -1102,6 +1193,8 @@ class EntityRelation(models.Model):
     obj_to_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='obj_to_types')
     obj_to = GenericForeignKey('obj_to_type', 'obj_to_id')
 
+    immutable = False
+
     def __str__(self):
         return f'{self.obj_from} -{self.name}-> {self.obj_to}'
 
@@ -1140,6 +1233,17 @@ class EntityRelation(models.Model):
         nodes = []
         clicks = []
         return nodes, clicks, links
+
+    @staticmethod
+    def immutable_instance(source, target, name):
+        ier = EntityRelation(
+            name=name,
+            obj_from=source,
+            obj_to=target,
+        )
+        ier.id = f'{source.id}|{name}|{target.id}'
+        ier.immutable = True
+        return ier
 
 
 @receiver(pre_delete, sender=Entity, dispatch_uid="entity_relation_cascade")
@@ -1476,6 +1580,35 @@ class Event(Entity):
         objects = Event.objects.filter(name=name, case__id=case_id)
         return bool(objects), objects
 
+    @property
+    def out_immutable_relations(self):
+        relations = []
+        if self.extracted_from:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="extracted from",
+                    source=self,
+                    target=self.extracted_from
+                )
+            )
+        if self.observed_on:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="observed on",
+                    source=self,
+                    target=self.observed_on
+                )
+            )
+        if self.involved_observables:
+            for io in self.involved_observables.all():
+                relations.append(
+                    EntityRelation.immutable_instance(
+                        name="involves",
+                        source=self,
+                        target=io
+                    )
+                )
+        return relations
 
 class PiRogueExperiment(Entity):
     class Meta:
@@ -1624,6 +1757,67 @@ class PiRogueExperiment(Entity):
         if case:
             return PiRogueExperiment.objects.filter(case=case).all()
         return PiRogueExperiment.objects.filter(case__in=user.all_my_cases).all()
+
+    @property
+    def out_immutable_relations(self):
+        relations = []
+        if self.pcap:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="generated",
+                    source=self,
+                    target=self.pcap
+                )
+            )
+        if self.socket_trace:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="generated",
+                    source=self,
+                    target=self.socket_trace
+                )
+            )
+        if self.target_device:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="executed on",
+                    source=self,
+                    target=self.target_device
+                )
+            )
+        if self.target_artifact:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="execution of",
+                    source=self,
+                    target=self.target_artifact
+                )
+            )
+        if self.sslkeylog:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="generated",
+                    source=self,
+                    target=self.sslkeylog
+                )
+            )
+        if self.screencast:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="generated",
+                    source=self,
+                    target=self.screencast
+                )
+            )
+        if self.aes_trace:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="generated",
+                    source=self,
+                    target=self.aes_trace
+                )
+            )
+        return relations
 
 
 class ObservableAnalysisEngine(models.Model):

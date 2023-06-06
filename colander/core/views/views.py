@@ -1,9 +1,6 @@
-from typing import Optional
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
-from django.db import models
 from django.forms.widgets import Textarea
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
@@ -13,10 +10,9 @@ from django.views.decorators.cache import cache_page
 from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
 
-from colander.core.forms import DocumentationForm, CommentForm
+from colander.core.forms import DocumentationForm
 from colander.core.models import Entity, Case, colander_models
 
-from pprint import pprint
 
 @login_required
 def landing_view(request):

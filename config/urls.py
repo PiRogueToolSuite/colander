@@ -39,6 +39,7 @@ from colander.core.views.views import case_close, landing_view, collect_base_vie
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
     forward_auth, cron_ish_view, collaborate_base_view
+from colander.core.graph.views import case_graph
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
 from colander.users.views import UserTwoFactorSetup
@@ -96,6 +97,7 @@ urlpatterns = [
       path("case/close", case_close, name="case_close"),
       path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
       path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
+      path("case/<slug:pk>/graph", case_graph, name="case_graph"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
       path("case/<slug:pk>/doc/save", save_case_documentation_view, name="cases_save_doc_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),

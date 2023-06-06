@@ -11039,7 +11039,7 @@ header .navbar-brand span {
   border-color: transparent;
 }
 #sidebar-wrapper .list-group #quick-add-entity {
-  z-index: 1000;
+  z-index: 4;
   margin-left: 11.6rem;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -11111,7 +11111,6 @@ body.sb-sidenav-toggled #sidebar-wrapper {
     opacity: 1;
   }
   #sidebar-wrapper .list-group #quick-add-entity {
-    z-index: 1000;
     margin-top: -2rem;
     margin-bottom: 0.75rem;
     margin-left: 11rem;

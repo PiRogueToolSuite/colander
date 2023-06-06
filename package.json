@@ -1,0 +1,36 @@
+{
+  "name": "colander",
+  "version": "1.0.0",
+  "description": "Assets storage and analysis",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack --mode development --watch",
+    "dist": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PiRogueToolSuite/colander.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PiRogueToolSuite/colander/issues"
+  },
+  "homepage": "https://github.com/PiRogueToolSuite/colander#readme",
+  "private": true,
+  "devDependencies": {
+    "webpack": "^5.84.1",
+    "webpack-cli": "^5.1.1"
+  },
+  "dependencies": {
+    "cytoscape": "^3.25.0",
+    "cytoscape-cxtmenu": "^3.5.0",
+    "cytoscape-edgehandles": "^4.0.1",
+    "cytoscape-klay": "^3.1.4"
+  }
+}

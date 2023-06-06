@@ -1,36 +1,24 @@
 {% load static %}
 
-<pre class="mermaid text-center" id="mermaid-code" style="display: none">
-    {{ case.to_mermaid }}
-</pre>
-<div id="mermaid-output" class="text-center"></div>
+{% block context_css %}
+  <link href="{% static 'css/graph.css' %}" type="text/css" rel="stylesheet" />
+{% endblock %}
+{% block context_javascript %}
+  <script type="text/javascript" src="{% static 'js/colander-dgraph.js' %}"></script>
+{% endblock %}
 
+<div id="ze-graph"></div>
 
-{% block inline_javascript %}
-  <script type="module">
-    import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
-    mermaid.initialize({
-      theme: 'base',
-      startOnLoad: false,
-      securityLevel: 'antiscript',
-      flowchart: {
-        curve: 'basis'
-      },
-      themeVariables: {
-        fontSize: '1em',
-        fontFamily: 'Open Sans, sans-serif',
-        edgeLabelBackground: '#ffffff',
-        primaryBorderColor: '#333333',
-        lineColor: '#999999'
-      }
-    });
-
-    $(async function () {
-      const insertSvg = function (svgCode, bindFunctions) {
-        document.getElementById('mermaid-output').innerHTML = svgCode
-    };
-    const graphDefinition = document.getElementById('mermaid-code').innerText;
-    mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
+<script type="text/javascript">
+  let cdg = new ColanderDGraph( 'ze-graph', `/case/{{ case.id }}/graph` );
+  cdg.enable({
+    {% if lock %}
+      lock: true,
+    {% else %}
+      recenter: true,
+      snapshot: true,
+      fullscreen: true,
+      sidepane: true,
+    {% endif %}
   });
-  </script>
-{% endblock inline_javascript %}
+</script>

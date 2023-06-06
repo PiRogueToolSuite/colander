@@ -25,6 +25,9 @@
       <link href="{% static 'vendors/simplemde/css/simplemde.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
   {% endblock %}
+  {% compress css %}
+    {% block context_css %}{% endblock %}
+  {% endcompress %}
   <!-- Le javascript
   ================================================== -->
   {# Placed at the top of the document so pages load faster with defer #}
@@ -45,6 +48,9 @@
       <script src="{% static 'vendors/simplemde/js/simplemde.min.js' %}"></script>
     {% endcompress %}
   {% endblock javascript %}
+  {% compress js %}
+    {% block context_javascript %}{% endblock %}
+  {% endcompress %}
 
 </head>
 

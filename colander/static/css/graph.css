@@ -1,0 +1,42 @@
+#ze-graph {
+  /*height: 500px;*/
+  height: calc(100vh - 3rem - 18rem);
+  width: 100%;
+  display: block;
+  overflow: hidden;
+}
+#ze-graph.fullscreen {
+  z-index: 10;
+  position: fixed;
+  top: 3rem;
+  left: 0;
+  background: rgb(246, 246, 246);
+  height: calc(100vh - 3rem);
+  width: 100vw;
+}
+#ze-graph .sidepane {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  background-color: rgb(246, 246, 246);
+  right: -400px;
+  height: 100%;
+  width: 400px;
+  border-color: gray;
+  border-width: 1px;
+  border-style: solid dashed solid solid;
+  box-shadow: -1rem 0 0 -1rem;
+  transition: 0.25s ease-in;
+  transition-property: right, box-shadow;
+}
+#ze-graph .sidepane iframe {
+  width: 100%;
+  /*height: calc(100% - 2rem);*/
+  height: 100%;
+}
+#ze-graph.sidepane-active .sidepane {
+  right: 0;
+  box-shadow: -1rem 0 1rem -1rem;
+}
+
+/*# sourceMappingURL=graph.css.map */

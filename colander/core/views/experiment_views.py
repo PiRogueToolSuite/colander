@@ -83,7 +83,11 @@ def __compute_detection_summary(analysis, direction):
                 else:
                     host = record.result.src.host
                     ip = record.result.src.ip
-                process = record.result.full_stack_trace.process
+                process = 'Unknown'
+                try:
+                    process = record.result.full_stack_trace.process
+                except Exception:
+                    pass
                 key = f'{host} - ({ip}) - {process}'
                 if direction == 'outbound':
                     geo_data = record.result.dst.geoip

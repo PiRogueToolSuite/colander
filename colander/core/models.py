@@ -1692,10 +1692,12 @@ class UploadRequest(models.Model):
         if not self.name:
             raise Exception("Can't touch file without name")
         if self.size == 0:
-            raise Exception("Can't touch zero sized file")
-        with open(self.path, 'wb') as f:
-            f.seek(self.size - 1)
-            f.write(b'\0')
+            open(self.path, 'wb').close()
+            #raise Exception("Can't touch zero sized file")
+        else:
+            with open(self.path, 'wb') as f:
+                f.seek(self.size - 1)
+                f.write(b'\0')
 
     def append_chunk(self, addr, buf):
         if str(addr) not in self.chunks:

@@ -51,7 +51,8 @@ def compute_non_signed_artifacts(batch=1):
             logger.info(f"compute_non_signed_artifacts[{artifact.id}]: cleaned.")
         except UploadRequest.DoesNotExist:
             # Will be cleaned by cleanup orphans cron
-            logger.info(f"compute_non_signed_artifacts[{artifact.id}]: no associated UploadRequest. Skip.")
+            logger.warning(f"compute_non_signed_artifacts[{artifact.id}]: no associated UploadRequest. Cleaning.")
+            artifact.delete()
         except FileNotFoundError:
             logger.info(f"compute_non_signed_artifacts[{artifact.id}]: file is no more available: {upr.path}. Cleaning.")
             artifact.delete()

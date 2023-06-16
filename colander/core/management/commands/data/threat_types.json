@@ -275,6 +275,17 @@
     "stix2_pattern_type": ""
   },
   {
+    "short_name": "CVE",
+    "name": "CVE",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf nf-fa-bug",
+    "stix2_type": "",
+    "stix2_value_field_name": "nf-cod-debug_console",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
     "short_name": "SPYWARE",
     "name": "Spyware",
     "description": "",

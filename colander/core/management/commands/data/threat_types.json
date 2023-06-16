@@ -279,9 +279,9 @@
     "name": "CVE",
     "description": "",
     "svg_icon": "",
-    "nf_icon": "nf nf-fa-bug",
+    "nf_icon": "nf nf-cod-debug_console",
     "stix2_type": "",
-    "stix2_value_field_name": "nf-cod-debug_console",
+    "stix2_value_field_name": "name:unknown",
     "stix2_pattern": "",
     "stix2_pattern_type": ""
   },

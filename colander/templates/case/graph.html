@@ -1,6 +1,7 @@
 {% load static %}
 
 {% block context_css %}
+  <link href="{% static 'fonts/fira-code/fira_code.css' %}" type="text/css" rel="stylesheet" />
   <link href="{% static 'css/graph.css' %}" type="text/css" rel="stylesheet" />
 {% endblock %}
 {% block context_javascript %}
@@ -10,7 +11,7 @@
 <div id="ze-graph"></div>
 
 <script type="text/javascript">
-  let cdg = new ColanderDGraph( 'ze-graph', `/case/{{ case.id }}/graph` );
+  let cdg = new ColanderDGraph( 'ze-graph', `/case/{{ case.id }}/graph`, '{{ csrf_token }}' );
   cdg.enable({
     {% if lock %}
       lock: true,

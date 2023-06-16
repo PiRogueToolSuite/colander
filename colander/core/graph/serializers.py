@@ -24,12 +24,21 @@ class KeyedListSerializer(serializers.ListSerializer):
 
 class GraphRelationSerializer(serializers.ModelSerializer):
 
-    obj_from = serializers.PrimaryKeyRelatedField(read_only=True)
-    obj_to = serializers.PrimaryKeyRelatedField(read_only=True)
+    # FIXME: Overload  serializers.PrimaryKeyRelatedField(queryset) to be user accessible entity only
+    # class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    #     def get_queryset(self):
+    #         request = self.context.get('request', None)
+    #         queryset = super(UserFilteredPrimaryKeyRelatedField, self).get_queryset()
+    #         if not request or not queryset:
+    #             return None
+    #         return queryset.filter(user=request.user)
+    obj_from = serializers.PrimaryKeyRelatedField(queryset=Entity.objects)
+    obj_to = serializers.PrimaryKeyRelatedField(queryset=Entity.objects)
 
     class Meta:
         model = EntityRelation
         fields = ['id', 'name', 'obj_from', 'obj_to', 'immutable']
+        read_only_fields = ['immutable']
         list_serializer_class = KeyedListSerializer
         keyed_list_serializer_field = 'id'
 

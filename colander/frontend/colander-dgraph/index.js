@@ -1,4 +1,5 @@
 import cytoscape from 'cytoscape';
+import _ from 'lodash';
 import cxtmenu from 'cytoscape-cxtmenu';
 import edgehandles from 'cytoscape-edgehandles';
 import klay from 'cytoscape-klay';
@@ -7,6 +8,8 @@ import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default
 cytoscape.use( cxtmenu );
 cytoscape.use( edgehandles );
 cytoscape.use( klay );
+
+console.log('memoize', _.memoize);
 
 let styles = [];
 
@@ -28,6 +31,7 @@ for(let iid in icons) {
       },
       */
       'font-family': 'ForkAwesome, monospace',
+      'letter-spacing': '15px',
       'font-size': '10px',
       //'width': 'label',
       'width': (e) => { return e.data('name').length * 6 + 40; },
@@ -36,14 +40,14 @@ for(let iid in icons) {
       'text-wrap': 'wrap',
     }
   });
-  styles.push({
-    selector: `node.${iid}:selected`,
-    style: {
-      'background-color': color_scheme[iid],
-      'background-blacken': 0.5,
-    }
-  });
 }
+styles.push({
+  selector: `node:selected`,
+  style: {
+    'background-color': '#7122da',
+    'border-color': '#7122da',
+  }
+});
 
 styles.push({
   selector: 'edge',
@@ -57,11 +61,19 @@ styles.push({
     'text-outline-opacity': 1,
     'text-outline-width': 3,
     'font-family': 'ForkAwesome, monospace',
+    'letter-spacing': '15px',
     'font-size': '10px',
     'curve-style': 'bezier',
     'loop-direction': '0deg',
     'loop-sweep': '-45deg',
     //'line-style': 'dashed',
+  }
+});
+
+styles.push({
+  selector: 'edge.eh-ghost-edge',
+  style: {
+    'label': '',
   }
 });
 
@@ -75,6 +87,24 @@ styles.push({
   }
 });
 
+async function create_relation(csrf, source, target, name) {
+  const rawResponse = await fetch('/rest/entity_relations/', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrf,
+    },
+    body: JSON.stringify({
+      name: name,
+      obj_from: source,
+      obj_to: target,
+    })
+  })
+  const content = await rawResponse.json();
+
+  console.log('create_relation', content);
+}
 
 class ColanderDGraph {
   // Attributes
@@ -84,8 +114,11 @@ class ColanderDGraph {
   g;
   jOverlayMenu;
   options;
-  constructor(idElement, graphUrl) {
+  csrf;
+  constructor(idElement, graphUrl, csrf) {
+    this.csrf = csrf;
     this.jRootElement = $(`#${idElement}`);
+    this.jRootElement.addClass('colander-dgraph');
     this.graphUrl = graphUrl;
     this.cy = cytoscape({
       container: $('#ze-graph'),
@@ -96,30 +129,27 @@ class ColanderDGraph {
       style: styles,
       ready: this._onCyReady.bind(this)
     });
+    // -- Edge (creation) handling plugin
     let eh = this.cy.edgehandles({
       canConnect: function( sourceNode, targetNode ){
-        // whether an edge can be created between source and target
-        //return !sourceNode.same(targetNode); // e.g. disallow loops
-        return true;
+        //return !sourceNode.same(targetNode); // disallow loops
+        return true; // allow loops
       },
       edgeParams: (sourceNode, targetNode) => {
-          console.log('edgeParams', sourceNode, targetNode);
-          return { data: {name: 'New relation'} };
+        // Temporary set the new edge name
+        // will be overridden by user with edge name prompt
+        return { data: {name: 'New relation'} };
       },
       snap: false,
     });
-    this.cy.on('ehcomplete', (event, sourceNode, targetNode, addedEdge)=> {
-      console.log('ehcomplete', event, sourceNode, targetNode, addedEdge);
-      console.log('addedEdge', addedEdge);
-      console.log('addedEdge', addedEdge.data);
-      let rname = window.prompt('Relation name:', addedEdge.data('name'));
-
-      addedEdge.data('name', rname);
-
-    });
-    let menu = this.cy.cxtmenu({
+    this.cy.on('ehcomplete', this._createRelation.bind(this));
+    //
+    // -- Circular context menu
+    let node_menu = this.cy.cxtmenu({
       atMouse: false,
-      selector: '*',
+      selector: 'node',
+      fillColor: 'rgba(169, 145, 212, 0.8)',
+      activeFillColor: 'rgba(113, 34, 218, 0.8)',
       menuRadius: (ele) => {
         let rw = 1;
         if (ele.isNode) {
@@ -162,7 +192,11 @@ class ColanderDGraph {
             else {
               window.location = ele.data('absolute_url');
             }
-          }
+          },
+          enabled: (e) => {
+            console.log('enabled', e);
+            return false;
+          },
         },
         {
           content: 'Relation',
@@ -172,12 +206,53 @@ class ColanderDGraph {
           }
         },
         {
+          content: '<div>Edit</div><span class="fa fa-pencil fa-2x"></span>',
+          select: (ele) => {
+            console.log( ele.position() );
+            //eh.start(ele);
+          }
+        },
+        {
           content: 'Related Entity',
           select: (ele) => {
             console.log( ele.position() );
             eh.start(ele);
           }
         }
+      ]
+    });
+    let edge_menu = this.cy.cxtmenu({
+      atMouse: false,
+      selector: 'edge.mutable',
+      fillColor: 'rgba(169, 145, 212, 0.8)',
+      activeFillColor: 'rgba(113, 34, 218, 0.8)',
+      menuRadius: (ele) => {
+        let rw = 1;
+        if (ele.isNode) {
+          rw = ele.renderedOuterWidth();
+        }
+        let r = -rw/2 + 150;
+        // As memo:
+        // r = rw/2 + (options.menuRadius)
+        // containerSize = (r + options.activePadding)*2;
+        return r;
+      },
+      commands: [
+        {
+          content: '<div>Rename</div><span class="fa fa-pencil fa-2x"></span>',
+          select: (ele) => {
+            console.log( ele.position() );
+            //eh.start(ele);
+          }
+        },
+        {
+          content: '<div>Delete</div><span class="fa fa-trash fa-2x"></span>',
+          fillColor: 'rgba(255,0,0,0.8)',
+          select: (ele) => {
+            console.log( ele.position() );
+            //eh.start(ele);
+          }
+        },
       ]
     });
     console.log('ColanderDGraph prod', idElement, graphUrl, this.jRootElement, this.graphUrl);
@@ -195,26 +270,67 @@ class ColanderDGraph {
     console.log('on graph data', data);
     this.g = data;
     for(let eid in this.g.entities) {
-      let e = Object.assign({}, this.g.entities[eid]);
-      this.cy.add({
-        group: 'nodes',
-        data: e,
-        classes: [ `${e.super_type}`, `${e.tlp}`, `${e.pap}` ]
-      });
+      let n = this._toNode(eid);
+      this.cy.add(n);
     }
     for(let rid in this.g.relations) {
-      let r = Object.assign({}, this.g.relations[rid]);
-      r.source = r.obj_from;
-      r.target = r.obj_to;
-      this.cy.add({
-        group: 'edges',
-        data: r,
-        classes: r['immutable'] ? ['immutable'] : [],
-      });
+      let e = this._toEdge(rid);
+      this.cy.add(e);
     }
 
     this.refreshGraph();
 
+  }
+  async _createRelation(event, sourceNode, targetNode, addedEdge) {
+    console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
+    let rname = window.prompt('Relation name:', addedEdge.data('name'));
+    addedEdge.data('name', rname);
+    const rawResponse = await fetch('/rest/entity_relations/', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.csrf,
+      },
+      body: JSON.stringify({
+        name: addedEdge.data('name'),
+        obj_from: sourceNode.id(),
+        obj_to: targetNode.id(),
+      })
+    });
+
+    console.log(rawResponse);
+    if (!rawResponse.ok) {
+      this.cy.remove(addedEdge);
+      alert('Unexcpeted server error');
+      return;
+    }
+
+    const content = await rawResponse.json();
+    console.log('create_relation', content);
+
+    this.cy.remove(addedEdge);
+    this.g.relations[content['id']] = content;
+    let newEdge = this._toEdge(content['id']);
+    this.cy.add(newEdge);
+  }
+  _toEdge(rid) {
+    let r = Object.assign({}, this.g.relations[rid]);
+    r.source = r.obj_from;
+    r.target = r.obj_to;
+    return {
+      group: 'edges',
+      data: r,
+      classes: r['immutable'] ? ['immutable'] : ['mutable'],
+    };
+  }
+  _toNode(eid) {
+    let e = Object.assign({}, this.g.entities[eid]);
+    return {
+      group: 'nodes',
+      data: e,
+      classes: [ `${e.super_type}`, `${e.tlp}`, `${e.pap}` ]
+    };
   }
   enable(options) {
     this.options = Object.assign(this.options||{}, options);
@@ -234,8 +350,9 @@ class ColanderDGraph {
         <i class="fa fa-crosshairs" aria-hidden="true"></i>
         <span class="label">Re-Center</span>
       </button>`);
-      this.jOverlayMenu_Recenter.click(()=> {
-        //this.cy.fit();
+      this.jOverlayMenu_Recenter.click((e)=> {
+        e.stopPropagation();
+        e.preventDefault();
         this.refreshGraph();
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Recenter);
@@ -246,7 +363,9 @@ class ColanderDGraph {
         <i class="fa fa-camera" aria-hidden="true"></i>
         <span class="label">Snapshot</span>
       </button>`);
-      this.jOverlayMenu_Snapshot.click(()=> {
+      this.jOverlayMenu_Snapshot.click((e)=> {
+        e.stopPropagation();
+        e.preventDefault();
         let png64 = this.cy.png({full:true});
         console.log(png64);
         let image = new Image();
@@ -262,21 +381,25 @@ class ColanderDGraph {
         <i class="fa fa-arrows-alt" aria-hidden="true"></i>
         <span class="label">Fullscreen</span>
       </button>`);
-      this.jOverlayMenu_Fullscreen.click(()=> {
+      this.jOverlayMenu_Fullscreen.click((e)=> {
+        e.stopPropagation();
+        e.preventDefault();
         this.jRootElement.toggleClass('fullscreen');
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
     }
-    // Full screen edit
+    // Sidebar toggle
     if (options.sidepane && !this.jOverlayMenu_Sidepane) {
       this.jOverlayMenu_Sidepane = $(`<div class='sidepane'><iframe/></div>`);
       this.jRootElement.append(this.jOverlayMenu_Sidepane);
       this.jSidepane_IFrame = this.jOverlayMenu_Sidepane.find('iframe');
       this.jOverlayMenu_SidepaneButton = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Sidepane">
-        <i class="fa fa-arrows-alt" aria-hidden="true"></i>
+        <i class="fa fa-window-maximize" aria-hidden="true"></i>
         <span class="label">Sidepane</span>
       </button>`);
-      this.jOverlayMenu_SidepaneButton.click(()=> {
+      this.jOverlayMenu_SidepaneButton.click((e)=> {
+        e.stopPropagation();
+        e.preventDefault();
         this.jRootElement.toggleClass('sidepane-active');
       });
       this.sidepane = (t) => {

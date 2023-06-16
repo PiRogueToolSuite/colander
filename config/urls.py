@@ -188,12 +188,27 @@ urlpatterns = [
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+
+# INTERNAL REST URLS
+rest_patterns = [
+    path("rest/", include("config.rest_router"))
+]
+
+
 # API URLS
+api_patterns = [
+    path("api/", include("config.api_router"))
+]
+
+
+urlpatterns += rest_patterns
+urlpatterns += api_patterns
+
 urlpatterns += [
-    path("api/", include("config.api_router")),
     path('api/schema/', get_schema_view(
         title='Colander Client API',
-        version="0.1.0"
+        version="0.1.0",
+        patterns=api_patterns
     ), name='api-schema'),
     # path("api/schema/", SpectacularJSONAPIView.as_view(), name="api-schema"),
     # path(

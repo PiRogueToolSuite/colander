@@ -183,6 +183,11 @@ class EventType(CommonModelType):
 
 class DetectionRuleType(CommonModelType):
     pass
+    pass
+
+
+class DataFragmentType(CommonModelType):
+    pass
 
 
 class Case(models.Model):
@@ -329,7 +334,7 @@ class Case(models.Model):
         for name, model in colander_models.items():
             if model in color_scheme:
                 classes.append(f'classDef {name} fill:{color_scheme.get(model)}')
-        entities = self.get_all_entities(exclude_types=['Threat', 'Event', 'Case'])
+        entities = self.get_all_entities(exclude_types=['Event', 'Case'])
         for entity in entities:
             if hasattr(entity, 'to_mermaid'):
                 n, c, l = entity.to_mermaid
@@ -1246,6 +1251,31 @@ class DetectionRule(Entity):
     )
 
     @property
+    def value(self):
+        return self.name
+
+
+class DataFragment(Entity):
+    name = models.CharField(
+        max_length=512,
+        help_text=_('Name of this fragment of data.'),
+    )
+    type = models.ForeignKey(
+        DataFragmentType,
+        on_delete=models.CASCADE,
+        help_text=_('Type of this fragment of data.')
+    )
+    content = models.TextField()
+    extracted_from = models.ForeignKey(
+        Artifact,
+        help_text=_('Select the artifact from which this fragment of data was extracted.'),
+        on_delete=models.SET_NULL,
+        related_name='data_fragments',
+        null=True,
+        blank=True,
+    )
+
+    @property
     def icon(self):
         c = self.__class__
         return icons.get(c, '')
@@ -1266,11 +1296,36 @@ class DetectionRule(Entity):
     def __str__(self):
         return f'{self.value} ({self.type.name.lower()})'
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_data_fragment_details_view', kwargs={'pk': self.id})
+
+    @property
+    def to_mermaid(self):
+        icon = ''
+        if self.icon:
+            icon = f'fa:{self.icon}'
+        links = []
+
+        label = f'<samp>{self.name}</samp><br><small><i>{self.type.name}</i></small>'
+        nodes = [
+            f'{self.id}("{icon} {label}")',
+        ]
+        clicks = [
+            f'click {self.id} "{self.get_absolute_url()}"',
+            f'class {self.id} DataFragment'
+        ]
+        if self.extracted_from:
+            links.append(
+                f'{self.id}-- extracted from -->{self.extracted_from_id}'
+            )
+        return nodes, clicks, links
+
     @staticmethod
-    def get_user_detection_rules(user, case=None):
+    def get_user_data_fragments(user, case=None):
         if case:
-            return DetectionRule.objects.filter(case=case).all()
-        return DetectionRule.objects.filter(case__in=user.all_my_cases).all()
+            return DataFragment.objects.filter(case=case).all()
+        return DataFragment.objects.filter(case__in=user.all_my_cases).all()
 
 
 class Event(Entity):
@@ -1884,6 +1939,7 @@ colander_models = {
     'EntityRelation': EntityRelation,
     'PiRogueExperiment': PiRogueExperiment,
     'Threat': Threat,
+    'DataFragment': DataFragment,
 }
 
 icons = {
@@ -1896,6 +1952,7 @@ icons = {
     EntityRelation: 'fa-link',
     PiRogueExperiment: 'fa-flask',
     Threat: 'fa-bug',
+    DataFragment: 'fa-puzzle-piece',
 }
 
 color_scheme = {
@@ -1908,5 +1965,6 @@ color_scheme = {
     EntityRelation: '#b3de69',
     PiRogueExperiment: '#fccde5',
     Threat: '#d9d9d9',
+    DataFragment: '#bc80bd',
     # #bc80bd #ccebc5 #ffed6f
 }

@@ -1,0 +1,40 @@
+{% load i18n %}
+
+
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-12 text-truncate">
+        <div class="border-bottom border-secondary">
+          {% include "icons/data_fragment_icon.html" with c="h4 text-primary" %}
+          <a class="h4" href="{% url "collect_data_fragment_details_view" pk=data_fragment.id %}">
+            {{ data_fragment.name }}
+          </a>
+          <div class="text-muted small">
+            {{ data_fragment.type.name }}
+          </div>
+        </div>
+        <div>
+          <div class="text-tiny font-monospace text-muted mt-1">
+            {% include "icons/id_icon.html" %}{{ data_fragment.id }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/date_icon.html" %}
+            {{ data_fragment.created_at }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/case_icon.html" %}
+            {{ data_fragment.case.name }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/user_icon.html" %}
+            {{ data_fragment.owner }} {% if data_fragment.owner == request.user %}(me){% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    {% include "data_fragment/controls.html" with btn_class="btn-sm" exclude="" %}
+  </div>
+</div>

@@ -10,6 +10,7 @@
   {% url 'collect_entity_relation_create_view' as collect_relation_create_view_url %}
   {% url 'collect_threat_create_view' as collect_threat_create_view_url %}
   {% url 'collect_detection_rule_create_view' as collect_detection_rule_create_view_url %}
+  {% url 'collect_data_fragment_create_view' as collect_data_fragment_create_view_url %}
   {% url 'collect_experiment_create_view' as collect_experiment_create_view_url %}
   {% comment %}
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-3 mb-1 text-muted">
@@ -56,6 +57,11 @@
      href="{{ collect_event_view_url }}" title="Events">
     {% include "icons/event_icon.html" %}
     <span class="list-group-item-label">Events</span>
+  </a>
+  <a class="list-group-item list-group-item-action list-group-item-light{% if collect_data_fragment_create_view_url in request.path %} active {% endif %}"
+     href="{{ collect_data_fragment_create_view_url }}" title="Fragment of data">
+    {% include "icons/data_fragment_icon.html" %}
+    <span class="list-group-item-label">Fragment of data</span>
   </a>
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_relation_create_view_url in request.path %} active {% endif %}"
      href="{{ collect_relation_create_view_url }}" title="Relations">

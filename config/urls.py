@@ -17,6 +17,8 @@ from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCrea
 from colander.core.views.collaborate_views import ColanderTeamCreateView, ColanderTeamUpdateView, delete_team_view, \
     ColanderTeamDetailsView, add_remove_team_contributor
 from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
+from colander.core.views.data_fragment_views import DataFragmentCreateView, DataFragmentUpdateView, \
+    DataFragmentDetailsView, delete_data_fragment_view
 from colander.core.views.detection_rule_views import delete_detection_rule_view, DetectionRuleCreateView, \
     DetectionRuleUpdateView, DetectionRuleDetailsView
 from colander.core.views.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView, delete_device_view
@@ -149,6 +151,11 @@ urlpatterns = [
       path("collect/detection_rule/<slug:pk>", DetectionRuleUpdateView.as_view(), name="collect_detection_rule_update_view"),
       path("collect/detection_rule/<slug:pk>/details", DetectionRuleDetailsView.as_view(), name="collect_detection_rule_details_view"),
       path("collect/detection_rule/<slug:pk>/delete", delete_detection_rule_view, name="collect_detection_rule_delete_view"),
+
+      path("collect/data_fragment", DataFragmentCreateView.as_view(), name="collect_data_fragment_create_view"),
+      path("collect/data_fragment/<slug:pk>", DataFragmentUpdateView.as_view(), name="collect_data_fragment_update_view"),
+      path("collect/data_fragment/<slug:pk>/details", DataFragmentDetailsView.as_view(), name="collect_data_fragment_details_view"),
+      path("collect/data_fragment/<slug:pk>/delete", delete_data_fragment_view, name="collect_data_fragment_delete_view"),
 
       path("collect/experiment", PiRogueExperimentCreateView.as_view(), name="collect_experiment_create_view"),
       path("collect/experiment/<slug:pk>", PiRogueExperimentUpdateView.as_view(), name="collect_experiment_update_view"),

@@ -1,8 +1,10 @@
-from django.core.management.base import BaseCommand, CommandError
-import pkg_resources
 import json
 
-from colander.core.models import ArtifactType, ObservableType, ThreatType, ActorType, EventType, DeviceType, DetectionRuleType
+import pkg_resources
+from django.core.management.base import BaseCommand
+
+from colander.core.models import ArtifactType, ObservableType, ThreatType, ActorType, EventType, DeviceType, \
+    DetectionRuleType, DataFragmentType
 
 
 class Command(BaseCommand):
@@ -17,6 +19,7 @@ class Command(BaseCommand):
             (EventType, 'data/event_types.json'),
             (DeviceType, 'data/device_types.json'),
             (DetectionRuleType, 'data/detection_rule_types.json'),
+            (DataFragmentType, 'data/data_fragment_types.json'),
         ]
 
         resource_package = __name__
@@ -32,9 +35,9 @@ class Command(BaseCommand):
                         'description': obj_type.get('description'),
                         'svg_icon': obj_type.get('svg_icon'),
                         'nf_icon': obj_type.get('nf_icon'),
-                        'stix2_type': obj_type.get('stix2_type'),
-                        'stix2_value_field_name': obj_type.get('stix2_value_field_name'),
-                        'stix2_pattern': obj_type.get('stix2_pattern'),
-                        'stix2_pattern_type': obj_type.get('stix2_pattern_type'),
+                        'stix2_type': obj_type.get('stix2_type', ''),
+                        'stix2_value_field_name': obj_type.get('stix2_value_field_name', ''),
+                        'stix2_pattern': obj_type.get('stix2_pattern', ''),
+                        'stix2_pattern_type': obj_type.get('stix2_pattern_type', ''),
                     }
                 )

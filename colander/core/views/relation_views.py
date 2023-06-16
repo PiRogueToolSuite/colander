@@ -16,7 +16,7 @@ def create_or_edit_entity_relation_view(request):
     if not active_case:
         return redirect('case_create_view')
     form = EntityRelationForm()
-    entities = active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
+    entities = active_case.get_all_entities(exclude_types=['Case', 'EntityRelation', 'DetectionRule'])
     choices = [
         (t.id, mark_safe(f'{t.value} - {t._meta.verbose_name}'))
         for t in entities

@@ -1,0 +1,6 @@
+[
+  {"short_name": "CODE", "name":  "Piece of code", "description": "", "svg_icon": "", "nf_icon": "nf-md-code_braces"},
+  {"short_name": "PATTERN", "name":  "Pattern", "description": "", "svg_icon": "", "nf_icon": "nf-fa-puzzle_piece"},
+  {"short_name": "TEXT", "name":  "Piece of text", "description": "", "svg_icon": "", "nf_icon": "nf-fa-file_text"},
+  {"short_name": "PAYLOAD", "name":  "Raw payload", "description": "", "svg_icon": "", "nf_icon": "nf-oct-file_binary"}
+]

@@ -1,0 +1,60 @@
+{% extends "pages/collect/base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+
+{% block inner-content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
+      {% if is_editing %}
+        <h2>{% translate "Edit this fragment of data" %}</h2>
+      {% else %}
+        <h2>{% translate "New fragment of data" %}</h2>
+      {% endif %}
+      <div class="card mb-4 bg-secondary-light">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="row justify-content-center">
+              <div class="col-md-4">
+                {{ form.type|as_crispy_field }}
+              </div>
+              <div class="col">
+                {{ form.name|as_crispy_field }}
+                {{ form.tlp|as_crispy_field }}
+                {{ form.pap|as_crispy_field }}
+                {{ form.extracted_from|as_crispy_field }}
+                {{ form.source_url|as_crispy_field }}
+                {{ form.description|as_crispy_field }}
+                {{ form.content|as_crispy_field }}
+            {% if is_editing %}
+              <button class="btn btn-primary" type="submit" name="save_data_fragment">{% translate "Update" %}</button>
+            {% else %}
+              <button class="btn btn-primary" type="submit" name="save_data_fragment">{% translate "Create" %}</button>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center mt-4">
+    <div class="col-md-12">
+      <h2>{% translate "Latest fragments of data" %}</h2>
+        {% if data_fragments %}
+          {% for data_fragment in data_fragments %}
+            {% include "data_fragment/list_item.html" %}
+          {% endfor %}
+        {% endif %}
+      </div>
+  </div>
+{% endblock inner-content %}
+
+{% block inline_javascript %}
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      let input = $("input[name=name]");
+      suggest_entity(input, 'DataFragment')
+    });
+  </script>
+{% endblock inline_javascript %}

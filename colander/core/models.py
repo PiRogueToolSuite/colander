@@ -1251,8 +1251,35 @@ class DetectionRule(Entity):
     )
 
     @property
+    def icon(self):
+        c = self.__class__
+        return icons.get(c, '')
+
+    @property
+    def color(self):
+        c = self.__class__
+        return color_scheme.get(c, '')
+
+    @property
     def value(self):
         return self.name
+
+    @property
+    def super_type(self):
+        return self.__class__.__name__
+
+    def __str__(self):
+        return f'{self.value} ({self.type.name.lower()})'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('collect_detection_rule_details_view', kwargs={'pk': self.id})
+
+    @staticmethod
+    def get_user_detection_rules(user, case=None):
+        if case:
+            return DetectionRule.objects.filter(case=case).all()
+        return DetectionRule.objects.filter(case__in=user.all_my_cases).all()
 
 
 class DataFragment(Entity):

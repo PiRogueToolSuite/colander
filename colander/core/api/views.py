@@ -25,7 +25,14 @@ class ApiCaseViewSet(mixins.RetrieveModelMixin,
     serializer_class = CaseSerializer
 
     def get_queryset(self):
-        return Case.objects.filter(owner=self.request.user)
+        queryset = self.request.user.all_my_cases
+        #queryset = Case.objects.filter(case__in=cases)
+
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        return queryset
 
 
 class ApiDeviceTypeViewSet(mixins.RetrieveModelMixin,
@@ -46,7 +53,8 @@ class ApiArtifactViewSet(mixins.RetrieveModelMixin,
     serializer_class = ArtifactSerializer
 
     def get_queryset(self):
-        return Artifact.objects.filter(owner=self.request.user)
+        cases = self.request.user.all_my_cases
+        return Artifact.objects.filter(case__in=cases)
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)
@@ -98,7 +106,18 @@ class ApiDeviceViewSet(mixins.CreateModelMixin,
     serializer_class = DeviceSerializer
 
     def get_queryset(self):
-        return Device.objects.filter(owner=self.request.user).all()
+        cases = self.request.user.all_my_cases
+        queryset = Device.objects.filter(case__in=cases)
+
+        case_id = self.request.query_params.get('case_id')
+        if case_id is not None:
+            queryset = queryset.filter(case=case_id)
+
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        return queryset
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)
@@ -114,7 +133,8 @@ class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
     serializer_class = PiRogueExperimentSerializer
 
     def get_queryset(self):
-        return Device.objects.filter(owner=self.request.user).all()
+        cases = self.request.user.all_my_cases
+        return Device.objects.filter(case__in=cases)
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)

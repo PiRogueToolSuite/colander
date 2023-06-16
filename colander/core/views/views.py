@@ -265,18 +265,20 @@ def download_case_public_key(request, pk):
 
 
 @login_required
-def entity_exists(request, type, value):
+def entity_exists(request):
     if request.method == 'GET':
+        entity_type = request.GET.get('type', None)
+        value = request.GET.get('value', None)
         active_case = get_active_case(request)
-        if not active_case:
+        if not active_case or not entity_type or not value:
             return JsonResponse([], safe=False)
 
-        results = active_case.quick_search(value, type=type)
+        results = active_case.quick_search(value, type=entity_type)
         data = []
         for obj in results:
             data.append({
                 'id': str(obj.id),
-                'type': type,
+                'type': entity_type,
                 'value': obj.value,
                 'text': str(obj),
                 'url': obj.get_absolute_url()

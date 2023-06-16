@@ -161,7 +161,7 @@ urlpatterns = [
 
       path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
 
-      path("entity/<str:type>/<str:value>", entity_exists, name="entity_exists_view"),
+      path("entity/suggest", entity_exists, name="entity_exists_view"),
 
       path("investigate/", investigate_search_view, name="investigate_base_view"),
       path("report/", report_base_view, name="report_base_view"),

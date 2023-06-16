@@ -3,7 +3,7 @@ function suggest_entity(input, type) {
         $('.suggested-entity').remove()
         const value = input.val();
         if (value.length > 4) {
-            $.get(`/entity/${type}/${value}`, function (data) {
+            $.get(`/entity/suggest?type=${type}&value=${value}`, function (data) {
                 // console.dir(data)
                 data.forEach(function (d) {
                     const message = `

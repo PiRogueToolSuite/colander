@@ -4,7 +4,6 @@ function suggest_entity(input, type) {
         const value = input.val();
         if (value.length > 4) {
             $.get(`/entity/suggest?type=${type}&value=${value}`, function (data) {
-                // console.dir(data)
                 data.forEach(function (d) {
                     const message = `
                         <div class="text-muted mb-0 suggested-entity">

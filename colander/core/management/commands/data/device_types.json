@@ -22,6 +22,17 @@
     "stix2_pattern_type": ""
   },
   {
+    "short_name": "DESKTOP",
+    "name": "Desktop",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-desktop",
+    "stix2_type": "infrastructure",
+    "stix2_value_field_name": "name:workstation",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
     "short_name": "MOBILE",
     "name": "Mobile device",
     "description": "",
@@ -29,6 +40,17 @@
     "nf_icon": "nf-fa-mobile_phone",
     "stix2_type": "infrastructure",
     "stix2_value_field_name": "name:workstation",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
+    "short_name": "IOT",
+    "name": "Internet of Things",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-plug",
+    "stix2_type": "",
+    "stix2_value_field_name": "",
     "stix2_pattern": "",
     "stix2_pattern_type": ""
   },

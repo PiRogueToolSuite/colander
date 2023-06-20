@@ -346,7 +346,7 @@ class ColanderDGraph {
         'X-CSRFToken': this.csrf,
       },
       body: JSON.stringify({
-        name: edge.data('name'),
+        name: rname,
       })
     });
 

@@ -10,7 +10,7 @@ if settings.DEBUG:
 else:
     router = SimpleRouter()
 
-router.register("entity_relations", EntityRelationViewSet, basename="entity_relations")
+router.register("entity_relation", EntityRelationViewSet, basename="entity_relation")
 
 app_name = "rest"
 urlpatterns = router.urls

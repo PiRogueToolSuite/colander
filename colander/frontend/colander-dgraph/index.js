@@ -2,14 +2,12 @@ import cytoscape from 'cytoscape';
 import _ from 'lodash';
 import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
-//import klay from 'cytoscape-klay';
 import elk from 'cytoscape-elk';
 import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
 
 cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
 cytoscape.use( elk );
-//cytoscape.use( klay );
 
 console.log('memoize', _.memoize);
 
@@ -90,7 +88,7 @@ styles.push({
 });
 
 async function create_relation(csrf, source, target, name) {
-  const rawResponse = await fetch('/rest/entity_relations/', {
+  const rawResponse = await fetch('/rest/entity_relation/', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -293,7 +291,7 @@ class ColanderDGraph {
 
     addedEdge.data('name', rname);
 
-    const rawResponse = await fetch('/rest/entity_relations/', {
+    const rawResponse = await fetch('/rest/entity_relation/', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -338,7 +336,7 @@ class ColanderDGraph {
       return;
     }
 
-    const rawResponse = await fetch(`/rest/entity_relations/${edge.id()}/`, {
+    const rawResponse = await fetch(`/rest/entity_relation/${edge.id()}/`, {
       method: 'PATCH',
       headers: {
         'Accept': 'application/json',
@@ -360,7 +358,7 @@ class ColanderDGraph {
   }
 
   async _deleteRelation(edge) {
-    const rawResponse = await fetch(`/rest/entity_relations/${edge.id()}/`, {
+    const rawResponse = await fetch(`/rest/entity_relation/${edge.id()}/`, {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',
@@ -491,6 +489,7 @@ class ColanderDGraph {
         //fixedAlignment: 'BALANCED',
         'algorithm': 'layered',
         'elk.direction': 'RIGHT',
+        'elk.spacing.nodeNode': 70.,
       }
     } ).run();
   }

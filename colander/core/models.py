@@ -1138,7 +1138,7 @@ class Observable(Entity):
         if self.operated_by:
             relations.append(
                 EntityRelation.immutable_instance(
-                    name="operated by",
+                    name="operates",
                     source=self.operated_by,
                     target=self
                 )

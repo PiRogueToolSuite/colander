@@ -13,6 +13,32 @@ console.log('memoize', _.memoize);
 
 let styles = [];
 
+let node_label = _.memoize(function(e, iid) {
+  let svgTxt = `${icon_unicodes[iid]}    ${e.data('name')}`;
+
+  const ctx = document.createElement('canvas').getContext("2d");
+  const fStyle = e.style('font-style').strValue;
+  const size = e.style('font-size').pfValue + 'px';
+  const family = e.style('font-family').strValue;
+  const weight = e.style('font-weight').strValue;
+  ctx.font = fStyle + ' ' + weight + ' ' + size + ' ' + family;
+  let measures = ctx.measureText(svgTxt);
+  let maxWidth = measures.width;
+
+  if (e.data('type')) {
+    measures = ctx.measureText(`${e.data('type')}    `); // UGLY ? Fake multiple space (4) to have same padding
+    maxWidth = Math.max(maxWidth, measures.width);
+    svgTxt += `\n${e.data('type')}`;
+  }
+
+  // A bit of margin:
+  //maxWidth += 5;
+
+  let r = { svgTxt: svgTxt, width: maxWidth };
+  console.log('node_label', ctx.font, r);
+  return r;
+});
+
 for(let iid in icons) {
   styles.push({
     selector: `node.${iid}`,
@@ -22,19 +48,24 @@ for(let iid in icons) {
       'shape': shapes[iid],
       'border-color': color_scheme[iid],
       'border-width': 3,
-      'label': (e) => {
-        return `${icon_unicodes[iid]}    ${e.data('name')}\n${e.data('type')||''}`;
-      },
+      'label': (e)=> { return node_label(e, iid).svgTxt; },
+      // 'label': (e) => {
+      //   return `${icon_unicodes[iid]}    ${e.data('name')}\n${e.data('type')||''}`;
+      // },
       /*
       'label': (e) => {
         return `<span class="fa ${icons[iid]} fa-2x"></span> ${e.data('name')}`;
       },
       */
       'font-family': 'ForkAwesome, sans-serif',
-      'letter-spacing': '15px',
+      //'letter-spacing': '15px',
       'font-size': '10px',
+      'width': (e) => { return node_label(e, iid).width; },
       //'width': 'label',
-      'width': (e) => { return e.data('name').length * 6 + 40; },
+      // 'width': (e) => {
+      //   console.log('width', e.scratch('label'));
+      //   return e.data('name').length * 6 + 40;
+      //   },
       'text-halign': 'center',
       'text-valign': 'center',
       'text-wrap': 'wrap',

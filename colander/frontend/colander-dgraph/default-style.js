@@ -9,6 +9,7 @@ export const icons = {
   EntityRelation: 'fa-link',
   PiRogueExperiment: 'fa-flask',
   Threat: 'fa-bug',
+  DataFragment: 'fa-code',
 };
 
 export const icon_unicodes = {
@@ -21,6 +22,7 @@ export const icon_unicodes = {
   EntityRelation: '\uf0c1',
   PiRogueExperiment: '\uf0c3',
   Threat: '\uf188',
+  DataFragment: '\uf121',
 };
 
 export const color_scheme = {
@@ -33,6 +35,7 @@ export const color_scheme = {
   EntityRelation: '#b3de69',
   PiRogueExperiment: '#fccde5',
   Threat: '#d9d9d9',
+  DataFragment: '#bc80bd',
 };
 
 export const shapes = {
@@ -45,6 +48,7 @@ export const shapes = {
   EntityRelation: 'round-rectangle',
   PiRogueExperiment: 'round-rectangle',
   Threat: 'round-rectangle',
+  DataFragment: 'round-rectangle',
 };
 
 export const base_styles = {
@@ -57,4 +61,5 @@ export const base_styles = {
   EntityRelation: {},
   PiRogueExperiment: {},
   Threat: {},
+  DataFragment: {},
 };

@@ -1,13 +1,15 @@
 import cytoscape from 'cytoscape';
 import _ from 'lodash';
-import cxtmenu from 'cytoscape-cxtmenu';
+import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
-import klay from 'cytoscape-klay';
+//import klay from 'cytoscape-klay';
+import elk from 'cytoscape-elk';
 import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
 
-cytoscape.use( cxtmenu );
+cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
-cytoscape.use( klay );
+cytoscape.use( elk );
+//cytoscape.use( klay );
 
 console.log('memoize', _.memoize);
 
@@ -30,7 +32,7 @@ for(let iid in icons) {
         return `<span class="fa ${icons[iid]} fa-2x"></span> ${e.data('name')}`;
       },
       */
-      'font-family': 'ForkAwesome, monospace',
+      'font-family': 'ForkAwesome, sans-serif',
       'letter-spacing': '15px',
       'font-size': '10px',
       //'width': 'label',
@@ -60,7 +62,7 @@ styles.push({
     'text-outline-color': 'white',
     'text-outline-opacity': 1,
     'text-outline-width': 3,
-    'font-family': 'ForkAwesome, monospace',
+    'font-family': 'ForkAwesome, sans-serif',
     'letter-spacing': '15px',
     'font-size': '10px',
     'curve-style': 'bezier',
@@ -129,6 +131,7 @@ class ColanderDGraph {
       style: styles,
       ready: this._onCyReady.bind(this)
     });
+    //
     // -- Edge (creation) handling plugin
     let eh = this.cy.edgehandles({
       canConnect: function( sourceNode, targetNode ){
@@ -143,118 +146,110 @@ class ColanderDGraph {
       snap: false,
     });
     this.cy.on('ehcomplete', this._createRelation.bind(this));
-    //
-    // -- Circular context menu
-    let node_menu = this.cy.cxtmenu({
-      atMouse: false,
-      selector: 'node',
-      fillColor: 'rgba(169, 145, 212, 0.8)',
-      activeFillColor: 'rgba(113, 34, 218, 0.8)',
-      menuRadius: (ele) => {
-        let rw = 1;
-        if (ele.isNode) {
-          rw = ele.renderedOuterWidth();
-        }
-        let r = -rw/2 + 150;
-        // As memo:
-        // r = rw/2 + (options.menuRadius)
-        // containerSize = (r + options.activePadding)*2;
-        return r;
-      },
-      commands: [
+
+    let menu = this.cy.contextMenus({
+      menuItems: [
+        {
+          id: 'relation-create',
+          content: 'Create Relation',
+          tooltipText: 'Add relation between two entities',
+          selector: 'node',
+          image: { src:'/static/images/icons/link.svg', width: 12, height: 12, x: 4, y:7 },
+          onClickFunction: (e) => {
+            let node = e.target;
+            console.log('create-relation', node)
+            eh.start(node);
+          }
+        },
+        {
+          id: 'relation-rename',
+          content: 'Rename relation',
+          tooltipText: 'Add relation between two entities',
+          selector: 'edge.mutable',
+          image: { src:'/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y:7 },
+          onClickFunction: (e) => {
+            let edge = e.target;
+            console.log('relation-rename', edge)
+            this._renameRelation(edge)
+                .then(console.log)
+                .catch(console.error);
+          }
+        },
+        {
+          id: 'relation-delete',
+          content: 'Delete relation',
+          tooltipText: 'Delete relation between two entities',
+          selector: 'edge.mutable',
+          image: { src:'/static/images/icons/trash.svg', width: 12, height: 12, x: 4, y:7 },
+          onClickFunction: (e) => {
+            let edge = e.target;
+            console.log('delete-relation', edge)
+            this._deleteRelation(edge)
+                .then(console.log)
+                .catch(console.error);
+          }
+        },
+        {
+          id: 'entity-details',
+          content: 'View entity details',
+          tooltipText: 'View entity details',
+          selector: 'node',
+          image: { src:'/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y:7 },
+          onClickFunction: (e) => {
+            let node = e.target;
+            console.log('create-relation', node);
+            window.location = node.data('absolute_url');
+            //eh.start(node);
+          }
+        },
+        {
+          id: 'entity-edit',
+          content: 'Edit entity',
+          tooltipText: 'Edit entity details',
+          selector: 'node',
+          image: { src:'/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y:7 },
+          onClickFunction: (e) => {
+            let node = e.target;
+            console.log('create-relation', node);
+            window.location = node.data('absolute_url');
+            //eh.start(node);
+          }
+        },
+
         // {
-        //   content: '<div>Truc</div><span class="fa fa-flash fa-2x"></span>',
-        //   select: function(ele){
-        //     console.log( ele.id() );
+        //   id: 'entity-create',
+        //   content: 'Add entity',
+        //   tooltipText: 'Create a new entity',
+        //   image: { src:'/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y:7 },
+        //   //selector: 'node',
+        //   coreAsWell: true,
+        //   /*
+        //   onClickFunction: function () {
+        //     console.log('add node');
+        //   },
         //
-        //   }
-        // },
-        // {
-        //   content: '<span class="fa fa-star fa-2x"></span>',
-        //   select: function(ele){
-        //     console.log( ele.data('name') );
-        //   }
-        // },
-        // {
-        //   content: 'Text',
-        //   select: function(ele){
-        //     console.log( ele.position() );
-        //   }
-        // },
-        {
-          content: '<div>View detail</div><span class="fa fa-search fa-2x"></span>',
-          select: (ele) => {
-            console.log( ele.position() );
-            if (this.jSidepane_IFrame) {
-              this.jSidepane_IFrame.attr('src', ele.data('absolute_url') );
-              this.sidepane(true);
-            }
-            else {
-              window.location = ele.data('absolute_url');
-            }
-          },
-          enabled: (e) => {
-            console.log('enabled', e);
-            return false;
-          },
-        },
-        {
-          content: 'Relation',
-          select: (ele) => {
-            console.log( ele.position() );
-            eh.start(ele);
-          }
-        },
-        {
-          content: '<div>Edit</div><span class="fa fa-pencil fa-2x"></span>',
-          select: (ele) => {
-            console.log( ele.position() );
-            //eh.start(ele);
-          }
-        },
-        {
-          content: 'Related Entity',
-          select: (ele) => {
-            console.log( ele.position() );
-            eh.start(ele);
-          }
-        }
-      ]
+        //    */
+        //   submenu: [
+        //     {
+        //       id: 'create-relation-2',
+        //       content: 'Create Relation',
+        //       tooltipText: 'Add relation between two entities',
+        //       selector: 'node',
+        //       image: { src:'/static/images/icons/link.svg', width: 12, height: 12, x: 4, y:7 },
+        //       onClickFunction: (e) => {
+        //         let node = e.target;
+        //         console.log('create-relation', node)
+        //         eh.start(node);
+        //       }
+        //     },
+        //   ]
+        // }
+      ],
+
+      submenuIndicator: { src:'/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y:4 },
     });
-    let edge_menu = this.cy.cxtmenu({
-      atMouse: false,
-      selector: 'edge.mutable',
-      fillColor: 'rgba(169, 145, 212, 0.8)',
-      activeFillColor: 'rgba(113, 34, 218, 0.8)',
-      menuRadius: (ele) => {
-        let rw = 1;
-        if (ele.isNode) {
-          rw = ele.renderedOuterWidth();
-        }
-        let r = -rw/2 + 150;
-        // As memo:
-        // r = rw/2 + (options.menuRadius)
-        // containerSize = (r + options.activePadding)*2;
-        return r;
-      },
-      commands: [
-        {
-          content: '<div>Rename</div><span class="fa fa-pencil fa-2x"></span>',
-          select: (ele) => {
-            console.log( ele.position() );
-            //eh.start(ele);
-          }
-        },
-        {
-          content: '<div>Delete</div><span class="fa fa-trash fa-2x"></span>',
-          fillColor: 'rgba(255,0,0,0.8)',
-          select: (ele) => {
-            console.log( ele.position() );
-            //eh.start(ele);
-          }
-        },
-      ]
-    });
+
+
     console.log('ColanderDGraph prod', idElement, graphUrl, this.jRootElement, this.graphUrl);
   }
   _onCyReady() {
@@ -284,7 +279,20 @@ class ColanderDGraph {
   async _createRelation(event, sourceNode, targetNode, addedEdge) {
     console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
     let rname = window.prompt('Relation name:', addedEdge.data('name'));
+    if (rname === null) {
+      this.cy.remove(addedEdge);
+      // User may have canceled
+      return;
+    }
+    rname = rname.trim();
+    if (!rname) {
+      this.cy.remove(addedEdge);
+      // Empty relation name
+      return;
+    }
+
     addedEdge.data('name', rname);
+
     const rawResponse = await fetch('/rest/entity_relations/', {
       method: 'POST',
       headers: {
@@ -314,6 +322,63 @@ class ColanderDGraph {
     let newEdge = this._toEdge(content['id']);
     this.cy.add(newEdge);
   }
+  async _renameRelation(edge) {
+    let rname = window.prompt('Relation name:', edge.data('name'));
+    if (rname === null) {
+      // User canceled
+      // Lease it unmodified
+      return;
+    }
+    rname = rname.trim();
+    if (!rname) {
+      // Empty string
+      // Cancel and leave unchanged
+      //FIXME: May be do something else
+      //eg: remove it
+      return;
+    }
+
+    const rawResponse = await fetch(`/rest/entity_relations/${edge.id()}/`, {
+      method: 'PATCH',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.csrf,
+      },
+      body: JSON.stringify({
+        name: edge.data('name'),
+      })
+    });
+
+    console.log(rawResponse);
+    if (!rawResponse.ok) {
+      alert('Unexcpeted server error');
+      return;
+    }
+
+    edge.data('name', rname);
+  }
+
+  async _deleteRelation(edge) {
+    const rawResponse = await fetch(`/rest/entity_relations/${edge.id()}/`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.csrf,
+      },
+      body: JSON.stringify({})
+    });
+
+    console.log(rawResponse);
+    if (!rawResponse.ok) {
+      alert('Unexcpeted server error');
+      return;
+    }
+
+    this.cy.remove(edge);
+  }
+
   _toEdge(rid) {
     let r = Object.assign({}, this.g.relations[rid]);
     r.source = r.obj_from;
@@ -343,6 +408,19 @@ class ColanderDGraph {
     if (!this.jOverlayMenu) {
       this.jOverlayMenu = $(`<div class="graph-overlay-menu position-absolute top-0 start-0" style="z-index: 20;">`);
       this.jRootElement.append(this.jOverlayMenu);
+    }
+    // Full screen editor
+    if (options.fullscreen && !this.jOverlayMenu_Fullscreen) {
+      this.jOverlayMenu_Fullscreen = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Fullscreen">
+        <i class="fa fa-arrows-alt" aria-hidden="true"></i>
+        <span class="label">Fullscreen</span>
+      </button>`);
+      this.jOverlayMenu_Fullscreen.click((e)=> {
+        e.stopPropagation();
+        e.preventDefault();
+        this.jRootElement.toggleClass('fullscreen');
+      });
+      this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
     }
     // ReCenter and Fit graph
     if (options.recenter && !this.jOverlayMenu_Recenter) {
@@ -375,19 +453,6 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Snapshot);
     }
-    // Full screen edit
-    if (options.fullscreen && !this.jOverlayMenu_Fullscreen) {
-      this.jOverlayMenu_Fullscreen = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Fullscreen">
-        <i class="fa fa-arrows-alt" aria-hidden="true"></i>
-        <span class="label">Fullscreen</span>
-      </button>`);
-      this.jOverlayMenu_Fullscreen.click((e)=> {
-        e.stopPropagation();
-        e.preventDefault();
-        this.jRootElement.toggleClass('fullscreen');
-      });
-      this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
-    }
     // Sidebar toggle
     if (options.sidepane && !this.jOverlayMenu_Sidepane) {
       this.jOverlayMenu_Sidepane = $(`<div class='sidepane'><iframe/></div>`);
@@ -411,8 +476,21 @@ class ColanderDGraph {
   refreshGraph() {
     let ly = this.cy.layout( {
       nodeDimensionsIncludeLabels: true,
-      name: 'klay',
-      klay: {
+      name: 'elk',
+      elk: {
+        // All options are available at http://www.eclipse.org/elk/reference.html
+        //
+        // 'org.eclipse.' can be dropped from the identifier. The subsequent identifier has to be used as property key in quotes.
+        // E.g. for 'org.eclipse.elk.direction' use:
+        // 'elk.direction'
+        //
+        // Enums use the name of the enum as string e.g. instead of Direction.DOWN use:
+        // 'elk.direction': 'DOWN'
+        //edgeSpacingFactor: 1,
+        //inLayerSpacingFactor: 4,
+        //fixedAlignment: 'BALANCED',
+        'algorithm': 'layered',
+        'elk.direction': 'RIGHT',
       }
     } ).run();
   }

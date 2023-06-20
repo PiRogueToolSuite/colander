@@ -1458,6 +1458,18 @@ class DataFragment(Entity):
             return DataFragment.objects.filter(case=case).all()
         return DataFragment.objects.filter(case__in=user.all_my_cases).all()
 
+    @property
+    def out_immutable_relations(self):
+        relations = []
+        if self.extracted_from:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="extracted from",
+                    source=self,
+                    target=self.extracted_from
+                )
+            )
+        return relations
 
 class Event(Entity):
     type = models.ForeignKey(
@@ -2173,7 +2185,7 @@ icons = {
     EntityRelation: 'fa-link',
     PiRogueExperiment: 'fa-flask',
     Threat: 'fa-bug',
-    DataFragment: 'fa-puzzle-piece',
+    DataFragment: 'fa-code',
 }
 
 color_scheme = {

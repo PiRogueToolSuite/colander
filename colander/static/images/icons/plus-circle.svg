@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1536"
+   height="1536"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="plus-circle.svg"
+   inkscape:version="1.2.2 (1:1.2.2+202212051550+b0a8486541)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="0.28548177"
+     inkscape:cx="120.84835"
+     inkscape:cy="944.01824"
+     inkscape:window-width="1887"
+     inkscape:window-height="1056"
+     inkscape:window-x="33"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <path
+     d="M 1216,832 V 704 c 0,-35 -29,-64 -64,-64 H 896 V 384 c 0,-35 -29,-64 -64,-64 H 704 c -35,0 -64,29 -64,64 V 640 H 384 c -35,0 -64,29 -64,64 v 128 c 0,35 29,64 64,64 h 256 v 256 c 0,35 29,64 64,64 h 128 c 35,0 64,-29 64,-64 V 896 h 256 c 35,0 64,-29 64,-64 z m 320,-64 c 0,424 -344,768 -768,768 C 344,1536 0,1192 0,768 0,344 344,0 768,0 c 424,0 768,344 768,768 z"
+     id="path2" />
+</svg>

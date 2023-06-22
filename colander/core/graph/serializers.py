@@ -80,4 +80,3 @@ class GraphCaseSerializer(serializers.ModelSerializer):
                     continue
                 response['relations'][str(er.id)] = GraphRelationSerializer().to_representation(instance=er)
         return response
-

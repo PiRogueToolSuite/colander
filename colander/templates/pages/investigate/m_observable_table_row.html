@@ -10,7 +10,14 @@
       <form class="form-inline" action="{% url "investigate_base_view" %}" method="get">
         <input type="hidden" name="type" value="{{ observable.type.short_name }}">
         <input type="hidden" name="value" value="{{ observable.name }}">
-        <button class="btn btn-sm bg-primary text-white" type="submit"><i class="nf nf-fa-search"></i></button>
+        <button class="btn btn-sm bg-primary text-white" type="submit" data-bs-toggle="tooltip" data-bs-title="Pivot">
+          <i class="nf nf-fa-search"></i>
+        </button>
+        <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
+                data-bs-toggle="tooltip" data-bs-title="Import to the current case"
+                type="button" data-obj-id="{{ observable.id }}">
+          <i class="nf nf-fa-plus"></i>
+        </button>
       </form>
     </td>
   </tr>

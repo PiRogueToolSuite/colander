@@ -54,8 +54,6 @@ def investigate_search_view(request):
             }
             headers = {'Authorization': f'Token {api_key}'}
             response = requests.post(f'{settings.THREATR_BASE_URL}/api/request/', headers=headers, json=data)
-            print(response.status_code)
-            print(response.json())
             wait = response.status_code == 201
             if response.status_code == 200:
                 results = response.json()
@@ -81,12 +79,10 @@ def investigate_search_view(request):
         'pages/investigate/base.html',
         {
             'form': form,
-            # 'results': [],
             'results': results,
             'mermaid': mermaid,
             'types_to_display': types_to_display,
             'types': types,
-            # 'wait': True,
             'wait': wait,
         }
     )

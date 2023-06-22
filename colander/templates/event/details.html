@@ -2,7 +2,7 @@
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h2><i class="nf {{ event.type.nf_icon }} text-primary"></i> {{ event.name }}</h2>
+    <h2>{% include "icons/pills.html" with elt=event %} {{ event.name }}</h2>
     <div class="mb-3">
       {% if event.description %}
         {{ event.description }}

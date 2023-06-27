@@ -531,6 +531,19 @@ class Entity(models.Model):
         results.sort(key=lambda a: a.updated_at, reverse=True)
         return results
 
+    def concrete(self):
+        if self.id is None:
+            raise Exception("Need an id to resolve concrete")
+        obj = None
+        for name, model in colander_models.items():
+            try:
+                obj = model.objects.get(pk=self.id)
+                break
+            except model.DoesNotExist:
+                obj = None
+        if obj is None:
+            raise Exception(f"Concrete type not found for entity id: {self.id}")
+        return obj
 
 class Comment(models.Model):
     class Meta:
@@ -1379,6 +1392,10 @@ class DetectionRule(Entity):
         from django.urls import reverse
         return reverse('collect_detection_rule_details_view', kwargs={'pk': self.id})
 
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
+
     @staticmethod
     def get_user_detection_rules(user, case=None):
         if case:
@@ -1430,6 +1447,10 @@ class DataFragment(Entity):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('collect_data_fragment_details_view', kwargs={'pk': self.id})
+
+    @property
+    def absolute_url(self):
+        return self.get_absolute_url()
 
     @property
     def to_mermaid(self):
@@ -2186,6 +2207,19 @@ icons = {
     PiRogueExperiment: 'fa-flask',
     Threat: 'fa-bug',
     DataFragment: 'fa-code',
+}
+
+icons_unicodes = {
+    Actor: '\uf0c0',
+    Artifact: '\uf187',
+    DetectionRule: '\uf0d0',
+    Device: '\uf233',
+    Event: '\uf0e7',
+    Observable: '\uf140',
+    EntityRelation: '\uf0c1',
+    PiRogueExperiment: '\uf0c3',
+    Threat: '\uf188',
+    DataFragment: '\uf121',
 }
 
 color_scheme = {

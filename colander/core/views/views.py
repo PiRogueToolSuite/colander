@@ -10,6 +10,7 @@ from django.views.decorators.cache import cache_page
 from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
 
+from colander.core import datasets
 from colander.core.forms import DocumentationForm
 from colander.core.models import Entity, Case, colander_models
 
@@ -123,6 +124,8 @@ def quick_creation_view(request):
         'models': models,
         'types': types
     }
+
+    model_data = datasets.creatable_entity_and_types
 
     ctx = {
         'models': model_data,

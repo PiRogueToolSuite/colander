@@ -4,12 +4,29 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from rest_framework import mixins
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from colander.core import datasets
 from colander.core.graph.serializers import GraphRelationSerializer
-from colander.core.models import Case, EntityRelation, ObservableType, Observable
-from colander.core.serializers.generic import EntityTypeSerializer
+from colander.core.models import Case, EntityRelation, Entity, ObservableType, Observable
+from colander.core.rest.serializers import DetailedEntitySerializer
+
+
+class DatasetViewSet(ViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False)
+    def creatable_entities(self, request):
+        return Response(datasets.creatable_entity_and_types)
+
+    @action(detail=False)
+    def all_styles(self, request):
+        return Response(datasets.all_styles)
 
 
 class EntityRelationViewSet(mixins.CreateModelMixin,
@@ -28,6 +45,29 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
         return serializer.save(
             owner=self.request.user,
             case=Case.objects.get(pk=self.request.session.get('active_case'))
+        )
+
+
+class EntityViewSet(mixins.CreateModelMixin,
+                    RetrieveModelMixin,
+                    GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DetailedEntitySerializer
+
+    def get_queryset(self):
+        cases = self.request.user.all_my_cases
+        return Entity.objects.filter(case__in=cases)
+
+    def get_object(self):
+        obj = super().get_object()
+        obj = obj.concrete()
+        return obj
+
+    def perform_create(self, serializer):
+        return serializer.save(
+            owner=self.request.user,
+            case=Case.objects.get(pk=self.request.session.get('active_case')),
         )
 
 
@@ -115,4 +155,3 @@ def import_entity_from_threatr(request):
             relation_obj, _ = update_or_create_entity_relation(obj_from, obj_to, relation, case, request.user)
             return JsonResponse({'status': 0})
     return JsonResponse({'status': -1})
-

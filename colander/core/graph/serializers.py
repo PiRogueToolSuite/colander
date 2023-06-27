@@ -2,7 +2,7 @@ from typing import Any
 
 from rest_framework import serializers
 
-from colander.core.models import Case, Entity, Actor, EntityRelation
+from colander.core.models import Case, Entity, EntityRelation
 
 
 class KeyedListSerializer(serializers.ListSerializer):

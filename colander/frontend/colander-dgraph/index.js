@@ -4,17 +4,16 @@ import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
 import elk from 'cytoscape-elk';
 import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
+import {overlay_button, details_view, entity_creation_view, entity_relation_view} from './graph-templates';
 
 cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
 cytoscape.use( elk );
 
-console.log('memoize', _.memoize);
-
 let styles = [];
 
 let node_label = _.memoize(function(e, iid) {
-  let svgTxt = `${icon_unicodes[iid]}    ${e.data('name')}`;
+  let svgTxt = `${icon_unicodes[iid]} ${e.data('name')}`;
 
   const ctx = document.createElement('canvas').getContext("2d");
   const fStyle = e.style('font-style').strValue;
@@ -23,7 +22,7 @@ let node_label = _.memoize(function(e, iid) {
   const weight = e.style('font-weight').strValue;
   ctx.font = fStyle + ' ' + weight + ' ' + size + ' ' + family;
   let measures = ctx.measureText(svgTxt);
-  let maxWidth = measures.width;
+  let maxWidth = measures.width + 8;
 
   if (e.data('type')) {
     measures = ctx.measureText(`${e.data('type')}    `); // UGLY ? Fake multiple space (4) to have same padding
@@ -35,8 +34,22 @@ let node_label = _.memoize(function(e, iid) {
   //maxWidth += 5;
 
   let r = { svgTxt: svgTxt, width: maxWidth };
-  console.log('node_label', ctx.font, r);
+  //console.log('node_label', ctx.font, r);
   return r;
+});
+
+styles.push({
+  selector: 'node',
+  style: {
+    'background-blacken': -0.5,
+    'shape': 'round-rectangle',
+    'border-width': 3,
+    'font-family': 'sans-serif, ForkAwesome',
+    'font-size': '10px',
+    'text-halign': 'center',
+    'text-valign': 'center',
+    'text-wrap': 'wrap',
+  }
 });
 
 for(let iid in icons) {
@@ -44,39 +57,20 @@ for(let iid in icons) {
     selector: `node.${iid}`,
     style: {
       'background-color': color_scheme[iid],
-      'background-blacken': -0.5,
-      'shape': shapes[iid],
       'border-color': color_scheme[iid],
-      'border-width': 3,
       'label': (e)=> { return node_label(e, iid).svgTxt; },
-      // 'label': (e) => {
-      //   return `${icon_unicodes[iid]}    ${e.data('name')}\n${e.data('type')||''}`;
-      // },
-      /*
-      'label': (e) => {
-        return `<span class="fa ${icons[iid]} fa-2x"></span> ${e.data('name')}`;
-      },
-      */
-      'font-family': 'ForkAwesome, sans-serif',
-      //'letter-spacing': '15px',
-      'font-size': '10px',
       'width': (e) => { return node_label(e, iid).width; },
-      //'width': 'label',
-      // 'width': (e) => {
-      //   console.log('width', e.scratch('label'));
-      //   return e.data('name').length * 6 + 40;
-      //   },
-      'text-halign': 'center',
-      'text-valign': 'center',
-      'text-wrap': 'wrap',
     }
   });
 }
+
 styles.push({
   selector: `node:selected`,
   style: {
     'background-color': '#7122da',
     'border-color': '#7122da',
+    'background-blacken': 0,
+    'color': 'white',
   }
 });
 
@@ -91,8 +85,7 @@ styles.push({
     'text-outline-color': 'white',
     'text-outline-opacity': 1,
     'text-outline-width': 3,
-    'font-family': 'ForkAwesome, sans-serif',
-    'letter-spacing': '15px',
+    'font-family': 'sans-serif, ForkAwesome',
     'font-size': '10px',
     'curve-style': 'bezier',
     'loop-direction': '0deg',
@@ -102,9 +95,32 @@ styles.push({
 });
 
 styles.push({
+  selector: `edge:selected`,
+  style: {
+    'line-color': '#7122da',
+    'color': '#7122da',
+    'target-arrow-color': '#7122da',
+  }
+});
+
+styles.push({
   selector: 'edge.eh-ghost-edge',
   style: {
     'label': '',
+    'color': '#7122da',
+    'line-color': '#7122da',
+    'target-arrow-color': '#7122da',
+    'line-style': 'dashed',
+  }
+});
+
+styles.push({
+  selector: 'edge[temporary]',
+  style: {
+    'color': '#7122da',
+    'line-color': '#7122da',
+    'target-arrow-color': '#7122da',
+    'line-style': 'dashed',
   }
 });
 
@@ -113,29 +129,10 @@ styles.push({
   selector: 'edge.immutable',
   style: {
     //'color': 'purple',
-    'label': (ele) => { return '\uf023'+'    '+ele.data('name');}
+    'label': (ele) => { return `\uf023 ${ele.data('name')}`;}
     //'text-outline-color': 'red',
   }
 });
-
-async function create_relation(csrf, source, target, name) {
-  const rawResponse = await fetch('/rest/entity_relation/', {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrf,
-    },
-    body: JSON.stringify({
-      name: name,
-      obj_from: source,
-      obj_to: target,
-    })
-  })
-  const content = await rawResponse.json();
-
-  console.log('create_relation', content);
-}
 
 class ColanderDGraph {
   // Attributes
@@ -150,9 +147,32 @@ class ColanderDGraph {
     this.csrf = csrf;
     this.jRootElement = $(`#${idElement}`);
     this.jRootElement.addClass('colander-dgraph');
+    // Encapsulate a sub-container to prevent buttons and sidepane event chaos
+    // when childing stuff to cytoscape root element
+    this.jGraphElement = $(`<div class='graph-sub-container'/>`)
+    this.jRootElement.append(this.jGraphElement);
     this.graphUrl = graphUrl;
+
+    this.jLoading = $(`<div class="graph-loading">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>`);
+    this.jRootElement.append(this.jLoading);
+
+    fetch('/rest/dataset/all_styles/')
+      .then((r) => r.json())
+      .then(this._onStyleFetched.bind(this))
+      .catch(console.error);
+
+    console.log('ColanderDGraph prod', idElement, graphUrl, this.jRootElement, this.graphUrl);
+  }
+  _onStyleFetched(allStyles) {
+
+    this.allStyles = allStyles;
+
     this.cy = cytoscape({
-      container: $('#ze-graph'),
+      container: this.jGraphElement,
       userZoomingEnabled: true,
       userPanningEnabled: true,
       boxSelectionEnabled: true,
@@ -160,6 +180,11 @@ class ColanderDGraph {
       style: styles,
       ready: this._onCyReady.bind(this)
     });
+
+    this.cy.on('layoutstop', () => {
+      this.jLoading.hide();
+    });
+
     //
     // -- Edge (creation) handling plugin
     let eh = this.cy.edgehandles({
@@ -170,11 +195,23 @@ class ColanderDGraph {
       edgeParams: (sourceNode, targetNode) => {
         // Temporary set the new edge name
         // will be overridden by user with edge name prompt
-        return { data: {name: 'New relation'} };
+        return { data: {name: 'New relation', temporary: true} };
       },
       snap: false,
     });
     this.cy.on('ehcomplete', this._createRelation.bind(this));
+    this.cy.on('dbltap', (e) => {
+      let node = e.target;
+      console.log('dbltap', e.position);
+      if (e.target === this.cy || e.target.isEdge()) {
+        this.sidepane(false);
+      }
+      else {
+        this._viewDetail(node)
+            .then(console.log)
+            .catch(console.error);
+      }
+    });
 
     let menu = this.cy.contextMenus({
       menuItems: [
@@ -186,7 +223,6 @@ class ColanderDGraph {
           image: { src:'/static/images/icons/link.svg', width: 12, height: 12, x: 4, y:7 },
           onClickFunction: (e) => {
             let node = e.target;
-            console.log('create-relation', node)
             eh.start(node);
           }
         },
@@ -198,10 +234,7 @@ class ColanderDGraph {
           image: { src:'/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y:7 },
           onClickFunction: (e) => {
             let edge = e.target;
-            console.log('relation-rename', edge)
-            this._renameRelation(edge)
-                .then(console.log)
-                .catch(console.error);
+            this._renameRelation(edge);
           }
         },
         {
@@ -212,7 +245,6 @@ class ColanderDGraph {
           image: { src:'/static/images/icons/trash.svg', width: 12, height: 12, x: 4, y:7 },
           onClickFunction: (e) => {
             let edge = e.target;
-            console.log('delete-relation', edge)
             this._deleteRelation(edge)
                 .then(console.log)
                 .catch(console.error);
@@ -226,9 +258,9 @@ class ColanderDGraph {
           image: { src:'/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y:7 },
           onClickFunction: (e) => {
             let node = e.target;
-            console.log('create-relation', node);
-            window.location = node.data('absolute_url');
-            //eh.start(node);
+            this._viewDetail(node)
+                .then(console.log)
+                .catch(console.error);
           }
         },
         {
@@ -239,47 +271,34 @@ class ColanderDGraph {
           image: { src:'/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y:7 },
           onClickFunction: (e) => {
             let node = e.target;
-            console.log('create-relation', node);
             window.location = node.data('absolute_url');
-            //eh.start(node);
           }
         },
 
-        // {
-        //   id: 'entity-create',
-        //   content: 'Add entity',
-        //   tooltipText: 'Create a new entity',
-        //   image: { src:'/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y:7 },
-        //   //selector: 'node',
-        //   coreAsWell: true,
-        //   /*
-        //   onClickFunction: function () {
-        //     console.log('add node');
-        //   },
-        //
-        //    */
-        //   submenu: [
-        //     {
-        //       id: 'create-relation-2',
-        //       content: 'Create Relation',
-        //       tooltipText: 'Add relation between two entities',
-        //       selector: 'node',
-        //       image: { src:'/static/images/icons/link.svg', width: 12, height: 12, x: 4, y:7 },
-        //       onClickFunction: (e) => {
-        //         let node = e.target;
-        //         console.log('create-relation', node)
-        //         eh.start(node);
-        //       }
-        //     },
-        //   ]
-        // }
+        {
+          id: 'entity-create',
+          content: 'New entity',
+          tooltipText: 'Create a new entity',
+          image: { src:'/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y:7 },
+          coreAsWell: true,
+          submenu: ['Actor', 'Device', 'Threat', 'Observable', 'DataFragment'].map((t) => ({
+              id: `create-${t}`,
+              content: `${t}`,
+              tooltipText: `Create a new ${t} entity`,
+              image: { src:`/static/images/icons/${t}.svg`, width: 12, height: 12, x: 4, y:7 },
+              onClickFunction: (e) => {
+                console.log(e);
+                //let node = e.target;
+                this._createEntity(t, e.position);
+                //this.prompt(`New ${t}`, '', `New ${t} name`);
+                //eh.start(node);
+              }
+            })),
+        }
       ],
 
       submenuIndicator: { src:'/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y:4 },
     });
-
-
-    console.log('ColanderDGraph prod', idElement, graphUrl, this.jRootElement, this.graphUrl);
   }
   _onCyReady() {
     console.log('Fetching ...');
@@ -288,7 +307,7 @@ class ColanderDGraph {
       .then(this._onGraphData.bind(this))
       .catch((e) => {
         console.log('Fetch error', e);
-      })
+      });
   }
   _onGraphData(data) {
     console.log('on graph data', data);
@@ -305,22 +324,43 @@ class ColanderDGraph {
     this.refreshGraph();
 
   }
-  async _createRelation(event, sourceNode, targetNode, addedEdge) {
+  _createRelation(event, sourceNode, targetNode, addedEdge) {
     console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
-    let rname = window.prompt('Relation name:', addedEdge.data('name'));
-    if (rname === null) {
-      this.cy.remove(addedEdge);
-      // User may have canceled
-      return;
+    let ctx = {
+      name: addedEdge.data('name'),
+      obj_from: sourceNode.id(),
+      obj_to: targetNode.id(),
+      pending_edge: addedEdge,
+    };
+    let view = entity_relation_view(ctx, this.allStyles);
+    view.find('button[role=save]').click(() => {
+      ctx.name = view.find('input[name="name"]').val();
+      this._do_createRelation(ctx)
+        .then(this._cancelRelation.bind(this, ctx, true))
+        .catch(this._cancelRelation.bind(this, ctx, true));
+    });
+    view.find('button[role=cancel]').click(this._cancelRelation.bind(this, ctx, true));
+    this.sidePaneContent( view );
+    view.find('input[name="name"]').select();
+  }
+  _cancelRelation(ctx, removePending, error) {
+    if (error) {
+      console.error('Relation modification canceled', error);
     }
-    rname = rname.trim();
-    if (!rname) {
-      this.cy.remove(addedEdge);
-      // Empty relation name
-      return;
+    this.sidepane(false);
+    if (removePending) this.cy.remove(ctx.pending_edge);
+  }
+  async _do_createRelation(ctx) {
+    console.log('_do_createRelation', ctx);
+
+    ctx.name = ctx.name?.trim();
+
+    if (!ctx.name) {
+      throw new Error('Empty relation name');
     }
 
-    addedEdge.data('name', rname);
+    let post_data = Object.assign({}, ctx);
+    delete post_data.pending_edge;
 
     const rawResponse = await fetch('/rest/entity_relation/', {
       method: 'POST',
@@ -329,63 +369,61 @@ class ColanderDGraph {
         'Content-Type': 'application/json',
         'X-CSRFToken': this.csrf,
       },
-      body: JSON.stringify({
-        name: addedEdge.data('name'),
-        obj_from: sourceNode.id(),
-        obj_to: targetNode.id(),
-      })
+      body: JSON.stringify(post_data),
     });
 
-    console.log(rawResponse);
     if (!rawResponse.ok) {
-      this.cy.remove(addedEdge);
-      alert('Unexcpeted server error');
-      return;
+      throw new Error('Unexcpeted server error');
     }
 
     const content = await rawResponse.json();
-    console.log('create_relation', content);
 
-    this.cy.remove(addedEdge);
     this.g.relations[content['id']] = content;
     let newEdge = this._toEdge(content['id']);
     this.cy.add(newEdge);
   }
-  async _renameRelation(edge) {
-    let rname = window.prompt('Relation name:', edge.data('name'));
-    if (rname === null) {
-      // User canceled
-      // Lease it unmodified
-      return;
-    }
-    rname = rname.trim();
-    if (!rname) {
-      // Empty string
-      // Cancel and leave unchanged
-      //FIXME: May be do something else
-      //eg: remove it
-      return;
+  _renameRelation(renamedEdge) {
+    console.log('_renameRelation', renamedEdge);
+    let ctx = {
+      name: renamedEdge.data('name'),
+      pending_edge: renamedEdge,
+    };
+    let view = entity_relation_view(ctx, this.allStyles);
+    view.find('button[role=save]').click(() => {
+      ctx.name = view.find('input[name="name"]').val();
+      this._do_renameRelation(ctx)
+        .then(this._cancelRelation.bind(this, ctx, false))
+        .catch(this._cancelRelation.bind(this, ctx, false));
+    });
+    view.find('button[role=cancel]').click(this._cancelRelation.bind(this, ctx, false));
+    this.sidePaneContent( view );
+    view.find('input[name="name"]').select();
+  }
+  async _do_renameRelation(ctx) {
+    console.log('_do_renameRelation', ctx);
+    ctx.name = ctx.name?.trim();
+    if (!ctx.name) {
+      throw new Error('Empty relation name');
     }
 
-    const rawResponse = await fetch(`/rest/entity_relation/${edge.id()}/`, {
+    let post_data = Object.assign({}, ctx);
+    delete post_data.pending_edge;
+
+    const rawResponse = await fetch(`/rest/entity_relation/${ctx.pending_edge.id()}/`, {
       method: 'PATCH',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'X-CSRFToken': this.csrf,
       },
-      body: JSON.stringify({
-        name: rname,
-      })
+      body: JSON.stringify(post_data),
     });
 
-    console.log(rawResponse);
     if (!rawResponse.ok) {
-      alert('Unexcpeted server error');
-      return;
+      throw new Error('Unexcpeted server error');
     }
 
-    edge.data('name', rname);
+    ctx.pending_edge.data('name', ctx.name);
   }
 
   async _deleteRelation(edge) {
@@ -399,13 +437,89 @@ class ColanderDGraph {
       body: JSON.stringify({})
     });
 
-    console.log(rawResponse);
     if (!rawResponse.ok) {
       alert('Unexcpeted server error');
       return;
     }
 
     this.cy.remove(edge);
+  }
+
+  _createEntity(type, position) {
+    let ctx = {
+      super_type: type,
+      name: 'New entity',
+      position: position,
+    };
+    let view = entity_creation_view(ctx, this.allStyles);
+    view.find('button[role=save]').click(() => {
+      ctx.name = view.find('input[name=name]').val();
+      ctx.type = view.find('select[name=type]').val();
+      this._validate_createEntity(ctx)
+          .then(this._do_createEntity.bind(this))
+          .then(this._cancelCreation.bind(this, ctx))
+          .catch(this._cancelCreation.bind(this, ctx));
+    });
+    view.find('button[role=cancel]').click(this._cancelCreation.bind(this, ctx));
+    this.sidePaneContent( view );
+    view.find('input[name=name]').select();
+  }
+  _cancelCreation(ctx, error) {
+    if (error) {
+      console.error('Entity creation canceled', error);
+    }
+    this.sidepane(false);
+  }
+  async _validate_createEntity(ctx) {
+    ctx.name = ctx.name.trim();
+    if (!ctx.name) throw new Error("Entity name can't be empty");
+    if (!ctx.type) throw new Error("Entity type must be selected");
+    return ctx;
+  }
+  async _do_createEntity(ctx) {
+    console.log('_do_createEntity', ctx);
+
+    let post_data = Object.assign({}, ctx);
+    delete post_data.position;
+
+    const rawResponse = await fetch('/rest/entity/', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.csrf,
+      },
+      body: JSON.stringify(post_data),
+    });
+
+    if (!rawResponse.ok) {
+      throw new Error('Unexcpeted server error');
+    }
+
+    const content = await rawResponse.json();
+
+    this.g.entities[content['id']] = content;
+    let newNode = this._toNode(content['id']);
+    this.cy.add(newNode).position(ctx.position);
+  }
+
+  async _viewDetail(node) {
+    const rawResponse = await fetch(`/rest/entity/${node.id()}/`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this.csrf,
+      }
+    });
+
+    if (!rawResponse.ok) {
+      alert('Unexpected server error');
+      return;
+    }
+
+    const content = await rawResponse.json();
+    this.sidePaneContent( details_view(content) );
   }
 
   _toEdge(rid) {
@@ -440,23 +554,15 @@ class ColanderDGraph {
     }
     // Full screen editor
     if (options.fullscreen && !this.jOverlayMenu_Fullscreen) {
-      this.jOverlayMenu_Fullscreen = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Fullscreen">
-        <i class="fa fa-arrows-alt" aria-hidden="true"></i>
-        <span class="label">Fullscreen</span>
-      </button>`);
+      this.jOverlayMenu_Fullscreen = overlay_button('fa-arrows-alt', 'Fullscreen');
       this.jOverlayMenu_Fullscreen.click((e)=> {
-        e.stopPropagation();
-        e.preventDefault();
         this.jRootElement.toggleClass('fullscreen');
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
     }
     // ReCenter and Fit graph
     if (options.recenter && !this.jOverlayMenu_Recenter) {
-      this.jOverlayMenu_Recenter = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Re-Center">
-        <i class="fa fa-crosshairs" aria-hidden="true"></i>
-        <span class="label">Re-Center</span>
-      </button>`);
+      this.jOverlayMenu_Recenter = overlay_button('fa-crosshairs', 'Re-Center');
       this.jOverlayMenu_Recenter.click((e)=> {
         e.stopPropagation();
         e.preventDefault();
@@ -466,10 +572,7 @@ class ColanderDGraph {
     }
     // Snapshot
     if (options.snapshot && !this.jOverlayMenu_Snapshot) {
-      this.jOverlayMenu_Snapshot = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Snapshot">
-        <i class="fa fa-camera" aria-hidden="true"></i>
-        <span class="label">Snapshot</span>
-      </button>`);
+      this.jOverlayMenu_Snapshot = overlay_button('fa-camera', 'Snapshot');
       this.jOverlayMenu_Snapshot.click((e)=> {
         e.stopPropagation();
         e.preventDefault();
@@ -484,13 +587,11 @@ class ColanderDGraph {
     }
     // Sidebar toggle
     if (options.sidepane && !this.jOverlayMenu_Sidepane) {
-      this.jOverlayMenu_Sidepane = $(`<div class='sidepane'><iframe/></div>`);
+      //this.jOverlayMenu_Sidepane = $(`<div class='sidepane'><iframe/></div>`);
+      this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
       this.jRootElement.append(this.jOverlayMenu_Sidepane);
-      this.jSidepane_IFrame = this.jOverlayMenu_Sidepane.find('iframe');
-      this.jOverlayMenu_SidepaneButton = $(`<button class="btn btn-sm btn-outline-secondary bg-light" title="Sidepane">
-        <i class="fa fa-window-maximize" aria-hidden="true"></i>
-        <span class="label">Sidepane</span>
-      </button>`);
+      //this.jSidepane_IFrame = this.jOverlayMenu_Sidepane.find('iframe');
+      this.jOverlayMenu_SidepaneButton = overlay_button('fa-window-maximize', 'Side pane');
       this.jOverlayMenu_SidepaneButton.click((e)=> {
         e.stopPropagation();
         e.preventDefault();
@@ -498,6 +599,10 @@ class ColanderDGraph {
       });
       this.sidepane = (t) => {
         this.jRootElement.toggleClass('sidepane-active', t);
+      };
+      this.sidePaneContent = (c) => {
+        this.jOverlayMenu_Sidepane.empty().append(c);
+        this.sidepane(true);
       };
       this.jOverlayMenu.append(this.jOverlayMenu_SidepaneButton);
     }
@@ -527,19 +632,3 @@ class ColanderDGraph {
 }
 
 window.ColanderDGraph = ColanderDGraph;
-
-/**
- * As side note :
- * A method to compute exactly width against font and text sizes:
-'width': (node) => {
-    const ctx = document.createElement('canvas').getContext("2d");
-    const fStyle = node.pstyle('font-style').strValue;
-    const size = node.pstyle('font-size').pfValue + 'px';
-    const family = node.pstyle('font-family').strValue;
-    const weight = node.pstyle('font-weight').strValue;
-
-    ctx.font = fStyle + ' ' + weight + ' ' + size + ' ' + family;
-    return ctx.measureText(node.data('name'));
-}
- *
- */

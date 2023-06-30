@@ -25,9 +25,12 @@ let node_label = _.memoize(function(e, iid) {
   let maxWidth = measures.width + 8;
 
   if (e.data('type')) {
-    measures = ctx.measureText(`${e.data('type')}    `); // UGLY ? Fake multiple space (4) to have same padding
+    //let typeTxt = e.data('type');
+    let typeTxt = e.cy().data('all-styles')[e.data('super_type')].types[e.data('type')].name;
+    console.log('all styles', e.cy().data('all-styles'));
+    measures = ctx.measureText(`${typeTxt}    `); // UGLY ? Fake multiple space (4) to have same padding
     maxWidth = Math.max(maxWidth, measures.width);
-    svgTxt += `\n${e.data('type')}`;
+    svgTxt += `\n${typeTxt}`;
   }
 
   // A bit of margin:
@@ -36,6 +39,8 @@ let node_label = _.memoize(function(e, iid) {
   let r = { svgTxt: svgTxt, width: maxWidth };
   //console.log('node_label', ctx.font, r);
   return r;
+},(e) => {
+  return `${e.id()}-${e.data('name')}-${e.data('type')}`;
 });
 
 styles.push({
@@ -137,21 +142,32 @@ styles.push({
 class ColanderDGraph {
   // Attributes
   jRootElement;
-  graphUrl;
   cy;
   g;
   jOverlayMenu;
-  options;
-  csrf;
-  constructor(idElement, graphUrl, csrf) {
-    this.csrf = csrf;
-    this.jRootElement = $(`#${idElement}`);
+  _config;
+  constructor(config) {
+
+    this.config( config || {} );
+
+    this._domSetup();
+
+    fetch('/rest/dataset/all_styles/')
+      .then((r) => r.json())
+      .then(this._onStyleFetched.bind(this))
+      .catch(console.error);
+  }
+  _domSetup() {
+    this.jRootElement = $(`#${this._config.containerId}`);
     this.jRootElement.addClass('colander-dgraph');
+
     // Encapsulate a sub-container to prevent buttons and sidepane event chaos
     // when childing stuff to cytoscape root element
     this.jGraphElement = $(`<div class='graph-sub-container'/>`)
     this.jRootElement.append(this.jGraphElement);
-    this.graphUrl = graphUrl;
+
+    this.jOverlayMenu = $(`<div class="graph-overlay-menu position-absolute top-0 start-0" style="z-index: 20;">`);
+    this.jRootElement.append(this.jOverlayMenu);
 
     this.jLoading = $(`<div class="graph-loading">
         <div class="spinner-border" role="status">
@@ -159,13 +175,6 @@ class ColanderDGraph {
         </div>
     </div>`);
     this.jRootElement.append(this.jLoading);
-
-    fetch('/rest/dataset/all_styles/')
-      .then((r) => r.json())
-      .then(this._onStyleFetched.bind(this))
-      .catch(console.error);
-
-    console.log('ColanderDGraph prod', idElement, graphUrl, this.jRootElement, this.graphUrl);
   }
   _onStyleFetched(allStyles) {
 
@@ -181,128 +190,17 @@ class ColanderDGraph {
       ready: this._onCyReady.bind(this)
     });
 
+    this.cy.data('all-styles', this.allStyles);
+
     this.cy.on('layoutstop', () => {
       this.jLoading.hide();
     });
 
-    //
-    // -- Edge (creation) handling plugin
-    let eh = this.cy.edgehandles({
-      canConnect: function( sourceNode, targetNode ){
-        //return !sourceNode.same(targetNode); // disallow loops
-        return true; // allow loops
-      },
-      edgeParams: (sourceNode, targetNode) => {
-        // Temporary set the new edge name
-        // will be overridden by user with edge name prompt
-        return { data: {name: 'New relation', temporary: true} };
-      },
-      snap: false,
-    });
-    this.cy.on('ehcomplete', this._createRelation.bind(this));
-    this.cy.on('dbltap', (e) => {
-      let node = e.target;
-      console.log('dbltap', e.position);
-      if (e.target === this.cy || e.target.isEdge()) {
-        this.sidepane(false);
-      }
-      else {
-        this._viewDetail(node)
-            .then(console.log)
-            .catch(console.error);
-      }
-    });
-
-    let menu = this.cy.contextMenus({
-      menuItems: [
-        {
-          id: 'relation-create',
-          content: 'Create Relation',
-          tooltipText: 'Add relation between two entities',
-          selector: 'node',
-          image: { src:'/static/images/icons/link.svg', width: 12, height: 12, x: 4, y:7 },
-          onClickFunction: (e) => {
-            let node = e.target;
-            eh.start(node);
-          }
-        },
-        {
-          id: 'relation-rename',
-          content: 'Rename relation',
-          tooltipText: 'Add relation between two entities',
-          selector: 'edge.mutable',
-          image: { src:'/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y:7 },
-          onClickFunction: (e) => {
-            let edge = e.target;
-            this._renameRelation(edge);
-          }
-        },
-        {
-          id: 'relation-delete',
-          content: 'Delete relation',
-          tooltipText: 'Delete relation between two entities',
-          selector: 'edge.mutable',
-          image: { src:'/static/images/icons/trash.svg', width: 12, height: 12, x: 4, y:7 },
-          onClickFunction: (e) => {
-            let edge = e.target;
-            this._deleteRelation(edge)
-                .then(console.log)
-                .catch(console.error);
-          }
-        },
-        {
-          id: 'entity-details',
-          content: 'View entity details',
-          tooltipText: 'View entity details',
-          selector: 'node',
-          image: { src:'/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y:7 },
-          onClickFunction: (e) => {
-            let node = e.target;
-            this._viewDetail(node)
-                .then(console.log)
-                .catch(console.error);
-          }
-        },
-        {
-          id: 'entity-edit',
-          content: 'Edit entity',
-          tooltipText: 'Edit entity details',
-          selector: 'node',
-          image: { src:'/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y:7 },
-          onClickFunction: (e) => {
-            let node = e.target;
-            window.location = node.data('absolute_url');
-          }
-        },
-
-        {
-          id: 'entity-create',
-          content: 'New entity',
-          tooltipText: 'Create a new entity',
-          image: { src:'/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y:7 },
-          coreAsWell: true,
-          submenu: ['Actor', 'Device', 'Threat', 'Observable', 'DataFragment'].map((t) => ({
-              id: `create-${t}`,
-              content: `${t}`,
-              tooltipText: `Create a new ${t} entity`,
-              image: { src:`/static/images/icons/${t}.svg`, width: 12, height: 12, x: 4, y:7 },
-              onClickFunction: (e) => {
-                console.log(e);
-                //let node = e.target;
-                this._createEntity(t, e.position);
-                //this.prompt(`New ${t}`, '', `New ${t} name`);
-                //eh.start(node);
-              }
-            })),
-        }
-      ],
-
-      submenuIndicator: { src:'/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y:4 },
-    });
+    this._applyInternalConfig();
   }
   _onCyReady() {
     console.log('Fetching ...');
-    fetch(this.graphUrl)
+    fetch(this._config.datasourceUrl)
       .then((r) => r.json())
       .then(this._onGraphData.bind(this))
       .catch((e) => {
@@ -325,7 +223,7 @@ class ColanderDGraph {
 
   }
   _createRelation(event, sourceNode, targetNode, addedEdge) {
-    console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
+    //console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
     let ctx = {
       name: addedEdge.data('name'),
       obj_from: sourceNode.id(),
@@ -348,10 +246,12 @@ class ColanderDGraph {
       console.error('Relation modification canceled', error);
     }
     this.sidepane(false);
-    if (removePending) this.cy.remove(ctx.pending_edge);
+    if (removePending) {
+      this.cy.remove(ctx.pending_edge);
+    }
   }
   async _do_createRelation(ctx) {
-    console.log('_do_createRelation', ctx);
+    //console.log('_do_createRelation', ctx);
 
     ctx.name = ctx.name?.trim();
 
@@ -367,7 +267,7 @@ class ColanderDGraph {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': this.csrf,
+        'X-CSRFToken': this._config.csrfToken,
       },
       body: JSON.stringify(post_data),
     });
@@ -383,7 +283,7 @@ class ColanderDGraph {
     this.cy.add(newEdge);
   }
   _renameRelation(renamedEdge) {
-    console.log('_renameRelation', renamedEdge);
+    //console.log('_renameRelation', renamedEdge);
     let ctx = {
       name: renamedEdge.data('name'),
       pending_edge: renamedEdge,
@@ -400,7 +300,7 @@ class ColanderDGraph {
     view.find('input[name="name"]').select();
   }
   async _do_renameRelation(ctx) {
-    console.log('_do_renameRelation', ctx);
+    //console.log('_do_renameRelation', ctx);
     ctx.name = ctx.name?.trim();
     if (!ctx.name) {
       throw new Error('Empty relation name');
@@ -414,7 +314,7 @@ class ColanderDGraph {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': this.csrf,
+        'X-CSRFToken': this._config.csrfToken,
       },
       body: JSON.stringify(post_data),
     });
@@ -432,7 +332,7 @@ class ColanderDGraph {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': this.csrf,
+        'X-CSRFToken': this._config.csrfToken,
       },
       body: JSON.stringify({})
     });
@@ -451,18 +351,32 @@ class ColanderDGraph {
       name: 'New entity',
       position: position,
     };
+    this._createOrEditEntity(ctx);
+  }
+  _createOrEditEntity(ctx) {
     let view = entity_creation_view(ctx, this.allStyles);
     view.find('button[role=save]').click(() => {
       ctx.name = view.find('input[name=name]').val();
       ctx.type = view.find('select[name=type]').val();
-      this._validate_createEntity(ctx)
-          .then(this._do_createEntity.bind(this))
-          .then(this._cancelCreation.bind(this, ctx))
-          .catch(this._cancelCreation.bind(this, ctx));
+      ctx.content = view.find('textarea[name=content]').val();
+      this._validate_createOrEditEntity(ctx)
+          .then(this._do_createOrEditEntity.bind(this))
+          .finally(this._cancelCreation.bind(this, ctx));
     });
     view.find('button[role=cancel]').click(this._cancelCreation.bind(this, ctx));
     this.sidePaneContent( view );
     view.find('input[name=name]').select();
+  }
+  _quickEditEntity(node) {
+    let ctx = {
+      edited_node: node,
+      id: node.id(),
+      type: node.data('type'),
+      name: node.data('name'),
+      super_type: node.data('super_type'),
+      content: node.data('content'),
+    };
+    this._createOrEditEntity(ctx);
   }
   _cancelCreation(ctx, error) {
     if (error) {
@@ -470,26 +384,30 @@ class ColanderDGraph {
     }
     this.sidepane(false);
   }
-  async _validate_createEntity(ctx) {
+  async _validate_createOrEditEntity(ctx) {
     ctx.name = ctx.name.trim();
     if (!ctx.name) throw new Error("Entity name can't be empty");
-    if (!ctx.type) throw new Error("Entity type must be selected");
+    //if (!ctx.type) throw new Error("Entity type must be selected");
     return ctx;
   }
-  async _do_createEntity(ctx) {
-    console.log('_do_createEntity', ctx);
+  async _do_createOrEditEntity(ctx) {
+    console.log('_do_createOrEditEntity', ctx);
 
     let post_data = Object.assign({}, ctx);
     delete post_data.position;
+    if (post_data.edited_node)
+      delete post_data.edited_node;
 
-    const rawResponse = await fetch('/rest/entity/', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this.csrf,
-      },
-      body: JSON.stringify(post_data),
+    const rawResponse = await fetch(
+        ctx.id?`/rest/entity/${ctx.id}/`:'/rest/entity/',
+        {
+          method: ctx.id ? 'PATCH' : 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this._config.csrfToken,
+          },
+          body: JSON.stringify(post_data),
     });
 
     if (!rawResponse.ok) {
@@ -499,8 +417,18 @@ class ColanderDGraph {
     const content = await rawResponse.json();
 
     this.g.entities[content['id']] = content;
-    let newNode = this._toNode(content['id']);
-    this.cy.add(newNode).position(ctx.position);
+    if (ctx.id) {
+      // Edit
+      ctx.edited_node.data('name', content.name);
+      ctx.edited_node.data('content', content.content);
+      ctx.edited_node.data('type', content.type);
+    }
+    else {
+      // Create
+      let newNode = this._toNode(content['id']);
+      this.cy.add(newNode).position(ctx.position);
+    }
+
   }
 
   async _viewDetail(node) {
@@ -509,7 +437,7 @@ class ColanderDGraph {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': this.csrf,
+        'X-CSRFToken': this._config.csrfToken,
       }
     });
 
@@ -519,7 +447,15 @@ class ColanderDGraph {
     }
 
     const content = await rawResponse.json();
-    this.sidePaneContent( details_view(content) );
+    let view = details_view(content, this.allStyles);
+    view.find('button[role=close]').click(() => {
+      this.sidepane(false);
+    });
+    view.find('button[role=edit]').click(() => {
+      this._quickEditEntity(node);
+      //this.sidepane(false);
+    });
+    this.sidePaneContent( view );
   }
 
   _toEdge(rid) {
@@ -540,20 +476,146 @@ class ColanderDGraph {
       classes: [ `${e.super_type}`, `${e.tlp}`, `${e.pap}` ]
     };
   }
-  enable(options) {
-    this.options = Object.assign(this.options||{}, options);
-    if (options.lock)
+  config(options) {
+    this._config = Object.assign(this._config || {}, options);
+
+    if (!this._config.containerId) throw new Error('ColanderDGraph; Missing containerId in config');
+    if (!this._config.datasourceUrl) throw new Error('ColanderDGraph; Missing datasourceUrl in config');
+  }
+  _applyInternalConfig() {
+
+    this.cy.userZoomingEnabled(!this._config.lock);
+    this.cy.userPanningEnabled(!this._config.lock);
+    this.cy.boxSelectionEnabled(!this._config.lock);
+
+    if ( this._config.lock )
     {
-      this.cy.userZoomingEnabled(!options.lock);
-      this.cy.userPanningEnabled(!options.lock);
-      this.cy.boxSelectionEnabled(!options.lock);
+      this.cy.style().selector('*').style({
+        'events': 'no'
+      });
+      return false;
     }
-    if (!this.jOverlayMenu) {
-      this.jOverlayMenu = $(`<div class="graph-overlay-menu position-absolute top-0 start-0" style="z-index: 20;">`);
-      this.jRootElement.append(this.jOverlayMenu);
+
+    //
+    // -- Edge (creation) handling plugin
+    if (!this.edgeHandler) {
+      this.edgeHandler = this.cy.edgehandles({
+        canConnect: function (sourceNode, targetNode) {
+          //return !sourceNode.same(targetNode); // disallow loops
+          return true; // allow loops
+        },
+        edgeParams: (sourceNode, targetNode) => {
+          // Temporary set the new edge name
+          // will be overridden by user with edge name prompt
+          return {data: {name: 'New relation', temporary: true}};
+        },
+        snap: false,
+      });
+      this.cy.on('ehcomplete', this._createRelation.bind(this));
+      this.cy.on('dbltap', (e) => {
+        let node = e.target;
+        console.log('dbltap', e.position);
+        if (e.target === this.cy || e.target.isEdge()) {
+          this.sidepane(false);
+        } else {
+          this._viewDetail(node)
+              .then(console.log)
+              .catch(console.error);
+        }
+      });
+    }
+
+    if (!this.contextMenu) {
+      this.contextMenu = this.cy.contextMenus({
+        menuItems: [
+          {
+            id: 'relation-create',
+            content: 'Create relation',
+            tooltipText: 'Add relation between two entities',
+            selector: 'node',
+            image: {src: '/static/images/icons/link.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let node = e.target;
+              this.edgeHandler.start(node);
+            }
+          },
+          {
+            id: 'relation-rename',
+            content: 'Rename relation',
+            tooltipText: 'Add relation between two entities',
+            selector: 'edge.mutable',
+            image: {src: '/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let edge = e.target;
+              this._renameRelation(edge);
+            }
+          },
+          {
+            id: 'relation-delete',
+            content: 'Delete relation',
+            tooltipText: 'Delete relation between two entities',
+            selector: 'edge.mutable',
+            image: {src: '/static/images/icons/trash.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let edge = e.target;
+              this._deleteRelation(edge)
+                  .then(console.log)
+                  .catch(console.error);
+            }
+          },
+          {
+            id: 'entity-details',
+            content: 'Entity overview',
+            tooltipText: 'View entity details',
+            selector: 'node',
+            image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let node = e.target;
+              this._viewDetail(node)
+                  .then(console.log)
+                  .catch(console.error);
+            }
+          },
+          {
+            id: 'entity-edit',
+            content: 'Quick edit entity',
+            tooltipText: 'Quick edit',
+            selector: 'node',
+            image: {src: '/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let node = e.target;
+              this._quickEditEntity(node);
+              //window.location = node.data('absolute_url');
+            }
+          },
+
+          {
+            id: 'entity-create',
+            content: 'New entity',
+            tooltipText: 'Create a new entity',
+            image: {src: '/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y: 7},
+            coreAsWell: true,
+            submenu: ['Actor', 'Device', 'Threat', 'Observable', 'DataFragment'].map((t) => ({
+              id: `create-${t}`,
+              content: `${t}`,
+              tooltipText: `Create a new ${t} entity`,
+              image: {src: `/static/images/icons/${t}.svg`, width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                console.log(e);
+                //let node = e.target;
+                this._createEntity(t, e.position);
+                //this.prompt(`New ${t}`, '', `New ${t} name`);
+                //eh.start(node);
+              }
+            })),
+          }
+        ],
+
+        submenuIndicator: {src: '/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y: 4},
+      });
     }
     // Full screen editor
-    if (options.fullscreen && !this.jOverlayMenu_Fullscreen) {
+    if (this._config.fullscreen && !this.jOverlayMenu_Fullscreen) {
       this.jOverlayMenu_Fullscreen = overlay_button('fa-arrows-alt', 'Fullscreen');
       this.jOverlayMenu_Fullscreen.click((e)=> {
         this.jRootElement.toggleClass('fullscreen');
@@ -561,7 +623,7 @@ class ColanderDGraph {
       this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
     }
     // ReCenter and Fit graph
-    if (options.recenter && !this.jOverlayMenu_Recenter) {
+    if (this._config.recenter && !this.jOverlayMenu_Recenter) {
       this.jOverlayMenu_Recenter = overlay_button('fa-crosshairs', 'Re-Center');
       this.jOverlayMenu_Recenter.click((e)=> {
         e.stopPropagation();
@@ -571,7 +633,7 @@ class ColanderDGraph {
       this.jOverlayMenu.append(this.jOverlayMenu_Recenter);
     }
     // Snapshot
-    if (options.snapshot && !this.jOverlayMenu_Snapshot) {
+    if (this._config.snapshot && !this.jOverlayMenu_Snapshot) {
       this.jOverlayMenu_Snapshot = overlay_button('fa-camera', 'Snapshot');
       this.jOverlayMenu_Snapshot.click((e)=> {
         e.stopPropagation();
@@ -586,17 +648,17 @@ class ColanderDGraph {
       this.jOverlayMenu.append(this.jOverlayMenu_Snapshot);
     }
     // Sidebar toggle
-    if (options.sidepane && !this.jOverlayMenu_Sidepane) {
+    if (this._config.sidepane && !this.jOverlayMenu_Sidepane) {
       //this.jOverlayMenu_Sidepane = $(`<div class='sidepane'><iframe/></div>`);
       this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
       this.jRootElement.append(this.jOverlayMenu_Sidepane);
       //this.jSidepane_IFrame = this.jOverlayMenu_Sidepane.find('iframe');
-      this.jOverlayMenu_SidepaneButton = overlay_button('fa-window-maximize', 'Side pane');
-      this.jOverlayMenu_SidepaneButton.click((e)=> {
-        e.stopPropagation();
-        e.preventDefault();
-        this.jRootElement.toggleClass('sidepane-active');
-      });
+      //this.jOverlayMenu_SidepaneButton = overlay_button('fa-window-maximize', 'Side pane');
+      // this.jOverlayMenu_SidepaneButton.click((e)=> {
+      //   e.stopPropagation();
+      //   e.preventDefault();
+      //   this.jRootElement.toggleClass('sidepane-active');
+      // });
       this.sidepane = (t) => {
         this.jRootElement.toggleClass('sidepane-active', t);
       };
@@ -604,7 +666,7 @@ class ColanderDGraph {
         this.jOverlayMenu_Sidepane.empty().append(c);
         this.sidepane(true);
       };
-      this.jOverlayMenu.append(this.jOverlayMenu_SidepaneButton);
+      // this.jOverlayMenu.append(this.jOverlayMenu_SidepaneButton);
     }
   }
   refreshGraph() {

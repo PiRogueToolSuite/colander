@@ -15,7 +15,7 @@ function to_edit_url(url) {
 }
 
 export const details_view = (ctx, styles) => {
-  return $(`<div class='container'>
+  let view = $(`<div class='container'>
       <div class='mt-2 mb-2'><i class='fa fa-hashtag text-primary'></i> ${ctx.id}</div>
       <h3 class="text-truncate">
           <i class='fa ${icons[ctx.super_type]} text-primary'></i>
@@ -32,7 +32,7 @@ export const details_view = (ctx, styles) => {
               </tr>
               <tr>
                   <td class="pe-1">Type</td>
-                  <td><i class='fa ${icons[ctx.super_type]} text-primary'></i> ${ctx.type||ctx.super_type}</td>
+                  <td class="type-or-super-type"></td>
               </tr>
               <tr>
                   <td class="pe-1">Created at</td>
@@ -46,10 +46,24 @@ export const details_view = (ctx, styles) => {
       </table>
       <h4>More actions</h4>
       <div>
+        <button class="btn btn-outline-secondary" type='button' role="close">Close</button>
         <a class="btn btn-primary" href="${ctx.absolute_url}">Full details</a>
-        <a class="btn btn-primary" href="${to_edit_url(ctx.absolute_url)}">Edit</a>
+        <button class="btn btn-primary" type='button' role="edit">Quick edit</button>
       </div>
     </div>`);
+  let jTypeOrSuperType;
+  if (ctx.type) {
+    jTypeOrSuperType = $(`<span><i class='fa nf ${styles[ctx.super_type].types[ctx.type]["icon-font-classname"]} text-primary'></i> ${styles[ctx.super_type].types[ctx.type].name}</span>`);
+  }
+  else {
+    jTypeOrSuperType = $(`<span><i class='fa ${styles[ctx.super_type]["icon-font-classname"]} text-primary'></i> ${ctx.super_type}</span>`);
+  }
+  view.find('.type-or-super-type').append(jTypeOrSuperType);
+  if (ctx.content) {
+      let jContent = $(`<h4>Content</h4><pre>${ctx.content}</pre>`);
+      view.find('table').after(jContent);
+  }
+  return view;
 };
 
 export const entity_relation_view = (ctx, styles) => {
@@ -68,25 +82,47 @@ export const entity_relation_view = (ctx, styles) => {
 
 export const entity_creation_view = (ctx, styles) => {
     let view = $(`<div class='container pt-2'>
-        <h5><i class="fa ${styles[ctx.super_type]['icon-font-classname']}"></i> New ${ctx.super_type}</h5>
+        <h5><i class="fa ${styles[ctx.super_type]['icon-font-classname']}"></i> ${ctx.super_type} entity</h5>
         <div class="form-group mb-2">
             <label>Entity name</label>
             <input class="form-control" type="text" placeholder="Entity name" value="${ctx.name}" name="name"/>
         </div>
-        <div class="form-group mb-2">
-            <label>${ctx.super_type} type</label>
-            <select class='form-control' name="type" size="6"></select>
-        </div>
-        <div class="mt-3">
+        <div class="optional-type"></div>
+        <div class="optional-content"></div>
+        <div class="mt-3 mb-2">
             <button type="button" class="btn btn-outline-secondary" role="cancel">Cancel</button>
             <button type="button" class="btn btn-primary" role="save">Save</button>
         </div>
       </div>`);
-    let jOptions = [];
-    for(let type in styles[ctx.super_type].types) {
-        jOptions.push($(`<option value="${type}"><i class="fa nf ${styles[ctx.super_type].types[type]['icon-font-classname']}"></i> ${styles[ctx.super_type].types[type]['name']}</option>`));
+
+    if (styles[ctx.super_type] && Object.keys(styles[ctx.super_type].types).length !== 0) {
+        let typePart = $(`<div class="form-group mb-2">
+            <label>${ctx.super_type} type</label>
+            <select class='form-control' name="type" size="6"></select>
+        </div>`);
+        view.find('.optional-type').append(typePart);
+
+        let jOptions = [];
+        for(let type in styles[ctx.super_type].types) {
+            let jOption = $(`<option value="${type}"><i class="fa nf ${styles[ctx.super_type].types[type]['icon-font-classname']}"></i> ${styles[ctx.super_type].types[type]['name']}</option>`);
+            if (type === ctx.type) {
+                jOption.prop('selected', true);
+            }
+            jOptions.push(jOption);
+        }
+        let size = Math.min(8, jOptions.length);
+        view.find('select[name=type]').attr('size', size).append(jOptions);
     }
-    let size = Math.min(8, jOptions.length);
-    view.find('select[name=type]').attr('size', size).append(jOptions);
+
+    if (ctx.super_type === 'DataFragment') {
+        let contentPart = $(`<div class="form-group mb-2">
+                <label>Content</label>
+                <textarea name='content' class="form-control" row="5"></textarea>
+            </div>`);
+        if (ctx.content) {
+            contentPart.find('textarea[name=content]').val(ctx.content);
+        }
+        view.find('.optional-content').append(contentPart);
+    }
     return view;
 };

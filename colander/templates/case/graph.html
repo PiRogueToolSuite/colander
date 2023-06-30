@@ -10,8 +10,10 @@
 <div id="a-colander-graph"></div>
 
 <script type="text/javascript">
-  let cdg = new ColanderDGraph( 'a-colander-graph', `/case/{{ case.id }}/graph`, '{{ csrf_token }}' );
-  cdg.enable({
+  let cdg = new ColanderDGraph({
+    containerId: 'a-colander-graph',
+    datasourceUrl: `/case/{{ case.id }}/graph`,
+    csrfToken: '{{ csrf_token }}',
     {% if lock %}
       lock: true,
     {% else %}

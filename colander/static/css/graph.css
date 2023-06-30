@@ -134,11 +134,10 @@
   box-shadow: -1rem 0 0 -1rem;
   transition: 0.25s ease-in;
   transition-property: right, box-shadow;
+  overflow: hidden auto;
 }
-.colander-dgraph .sidepane iframe {
-  width: 100%;
-  /*height: calc(100% - 2rem);*/
-  height: 100%;
+.colander-dgraph .sidepane textarea {
+  min-height: 15rem;
 }
 .colander-dgraph.sidepane-active .sidepane {
   right: 0;

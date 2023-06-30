@@ -49,6 +49,7 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
 
 
 class EntityViewSet(mixins.CreateModelMixin,
+                    mixins.UpdateModelMixin,
                     RetrieveModelMixin,
                     GenericViewSet):
     authentication_classes = [SessionAuthentication]

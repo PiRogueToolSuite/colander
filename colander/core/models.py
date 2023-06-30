@@ -1632,6 +1632,14 @@ class Event(Entity):
                     target=self.observed_on
                 )
             )
+        if self.detected_by:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="detected by",
+                    source=self,
+                    target=self.detected_by
+                )
+            )
         if self.involved_observables:
             for io in self.involved_observables.all():
                 relations.append(

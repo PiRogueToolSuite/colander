@@ -86,12 +86,12 @@
     box-shadow: -1rem 0 0 -1rem;
     transition: 0.25s ease-in;
     transition-property: right, box-shadow;
-    iframe
-    {
-      width: 100%;
-      /*height: calc(100% - 2rem);*/
-      height: 100%;
+    overflow: hidden auto;
+
+    textarea {
+      min-height: 15rem;
     }
+
   }
   &.sidepane-active .sidepane {
     right: 0;

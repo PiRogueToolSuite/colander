@@ -31,7 +31,8 @@
     "cytoscape": "^3.25.0",
     "cytoscape-context-menus": "^4.1.0",
     "cytoscape-edgehandles": "^4.0.1",
-    "cytoscape-elk": "^2.1.0",
+    "cytoscape-fcose": "^2.2.0",
+    "cytoscape-layout-utilities": "^1.1.1",
     "web-worker": "^1.2.0"
   }
 }

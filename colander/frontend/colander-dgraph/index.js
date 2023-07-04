@@ -2,13 +2,15 @@ import cytoscape from 'cytoscape';
 import _ from 'lodash';
 import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
-import elk from 'cytoscape-elk';
+import fcose from 'cytoscape-fcose';
+import layoutUtilities from 'cytoscape-layout-utilities';
 import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
 import {overlay_button, details_view, entity_creation_view, entity_relation_view} from './graph-templates';
-
 cytoscape.use( contextMenus );
+
 cytoscape.use( edgehandles );
-cytoscape.use( elk );
+cytoscape.use( layoutUtilities ); // Optional but used by fcose in our case
+cytoscape.use( fcose );
 
 let styles = [];
 
@@ -27,7 +29,7 @@ let node_label = _.memoize(function(e, iid) {
   if (e.data('type')) {
     //let typeTxt = e.data('type');
     let typeTxt = e.cy().data('all-styles')[e.data('super_type')].types[e.data('type')].name;
-    console.log('all styles', e.cy().data('all-styles'));
+    //console.log('all styles', e.cy().data('all-styles'));
     measures = ctx.measureText(`${typeTxt}    `); // UGLY ? Fake multiple space (4) to have same padding
     maxWidth = Math.max(maxWidth, measures.width);
     svgTxt += `\n${typeTxt}`;
@@ -194,6 +196,14 @@ class ColanderDGraph {
 
     this.cy.on('layoutstop', () => {
       this.jLoading.hide();
+      this.cy.$('node').emit('free');
+    });
+
+    this.fixedPosition = {};
+    this.cy.on('free', 'node', (e) => {
+      let ele = e.target;
+      this.fixedPosition[ ele.id() ] = this.fixedPosition[ ele.id() ] || { nodeId: ele.id() };
+      this.fixedPosition[ ele.id() ].position = ele.position();
     });
 
     this._applyInternalConfig();
@@ -514,7 +524,7 @@ class ColanderDGraph {
       this.cy.on('ehcomplete', this._createRelation.bind(this));
       this.cy.on('dbltap', (e) => {
         let node = e.target;
-        console.log('dbltap', e.position);
+        //console.log('dbltap', e.position);
         if (e.target === this.cy || e.target.isEdge()) {
           this.sidepane(false);
         } else {
@@ -588,6 +598,49 @@ class ColanderDGraph {
               //window.location = node.data('absolute_url');
             }
           },
+          {
+            id: 'select-linked',
+            content: 'Select linked',
+            tooltipText: 'Select all linked entities',
+            selector: 'node,edge',
+            image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let selection = e.target;
+              if (selection.isEdge()) {
+                selection = selection.connectedNodes()
+              }
+              let currentCount = selection.length;
+              do {
+                currentCount = selection.length
+                selection = selection.closedNeighborhood();
+              } while( currentCount < selection.length );
+              selection.select();
+            }
+          },
+          // {
+          //   id: 'relax-linked',
+          //   content: 'Relax linked',
+          //   tooltipText: 'Relax all linked entities',
+          //   selector: 'node',
+          //   image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+          //   onClickFunction: (e) => {
+          //     let selection = e.target;
+          //     if (selection.isEdge()) {
+          //       selection = selection.connectedNodes()
+          //     }
+          //     let currentCount = selection.length;
+          //     do {
+          //       currentCount = selection.length
+          //       selection = selection.closedNeighborhood();
+          //     } while( currentCount < selection.length );
+          //
+          //     for(let ele of selection) {
+          //       console.log('ele', ele);
+          //       delete this.fixedPosition[ele.id()];
+          //     }
+          //     this.refreshGraph();
+          //   }
+          // },
 
           {
             id: 'entity-create',
@@ -670,6 +723,7 @@ class ColanderDGraph {
     }
   }
   refreshGraph() {
+    /*
     let ly = this.cy.layout( {
       nodeDimensionsIncludeLabels: true,
       name: 'elk',
@@ -690,6 +744,30 @@ class ColanderDGraph {
         'elk.spacing.nodeNode': 70.,
       }
     } ).run();
+    */
+
+
+    let ly = this.cy.layout({
+      name: 'fcose',
+      quality: 'proof',
+      animate: false,
+      padding: 0,
+      nodeDimensionsIncludeLabels: true,
+      packComponents: true,
+      idealEdgeLength: (e) => {
+        return 10*e.data('name').length;
+      },
+      fixedNodeConstraint: Object.values(this.fixedPosition),
+    }).run();
+    /*
+    let ly = this.cy.layout( {
+      name: 'cola',
+      //nodeDimensionsIncludeLabels: true,
+      //nodeSpacing: 30,
+      maxSimulationTime: 10000,
+      flow: { axis: 'x', minSeparation: 30 },
+    } ).run();
+    */
   }
 }
 

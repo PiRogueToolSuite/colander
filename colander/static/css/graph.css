@@ -139,6 +139,14 @@
 .colander-dgraph .sidepane textarea {
   min-height: 15rem;
 }
+.colander-dgraph .status-bar {
+  z-idnex: 20;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  color: var(--bs-secondary);
+  font-size: 0.8rem;
+}
 .colander-dgraph.sidepane-active .sidepane {
   right: 0;
   box-shadow: -1rem 0 2rem -2rem;

@@ -6,8 +6,8 @@ import fcose from 'cytoscape-fcose';
 import layoutUtilities from 'cytoscape-layout-utilities';
 import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
 import {overlay_button, details_view, entity_creation_view, entity_relation_view} from './graph-templates';
-cytoscape.use( contextMenus );
 
+cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
 cytoscape.use( layoutUtilities ); // Optional but used by fcose in our case
 cytoscape.use( fcose );
@@ -194,19 +194,60 @@ class ColanderDGraph {
 
     this.cy.data('all-styles', this.allStyles);
 
+    this.fixedPosition = {};
+
     this.cy.on('layoutstop', () => {
       this.jLoading.hide();
-      this.cy.$('node').emit('free');
-    });
-
-    this.fixedPosition = {};
-    this.cy.on('free', 'node', (e) => {
-      let ele = e.target;
-      this.fixedPosition[ ele.id() ] = this.fixedPosition[ ele.id() ] || { nodeId: ele.id() };
-      this.fixedPosition[ ele.id() ].position = ele.position();
     });
 
     this._applyInternalConfig();
+  }
+  _scheduleOverridesSave() {
+    if (this._HANDLER_OVERRIDE_SAVE) {
+      clearTimeout( this._HANDLER_OVERRIDE_SAVE );
+    }
+    this._HANDLER_OVERRIDE_SAVE = setTimeout( this._overrideSave.bind(this), 1000 );
+  }
+  async _overrideSave() {
+
+    if (this._HANDLING_SAVE_IN_PROGRESS) {
+      // We already are in saving process
+      // But it seems to take some time
+      // memoize to do it again
+      this._SCHEDULE_SAVE_AGAIN = true;
+      return;
+    }
+
+    this._HANDLING_SAVE_IN_PROGRESS = true;
+    if (this.jStatusSaving) this.jStatusSaving.show();
+
+    let post_data = {};
+    for(let nid in this.fixedPosition) {
+      post_data[nid] = {
+        position: this.fixedPosition[nid].position
+      };
+    }
+    try {
+      const rawResponse = await fetch(this._config.datasourceUrl, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': this._config.csrfToken,
+        },
+        body: JSON.stringify(post_data),
+      });
+    } catch(e) {
+      console.error("Unable to save overrides", e);
+    }
+
+    if (this._SCHEDULE_SAVE_AGAIN) {
+      this._scheduleOverridesSave();
+      delete this._SCHEDULE_SAVE_AGAIN;
+    }
+
+    if (this.jStatusSaving) this.jStatusSaving.hide();
+    delete this._HANDLING_SAVE_IN_PROGRESS;
   }
   _onCyReady() {
     console.log('Fetching ...');
@@ -228,9 +269,18 @@ class ColanderDGraph {
       let e = this._toEdge(rid);
       this.cy.add(e);
     }
+    if (this.g.overrides) {
+      // This part is strongly dependent to the layout engine used
+      // In our case (for now), it's fcose
+      for(let nid in this.g.overrides) {
+        this.fixedPosition[nid] = {
+          nodeId: nid,
+          position: this.g.overrides[nid].position,
+        }
+      }
+    }
 
     this.refreshGraph();
-
   }
   _createRelation(event, sourceNode, targetNode, addedEdge) {
     //console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
@@ -507,6 +557,29 @@ class ColanderDGraph {
     }
 
     //
+    // Overrides related stuff
+    this.cy.on('layoutstop', () => {
+      this.cy.$('node').emit('free');
+    });
+
+    this.cy.on('free', 'node', (e) => {
+      let ele = e.target;
+      this.fixedPosition[ ele.id() ] = this.fixedPosition[ ele.id() ] || { nodeId: ele.id() };
+      this.fixedPosition[ ele.id() ].position = ele.position();
+      this._scheduleOverridesSave();
+    });
+
+    if (!this.jStatusBar) {
+      this.jStatusBar = $(`<div class='status-bar'></div>`);
+      this.jStatusSaving = $(`<span class='status-saving' style="display: none;">
+            <i class="fa fa-save"></i>
+            <span>Saving ...</span>
+        </span>`);
+      this.jStatusBar.append(this.jStatusSaving);
+      this.jRootElement.append(this.jStatusBar);
+    }
+
+    //
     // -- Edge (creation) handling plugin
     if (!this.edgeHandler) {
       this.edgeHandler = this.cy.edgehandles({
@@ -535,6 +608,8 @@ class ColanderDGraph {
       });
     }
 
+    //
+    // -- Context menu (right-click) plugin
     if (!this.contextMenu) {
       this.contextMenu = this.cy.contextMenus({
         menuItems: [
@@ -605,43 +680,26 @@ class ColanderDGraph {
             selector: 'node,edge',
             image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
             onClickFunction: (e) => {
-              let selection = e.target;
-              if (selection.isEdge()) {
-                selection = selection.connectedNodes()
-              }
-              let currentCount = selection.length;
-              do {
-                currentCount = selection.length
-                selection = selection.closedNeighborhood();
-              } while( currentCount < selection.length );
-              selection.select();
+              let linked = ColanderDGraph.cy_linked(e.target);
+              linked.select();
             }
           },
-          // {
-          //   id: 'relax-linked',
-          //   content: 'Relax linked',
-          //   tooltipText: 'Relax all linked entities',
-          //   selector: 'node',
-          //   image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
-          //   onClickFunction: (e) => {
-          //     let selection = e.target;
-          //     if (selection.isEdge()) {
-          //       selection = selection.connectedNodes()
-          //     }
-          //     let currentCount = selection.length;
-          //     do {
-          //       currentCount = selection.length
-          //       selection = selection.closedNeighborhood();
-          //     } while( currentCount < selection.length );
-          //
-          //     for(let ele of selection) {
-          //       console.log('ele', ele);
-          //       delete this.fixedPosition[ele.id()];
-          //     }
-          //     this.refreshGraph();
-          //   }
-          // },
+          {
+            id: 'relax-linked',
+            content: 'Relax linked',
+            tooltipText: 'Relax all linked entities',
+            selector: 'node',
+            image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let linked = ColanderDGraph.cy_linked(e.target);
 
+              for(let ele of linked) {
+                delete this.fixedPosition[ele.id()];
+              }
+
+              this.refreshGraph();
+            }
+          },
           {
             id: 'entity-create',
             content: 'New entity',
@@ -654,11 +712,7 @@ class ColanderDGraph {
               tooltipText: `Create a new ${t} entity`,
               image: {src: `/static/images/icons/${t}.svg`, width: 12, height: 12, x: 4, y: 7},
               onClickFunction: (e) => {
-                console.log(e);
-                //let node = e.target;
                 this._createEntity(t, e.position);
-                //this.prompt(`New ${t}`, '', `New ${t} name`);
-                //eh.start(node);
               }
             })),
           }
@@ -681,7 +735,8 @@ class ColanderDGraph {
       this.jOverlayMenu_Recenter.click((e)=> {
         e.stopPropagation();
         e.preventDefault();
-        this.refreshGraph();
+        this.cy.fit();
+        //this.refreshGraph();
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Recenter);
     }
@@ -722,6 +777,18 @@ class ColanderDGraph {
       // this.jOverlayMenu.append(this.jOverlayMenu_SidepaneButton);
     }
   }
+  static cy_linked(ele) {
+    let selection = ele;
+    if (selection.isEdge()) {
+      selection = selection.connectedNodes()
+    }
+    let currentCount = selection.length;
+    do {
+      currentCount = selection.length
+      selection = selection.closedNeighborhood();
+    } while( currentCount < selection.length );
+    return selection;
+  }
   refreshGraph() {
     /*
     let ly = this.cy.layout( {
@@ -745,29 +812,32 @@ class ColanderDGraph {
       }
     } ).run();
     */
-
+    if ( this.firstLayout === undefined ) {
+      this.firstLayout = true;
+    }
+    else {
+      this.firstLayout = false;
+    }
 
     let ly = this.cy.layout({
       name: 'fcose',
       quality: 'proof',
-      animate: false,
+      randomize: this.firstLayout,
+      fit: this.firstLayout,
+      animate: !this.firstLayout,
+      animationDuration: 200,
       padding: 0,
       nodeDimensionsIncludeLabels: true,
       packComponents: true,
+      numIter: 2500,
+      gravity: 5,
       idealEdgeLength: (e) => {
-        return 10*e.data('name').length;
+        return 10*Math.max(5,e.data('name').length);
       },
       fixedNodeConstraint: Object.values(this.fixedPosition),
+      initialEnergyOnIncremental: 0.5,
     }).run();
-    /*
-    let ly = this.cy.layout( {
-      name: 'cola',
-      //nodeDimensionsIncludeLabels: true,
-      //nodeSpacing: 30,
-      maxSimulationTime: 10000,
-      flow: { axis: 'x', minSeparation: 30 },
-    } ).run();
-    */
+
   }
 }
 

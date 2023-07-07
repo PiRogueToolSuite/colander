@@ -259,6 +259,7 @@ class Case(models.Model):
         null=True,
         editable=True
     )
+    overrides = models.JSONField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.generate_key_pair(save=False)
@@ -383,10 +384,6 @@ class Case(models.Model):
     @property
     def relations(self):
         return self.quick_search('', type='EntityRelation')
-
-    @property
-    def overrides(self):
-        return {}
 
     @staticmethod
     def get_user_cases(user):

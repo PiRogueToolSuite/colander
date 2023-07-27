@@ -5,7 +5,8 @@ import edgehandles from 'cytoscape-edgehandles';
 import fcose from 'cytoscape-fcose';
 import layoutUtilities from 'cytoscape-layout-utilities';
 import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
-import {overlay_button, details_view, entity_creation_view, entity_relation_view} from './graph-templates';
+import {overlay_button} from './graph-templates';
+import {vueComponent} from '../vues_components/vue-sub-component';
 
 cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
@@ -27,9 +28,7 @@ let node_label = _.memoize(function(e, iid) {
   let maxWidth = measures.width + 8;
 
   if (e.data('type')) {
-    //let typeTxt = e.data('type');
     let typeTxt = e.cy().data('all-styles')[e.data('super_type')].types[e.data('type')].name;
-    //console.log('all styles', e.cy().data('all-styles'));
     measures = ctx.measureText(`${typeTxt}    `); // UGLY ? Fake multiple space (4) to have same padding
     maxWidth = Math.max(maxWidth, measures.width);
     svgTxt += `\n${typeTxt}`;
@@ -39,7 +38,6 @@ let node_label = _.memoize(function(e, iid) {
   //maxWidth += 5;
 
   let r = { svgTxt: svgTxt, width: maxWidth };
-  //console.log('node_label', ctx.font, r);
   return r;
 },(e) => {
   return `${e.id()}-${e.data('name')}-${e.data('type')}`;
@@ -159,6 +157,7 @@ class ColanderDGraph {
       .then(this._onStyleFetched.bind(this))
       .catch(console.error);
   }
+
   _domSetup() {
     this.jRootElement = $(`#${this._config.containerId}`);
     this.jRootElement.addClass('colander-dgraph');
@@ -178,6 +177,7 @@ class ColanderDGraph {
     </div>`);
     this.jRootElement.append(this.jLoading);
   }
+
   _onStyleFetched(allStyles) {
 
     this.allStyles = allStyles;
@@ -202,12 +202,14 @@ class ColanderDGraph {
 
     this._applyInternalConfig();
   }
+
   _scheduleOverridesSave() {
     if (this._HANDLER_OVERRIDE_SAVE) {
       clearTimeout( this._HANDLER_OVERRIDE_SAVE );
     }
     this._HANDLER_OVERRIDE_SAVE = setTimeout( this._overrideSave.bind(this), 1000 );
   }
+
   async _overrideSave() {
 
     if (this._HANDLING_SAVE_IN_PROGRESS) {
@@ -249,17 +251,18 @@ class ColanderDGraph {
     if (this.jStatusSaving) this.jStatusSaving.hide();
     delete this._HANDLING_SAVE_IN_PROGRESS;
   }
+
   _onCyReady() {
     console.log('Fetching ...');
     fetch(this._config.datasourceUrl)
       .then((r) => r.json())
       .then(this._onGraphData.bind(this))
       .catch((e) => {
-        console.log('Fetch error', e);
+        console.error('Fetch error', e);
       });
   }
+
   _onGraphData(data) {
-    console.log('on graph data', data);
     this.g = data;
     for(let eid in this.g.entities) {
       let n = this._toNode(eid);
@@ -280,88 +283,43 @@ class ColanderDGraph {
       }
     }
 
+    if (this._sidepane_entities_overview) {
+      let vue = this._sidepane_entities_overview.data('vue');
+      // Workaround a race condition between graph data coming and sub-vue-component inited.
+      if (vue) vue.entities = this.g.entities;
+    }
+
     this.refreshGraph();
   }
+
   _createRelation(event, sourceNode, targetNode, addedEdge) {
-    //console.log('_createRelation', addedEdge.data('source'), addedEdge.data('name'), addedEdge.data('target'));
     let ctx = {
       name: addedEdge.data('name'),
       obj_from: sourceNode.id(),
       obj_to: targetNode.id(),
       pending_edge: addedEdge,
     };
-    let view = entity_relation_view(ctx, this.allStyles);
-    view.find('button[role=save]').click(() => {
-      ctx.name = view.find('input[name="name"]').val();
-      this._do_createRelation(ctx)
-        .then(this._cancelRelation.bind(this, ctx, true))
-        .catch(this._cancelRelation.bind(this, ctx, true));
-    });
-    view.find('button[role=cancel]').click(this._cancelRelation.bind(this, ctx, true));
-    this.sidePaneContent( view );
-    view.find('input[name="name"]').select();
+    this._create_or_rename_relation(ctx);
   }
-  _cancelRelation(ctx, removePending, error) {
-    if (error) {
-      console.error('Relation modification canceled', error);
-    }
-    this.sidepane(false);
-    if (removePending) {
-      this.cy.remove(ctx.pending_edge);
-    }
-  }
-  async _do_createRelation(ctx) {
-    //console.log('_do_createRelation', ctx);
 
-    ctx.name = ctx.name?.trim();
-
-    if (!ctx.name) {
-      throw new Error('Empty relation name');
-    }
-
-    let post_data = Object.assign({}, ctx);
-    delete post_data.pending_edge;
-
-    const rawResponse = await fetch('/rest/entity_relation/', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this._config.csrfToken,
-      },
-      body: JSON.stringify(post_data),
-    });
-
-    if (!rawResponse.ok) {
-      throw new Error('Unexcpeted server error');
-    }
-
-    const content = await rawResponse.json();
-
-    this.g.relations[content['id']] = content;
-    let newEdge = this._toEdge(content['id']);
-    this.cy.add(newEdge);
-  }
   _renameRelation(renamedEdge) {
-    //console.log('_renameRelation', renamedEdge);
     let ctx = {
+      id: renamedEdge.id(),
       name: renamedEdge.data('name'),
       pending_edge: renamedEdge,
     };
-    let view = entity_relation_view(ctx, this.allStyles);
-    view.find('button[role=save]').click(() => {
-      ctx.name = view.find('input[name="name"]').val();
-      this._do_renameRelation(ctx)
-        .then(this._cancelRelation.bind(this, ctx, false))
-        .catch(this._cancelRelation.bind(this, ctx, false));
-    });
-    view.find('button[role=cancel]').click(this._cancelRelation.bind(this, ctx, false));
-    this.sidePaneContent( view );
-    view.find('input[name="name"]').select();
+    this._create_or_rename_relation(ctx);
   }
-  async _do_renameRelation(ctx) {
-    //console.log('_do_renameRelation', ctx);
+
+  _create_or_rename_relation(ctx) {
+    this._sidepane_relation_create_or_edit.data('vue').edit_relation(ctx);
+    this.sidepane( this._sidepane_relation_create_or_edit );
+  }
+
+  async _do_createOrRenameRelation(ctx) {
+
     ctx.name = ctx.name?.trim();
+
     if (!ctx.name) {
       throw new Error('Empty relation name');
     }
@@ -369,8 +327,9 @@ class ColanderDGraph {
     let post_data = Object.assign({}, ctx);
     delete post_data.pending_edge;
 
-    const rawResponse = await fetch(`/rest/entity_relation/${ctx.pending_edge.id()}/`, {
-      method: 'PATCH',
+    const rawResponse = await fetch(
+      ctx.id ? `/rest/entity_relation/${ctx.id}/` : '/rest/entity_relation/', {
+      method: ctx.id ? 'PATCH':'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -383,7 +342,18 @@ class ColanderDGraph {
       throw new Error('Unexcpeted server error');
     }
 
-    ctx.pending_edge.data('name', ctx.name);
+
+    if (ctx.id) {
+      // It's a rename
+      ctx.pending_edge.data('name', ctx.name);
+    }
+    else {
+      // It's a creation
+      const content = await rawResponse.json();
+      this.g.relations[content['id']] = content;
+      let newEdge = this._toEdge(content['id']);
+      this.cy.add(newEdge);
+    }
   }
 
   async _deleteRelation(edge) {
@@ -414,6 +384,8 @@ class ColanderDGraph {
     this._createOrEditEntity(ctx);
   }
   _createOrEditEntity(ctx) {
+
+    /*
     let view = entity_creation_view(ctx, this.allStyles);
     view.find('button[role=save]').click(() => {
       ctx.name = view.find('input[name=name]').val();
@@ -426,10 +398,16 @@ class ColanderDGraph {
     view.find('button[role=cancel]').click(this._cancelCreation.bind(this, ctx));
     this.sidePaneContent( view );
     view.find('input[name=name]').select();
+     */
+    this._sidepane_entity_create_or_edit.data('vue').edit_entity(ctx);
+    this.sidepane(  this._sidepane_entity_create_or_edit );
   }
+
   _quickEditEntity(node) {
     let ctx = {
-      edited_node: node,
+      //edited_node: node, // due to internal structure of a cy node,
+                           // passing this kind of value to vue makes vue
+                           // hangs forever in instrumenting 'edited_node' attribute
       id: node.id(),
       type: node.data('type'),
       name: node.data('name'),
@@ -438,25 +416,10 @@ class ColanderDGraph {
     };
     this._createOrEditEntity(ctx);
   }
-  _cancelCreation(ctx, error) {
-    if (error) {
-      console.error('Entity creation canceled', error);
-    }
-    this.sidepane(false);
-  }
-  async _validate_createOrEditEntity(ctx) {
-    ctx.name = ctx.name.trim();
-    if (!ctx.name) throw new Error("Entity name can't be empty");
-    //if (!ctx.type) throw new Error("Entity type must be selected");
-    return ctx;
-  }
-  async _do_createOrEditEntity(ctx) {
-    console.log('_do_createOrEditEntity', ctx);
 
+  async _do_createOrEditEntity(ctx) {
     let post_data = Object.assign({}, ctx);
     delete post_data.position;
-    if (post_data.edited_node)
-      delete post_data.edited_node;
 
     const rawResponse = await fetch(
         ctx.id?`/rest/entity/${ctx.id}/`:'/rest/entity/',
@@ -477,16 +440,26 @@ class ColanderDGraph {
     const content = await rawResponse.json();
 
     this.g.entities[content['id']] = content;
+
     if (ctx.id) {
       // Edit
-      ctx.edited_node.data('name', content.name);
-      ctx.edited_node.data('content', content.content);
-      ctx.edited_node.data('type', content.type);
+      let edited_node = this.cy.$(`#${ctx.id}`);
+      edited_node.data('name', content.name);
+      edited_node.data('content', content.content);
+      edited_node.data('type', content.type);
     }
     else {
       // Create
       let newNode = this._toNode(content['id']);
-      this.cy.add(newNode).position(ctx.position);
+      this.cy.add(newNode).position(ctx.position).emit('free');
+
+      if (this._sidepane_entities_overview) {
+        this._sidepane_entities_overview.data('vue').track_new_entity(content);
+      }
+    }
+
+    if (this._sidepane_entities_overview) {
+      this._sidepane_entities_overview.data('vue').refresh();
     }
 
   }
@@ -507,15 +480,8 @@ class ColanderDGraph {
     }
 
     const content = await rawResponse.json();
-    let view = details_view(content, this.allStyles);
-    view.find('button[role=close]').click(() => {
-      this.sidepane(false);
-    });
-    view.find('button[role=edit]').click(() => {
-      this._quickEditEntity(node);
-      //this.sidepane(false);
-    });
-    this.sidePaneContent( view );
+    this._sidepane_entity_overview.data('vue').entity = content;
+    this.sidepane(this._sidepane_entity_overview);
   }
 
   _toEdge(rid) {
@@ -528,6 +494,7 @@ class ColanderDGraph {
       classes: r['immutable'] ? ['immutable'] : ['mutable'],
     };
   }
+
   _toNode(eid) {
     let e = Object.assign({}, this.g.entities[eid]);
     return {
@@ -536,12 +503,14 @@ class ColanderDGraph {
       classes: [ `${e.super_type}`, `${e.tlp}`, `${e.pap}` ]
     };
   }
+
   config(options) {
     this._config = Object.assign(this._config || {}, options);
 
     if (!this._config.containerId) throw new Error('ColanderDGraph; Missing containerId in config');
     if (!this._config.datasourceUrl) throw new Error('ColanderDGraph; Missing datasourceUrl in config');
   }
+
   _applyInternalConfig() {
 
     this.cy.userZoomingEnabled(!this._config.lock);
@@ -595,18 +564,23 @@ class ColanderDGraph {
         snap: false,
       });
       this.cy.on('ehcomplete', this._createRelation.bind(this));
-      this.cy.on('dbltap', (e) => {
-        let node = e.target;
-        //console.log('dbltap', e.position);
-        if (e.target === this.cy || e.target.isEdge()) {
-          this.sidepane(false);
-        } else {
-          this._viewDetail(node)
-              .then(console.log)
-              .catch(console.error);
-        }
-      });
     }
+
+    this.cy.on('dbltap', (e) => {
+      let node = e.target;
+      if (e.target === this.cy || e.target.isEdge()) {
+        // Dbltap done on graph background
+        //this.sidepane(false);
+        if (this._sidepane_entities_overview) {
+          this.sidepane(this._sidepane_entities_overview);
+        }
+      } else {
+        // Dbltap done on a entity
+        this._viewDetail(node)
+            .then(console.log)
+            .catch(console.error);
+      }
+    });
 
     //
     // -- Context menu (right-click) plugin
@@ -657,8 +631,8 @@ class ColanderDGraph {
             onClickFunction: (e) => {
               let node = e.target;
               this._viewDetail(node)
-                  .then(console.log)
-                  .catch(console.error);
+                .then(console.log)
+                .catch(console.error);
             }
           },
           {
@@ -736,7 +710,6 @@ class ColanderDGraph {
         e.stopPropagation();
         e.preventDefault();
         this.cy.fit();
-        //this.refreshGraph();
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Recenter);
     }
@@ -747,7 +720,6 @@ class ColanderDGraph {
         e.stopPropagation();
         e.preventDefault();
         let png64 = this.cy.png({full:true});
-        console.log(png64);
         let image = new Image();
         image.src = png64;
         let w = window.open("");
@@ -757,18 +729,46 @@ class ColanderDGraph {
     }
     // Sidebar toggle
     if (this._config.sidepane && !this.jOverlayMenu_Sidepane) {
-      //this.jOverlayMenu_Sidepane = $(`<div class='sidepane'><iframe/></div>`);
       this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
       this.jRootElement.append(this.jOverlayMenu_Sidepane);
-      //this.jSidepane_IFrame = this.jOverlayMenu_Sidepane.find('iframe');
-      //this.jOverlayMenu_SidepaneButton = overlay_button('fa-window-maximize', 'Side pane');
-      // this.jOverlayMenu_SidepaneButton.click((e)=> {
-      //   e.stopPropagation();
-      //   e.preventDefault();
-      //   this.jRootElement.toggleClass('sidepane-active');
-      // });
+
+      //
+      // Resize stuff sidepane
+      let resizing = false;
+      let previous_screen_x = 0;
+      let sidepane_width = 0;
+      this.jRootElement.mousedown((e) => {
+        resizing = e.offsetX < 5;
+        if (resizing) {
+          sidepane_width = this.jOverlayMenu_Sidepane.outerWidth();
+          previous_screen_x = e.screenX;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }).mousemove((e) => {
+        if (!resizing) return;
+        let delta = previous_screen_x - e.screenX;
+        previous_screen_x = e.screenX;
+        sidepane_width = Math.max(40, (sidepane_width + delta));
+        this.jOverlayMenu_Sidepane.get(0).style.setProperty('--sidepane-width', `${sidepane_width}px`);
+      }).mouseup((e) => {
+        resizing = false;
+      });
+      // End: Resize stuff sidepane
+      //
+
       this.sidepane = (t) => {
-        this.jRootElement.toggleClass('sidepane-active', t);
+        if (typeof(t) === 'boolean') {
+          this.jRootElement.toggleClass('sidepane-active', t);
+        }
+        if (typeof(t) === 'object') {
+          this.jOverlayMenu_Sidepane.find('.vue-component').removeClass('active');
+          t.addClass('active');
+          this.jRootElement.toggleClass('sidepane-active', true);
+        }
+      };
+      this.sidepane_add = (pane) => {
+        this.jOverlayMenu_Sidepane.append(pane);
       };
       this.sidePaneContent = (c) => {
         this.jOverlayMenu_Sidepane.empty().append(c);
@@ -776,6 +776,8 @@ class ColanderDGraph {
       };
       // this.jOverlayMenu.append(this.jOverlayMenu_SidepaneButton);
     }
+
+    setTimeout( this._init_vues.bind(this) );
   }
   static cy_linked(ele) {
     let selection = ele;
@@ -789,35 +791,91 @@ class ColanderDGraph {
     } while( currentCount < selection.length );
     return selection;
   }
-  refreshGraph() {
-    /*
-    let ly = this.cy.layout( {
-      nodeDimensionsIncludeLabels: true,
-      name: 'elk',
-      elk: {
-        // All options are available at http://www.eclipse.org/elk/reference.html
-        //
-        // 'org.eclipse.' can be dropped from the identifier. The subsequent identifier has to be used as property key in quotes.
-        // E.g. for 'org.eclipse.elk.direction' use:
-        // 'elk.direction'
-        //
-        // Enums use the name of the enum as string e.g. instead of Direction.DOWN use:
-        // 'elk.direction': 'DOWN'
-        //edgeSpacingFactor: 1,
-        //inLayerSpacingFactor: 4,
-        //fixedAlignment: 'BALANCED',
-        'algorithm': 'layered',
-        'elk.direction': 'RIGHT',
-        'elk.spacing.nodeNode': 70.,
+  _init_vues() {
+
+    //
+    // Entities list
+    // ========================================================================
+    this._sidepane_entities_overview = vueComponent('colander-dgraph-entities-table');
+    this.sidepane_add(this._sidepane_entities_overview);
+    //this.jOverlayMenu_Sidepane.append(this._sidepane_entities_overview);
+    this._sidepane_entities_overview.on('vue-ready', (e, jDom, vue) => {
+      vue.allStyles = this.allStyles;
+      if (this.g) {
+        vue.entities = this.g.entities;
       }
-    } ).run();
-    */
-    if ( this.firstLayout === undefined ) {
-      this.firstLayout = true;
-    }
-    else {
-      this.firstLayout = false;
-    }
+    });
+    this._sidepane_entities_overview.on('focus-entity', (e, eid) => {
+      let pos = this.cy.$(`#${eid}`).position();
+
+      this.cy.animate({
+        center: { eles: this.cy.$(`#${eid}`) },
+        zoom: 2,
+        easing: 'ease-in-out',
+        duration: 1500,
+      });
+    });
+
+    //
+    // Entity edit form
+    // ========================================================================
+    this._sidepane_entity_create_or_edit = vueComponent('colander-dgraph-entity-edit');
+    this.sidepane_add(this._sidepane_entity_create_or_edit);
+    this._sidepane_entity_create_or_edit.on('vue-ready', (e, jDom, vue) => {
+      vue.allStyles = this.allStyles;
+    });
+    this._sidepane_entity_create_or_edit.on('close-component', (e) => {
+      this.sidepane(false);
+    });
+    this._sidepane_entity_create_or_edit.on('save-entity', (e, entity) => {
+      this._do_createOrEditEntity(entity)
+        .then(console.log).catch(console.error);
+      this.sidepane(false);
+    });
+
+    //
+    // Relation edit form
+    // ========================================================================
+    this._sidepane_relation_create_or_edit = vueComponent('colander-dgraph-relation-edit');
+    this.sidepane_add(this._sidepane_relation_create_or_edit);
+    this._sidepane_relation_create_or_edit.on('vue-ready', (e, jDom, vue) => {
+      vue.allStyles = this.allStyles;
+    });
+    this._sidepane_relation_create_or_edit.on('close-component', (e, ctx) => {
+      this.sidepane(false);
+      if (!ctx.id) {
+        this.cy.remove(ctx.pending_edge);
+      }
+    });
+    this._sidepane_relation_create_or_edit.on('save-relation', (e, ctx) => {
+      this._do_createOrRenameRelation(ctx)
+        .then(console.log).catch(console.error);
+      this.sidepane(false);
+      if (!ctx.id) {
+        this.cy.remove(ctx.pending_edge);
+      }
+    });
+
+    //
+    // Entity overview / detail view
+    // ========================================================================
+    this._sidepane_entity_overview = vueComponent('colander-dgraph-entity-overview');
+    this.sidepane_add(this._sidepane_entity_overview);
+    this._sidepane_entity_overview.on('vue-ready',(e,jDom,vue) => {
+      vue.allStyles = this.allStyles;
+    });
+    this._sidepane_entity_overview.on('close-component', (e) => {
+      this.sidepane(false);
+    });
+    this._sidepane_entity_overview.on('quick-edit-entity', (e, eid) => {
+      let tmp = JSON.parse(JSON.stringify(this.g.entities[eid]));
+      this._sidepane_entity_create_or_edit.data('vue').edit_entity( tmp );
+      this.sidepane(  this._sidepane_entity_create_or_edit );
+    });
+  }
+  refreshGraph() {
+
+    this.firstLayout = this.firstLayout === undefined;
 
     let ly = this.cy.layout({
       name: 'fcose',
@@ -837,7 +895,6 @@ class ColanderDGraph {
       fixedNodeConstraint: Object.values(this.fixedPosition),
       initialEnergyOnIncremental: 0.5,
     }).run();
-
   }
 }
 

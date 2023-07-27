@@ -121,13 +121,15 @@
   max-width: 8rem;
 }
 .colander-dgraph .sidepane {
+  --sp-bg-color: rgba(248, 248, 248, 1);
+  --sidepane-width: 400px;
   position: absolute;
   z-index: 20;
   top: 0;
-  background-color: rgb(248, 248, 248);
-  right: -400px;
+  background-color: var(--sp-bg-color);
+  right: calc(-1 * var(--sidepane-width));
   height: 100%;
-  width: 400px;
+  width: var(--sidepane-width);
   border-color: gray;
   border-width: 1px;
   border-style: dashed none dashed solid;
@@ -136,20 +138,57 @@
   transition-property: right, box-shadow;
   overflow: hidden auto;
 }
+.colander-dgraph .sidepane::before {
+  z-index: 21;
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  cursor: ew-resize;
+}
 .colander-dgraph .sidepane textarea {
   min-height: 15rem;
 }
+.colander-dgraph .sidepane .vue-component,
+.colander-dgraph .sidepane .vue-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.colander-dgraph .sidepane .vue-component {
+  max-height: 0;
+  overflow: hidden;
+}
+.colander-dgraph .sidepane .vue-component.active {
+  max-height: initial;
+  overflow: hidden auto;
+}
+.colander-dgraph .sidepane .table-sticky-head {
+  height: calc(100% - 2rem - 2px);
+  overflow: hidden auto;
+}
+.colander-dgraph .sidepane .table-sticky-head thead th {
+  position: sticky;
+  top: 0;
+  background-color: var(--sp-bg-color);
+}
+.colander-dgraph .sidepane .actionable {
+  cursor: pointer;
+}
+.colander-dgraph.sidepane-active .sidepane {
+  right: 0;
+  box-shadow: -1rem 0 2rem -2rem;
+}
 .colander-dgraph .status-bar {
-  z-idnex: 20;
+  z-index: 20;
   position: absolute;
   bottom: 0;
   left: 0;
   color: var(--bs-secondary);
   font-size: 0.8rem;
-}
-.colander-dgraph.sidepane-active .sidepane {
-  right: 0;
-  box-shadow: -1rem 0 2rem -2rem;
 }
 
 /*# sourceMappingURL=graph.css.map */

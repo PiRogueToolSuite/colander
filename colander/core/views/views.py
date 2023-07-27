@@ -2,13 +2,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
 from django.forms.widgets import Textarea
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
 from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
+
+from django.views.static import serve
+from os import path
 
 from colander.core import datasets
 from colander.core.forms import DocumentationForm
@@ -317,3 +320,15 @@ def cron_ish_view(request):
     if request.method == 'GET':
         RunJobs.run_all_jobs()
         return HttpResponse('')
+
+@login_required
+def vues_view(request, component_name):
+    if request.method != 'GET':
+        return HttpResponseNotFound("Not found")
+    if "part" in request.GET:
+        if request.GET.get("part") == "js":
+            return render(request, f'{component_name}/{component_name}.js')
+        if request.GET.get("part") == "css":
+            return render(request, f'{component_name}/{component_name}.css')
+        return HttpResponseNotFound("Not found")
+    return render(request, f'{component_name}/{component_name}.html')

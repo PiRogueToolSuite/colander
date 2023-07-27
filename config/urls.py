@@ -38,7 +38,7 @@ from colander.core.views.views import case_close, landing_view, collect_base_vie
     report_base_view, cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
-    forward_auth, cron_ish_view, collaborate_base_view
+    forward_auth, cron_ish_view, collaborate_base_view, vues_view
 from colander.core.graph.views import case_graph
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
@@ -184,7 +184,9 @@ urlpatterns = [
 
       path("_auth", forward_auth, name="forward-auth_view"),
 
-      path("cron", cron_ish_view, name='cron-jobs')
+      path("cron", cron_ish_view, name='cron-jobs'),
+
+      path("vues/<slug:component_name>.vue", vues_view, name='vues_view'),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

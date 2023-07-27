@@ -77,12 +77,21 @@
   </div>
 
   {% include "helpers/extra_attributes.html" with attributes=case.attributes %}
+</div>
 
-{#  <pre>{{ case.to_mermaid_events }}</pre>#}
+<div class="row justify-content-center">
 
+  <div class="col-md-12 mt-2">
+    {% include "pages/quick_search/m_result_table.html" with results=case.entities %}
+  </div>
+
+  {# <pre>{{ case.to_mermaid_events }}</pre> #}
+  {% comment %}
   <div class="col-md-12 mt-2">
     {% include "case/graph.html" with case=case lock=True %}
   </div>
+  {% endcomment %}
+
   {% if case.documentation %}
     <div class="col-md-12 mt-2">
       <h3>Documentation</h3>

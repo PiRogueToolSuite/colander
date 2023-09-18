@@ -276,6 +276,10 @@ class ColanderDGraph {
       // This part is strongly dependent to the layout engine used
       // In our case (for now), it's fcose
       for(let nid in this.g.overrides) {
+        // Check if an override is still in current entities ecosystem.
+        // If not, cytoscape override system does not support unknown 'override'
+        // "delete"s any override no more relevant (by omitting it in referenced fixedPotitions).
+        if (nid in this.g.entities === false) continue;
         this.fixedPosition[nid] = {
           nodeId: nid,
           position: this.g.overrides[nid].position,

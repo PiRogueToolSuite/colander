@@ -109,6 +109,8 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['extracted_from'].queryset = devices_qset
         form.fields['upload_request_ref'] = forms.CharField(widget = forms.HiddenInput(), required = True)
         form.fields['file'] = forms.FileField(required=False)
+        form.initial['tlp'] = active_case.tlp
+        form.initial['pap'] = active_case.pap
 
         return form
 

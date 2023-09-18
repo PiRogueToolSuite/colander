@@ -190,7 +190,9 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
     fields = [
         'name',
         'description',
-        'teams'
+        'teams',
+        'tlp',
+        'pap',
     ]
 
     def get_form(self, form_class=None):

@@ -26,6 +26,7 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     case_required_message_action = "create actors"
 
     def get_form(self, form_class=None):
+        active_case = get_active_case(self.request)
         form = super(ActorCreateView, self).get_form(form_class)
         actor_types = ActorType.objects.all()
         choices = [
@@ -34,6 +35,8 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.initial['tlp'] = active_case.tlp
+        form.initial['pap'] = active_case.pap
         return form
 
     def form_valid(self, form):

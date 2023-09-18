@@ -72,6 +72,12 @@
           {{ case.updated_at }}
         </td>
       </tr>
+      <tr>
+        <td>TLP/PAP</td>
+        <td>
+          {% include "tlp/show_tlp_pap.html" with element=case %}
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>

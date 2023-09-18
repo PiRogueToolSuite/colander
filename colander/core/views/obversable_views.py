@@ -39,7 +39,8 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         observable_types = ObservableType.objects.all()
-        active_case = self.request.session.get('active_case')
+        #active_case = self.request.session.get('active_case')
+        active_case = get_active_case(self.request)
         artifact_qset = Artifact.get_user_artifacts(self.request.user, active_case)
         threat_qset = Threat.get_user_threats(self.request.user, active_case)
         actor_qset = Actor.get_user_actors(self.request.user, active_case)
@@ -53,6 +54,8 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['associated_threat'].queryset = threat_qset
         form.fields['operated_by'].queryset = actor_qset
+        form.initial['tlp'] = active_case.tlp
+        form.initial['pap'] = active_case.pap
         return form
 
     def form_valid(self, form):

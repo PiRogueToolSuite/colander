@@ -28,10 +28,24 @@ from django_q.models import Schedule
 from elasticsearch_dsl import Document, Keyword, Date, Object, Text
 
 
+class Appendix:
+    class TlpPap:
+        RED = 'RED'
+        AMBER = 'AMBER'
+        GREEN = 'GREEN'
+        WHITE = 'WHITE'
+        TLP_PAP_CHOICES = [
+            (RED, 'RED'),
+            (AMBER, 'AMBER'),
+            (GREEN, 'GREEN'),
+            (WHITE, 'WHITE'),
+        ]
+
+
 def list_accepted_levels(input_level: str):
     triggered = False
     levels = []
-    for _, level in Entity.TLP_PAP_CHOICES:
+    for _, level in Appendix.TlpPap.TLP_PAP_CHOICES:
         if input_level.upper() == level:
             triggered = True
         if triggered:
@@ -184,7 +198,6 @@ class EventType(CommonModelType):
 
 class DetectionRuleType(CommonModelType):
     pass
-    pass
 
 
 class DataFragmentType(CommonModelType):
@@ -258,6 +271,21 @@ class Case(models.Model):
         null=True,
         editable=True
     )
+    tlp = models.CharField(
+        max_length=6,
+        choices=Appendix.TlpPap.TLP_PAP_CHOICES,
+        help_text=_('Traffic Light Protocol, designed to indicate the sharing boundaries to be applied.'),
+        verbose_name='Default TLP level of the case',
+        default=Appendix.TlpPap.WHITE
+    )
+    pap = models.CharField(
+        max_length=6,
+        choices=Appendix.TlpPap.TLP_PAP_CHOICES,
+        help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
+        verbose_name='Default PAP level of the case',
+        default=Appendix.TlpPap.WHITE
+    )
+
     overrides = models.JSONField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -390,16 +418,6 @@ class Case(models.Model):
 
 
 class Entity(models.Model):
-    RED = 'RED'
-    AMBER = 'AMBER'
-    GREEN = 'GREEN'
-    WHITE = 'WHITE'
-    TLP_PAP_CHOICES = [
-        (RED, 'RED'),
-        (AMBER, 'AMBER'),
-        (GREEN, 'GREEN'),
-        (WHITE, 'WHITE'),
-    ]
 
     class Meta:
         abstract: True
@@ -446,17 +464,17 @@ class Entity(models.Model):
     )
     tlp = models.CharField(
         max_length=6,
-        choices=TLP_PAP_CHOICES,
+        choices=Appendix.TlpPap.TLP_PAP_CHOICES,
         help_text=_('Traffic Light Protocol, designed to indicate the sharing boundaries to be applied.'),
         verbose_name='TLP',
-        default=WHITE
+        default=Appendix.TlpPap.WHITE
     )
     pap = models.CharField(
         max_length=6,
-        choices=TLP_PAP_CHOICES,
+        choices=Appendix.TlpPap.TLP_PAP_CHOICES,
         help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
         verbose_name='PAP',
-        default=WHITE
+        default=Appendix.TlpPap.WHITE
     )
 
     def get_relations(self):
@@ -2048,16 +2066,6 @@ def delete_upload_request_stored_files(sender, instance: UploadRequest, using, *
 
 
 class OutgoingFeed(models.Model):
-    RED = 'RED'
-    AMBER = 'AMBER'
-    GREEN = 'GREEN'
-    WHITE = 'WHITE'
-    TLP_PAP_CHOICES = [
-        (RED, 'RED'),
-        (AMBER, 'AMBER'),
-        (GREEN, 'GREEN'),
-        (WHITE, 'WHITE'),
-    ]
 
     class Meta:
         abstract: True
@@ -2106,17 +2114,17 @@ class OutgoingFeed(models.Model):
     )
     max_tlp = models.CharField(
         max_length=6,
-        choices=TLP_PAP_CHOICES,
+        choices=Appendix.TlpPap.TLP_PAP_CHOICES,
         help_text=_('Traffic Light Protocol, designed to indicate the sharing boundaries to be applied.'),
         verbose_name='Maximum TLP level of exported data',
-        default=WHITE
+        default=Appendix.TlpPap.WHITE
     )
     max_pap = models.CharField(
         max_length=6,
-        choices=TLP_PAP_CHOICES,
+        choices=Appendix.TlpPap.TLP_PAP_CHOICES,
         help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
         verbose_name='Maximum PAP level of exported data',
-        default=WHITE
+        default=Appendix.TlpPap.WHITE
     )
 
 

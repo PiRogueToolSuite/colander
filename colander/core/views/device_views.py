@@ -38,6 +38,8 @@ class DeviceCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['operated_by'].queryset = actor_qset
+        form.initial['tlp'] = active_case.tlp
+        form.initial['pap'] = active_case.pap
         return form
 
     def form_valid(self, form):

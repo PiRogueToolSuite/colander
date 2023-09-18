@@ -30,7 +30,8 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     def get_form(self, form_class=None):
         form = super(DataFragmentCreateView, self).get_form(form_class)
         rule_types = DataFragmentType.objects.all()
-        active_case = self.request.session.get('active_case')
+        #active_case = self.request.session.get('active_case')
+        active_case = get_active_case(self.request)
         artifact_qset = Artifact.get_user_artifacts(self.request.user, active_case)
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -40,6 +41,8 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['extracted_from'].queryset = artifact_qset
+        form.initial['tlp'] = active_case.tlp
+        form.initial['pap'] = active_case.pap
         return form
 
     def form_valid(self, form):

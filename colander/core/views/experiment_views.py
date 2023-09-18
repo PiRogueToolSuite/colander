@@ -39,6 +39,8 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG', sha256__isnull=False)
         form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO', sha256__isnull=False)
         form.fields['target_artifact'].queryset = artifacts_qset
+        form.initial['tlp'] = active_case.tlp
+        form.initial['pap'] = active_case.pap
         return form
 
     def form_valid(self, form):

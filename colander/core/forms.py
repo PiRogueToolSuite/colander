@@ -1,6 +1,8 @@
 from django import forms
 
 from colander.core.models import Case, Comment, ObservableType
+from django.utils.translation import gettext_lazy as _
+
 
 class CaseForm(forms.ModelForm):
     class Meta:
@@ -11,7 +13,7 @@ class CaseForm(forms.ModelForm):
             'parent_case',
         ]
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 2, 'cols': 20}),
+            'description': forms.Textarea(attrs={'rows': 2, 'cols': 20, 'placeholder': _("No case description yet.")}),
         }
 
     def set_user(self, connected_user):

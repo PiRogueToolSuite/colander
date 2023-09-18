@@ -5,6 +5,7 @@ from django.forms.widgets import Textarea
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
 from django.views.generic.detail import SingleObjectMixin
@@ -198,7 +199,7 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         form = super(CaseCreateView, self).get_form(form_class)
         form.fields['teams'].queryset = self.request.user.my_teams_as_qset
         form.fields['teams'].widget.attrs['size'] = 10
-        form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20, 'placeholder': _("No case description yet.")})
         return form
 
     def form_valid(self, form):

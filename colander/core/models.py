@@ -224,8 +224,7 @@ class Case(models.Model):
         default=''
     )
     description = models.TextField(
-        help_text=_('Add more details about the case here.'),
-        default=_('No description')
+        help_text=_('Add more details about the case here.')
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

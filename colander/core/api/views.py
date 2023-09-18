@@ -14,7 +14,7 @@ from colander.core.api.serializers import ArtifactSerializer, \
     DeviceSerializer, \
     DeviceTypeSerializer, PiRogueExperimentSerializer
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
-from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest
+from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest, PiRogueExperiment
 
 
 class ApiCaseViewSet(mixins.RetrieveModelMixin,
@@ -134,7 +134,7 @@ class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         cases = self.request.user.all_my_cases
-        return Device.objects.filter(case__in=cases)
+        return PiRogueExperiment.objects.filter(case__in=cases)
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)

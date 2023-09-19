@@ -14,6 +14,7 @@ from colander.core import datasets
 from colander.core.graph.serializers import GraphRelationSerializer
 from colander.core.models import Case, EntityRelation, Entity, ObservableType, Observable
 from colander.core.rest.serializers import DetailedEntitySerializer
+from colander.core.views.views import get_active_case
 
 
 class DatasetViewSet(ViewSet):
@@ -66,9 +67,12 @@ class EntityViewSet(mixins.CreateModelMixin,
         return obj
 
     def perform_create(self, serializer):
+        active_case = get_active_case(self.request)
         return serializer.save(
             owner=self.request.user,
-            case=Case.objects.get(pk=self.request.session.get('active_case')),
+            case=active_case,
+            tlp=active_case.tlp,
+            pap=active_case.pap,
         )
 
 

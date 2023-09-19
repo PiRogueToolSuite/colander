@@ -34,6 +34,15 @@ class DeviceSerializer(serializers.ModelSerializer):
     def get_type_name(self, obj):
         return obj.type.short_name
 
+    def create(self, validated_data):
+        d = super().create(validated_data)
+        if 'tlp' not in validated_data:
+            d.tlp = d.case.tlp
+        if 'pap' not in validated_data:
+            d.pap = d.case.pap
+        d.save()
+        return d
+
 
 class DeviceTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -109,6 +118,10 @@ class ArtifactSerializer(serializers.ModelSerializer):
         artifact.name = file_name
         artifact.original_name = file_name
         artifact.case = validated_data['case']
+        if 'tlp' not in validated_data:
+            artifact.tlp = artifact.case.tlp
+        if 'pap' not in validated_data:
+            artifact.pap = artifact.case.pap
         artifact.save()
 
         upr.target_artifact_id = str(artifact.id)
@@ -127,3 +140,12 @@ class PiRogueExperimentSerializer(serializers.ModelSerializer):
         exclude = [
             'owner',
         ]
+
+    def create(self, validated_data):
+        pre = super().create(validated_data)
+        if 'tlp' not in validated_data:
+            pre.tlp = pre.case.tlp
+        if 'pap' not in validated_data:
+            pre.pap = pre.case.pap
+        pre.save()
+        return pre

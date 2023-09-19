@@ -7,6 +7,9 @@
       {{ documentation_form | crispy }}
     </div>
     <div id='documentation-save-hidden-in-offcanvas' class="form-group text-end">
+      <a id='documentation-export-as-markdown' class="btn btn-primary text-white" role="button" href="{% url "cases_doc_export_as_markdown_view" pk=request.active_case.id %}" target="_blank">
+        <i class="nf fa fa-file-text-o"></i> Export as Markdown
+      </a>
       <button id='documentation-save' class="btn btn-primary text-white" type="submit" role="button">
         <i class="nf nf-fa-save"></i> Save documentation
       </button>

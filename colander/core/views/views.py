@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
+from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
@@ -82,6 +83,23 @@ def save_case_documentation_view(request, pk):
             active_case.documentation = form.cleaned_data.get('documentation')
             active_case.save()
     return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def export_case_documentation_as_markdown_view(request, pk):
+    case = Case.objects.get(pk=pk)
+    if not case:
+        return redirect('document_case_write_doc_view')
+    if not case.can_contribute(request.user):
+        return HttpResponseForbidden("Not allowed")
+
+    content = case.documentation
+    file_to_send = ContentFile(content)
+    response = HttpResponse(file_to_send, 'text/markdown')
+    response['Content-Length'] = file_to_send.size
+    response['Content-Disposition'] = f'attachment; filename="{case.name}.md"'
+    return response
+
 
 @login_required
 def case_close(request):

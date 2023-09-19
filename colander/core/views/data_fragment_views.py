@@ -27,7 +27,7 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     ]
     case_required_message_action = "create data fragments"
 
-    def get_form(self, form_class=None):
+    def get_form(self, form_class=None, edit=False):
         form = super(DataFragmentCreateView, self).get_form(form_class)
         rule_types = DataFragmentType.objects.all()
         #active_case = self.request.session.get('active_case')
@@ -41,8 +41,11 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['extracted_from'].queryset = artifact_qset
-        form.initial['tlp'] = active_case.tlp
-        form.initial['pap'] = active_case.pap
+
+        if not edit:
+            form.initial['tlp'] = active_case.tlp
+            form.initial['pap'] = active_case.pap
+
         return form
 
     def form_valid(self, form):
@@ -73,6 +76,8 @@ class DataFragmentUpdateView(DataFragmentCreateView, UpdateView):
         ctx['is_editing'] = True
         return ctx
 
+    def get_form(self, form_class=None):
+        return super().get_form(form_class, True)
 
 class DataFragmentDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
     model = DataFragment

@@ -29,7 +29,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
     ]
     case_required_message_action = "create PiRogue experiments"
 
-    def get_form(self, form_class=None):
+    def get_form(self, form_class=None, edit=False):
         active_case = get_active_case(self.request)
         artifacts_qset = Artifact.get_user_artifacts(self.request.user, active_case).filter(sha256__isnull=False)
         form = super(PiRogueExperimentCreateView, self).get_form(form_class)
@@ -39,8 +39,11 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG', sha256__isnull=False)
         form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO', sha256__isnull=False)
         form.fields['target_artifact'].queryset = artifacts_qset
-        form.initial['tlp'] = active_case.tlp
-        form.initial['pap'] = active_case.pap
+
+        if not edit:
+            form.initial['tlp'] = active_case.tlp
+            form.initial['pap'] = active_case.pap
+
         return form
 
     def form_valid(self, form):
@@ -71,6 +74,9 @@ class PiRogueExperimentUpdateView(PiRogueExperimentCreateView, UpdateView):
                                                                       self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
+
+    def get_form(self, form_class=None):
+        return super().get_form(form_class, True)
 
 
 def __compute_detection_summary(analysis, direction):

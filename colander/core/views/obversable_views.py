@@ -37,7 +37,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ctx['is_editing'] = False
         return ctx
 
-    def get_form(self, form_class=None):
+    def get_form(self, form_class=None, edit=False):
         observable_types = ObservableType.objects.all()
         #active_case = self.request.session.get('active_case')
         active_case = get_active_case(self.request)
@@ -54,8 +54,11 @@ class ObservableCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['associated_threat'].queryset = threat_qset
         form.fields['operated_by'].queryset = actor_qset
-        form.initial['tlp'] = active_case.tlp
-        form.initial['pap'] = active_case.pap
+
+        if not edit:
+            form.initial['tlp'] = active_case.tlp
+            form.initial['pap'] = active_case.pap
+
         return form
 
     def form_valid(self, form):
@@ -78,6 +81,9 @@ class ObservableUpdateView(ObservableCreateView, UpdateView):
         ctx['observables'] = Observable.get_user_observables(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
+
+    def get_form(self, form_class=None):
+        return super().get_form(form_class, True)
 
 
 class ObservableDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):

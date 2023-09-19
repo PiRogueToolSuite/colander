@@ -25,7 +25,7 @@ class ThreatCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     ]
     case_required_message_action = "create threats"
 
-    def get_form(self, form_class=None):
+    def get_form(self, form_class=None, edit=False):
         active_case = get_active_case(self.request)
         form = super(ThreatCreateView, self).get_form(form_class)
         threat_types = ThreatType.objects.all()
@@ -35,8 +35,11 @@ class ThreatCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
-        form.initial['tlp'] = active_case.tlp
-        form.initial['pap'] = active_case.pap
+
+        if not edit:
+            form.initial['tlp'] = active_case.tlp
+            form.initial['pap'] = active_case.pap
+
         return form
 
     def form_valid(self, form):
@@ -65,6 +68,9 @@ class ThreatUpdateView(ThreatCreateView, UpdateView):
         ctx['threats'] = Threat.get_user_threats(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
+
+    def get_form(self, form_class=None):
+        return super().get_form(form_class, True)
 
 
 class ThreatDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):

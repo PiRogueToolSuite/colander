@@ -25,7 +25,7 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     ]
     case_required_message_action = "create actors"
 
-    def get_form(self, form_class=None):
+    def get_form(self, form_class=None, edit=False):
         active_case = get_active_case(self.request)
         form = super(ActorCreateView, self).get_form(form_class)
         actor_types = ActorType.objects.all()
@@ -35,8 +35,11 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
-        form.initial['tlp'] = active_case.tlp
-        form.initial['pap'] = active_case.pap
+
+        if not edit:
+            form.initial['tlp'] = active_case.tlp
+            form.initial['pap'] = active_case.pap
+
         return form
 
     def form_valid(self, form):
@@ -59,11 +62,15 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
 class ActorUpdateView(ActorCreateView, UpdateView):
     case_required_message_action = "update actor"
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['actors'] = Actor.get_user_actors(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
+
+    def get_form(self, form_class=None):
+        return super().get_form(form_class, True)
 
 
 class ActorDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):

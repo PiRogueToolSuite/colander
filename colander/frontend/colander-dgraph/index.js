@@ -719,15 +719,21 @@ class ColanderDGraph {
     }
     // Snapshot
     if (this._config.snapshot && !this.jOverlayMenu_Snapshot) {
-      this.jOverlayMenu_Snapshot = overlay_button('fa-camera', 'Snapshot');
+      this.jOverlayMenu_Snapshot = overlay_button('fa-picture-o', 'Export as PNG');
       this.jOverlayMenu_Snapshot.click((e)=> {
         e.stopPropagation();
         e.preventDefault();
-        let png64 = this.cy.png({full:true});
+        let png64 = this.cy.png({full:true, bg: 'white'});
+        let aPng = document.createElement('a');
+        aPng.download = `${this.g.name}.png`;
+        aPng.href = png64;
+        aPng.click();
+        /*
         let image = new Image();
         image.src = png64;
         let w = window.open("");
         w.document.write(image.outerHTML);
+         */
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Snapshot);
     }

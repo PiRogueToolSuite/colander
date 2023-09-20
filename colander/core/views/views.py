@@ -93,7 +93,10 @@ def export_case_documentation_as_markdown_view(request, pk):
     if not case.can_contribute(request.user):
         return HttpResponseForbidden("Not allowed")
 
-    content = case.documentation
+    content = ""
+    if case.documentation is not None:
+        content = case.documentation
+
     file_to_send = ContentFile(content)
     response = HttpResponse(file_to_send, 'text/markdown')
     response['Content-Length'] = file_to_send.size

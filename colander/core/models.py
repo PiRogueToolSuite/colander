@@ -1555,6 +1555,8 @@ class Event(Entity):
         Observable,
         help_text=_('Select the observables involved with this event.'),
         related_name='events',
+        null=True,
+        blank=True,
     )
     attributes = HStoreField(null=True, blank=True)
 

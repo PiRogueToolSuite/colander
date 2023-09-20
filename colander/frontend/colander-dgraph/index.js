@@ -723,7 +723,7 @@ class ColanderDGraph {
       this.jOverlayMenu_Snapshot.click((e)=> {
         e.stopPropagation();
         e.preventDefault();
-        let png64 = this.cy.png({full:true, bg: 'white'});
+        let png64 = this.cy.png({full:true, bg: 'white', scale: 2});
         let aPng = document.createElement('a');
         aPng.download = `${this.g.name}.png`;
         aPng.href = png64;

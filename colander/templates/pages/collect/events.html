@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_field %}
 {% load i18n %}
+{% load static %}
 
 {% block inner-content %}
   <div class="row justify-content-center">
@@ -13,7 +14,12 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          {{ form.media }}
+          <link rel="stylesheet" type="text/css" href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-icons.css' %}"/>
+          <link rel="stylesheet" type="text/css" href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.css' %}"/>
+          <link rel="stylesheet" type="text/css" href="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.css' %}"/>
+          <script type="text/javascript" src="{% static 'vendors/bootstrap_datepicker_plus/moment-with-locales.min.js' %}"></script>
+          <script type="text/javascript" src="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.js' %}"></script>
+          <script type="text/javascript" src="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.js' %}"></script>
           <form method="post" autocomplete="off">
             {% csrf_token %}
             <div class="row justify-content-center">

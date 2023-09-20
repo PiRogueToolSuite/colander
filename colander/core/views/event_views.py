@@ -58,7 +58,7 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['last_seen'].widget = DateTimePickerInput(
             range_from="first_seen",
             options={
-                "format": "DD/MM/YYYY HH:mm:ss",
+                "format": "DD/MM/YYYY HH:mm:ss"
             }
         )
 

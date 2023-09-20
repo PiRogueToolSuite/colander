@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
+from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 
 from colander.core.forms import CommentForm
 from colander.core.models import Event, EventType, Observable, Artifact, Device, DetectionRule
@@ -51,6 +52,15 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['detected_by'].queryset = rules_qset
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['first_seen'].widget = DateTimePickerInput(options={
+            "format": "DD/MM/YYYY HH:mm:ss"
+        })
+        form.fields['last_seen'].widget = DateTimePickerInput(
+            range_from="first_seen",
+            options={
+                "format": "DD/MM/YYYY HH:mm:ss",
+            }
+        )
 
         if not edit:
             form.initial['tlp'] = active_case.tlp

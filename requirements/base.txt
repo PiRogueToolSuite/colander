@@ -36,6 +36,7 @@ django-allauth-2fa==0.10.0
 # django-serverless-cron==0.1.3 # https://github.com/paulonteri/django-serverless-cron/tree/master/django_serverless_cron
 django-serverless-cron @ git+https://github.com/TontonSancho/django-serverless-cron.git
 coreapi
+django-bootstrap-datepicker-plus==5.0.4
 
 # Analysis
 communityid==1.4

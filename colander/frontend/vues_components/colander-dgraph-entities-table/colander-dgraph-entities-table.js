@@ -30,7 +30,10 @@ new Vue({
     },
     refresh: function() {
 
-    }
+    },
+    close: function () {
+      $(this.$el).trigger('close-component');
+    },
   },
   computed: {
     sortedEntities_keys: function() {

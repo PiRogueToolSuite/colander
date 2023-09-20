@@ -124,8 +124,18 @@
       }
     }
 
+    .vue-container
+    {
+       .footer
+      {
+        position: absolute;
+        bottom: 0;
+        margin: 1em 0;
+      }
+    }
+
     .table-sticky-head {
-      height: calc(100% - 2rem - 2px);
+      height: calc(100% - 2rem - 2px - 3rem);
       overflow: hidden auto;
 
       thead th {

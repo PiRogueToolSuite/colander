@@ -166,8 +166,13 @@
   max-height: initial;
   overflow: hidden auto;
 }
+.colander-dgraph .sidepane .vue-container .footer {
+  position: absolute;
+  bottom: 0;
+  margin: 1em 0;
+}
 .colander-dgraph .sidepane .table-sticky-head {
-  height: calc(100% - 2rem - 2px);
+  height: calc(100% - 2rem - 2px - 3rem);
   overflow: hidden auto;
 }
 .colander-dgraph .sidepane .table-sticky-head thead th {

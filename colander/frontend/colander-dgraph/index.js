@@ -768,6 +768,7 @@ class ColanderDGraph {
       //
 
       this.sidepane = (t) => {
+        // Current active (if one)
         if (typeof(t) === 'boolean') {
           this.jRootElement.toggleClass('sidepane-active', t);
         }
@@ -809,6 +810,9 @@ class ColanderDGraph {
     this._sidepane_entities_overview = vueComponent('colander-dgraph-entities-table');
     this.sidepane_add(this._sidepane_entities_overview);
     //this.jOverlayMenu_Sidepane.append(this._sidepane_entities_overview);
+    this._sidepane_entities_overview.on('close-component', (e) => {
+      this.sidepane(false);
+    });
     this._sidepane_entities_overview.on('vue-ready', (e, jDom, vue) => {
       vue.allStyles = this.allStyles;
       if (this.g) {

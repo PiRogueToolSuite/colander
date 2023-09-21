@@ -57,7 +57,8 @@
 <body>
   {% url 'home' as home_url %}
   {% url 'case_create_view' as case_create_view_url %}
-  {% url 'collect_base_view' as collect_base_view_url %}
+  {% url 'collect_quick_creation_view' as collect_quick_creation_view_url %}
+  {% url 'graph_base_view' as graph_base_view_url %}
   {% url 'collaborate_base_view' as collaborate_base_view_url %}
   {% url 'investigate_base_view' as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
@@ -68,7 +69,7 @@
   {% block top_bar %}
   <header class="navbar navbar-dark sticky-top bg-primary flex-nowrap p-0 shadow">
     <div class="navbar-brand col-lg-auto col-md-3">
-      <a class="me-0 px-3" href="#">
+      <a class="me-0 px-3" href="/">
         <i class="icon-pts-project" aria-hidden="true"></i>
         <span>Colander</span>
       </a>
@@ -159,13 +160,21 @@
         <div class="list-group list-group-flush list-group-secondary">
           {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
         </div>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_base_view_url %}"
-           href="{{ collect_base_view_url }}">
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
+           href="{{ collect_quick_creation_view_url }}">
           <i class="fa fa-th" aria-hidden="true"></i>
           <span class="d-none d-sm-inline list-group-item-label">Collect</span>
         </a>
         <div class="list-group list-group-flush list-group-secondary">
-          {% block sidebar-items %}{% endblock sidebar-items %}
+          {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
+        </div>
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"
+           href="{{ graph_base_view_url }}">
+          <i class="fa fa-hubzilla" aria-hidden="true"></i>
+          <span class="d-none d-sm-inline list-group-item-label">Graph</span>
+        </a>
+        <div class="list-group list-group-flush list-group-secondary">
+          {% block graph-sidebar-items %}{% endblock graph-sidebar-items %}
         </div>
         <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
            href="{{ document_cases_write_doc_url }}">

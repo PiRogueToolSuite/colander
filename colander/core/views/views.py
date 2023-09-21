@@ -130,6 +130,7 @@ def quick_creation_view(request):
                 name=name
             )
             entity.save()
+            messages.add_message(request, messages.SUCCESS, f" {type} {model_name} successfully created: {name}")
 
     models = []
     types = {}

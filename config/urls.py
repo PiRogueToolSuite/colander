@@ -27,6 +27,7 @@ from colander.core.views.enrich_view import enrich_observable
 from colander.core.views.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
     PiRogueExperimentDetailsView, start_decryption, delete_experiment_view, save_decoded_content_view, start_detection, \
     PiRogueExperimentAnalysisReportView
+from colander.core.views.graph_views import graph_base_view
 from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
     ObservableDetailsView, delete_observable_view, capture_observable_view
@@ -85,14 +86,6 @@ urlpatterns = [
       path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
       path("collaborate/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="collaborate_entity_out_feed_delete_view"),
 
-      path("collect/", collect_base_view, name="collect_base_view"),
-      path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
-
-      path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
-      path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
-      path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
-      path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
-
       path("case", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),
       path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
@@ -103,13 +96,21 @@ urlpatterns = [
       path("case/<slug:pk>/doc/export/markdown", export_case_documentation_as_markdown_view, name="cases_doc_export_as_markdown_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
 
-      path("document/case", write_documentation_view, name="document_case_write_doc_view"),
       #path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
       #path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
       #path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
       #path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
       #path("collect/case/<slug:pk>/doc/save", save_case_documentation_view, name="collect_cases_save_doc_view"),
       #path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
+
+      #path("collect/", collect_base_view, name="collect_base_view"),
+      #path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
+      path("collect/", quick_creation_view, name="collect_quick_creation_view"),
+
+      path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
+      path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
+      path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+      path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
       path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
@@ -144,7 +145,6 @@ urlpatterns = [
       # path("collect/relation", ObservableRelationCreateView.as_view(), name="collect_relation_create_view"),
       # path("collect/relation/<slug:pk>", ObservableRelationUpdateView.as_view(), name="collect_relation_update_view"),
 
-
       path("collect/threat", ThreatCreateView.as_view(), name="collect_threat_create_view"),
       path("collect/threat/<slug:pk>", ThreatUpdateView.as_view(), name="collect_threat_update_view"),
       path("collect/threat/<slug:pk>/details", ThreatDetailsView.as_view(), name="collect_threat_details_view"),
@@ -168,6 +168,10 @@ urlpatterns = [
       path("collect/experiment/<slug:pk>/detect", start_detection, name="collect_experiment_detection_view"),
       path("collect/experiment/<slug:pk>/analysis_report", PiRogueExperimentAnalysisReportView.as_view(), name="collect_experiment_analysis_report_view"),
       path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
+
+      path("graph", graph_base_view, name="graph_base_view"),
+
+      path("document/case", write_documentation_view, name="document_case_write_doc_view"),
 
       path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
 

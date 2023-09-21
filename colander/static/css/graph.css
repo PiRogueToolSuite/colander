@@ -64,7 +64,7 @@
 
 .colander-dgraph {
   /*height: 500px;*/
-  height: calc(100vh - 3rem - 18rem);
+  height: calc(100vh - 3rem - 6rem);
   width: 100%;
   display: block;
   overflow: hidden;

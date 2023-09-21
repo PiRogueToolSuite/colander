@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block sidebar-items %}
+{% block collect-sidebar-items %}
   {% url 'collect_actor_create_view' as collect_actor_view_url %}
   {% url 'collect_device_create_view' as collect_device_view_url %}
   {% url 'collect_event_create_view' as collect_event_view_url %}
@@ -19,10 +19,10 @@
       <i class="nf nf-fa-plus_square"></i>
     </a>
   </h6>
-  {% endcomment %}
   <a id='quick-add-entity' href="{% url "collect_quick_creation_view" %}" title="Quick entity creation">
     <i class="nf nf-fa-plus_square"></i>
   </a>
+  {% endcomment %}
   <a class="list-group-item list-group-item-action list-group-item-light{% if collect_actor_view_url in request.path %} active {% endif %}"
      href="{{ collect_actor_view_url }}" title="Actors">
     {% include "icons/actor_icon.html" %}
@@ -73,7 +73,7 @@
     {% include "icons/experiment_icon.html" %}
     <span class="list-group-item-label">PiRogue experiment</span>
   </a>
-{% endblock sidebar-items %}
+{% endblock collect-sidebar-items %}
 
 {% block content %}
   {% block inner-content %}

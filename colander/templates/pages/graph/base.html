@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block offcanvas %}{% endblock offcanvas %}
+{% block graph-sidebar-items %}
+{% endblock graph-sidebar-items %}
+
 {% block content %}
   {% block inner-content %}
     <div class="row justify-content-center">
       <div class="col-md-12">
-        <h2 class="my-2">Case documentation</h2>
-        {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+        <h2 class="my-2">Graph editor</h2>
+        {% include "case/graph.html" with case=request.active_case %}
       </div>
     </div>
   {% endblock inner-content %}
 {% endblock content %}
+
 

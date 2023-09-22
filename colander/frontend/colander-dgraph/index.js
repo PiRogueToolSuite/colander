@@ -10,7 +10,7 @@ import {vueComponent} from '../vues_components/vue-sub-component';
 
 // For sub-vue access
 import MarkdownIt from 'markdown-it';
-window.Markdown = new MarkdownIt();
+window.Markdown = new MarkdownIt({breaks:true});
 
 cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );

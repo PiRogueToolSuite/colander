@@ -18,7 +18,7 @@ DJANGO_SERVER_EMAIL=
 
 # django-allauth
 # ------------------------------------------------------------------------------
-DJANGO_ACCOUNT_ALLOW_REGISTRATION=True
+DJANGO_ACCOUNT_ALLOW_REGISTRATION=False
 
 # Gunicorn
 # ------------------------------------------------------------------------------

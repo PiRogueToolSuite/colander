@@ -7,7 +7,7 @@
     <h2><i class="nf {{ case.type.nf_icon }} text-primary"></i> {{ case.name }}</h2>
     <div class="mb-3">
       {% if case.description %}
-        {{ case.description }}
+        {{ case.description | markdownify }}
       {% else %}
         {% translate "No description" %}
       {% endif %}

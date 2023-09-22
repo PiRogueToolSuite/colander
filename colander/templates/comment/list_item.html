@@ -1,11 +1,11 @@
 {% load i18n %}
-
+{% load markdownify %}
 
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
   <div class="card-body p-2 ">
     <p class="text-wrap mb-0 comment-content-{{ comment.id }}">
       {% include "icons/comment_icon.html" with c="h4 text-primary" %}
-      {{ comment.content }}
+      {{ comment.content | markdownify }}
     </p>
     <form method="post" class="edit-comment-form-{{ comment.id }} text-center"
           action="{% url "update_comment_view" pk=comment.id %}"

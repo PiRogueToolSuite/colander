@@ -1,11 +1,12 @@
 {% load i18n %}
+{% load markdownify %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ detection_rule.type.nf_icon }} text-primary"></i> {{ detection_rule.name }}</h2>
     <div class="mb-3">
       {% if detection_rule.description %}
-        {{ detection_rule.description }}
+        {{ detection_rule.description | markdownify }}
       {% else %}
         {% translate "No description" %}
       {% endif %}

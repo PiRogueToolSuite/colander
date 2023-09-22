@@ -1,12 +1,13 @@
 {% load i18n %}
 {% load colander_tags %}
+{% load markdownify %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2>{% include "icons/pills.html" with elt=artifact %} {{ artifact.original_name }}</h2>
     <div class="mb-3">
       {% if artifact.description %}
-        {{ artifact.description }}
+        {{ artifact.description | markdownify }}
       {% else %}
         {% translate "No description" %}
       {% endif %}

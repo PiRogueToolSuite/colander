@@ -1,12 +1,12 @@
-
 {% load i18n %}
+{% load markdownify %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ data_fragment.type.nf_icon }} text-primary"></i> {{ data_fragment.name }}</h2>
     <div class="mb-3">
       {% if data_fragment.description %}
-        {{ data_fragment.description }}
+        {{ data_fragment.description | markdownify }}
       {% else %}
         {% translate "No description" %}
       {% endif %}

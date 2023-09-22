@@ -1,12 +1,12 @@
 {% load i18n %}
-
+{% load markdownify %}
 
 <div class="row">
   <div class="col-md-12 mt-2">
     <h2><i class="nf {{ experiment.type.nf_icon }} text-primary"></i> {{ experiment.name }}</h2>
     <div class="mb-3">
       {% if experiment.description %}
-        {{ experiment.description }}
+        {{ experiment.description | markdownify }}
       {% else %}
         {% translate "No description" %}
       {% endif %}

@@ -17,6 +17,13 @@ new Vue({
     },
   },
   computed: {
+    descriptionMarkdown: function() {
+      // entity.description || 'No description'
+      if (this.entity.description) {
+        return Markdown.render(this.entity.description);
+      }
+      return 'No description';
+    }
   }
 });
 //# sourceURL=webpack://colander/./colander/frontend/vues_components/colander-dgraph-entity-overview/colander-dgraph-entity-overview.js

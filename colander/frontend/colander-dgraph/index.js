@@ -8,6 +8,10 @@ import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default
 import {overlay_button} from './graph-templates';
 import {vueComponent} from '../vues_components/vue-sub-component';
 
+// For sub-vue access
+import MarkdownIt from 'markdown-it';
+window.Markdown = new MarkdownIt();
+
 cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
 cytoscape.use( layoutUtilities ); // Optional but used by fcose in our case

@@ -80,6 +80,11 @@ def active_link(context, view_url, *args, **kwargs):
         return ''
 
 
+@register.simple_tag
+def define(val=None):
+    return val
+
+
 @register.filter(name="bs_alert_level_class")
 def bs_alert_level_class(message_tag_level):
     if message_tag_level == 'error':

@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "pages/workspace/base.html" %}
 {% load static %}
 
 {% block collect-sidebar-items %}
-  {% url 'collect_actor_create_view' as collect_actor_view_url %}
+  {% url 'collect_actor_create_view' case_id=active_case.id as collect_actor_view_url %}
   {% url 'collect_device_create_view' as collect_device_view_url %}
   {% url 'collect_event_create_view' as collect_event_view_url %}
   {% url 'collect_artifact_create_view' as collect_artifact_view_url %}

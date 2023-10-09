@@ -39,7 +39,8 @@ from colander.core.views.views import case_close, landing_view, collect_base_vie
     report_base_view, cases_select_view, CaseCreateView, \
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
-    forward_auth, cron_ish_view, collaborate_base_view, vues_view, export_case_documentation_as_markdown_view
+    forward_auth, cron_ish_view, collaborate_base_view, vues_view, export_case_documentation_as_markdown_view, \
+    case_workspace_view
 from colander.core.graph.views import case_graph
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
@@ -86,15 +87,26 @@ urlpatterns = [
       path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
       path("collaborate/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="collaborate_entity_out_feed_delete_view"),
 
-      path("case", CaseCreateView.as_view(), name="case_create_view"),
+      #path("case", CaseCreateView.as_view(), name="case_create_view"),
+      #path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
+      #path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
+      path("case", CaseCreateView.as_view(), name="case_base_view"),
+      path("case/create", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),
-      path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
-      path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
+      path("case/<slug:pk>/edit", CaseUpdateView.as_view(), name="case_update_view"),
+      path("case/<slug:pk>", CaseDetailsView.as_view(), name="case_details_view"),
       path("case/<slug:pk>/graph", case_graph, name="case_graph"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
       path("case/<slug:pk>/doc/save", save_case_documentation_view, name="cases_save_doc_view"),
       path("case/<slug:pk>/doc/export/markdown", export_case_documentation_as_markdown_view, name="cases_doc_export_as_markdown_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+
+      path("ws/<str:case_id>", case_workspace_view, name="case_workspace_view"),
+      path("ws/<str:case_id>/collect", quick_creation_view, name="collect_quick_creation_view"),
+      path("ws/<str:case_id>/collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
+      path("ws/<str:case_id>/collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
+      path("ws/<str:case_id>/collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+      path("ws/<str:case_id>/collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
       #path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
       #path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
@@ -105,12 +117,6 @@ urlpatterns = [
 
       #path("collect/", collect_base_view, name="collect_base_view"),
       #path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
-      path("collect/", quick_creation_view, name="collect_quick_creation_view"),
-
-      path("collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
-      path("collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
-      path("collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
-      path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
       path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
       path("collect/artifact/upload", initialize_upload, name="initialize_upload"),

@@ -5,11 +5,12 @@ from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
 from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import ModelFormMixin
 from django_serverless_cron.services import RunJobs
 
 from django.views.static import serve
@@ -39,6 +40,22 @@ class CaseRequiredMixin(AccessMixin):
                                  f"In order to {self.case_required_message_action}, you must first select a case to work on")
             return redirect('case_create_view')
         return super().dispatch(request, *args, **kwargs)
+
+
+class CaseContextMixin(AccessMixin):
+    """Verify that the current user has an active case."""
+    case_required_message_action = "proceed"
+    contextual_success_url = ''
+    active_case = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.active_case = get_active_case(request, kwargs['case_id'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        print("get_success_url", self.active_case)
+        return reverse(self.contextual_success_url, kwargs={'case_id': self.active_case.id})
+
 
 class OwnershipRequiredMixin(SingleObjectMixin):
     def dispatch(self, request, *args, **kwargs):
@@ -109,9 +126,11 @@ def case_close(request):
     request.session.pop('active_case')
     return redirect('home')
 
+
 @login_required
-def quick_creation_view(request):
-    active_case = get_active_case(request)
+def quick_creation_view(request, case_id=None):
+    print("Case id:", case_id)
+    active_case = get_active_case(request, case_id)
     if not active_case:
         return redirect('case_create_view')
 
@@ -154,6 +173,7 @@ def quick_creation_view(request):
     model_data = datasets.creatable_entity_and_types
 
     ctx = {
+        'active_case': active_case,
         'models': model_data,
         'entities': active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
     }
@@ -193,8 +213,17 @@ def cases_select_view(request, pk):
         #return redirect('case_create_view')
         return redirect('case_details_view', case.id)
 
+
 @login_required
-def get_active_case(request):
+def get_active_case(request, case_id=None):
+    print("Case id:", case_id)
+    if case_id:
+        try:
+            case = Case.objects.get(id=case_id)
+            if case.can_contribute(request.user):
+                return case
+        except Exception:
+            pass
     if 'active_case' in request.session:
         try:
             case = Case.objects.get(id=request.session['active_case'])
@@ -357,3 +386,12 @@ def vues_view(request, component_name):
             return render(request, f'{component_name}/{component_name}.css')
         return HttpResponseNotFound("Not found")
     return render(request, f'{component_name}/{component_name}.html')
+
+
+@login_required
+def case_workspace_view(request, case_id):
+    active_case = get_active_case(request, case_id)
+    ctx = {
+        'active_case': active_case,
+    }
+    return render(request, 'pages/workspace/base.html', context=ctx)

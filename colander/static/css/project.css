@@ -11234,4 +11234,35 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   padding: 0.5rem;
 }
 
+#overall-search-form {
+  position: relative;
+}
+#overall-search-form #overall-search-result {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  position: absolute;
+  width: 100%;
+  max-height: 0;
+  overflow: hidden auto;
+  transition: max-height 0.25s ease-out;
+}
+#overall-search-form #overall-search-result:hover {
+  max-height: 30vh;
+}
+#overall-search-form #overall-search-result .list-group {
+  border-radius: 0;
+}
+#overall-search-form #overall-search {
+  font-size: 1rem;
+}
+#overall-search-form #overall-search::placeholder {
+  color: white;
+  font-size: 1rem;
+}
+#overall-search-form #overall-search:focus::placeholder {
+  color: black;
+}
+#overall-search-form #overall-search:focus + #overall-search-result {
+  max-height: 30vh;
+}
+
 /*# sourceMappingURL=project.css.map */

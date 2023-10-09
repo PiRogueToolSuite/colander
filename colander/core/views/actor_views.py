@@ -8,13 +8,13 @@ from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
 from colander.core.models import Actor, ActorType
-from colander.core.views.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseRequiredMixin, CaseContextMixin
 
 
-class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = Actor
     template_name = 'pages/collect/actors.html'
-    success_url = reverse_lazy('collect_actor_create_view')
+    contextual_success_url = 'collect_actor_create_view'
     fields = [
         'type',
         'name',
@@ -26,7 +26,6 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     case_required_message_action = "create actors"
 
     def get_form(self, form_class=None, edit=False):
-        active_case = get_active_case(self.request)
         form = super(ActorCreateView, self).get_form(form_class)
         actor_types = ActorType.objects.all()
         choices = [
@@ -37,13 +36,13 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
 
         if not edit:
-            form.initial['tlp'] = active_case.tlp
-            form.initial['pap'] = active_case.pap
+            form.initial['tlp'] = self.active_case.tlp
+            form.initial['pap'] = self.active_case.pap
 
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
+        active_case = get_active_case(self.request, self.kwargs['case_id'])
         if form.is_valid() and active_case:
             actor = form.save(commit=False)
             if not hasattr(actor, 'owner'):
@@ -55,7 +54,8 @@ class ActorCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['actors'] = Actor.get_user_actors(self.request.user, self.request.session.get('active_case'))
+        ctx['active_case'] = self.active_case
+        ctx['actors'] = Actor.get_user_actors(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
@@ -65,7 +65,6 @@ class ActorUpdateView(ActorCreateView, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['actors'] = Actor.get_user_actors(self.request.user, self.request.session.get('active_case'))
         ctx['is_editing'] = True
         return ctx
 
@@ -73,13 +72,14 @@ class ActorUpdateView(ActorCreateView, UpdateView):
         return super().get_form(form_class, True)
 
 
-class ActorDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class ActorDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
     model = Actor
     template_name = 'pages/collect/actor_details.html'
     case_required_message_action = "view actor details"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['active_case'] = self.active_case
         ctx['comment_form'] = CommentForm()
         return ctx
 

@@ -116,7 +116,7 @@
         <td>
           {% if observable.operated_by %}
             <i class="nf {{ observable.operated_by.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_actor_details_view" pk=observable.operated_by_id %}">
+            <a href="{% url "collect_actor_details_view" case_id=observable.case.id pk=observable.operated_by_id %}">
               {{ observable.operated_by.name }}
             </a>
             ({{ observable.operated_by.type }})

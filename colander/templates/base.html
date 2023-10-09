@@ -55,14 +55,9 @@
 
 <body>
   {% url 'home' as home_url %}
+  {% url 'case_base_view' as case_base_view_url %}
   {% url 'case_create_view' as case_create_view_url %}
-  {% url 'collect_quick_creation_view' as collect_quick_creation_view_url %}
-  {% url 'graph_base_view' as graph_base_view_url %}
   {% url 'collaborate_base_view' as collaborate_base_view_url %}
-  {% url 'investigate_base_view' as investigate_base_view_url %}
-  {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
-  {% url 'report_base_view' as report_base_view_url %}
-  {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
   {% url 'cron-jobs' as cron_url %}
 
   {% block top_bar %}
@@ -80,9 +75,28 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     -->
-    <form method="post" action="{% url "quick_search_view" %}" class="w-100">
+    <form id="overall-search-form" method="post" action="{% url "quick_search_view" %}" class="w-100">
       {% csrf_token %}
-      <input class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search">
+      {% if active_case %}
+        {% define active_case.name as title_placeholder %}
+      {% else %}
+        {% define "Select a case to work on" as title_placeholder %}
+      {% endif %}
+      <input id="overall-search" class="form-control form-control-dark w-100" name="q" type="text" placeholder="{{ title_placeholder }}" aria-label="Search" autocomplete="off"/>
+      <div id="overall-search-result">
+        <div class="list-group">
+          {% for case in request.user_cases %}
+            <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == active_case %}active{% endif %}" aria-current="{% if case is active_case %}true{% else %}false{% endif %}">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ case.name }}</h5>
+                <small class="{% if not case == active_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
+              </div>
+              <p class="mb-1">Some placeholder content in a paragraph.</p>
+              <small class="{% if not case == active_case %}text-muted{% endif %}">And some small print.</small>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
     </form>
     <div class="navbar-nav">
       <div class="nav-item">
@@ -108,99 +122,111 @@
   {% block main_wrapper %}
   <div id="main-wrapper" class="d-flex">
     <aside id="sidebar-wrapper">
-      <div class="p-3">
-        <div>
-          {% if request.active_case %}
-            <div>
-              <a href="{% url "case_details_view" pk=request.active_case.id %}">
-                {% include "icons/case_icon.html" with c="text-primary" %}
-                {{ request.active_case.name }}
-              </a>
-            </div>
-            <div class="small text-muted">
-              {% include "icons/date_icon.html" %}
-              {{ request.active_case.created_at }}
-            </div>
-          {% else %}
-            No case selected, select one.
-          {% endif %}
+      {% block root-sidebar-menu %}
+        {% comment %}
+        <div class="p-3">
+          <div>
+            {% if request.active_case %}
+              <div>
+                <a href="{% url "case_details_view" pk=request.active_case.id %}">
+                  {% include "icons/case_icon.html" with c="text-primary" %}
+                  {{ request.active_case.name }}
+                </a>
+              </div>
+              <div class="small text-muted">
+                {% include "icons/date_icon.html" %}
+                {{ request.active_case.created_at }}
+              </div>
+            {% else %}
+              No case selected, select one.
+            {% endif %}
+          </div>
+          <div>
+            <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
+                    data-bs-target="#caseSwitchModal">
+              <i class="nf nf-cod-arrow_swap"></i>
+              Switch case
+            </button>
+            <!--
+            <br>
+            <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+              <i class="nf nf-fa-file_text"></i>
+              Doc editor
+            </button>
+            -->
+          </div>
         </div>
-        <div>
-          <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
-                  data-bs-target="#caseSwitchModal">
-            <i class="nf nf-cod-arrow_swap"></i>
-            Switch case
-          </button>
-          <!--
-          <br>
-          <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
-                  data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-            <i class="nf nf-fa-file_text"></i>
-            Doc editor
-          </button>
-          -->
-        </div>
-      </div>
-      <div class="list-group list-group-flush">
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
-          <i class="nf nf-fa-home list-group-item-icon"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Home</span>
-        </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link case_create_view_url %}"
-           href="{{ case_create_view_url }}" title="Cases">
-          {% include "icons/case_icon.html" %}
-          <span class="list-group-item-label">Cases</span>
-        </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collaborate_base_view_url %}"
-           href="{{ collaborate_base_view_url }}">
-          <i class="nf nf-fa-share_alt" aria-hidden="true"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
-        </a>
-        <div class="list-group list-group-flush list-group-secondary">
-          {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
-        </div>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
-           href="{{ collect_quick_creation_view_url }}">
-          <i class="fa fa-th" aria-hidden="true"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Collect</span>
-        </a>
-        <div class="list-group list-group-flush list-group-secondary">
-          {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
-        </div>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"
-           href="{{ graph_base_view_url }}">
-          <i class="fa fa-hubzilla" aria-hidden="true"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Graph</span>
-        </a>
-        <div class="list-group list-group-flush list-group-secondary">
-          {% block graph-sidebar-items %}{% endblock graph-sidebar-items %}
-        </div>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
-           href="{{ document_cases_write_doc_url }}">
-          <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Document</span>
-        </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
-           href="{{ investigate_base_view_url }}">
-          <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
-          <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
-        </a>
-        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link cyberchef_base_url %}"
-           href="{{ cyberchef_base_url }}" target="_blank">
-          <i class="icon-cyberchef_hat" aria-hidden="true"></i>
-          <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
-          <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
-        </a>
-      {% comment "FIXEME: To clean since My Profile has moved to header" %}
-      {% if request.user.is_authenticated %}
-          {# URL provided by django-allauth/account/urls.py #}
-          <a class="list-group-item list-group-item-action list-group-item-light" href="{% url 'users:detail' request.user.username %}">
-            <i class="nf nf-fa-user list-group-item-icon" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline list-group-item-label">{% translate "My Profile" %}</span>
+        {% endcomment %}
+        <div class="list-group list-group-flush">
+          {% comment %}
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
+            <i class="nf nf-fa-home list-group-item-icon"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Home</span>
           </a>
-      {% endif %}
-      {% endcomment %}
-      </div>
+          {% endcomment %}
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
+            <i class="nf nf-fa-home list-group-item-icon"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Dashboard</span>
+          </a>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link case_base_view_url %}"
+             href="{{ case_base_view_url }}" title="Cases">
+            {% include "icons/case_icon.html" with open=False %}
+            <span class="list-group-item-label">Cases</span>
+          </a>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collaborate_base_view_url %}"
+             href="{{ collaborate_base_view_url }}">
+            <i class="nf nf-fa-share_alt" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
+          </a>
+          <div class="list-group list-group-flush list-group-secondary">
+            {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
+          </div>
+          {% comment %}
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
+             href="{{ collect_quick_creation_view_url }}">
+            <i class="fa fa-th" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Collect</span>
+          </a>
+          <div class="list-group list-group-flush list-group-secondary">
+            {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
+          </div>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"
+             href="{{ graph_base_view_url }}">
+            <i class="fa fa-hubzilla" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Graph</span>
+          </a>
+          <div class="list-group list-group-flush list-group-secondary">
+            {% block graph-sidebar-items %}{% endblock graph-sidebar-items %}
+          </div>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
+             href="{{ document_cases_write_doc_url }}">
+            <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Document</span>
+          </a>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
+             href="{{ investigate_base_view_url }}">
+            <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
+            <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
+          </a>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link cyberchef_base_url %}"
+             href="{{ cyberchef_base_url }}" target="_blank">
+            <i class="icon-cyberchef_hat" aria-hidden="true"></i>
+            <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
+            <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
+          </a>
+        {% endcomment %}
+        {% comment "FIXEME: To clean since My Profile has moved to header" %}
+        {% if request.user.is_authenticated %}
+            {# URL provided by django-allauth/account/urls.py #}
+            <a class="list-group-item list-group-item-action list-group-item-light" href="{% url 'users:detail' request.user.username %}">
+              <i class="nf nf-fa-user list-group-item-icon" aria-hidden="true"></i>
+              <span class="d-none d-sm-inline list-group-item-label">{% translate "My Profile" %}</span>
+            </a>
+        {% endif %}
+        {% endcomment %}
+        </div>
+      {% endblock root-sidebar-menu %}
     </aside>
     <div id="page-content-wrapper">
       <main class="container-fluid">

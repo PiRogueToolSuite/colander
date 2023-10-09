@@ -635,7 +635,7 @@ class Actor(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_actor_details_view', kwargs={'pk': self.id})
+        return reverse('collect_actor_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):

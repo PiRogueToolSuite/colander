@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static i18n colander_tags %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+
+
+{% block root-sidebar-menu %}
+  {% url 'case_workspace_view' case_id=active_case.id as case_ws_url %}
+  {% url 'collect_quick_creation_view' case_id=active_case.id as collect_quick_creation_view_url %}
+  {% url 'graph_base_view' as graph_base_view_url %}
+  {% url 'investigate_base_view' as investigate_base_view_url %}
+  {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
+  {% url 'report_base_view' as report_base_view_url %}
+  {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
+
+  <div class="list-group list-group-flush">
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == case_ws_url %} active {% endif %}" href="{{case_ws_url}}">
+      <i class="nf nf-fa-home list-group-item-icon"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Case overview</span>
+    </a>
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
+       href="{{ collect_quick_creation_view_url }}">
+      <i class="fa fa-th" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Collect</span>
+    </a>
+    <div class="list-group list-group-flush list-group-secondary">
+      {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
+    </div>
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"
+       href="{{ graph_base_view_url }}">
+      <i class="fa fa-hubzilla" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Graph</span>
+    </a>
+    <div class="list-group list-group-flush list-group-secondary">
+      {% block graph-sidebar-items %}{% endblock graph-sidebar-items %}
+    </div>
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
+       href="{{ document_cases_write_doc_url }}">
+      <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Document</span>
+    </a>
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
+       href="{{ investigate_base_view_url }}">
+      <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
+    </a>
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link cyberchef_base_url %}"
+       href="{{ cyberchef_base_url }}" target="_blank">
+      <i class="icon-cyberchef_hat" aria-hidden="true"></i>
+      <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
+      <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
+    </a>
+  </div>
+
+{% endblock root-sidebar-menu %}
+
+{% block content %}
+  {% include "case/details.html" with case=active_case %}
+{% endblock content %}

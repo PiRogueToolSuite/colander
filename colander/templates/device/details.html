@@ -88,7 +88,7 @@
         <td>
           {% if device.operated_by %}
             <i class="nf {{ device.operated_by.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_actor_details_view" pk=device.operated_by_id %}">
+            <a href="{% url "collect_actor_details_view" case_id=device.case.id pk=device.operated_by_id %}">
               {{ device.operated_by.name }}
             </a>
             ({{ device.operated_by.type }})

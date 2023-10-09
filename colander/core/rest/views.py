@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework import mixins
 from rest_framework.authentication import SessionAuthentication
@@ -43,6 +44,17 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
         return EntityRelation.objects.filter(case__in=cases)
 
     def perform_create(self, serializer):
+        print( "perform_create", serializer.validated_data )
+        # Bug-0004 : 'upgrade' obj_form and obj_to value to their respective concrete class
+        abstract_from = serializer.validated_data['obj_from']
+        abstract_to = serializer.validated_data['obj_to']
+
+        concrete_from = abstract_from.concrete()
+        concrete_to = abstract_to.concrete()
+
+        serializer.validated_data['obj_from'] = concrete_from
+        serializer.validated_data['obj_to'] = concrete_to
+
         return serializer.save(
             owner=self.request.user,
             case=Case.objects.get(pk=self.request.session.get('active_case'))

@@ -127,6 +127,11 @@
 
     .vue-container
     {
+      .body
+      {
+        max-height: calc(100% - 3rem);
+        overflow: hidden auto;
+      }
        .footer
       {
         position: absolute;

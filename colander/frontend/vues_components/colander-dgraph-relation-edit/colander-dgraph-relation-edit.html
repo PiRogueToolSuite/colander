@@ -1,8 +1,10 @@
 <div class='vue-container container py-2'>
-  <h5>Entity relation</h5>
-  <div class="form-group mb-2">
-      <label>Relation name</label>
-      <input class="form-control" type="text" placeholder="Relation name" v-model="ctx.name" name="name"/>
+  <div class="body">
+    <h5>Entity relation</h5>
+    <div class="form-group mb-2">
+        <label>Relation name</label>
+        <input class="form-control" type="text" placeholder="Relation name" v-model="ctx.name" name="name"/>
+    </div>
   </div>
   <div class="footer">
       <button @click="cancel()" type="button" class="btn btn-outline-secondary" role="cancel">Cancel</button>

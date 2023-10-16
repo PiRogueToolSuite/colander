@@ -167,6 +167,10 @@
   max-height: initial;
   overflow: hidden auto;
 }
+.colander-dgraph .sidepane .vue-container .body {
+  max-height: calc(100% - 3rem);
+  overflow: hidden auto;
+}
 .colander-dgraph .sidepane .vue-container .footer {
   position: absolute;
   bottom: 0;

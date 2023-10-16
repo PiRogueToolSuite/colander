@@ -175,7 +175,7 @@ urlpatterns = [
       path("collect/experiment/<slug:pk>/analysis_report", PiRogueExperimentAnalysisReportView.as_view(), name="collect_experiment_analysis_report_view"),
       path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
 
-      path("graph", graph_base_view, name="graph_base_view"),
+      path("ws/<str:case_id>/graph", graph_base_view, name="graph_base_view"),
 
       path("document/case", write_documentation_view, name="document_case_write_doc_view"),
 

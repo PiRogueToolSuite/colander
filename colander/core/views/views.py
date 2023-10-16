@@ -56,6 +56,9 @@ class CaseContextMixin(AccessMixin):
         print("get_success_url", self.active_case)
         return reverse(self.contextual_success_url, kwargs={'case_id': self.active_case.id})
 
+    def contextual_enrich_context(self, ctx):
+        ctx['active_case'] = self.active_case
+
 
 class OwnershipRequiredMixin(SingleObjectMixin):
     def dispatch(self, request, *args, **kwargs):
@@ -128,9 +131,10 @@ def case_close(request):
 
 
 @login_required
-def quick_creation_view(request, case_id=None):
-    print("Case id:", case_id)
-    active_case = get_active_case(request, case_id)
+def quick_creation_view(request):
+    #print("Case id:", case_id)
+    #active_case = get_active_case(request, case_id)
+    active_case = request.contextual_case
     if not active_case:
         return redirect('case_create_view')
 
@@ -389,9 +393,13 @@ def vues_view(request, component_name):
 
 
 @login_required
-def case_workspace_view(request, case_id):
-    active_case = get_active_case(request, case_id)
+def case_workspace_view(request):
+    print("Contextual case", request.contextual_case)
+    #active_case = get_active_case(request, case_id)
+    active_case = request.contextual_case
+    print("Active case", active_case)
     ctx = {
-        'active_case': active_case,
+      'active_case': active_case,
     }
+    #ctx = {}
     return render(request, 'pages/workspace/base.html', context=ctx)

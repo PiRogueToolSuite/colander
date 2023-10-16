@@ -165,6 +165,9 @@ MIDDLEWARE = [
     # flow is reset if another page is loaded between login and successfully
     # entering two-factor credentials.
     "allauth_2fa.middleware.AllauthTwoFactorMiddleware",
+
+    # Workspace middleware
+    "colander.core.middleware.contextual_case.ContextualCaseMiddleware",
 ]
 
 # STATIC

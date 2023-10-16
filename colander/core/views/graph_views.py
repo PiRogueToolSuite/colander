@@ -6,8 +6,8 @@ from colander.core.views.views import get_active_case
 
 
 @login_required
-def graph_base_view(request):
-    active_case = get_active_case(request)
+def graph_base_view(request, case_id):
+    active_case = get_active_case(request, case_id)
 
     if active_case is None:
         messages.add_message(
@@ -16,5 +16,7 @@ def graph_base_view(request):
         )
         return redirect('case_create_view')
 
-    ctx = {}
+    ctx = {
+        "active_case": active_case
+    }
     return render(request, 'pages/graph/base.html', context=ctx)

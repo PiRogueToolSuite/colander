@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "pages/workspace/base.html" %}
 {% load static %}
 
 {% block graph-sidebar-items %}
@@ -9,7 +9,7 @@
     <div class="row justify-content-center">
       <div class="col-md-12">
         <h2 class="my-2">Graph editor</h2>
-        {% include "case/graph.html" with case=request.active_case %}
+        {% include "case/graph.html" with case=active_case %}
       </div>
     </div>
   {% endblock inner-content %}

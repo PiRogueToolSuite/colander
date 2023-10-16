@@ -12,6 +12,7 @@
 <script type="text/javascript">
   let cdg = new ColanderDGraph({
     containerId: 'a-colander-graph',
+    caseId: '{{ case.id }}',
     datasourceUrl: `/case/{{ case.id }}/graph`,
     csrfToken: '{{ csrf_token }}',
     {% if lock %}

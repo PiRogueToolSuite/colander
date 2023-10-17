@@ -168,7 +168,7 @@
   overflow: hidden auto;
 }
 .colander-dgraph .sidepane .vue-container .body {
-  max-height: calc(100% - 3rem);
+  height: calc(100% - 3rem);
   overflow: hidden auto;
 }
 .colander-dgraph .sidepane .vue-container .footer {
@@ -177,7 +177,7 @@
   margin: 1em 0;
 }
 .colander-dgraph .sidepane .table-sticky-head {
-  height: calc(100% - 2rem - 2px - 3rem);
+  height: calc(100% - 2px - 2rem);
   overflow: hidden auto;
 }
 .colander-dgraph .sidepane .table-sticky-head thead th {

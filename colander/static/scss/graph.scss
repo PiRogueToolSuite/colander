@@ -129,7 +129,7 @@
     {
       .body
       {
-        max-height: calc(100% - 3rem);
+        height: calc(100% - 3rem);
         overflow: hidden auto;
       }
        .footer
@@ -141,7 +141,7 @@
     }
 
     .table-sticky-head {
-      height: calc(100% - 2rem - 2px - 3rem);
+      height: calc(100% - 2px - 2rem);
       overflow: hidden auto;
 
       thead th {

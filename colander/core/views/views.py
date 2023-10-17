@@ -49,7 +49,10 @@ class CaseContextMixin(AccessMixin):
     active_case = None
 
     def dispatch(self, request, *args, **kwargs):
-        self.active_case = get_active_case(request, kwargs['case_id'])
+        print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
+        #self.active_case = get_active_case(request, kwargs['case_id'])
+        if hasattr(request, 'contextual_case'):
+            self.active_case = request.contextual_case
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):

@@ -5,9 +5,9 @@
 
 
 {% block root-sidebar-menu %}
-  {% url 'case_workspace_view' case_id=active_case.id as case_ws_url %}
-  {% url 'collect_quick_creation_view' case_id=active_case.id as collect_quick_creation_view_url %}
-  {% url 'graph_base_view' case_id=active_case.id as graph_base_view_url %}
+  {% url 'case_workspace_view' case_id=contextual_case.id as case_ws_url %}
+  {% url 'collect_quick_creation_view' case_id=contextual_case.id as collect_quick_creation_view_url %}
+  {% url 'graph_base_view' case_id=contextual_case.id as graph_base_view_url %}
   {% url 'investigate_base_view' as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
   {% url 'report_base_view' as report_base_view_url %}

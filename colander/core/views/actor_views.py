@@ -54,7 +54,7 @@ class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        self.contextual_enrich_context(ctx)
+        #self.contextual_enrich_context(ctx)
         ctx['actors'] = Actor.get_user_actors(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx

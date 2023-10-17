@@ -167,7 +167,7 @@ MIDDLEWARE = [
     "allauth_2fa.middleware.AllauthTwoFactorMiddleware",
 
     # Workspace middleware
-    "colander.core.middleware.contextual_case.ContextualCaseMiddleware",
+    "colander.core.middlewares.ContextualCaseMiddleware",
 ]
 
 # STATIC
@@ -220,7 +220,7 @@ TEMPLATES = [
                 "django.template.context_processors.media",
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
-                "colander.core.middlewares.active_case",
+                "colander.core.middlewares.contextual_case",
                 "django.contrib.messages.context_processors.messages",
                 "colander.users.context_processors.allauth_settings",
             ],

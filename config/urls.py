@@ -47,6 +47,17 @@ from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView,
 from colander.users.views import UserTwoFactorSetup
 from colander.core.views.upload_views import initialize_upload, append_to_upload
 
+case_contextualized_url_patterns = [
+    path("", case_workspace_view, name="case_workspace_view"),
+    path("/collect", quick_creation_view, name="collect_quick_creation_view"),
+    path("/collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
+    path("/collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
+    path("/collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+    path("/collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
+
+    path("/graph", graph_base_view, name="graph_base_view"),
+]
+
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
       #path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -101,12 +112,14 @@ urlpatterns = [
       path("case/<slug:pk>/doc/export/markdown", export_case_documentation_as_markdown_view, name="cases_doc_export_as_markdown_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
 
-      path("ws/<str:case_id>", case_workspace_view, name="case_workspace_view"),
-      path("ws/<str:case_id>/collect", quick_creation_view, name="collect_quick_creation_view"),
-      path("ws/<str:case_id>/collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
-      path("ws/<str:case_id>/collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
-      path("ws/<str:case_id>/collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
-      path("ws/<str:case_id>/collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
+      path("ws/<str:case_id>", include(case_contextualized_url_patterns)),
+
+      # path("ws/<str:case_id>", case_workspace_view, name="case_workspace_view"),
+      # path("ws/<str:case_id>/collect", quick_creation_view, name="collect_quick_creation_view"),
+      # path("ws/<str:case_id>/collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
+      # path("ws/<str:case_id>/collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
+      # path("ws/<str:case_id>/collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+      # path("ws/<str:case_id>/collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
       #path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
       #path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
@@ -175,7 +188,7 @@ urlpatterns = [
       path("collect/experiment/<slug:pk>/analysis_report", PiRogueExperimentAnalysisReportView.as_view(), name="collect_experiment_analysis_report_view"),
       path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
 
-      path("ws/<str:case_id>/graph", graph_base_view, name="graph_base_view"),
+      # path("ws/<str:case_id>/graph", graph_base_view, name="graph_base_view"),
 
       path("document/case", write_documentation_view, name="document_case_write_doc_view"),
 

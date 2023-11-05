@@ -1,5 +1,6 @@
 <span>
   {% include "tlp/badge_tlp.html" with tlp=element.tlp %}
+  {% if break %}<br>{% endif %}
   {% include "tlp/badge_pap.html" with pap=element.pap %}
 </span>
 

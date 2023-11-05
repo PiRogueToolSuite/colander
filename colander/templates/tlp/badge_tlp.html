@@ -1,9 +1,21 @@
 {% if tlp == "WHITE" or tlp == "CLEAR" %}
-  <span class="badge bg-dark text-light {{ c }}">TLP:CLEAR</span>
+  <span class="badge bg-dark text-light {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top"
+    title="Recipients can spread this to the world, there is no limit on disclosure.">
+    TLP:CLEAR
+  </span>
 {% elif tlp == "GREEN" %}
-  <span class="badge bg-dark text-success {{ c }}">TLP:GREEN</span>
+  <span class="badge bg-dark text-success {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top"
+    title="Limited disclosure, recipients can spread this within their community.">
+    TLP:GREEN
+  </span>
 {% elif tlp == "AMBER" %}
-  <span class="badge bg-dark text-warning {{ c }}">TLP:AMBER</span>
+  <span class="badge bg-dark text-warning {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top"
+    title="Limited disclosure, recipients can only spread this on a need-to-know basis within their organization and its clients.">
+    TLP:AMBER
+  </span>
 {% elif tlp == "RED" %}
-  <span class="badge bg-dark text-danger {{ c }}">TLP:RED</span>
+  <span class="badge bg-dark text-danger {{ c }}" data-bs-toggle="tooltip" data-bs-placement="top"
+    title="For the eyes and ears of individual recipients only, no further disclosure.">
+    TLP:RED
+  </span>
 {% endif %}

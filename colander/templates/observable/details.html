@@ -134,12 +134,14 @@
   {% include "entity_relation/related_entities.html" with entity=observable %}
 
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Events" %}</h3>
-    {% for event in observable.sorted_events %}
-      {% include "event/list_item.html" %}
-    {% empty %}
-      {% translate "No events" %}
-    {% endfor %}
+    <h3>{% translate "Timeline" %}</h3>
+    {% with events=observable.sorted_events %}
+      {% if events %}
+        {% include "event/timeline.html" %}
+      {% else %}
+        {% translate "No events" %}
+      {% endif %}
+    {% endwith %}
   </div>
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>

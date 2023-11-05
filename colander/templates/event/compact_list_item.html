@@ -1,0 +1,59 @@
+{% load i18n %}
+
+<tr>
+  <td class="text-small">
+    {{ event.first_seen }}
+  </td>
+  <td class="text-small">
+    {{ event.last_seen }}
+  </td>
+  <td class="text-start">
+    {% include "tlp/show_tlp_pap.html" with element=event break="true" %}
+  </td>
+  <td class="text-wrap">
+    <i class="nf {{ event.type.nf_icon }}"></i>
+    <a class="" href="{% url "collect_event_details_view" pk=event.id %}">
+      {{ event.name|truncatechars_html:80 }}
+    </a>
+    ({{ event.type }})
+    <div class="text-small text-muted">
+      {{ event.count }} time{{ event.count|pluralize:"s" }} in {{ event.last_seen|timeuntil:event.first_seen }}
+    </div>
+  </td>
+  <td>
+    <div class="row">
+      <div class="col-md-6 text-wrap">
+        <ul class="list-unstyled text-small text-end">
+          {% for r in event.in_relations %}
+            <li>
+              <a href="{{ r.obj_from.absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="top"
+                title="{{ r.obj_from.name }} [{{ r.name }}] {{ r.obj_to.name }}">
+                {{ r.obj_from.name|truncatechars_html:16 }}<i class="nf nf-md-arrow_right_bottom {% if r.obj_from.associated_threat %}text-danger{% endif %}"></i>
+              </a>
+            </li>
+          {% empty %}
+            <li class="text-muted">-</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col-md-6 text-wrap">
+        <ul class="list-unstyled text-small">
+          {% for r in event.out_relations %}
+            <li>
+              <a href="{{ r.obj_to.absolute_url }}" data-bs-toggle="tooltip" data-bs-placement="top"
+                title="{{ r.obj_from.name }} [{{ r.name }}] {{ r.obj_to.name }}">
+                <i class="nf nf-md-arrow_right_bottom {% if r.obj_to.associated_threat %}text-danger{% endif %}"></i>{{ r.obj_to.name|truncatechars_html:16 }}
+              </a>
+            </li>
+          {% empty %}
+            <li class="text-muted">-</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </td>
+  <td class="text-end align-middle">
+    {% include "event/controls.html" with exclude="" no_text="yes" btn_class="btn-sm" %}
+  </td>
+</tr>
+

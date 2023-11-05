@@ -409,6 +409,10 @@ class Case(models.Model):
         #return Entity.objects.filter(case=self)
 
     @property
+    def events(self):
+        return Event.objects.filter(case=self).order_by('-first_seen').all()
+
+    @property
     def relations(self):
         return self.quick_search('', type='EntityRelation')
 
@@ -627,7 +631,7 @@ class Actor(Entity):
         return self.name
 
     def __str__(self):
-        return self.name
+        return f'{self.name} ({self.type.name})'
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -703,7 +707,7 @@ class Device(Entity):
         return self.__class__.__name__
 
     def __str__(self):
-        return self.name
+        return f'{self.name} ({self.type.name})'
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -872,7 +876,7 @@ class Artifact(Entity):
         return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.original_name} - {self.type} ({self.created_at})'
+        return f'{self.original_name} ({self.type}) - [{self.created_at}]'
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -991,7 +995,7 @@ class Threat(Entity):
         return bool(objects), objects
 
     def __str__(self):
-        return f'{self.name} - {self.type}'
+        return f'{self.name} ({self.type.name})'
 
     @staticmethod
     def get_user_threats(user, case=None):
@@ -1075,7 +1079,7 @@ class Observable(Entity):
         return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.value} ({self.type.name.lower()})'
+        return f'{self.value} ({self.type.name})'
 
     def get_es_index(self):
         return f'c.{self.case.es_prefix}.o.{self.type.short_name.lower()}'
@@ -1121,7 +1125,7 @@ class Observable(Entity):
 
     @property
     def sorted_events(self):
-        return self.events.order_by('first_seen')
+        return self.events.order_by('-first_seen')
 
     @property
     def is_malicious(self):
@@ -1162,6 +1166,14 @@ class Observable(Entity):
     @property
     def in_immutable_relations(self):
         relations = []
+        for e in self.sorted_events:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="involves",
+                    source=e,
+                    target=self
+                )
+            )
         if self.operated_by:
             relations.append(
                 EntityRelation.immutable_instance(
@@ -1400,7 +1412,7 @@ class DetectionRule(Entity):
         return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.value} ({self.type.name.lower()})'
+        return f'{self.value} ({self.type.name})'
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -1456,7 +1468,7 @@ class DataFragment(Entity):
         return self.__class__.__name__
 
     def __str__(self):
-        return f'{self.value} ({self.type.name.lower()})'
+        return f'{self.value} ({self.type.name})'
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -1513,11 +1525,11 @@ class Event(Entity):
         help_text=_('Type of this event.')
     )
     first_seen = models.DateTimeField(
-        help_text=_('First time the event has occurred.'),
+        help_text=_('First time you observed this event.'),
         default=django.utils.timezone.now
     )
     last_seen = models.DateTimeField(
-        help_text=_('First time the event has occurred.'),
+        help_text=_('Most recent time you observed this event.'),
         default=django.utils.timezone.now
     )
     count = models.BigIntegerField(
@@ -1621,8 +1633,8 @@ class Event(Entity):
     @staticmethod
     def get_user_events(user, case=None):
         if case:
-            return Event.objects.filter(case=case).all()
-        return Event.objects.filter(case__in=user.all_my_cases).all()
+            return Event.objects.filter(case=case).order_by('-first_seen').all()
+        return Event.objects.filter(case__in=user.all_my_cases).order_by('-first_seen').all()
 
     @staticmethod
     def get_if_exists(name, case_id):
@@ -1745,7 +1757,7 @@ class PiRogueExperiment(Entity):
         return icons.get(c, '')
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} (PiRogue experiment)'
 
     @property
     def color(self):

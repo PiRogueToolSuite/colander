@@ -286,6 +286,17 @@
     "stix2_pattern_type": ""
   },
   {
+    "short_name": "GENERIC",
+    "name": "Generic",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf nf-fa-bug",
+    "stix2_type": "",
+    "stix2_value_field_name": "name:unknown",
+    "stix2_pattern": "",
+    "stix2_pattern_type": ""
+  },
+  {
     "short_name": "SPYWARE",
     "name": "Spyware",
     "description": "",

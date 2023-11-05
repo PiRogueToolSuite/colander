@@ -14,12 +14,18 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <link rel="stylesheet" type="text/css" href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-icons.css' %}"/>
-          <link rel="stylesheet" type="text/css" href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.css' %}"/>
-          <link rel="stylesheet" type="text/css" href="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.css' %}"/>
-          <script type="text/javascript" src="{% static 'vendors/bootstrap_datepicker_plus/moment-with-locales.min.js' %}"></script>
-          <script type="text/javascript" src="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.js' %}"></script>
-          <script type="text/javascript" src="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.js' %}"></script>
+          <link rel="stylesheet" type="text/css"
+                href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-icons.css' %}"/>
+          <link rel="stylesheet" type="text/css"
+                href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.css' %}"/>
+          <link rel="stylesheet" type="text/css"
+                href="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.css' %}"/>
+          <script type="text/javascript"
+                  src="{% static 'vendors/bootstrap_datepicker_plus/moment-with-locales.min.js' %}"></script>
+          <script type="text/javascript"
+                  src="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.js' %}"></script>
+          <script type="text/javascript"
+                  src="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.js' %}"></script>
           <form method="post" autocomplete="off">
             {% csrf_token %}
             <div class="row justify-content-center">
@@ -53,11 +59,9 @@
   </div>
   <div class="row justify-content-center mt-4">
     <div class="col-md-12">
-      <h2>{% translate "Latest events" %}</h2>
+      <h2>{% translate "Timeline" %}</h2>
       {% if events %}
-        {% for event in events %}
-          {% include "event/list_item.html" %}
-        {% endfor %}
+        {% include "event/timeline.html" %}
       {% endif %}
     </div>
   </div>

@@ -44,7 +44,7 @@
             </div>
             <div class="small">
               {% include "icons/relation_icon.html" with c="text-primary" %}
-              {{ observable.relation_origins.count|add:observable.relation_targets.count }} relations
+              {{ observable.relations|length }} relations
             </div>
             {% if observable.operated_by %}
               <div class="small">

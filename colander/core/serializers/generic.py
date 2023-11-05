@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from colander.core.models import Artifact, Device, Actor, Threat, Observable, EntityRelation
+from colander.core.models import Artifact, Device, Actor, Threat, Observable, EntityRelation, Event
 
 
 class EntitySerializer(serializers.Serializer):
@@ -68,6 +68,18 @@ class ActorSerializer(serializers.ModelSerializer):
 
     def get_super_type(self, obj):
         return {'name': 'actor', 'short_name': 'ACTOR'}
+
+
+class EventSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    type = EntityTypeSerializer()
+
+    class Meta:
+        model = Event
+        exclude = ['owner', 'case']
+
+    def get_super_type(self, obj):
+        return {'name': 'event', 'short_name': 'EVENT'}
 
 
 class DeviceSerializer(serializers.ModelSerializer):

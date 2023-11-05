@@ -1,0 +1,19 @@
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead class="bg-secondary-light">
+    <tr>
+      <th>{% include "icons/date_icon.html" with c="" %} First seen</th>
+      <th>{% include "icons/date_icon.html" with c="" %} Last seen</th>
+      <th>{% include "icons/traffic_light_icon.html" with c="" %} TLP/PAP</th>
+      <th>Name</th>
+      <th class="text-center">{% include "icons/relation_icon.html" with c="" %} Relations</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for event in events %}
+      {% include "event/compact_list_item.html" %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>

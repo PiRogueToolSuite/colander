@@ -9,6 +9,7 @@ from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 
 from colander.core.forms import CommentForm
 from colander.core.models import Event, EventType, Observable, Artifact, Device, DetectionRule
+from colander.core.serializers.generic import EventSerializer
 from colander.core.views.views import get_active_case, CaseRequiredMixin
 
 
@@ -81,7 +82,8 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['events'] = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
+        events = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
+        ctx['events'] = events
         ctx['is_editing'] = False
         return ctx
 

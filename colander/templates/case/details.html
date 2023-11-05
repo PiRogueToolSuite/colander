@@ -91,12 +91,14 @@
     {% include "pages/quick_search/m_result_table.html" with results=case.entities %}
   </div>
 
-  {# <pre>{{ case.to_mermaid_events }}</pre> #}
-  {% comment %}
-  <div class="col-md-12 mt-2">
-    {% include "case/graph.html" with case=case lock=True %}
-  </div>
-  {% endcomment %}
+{% with events=case.events %}
+  {% if case.events %}
+    <div class="col-md-12">
+      <h2>{% translate "Timeline" %}</h2>
+      {% include "event/timeline.html" %}
+    </div>
+  {% endif %}
+{% endwith %}
 
   {% if case.documentation %}
     <div class="col-md-12 mt-2">

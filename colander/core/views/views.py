@@ -59,9 +59,6 @@ class CaseContextMixin(AccessMixin):
         print("get_success_url", self.active_case)
         return reverse(self.contextual_success_url, kwargs={'case_id': self.active_case.id})
 
-    def contextual_enrich_context(self, ctx):
-        ctx['active_case'] = self.active_case
-
 
 class OwnershipRequiredMixin(SingleObjectMixin):
     def dispatch(self, request, *args, **kwargs):

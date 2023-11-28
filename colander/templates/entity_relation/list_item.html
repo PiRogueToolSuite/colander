@@ -7,7 +7,7 @@
       <div class="col-md-7 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           {% include "icons/relation_icon.html" with c=" h4 text-primary" %}
-          <a class="h4" href="{% url "collect_relation_details_view" pk=relation.id %}">
+          <a class="h4" href="{% url "collect_relation_details_view" case_id=relation.case.id pk=relation.id %}">
             <samp>{{ relation.name }}</samp>
           </a>
         </div>
@@ -62,11 +62,11 @@
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
     <div class="btn-group" role="group" aria-label="Basic example">
-      <a href="{% url "collect_relation_details_view" pk=relation.id %}" class="btn btn-primary">
+      <a href="{% url "collect_relation_details_view" case_id=relation.case.id pk=relation.id %}" class="btn btn-primary">
         <i class="nf nf-fa-eye"></i>
         {% translate "Details" %}
       </a>
-      <a href="{% url "collect_relation_update_view" pk=relation.id %}" class="btn btn-primary">
+      <a href="{% url "collect_relation_update_view" case_id=relation.case.id pk=relation.id %}" class="btn btn-primary">
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>

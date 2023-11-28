@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
@@ -42,19 +42,17 @@ class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request, self.kwargs['case_id'])
-        if form.is_valid() and active_case:
+        if form.is_valid() and self.active_case:
             actor = form.save(commit=False)
             if not hasattr(actor, 'owner'):
                 actor.owner = self.request.user
-                actor.case = active_case
+                actor.case = self.active_case
             actor.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        #self.contextual_enrich_context(ctx)
         ctx['actors'] = Actor.get_user_actors(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
@@ -79,7 +77,6 @@ class ActorDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['active_case'] = self.active_case
         ctx['comment_form'] = CommentForm()
         return ctx
 
@@ -88,4 +85,4 @@ class ActorDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
 def delete_actor_view(request, pk):
     obj = Actor.objects.get(id=pk)
     obj.delete()
-    return redirect("collect_actor_create_view")
+    return redirect(reverse("collect_actor_create_view", kwargs={'case_id':request.contextual_case.id}))

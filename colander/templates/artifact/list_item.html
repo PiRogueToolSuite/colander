@@ -7,7 +7,7 @@
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <i class="nf {{ artifact.type.nf_icon }} h4 text-primary"></i>
-          <a class="h4" href="{% url "collect_artifact_details_view" pk=artifact.id %}">
+          <a class="h4" href="{% url "collect_artifact_details_view" case_id=artifact.case.id pk=artifact.id %}">
             <samp>{{ artifact.original_name }}</samp>
           </a>
           <div class="text-muted small">

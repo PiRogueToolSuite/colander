@@ -31,7 +31,7 @@
       {% endif %}
     </div>
     <div class="btn-group" role="group">
-      <a href="{% url "collect_relation_update_view" pk=relation.id %}" class="btn btn-primary">
+      <a href="{% url "collect_relation_update_view" case_id=relation.case.id pk=relation.id %}" class="btn btn-primary">
         <i class="nf nf-fa-edit"></i>
         {% translate "Edit" %}
       </a>

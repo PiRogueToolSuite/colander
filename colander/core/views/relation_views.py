@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from colander.core.forms import EntityRelationForm
@@ -12,7 +13,7 @@ from colander.core.views.views import get_active_case
 
 @login_required
 def create_or_edit_entity_relation_view(request):
-    active_case = get_active_case(request)
+    active_case = request.contextual_case
     if not active_case:
         return redirect('case_create_view')
     form = EntityRelationForm()
@@ -71,4 +72,5 @@ def create_or_edit_entity_relation_view(request):
 def delete_relation_view(request, pk):
     obj = EntityRelation.objects.get(id=pk)
     obj.delete()
-    return redirect("collect_entity_relation_create_view")
+    return redirect(request.META.get('HTTP_REFERER'))
+    #return redirect(reverse("collect_entity_relation_create_view", kwargs={'case_id': request.contextual_case.id}))

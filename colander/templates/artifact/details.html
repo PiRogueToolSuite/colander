@@ -200,10 +200,10 @@
              class="btn btn-sm btn-primary text-white">
             Download case key
           </a>
-          <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
+          <a href="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
             Download artifact
           </a>
-          <a href="{% url "collect_artifact_download_signature_view" pk=artifact.id %}"
+          <a href="{% url "collect_artifact_download_signature_view" case_id=artifact.case.id pk=artifact.id %}"
              class="btn btn-sm btn-primary text-white">
             Download artifact signature
           </a>
@@ -218,10 +218,10 @@
 <div class="row justify-content-center">
   <div class="col-md-4 mt-2">
     {% if artifact.type.short_name == "IMAGE" %}
-      <img src="{% url "collect_artifact_download_view" pk=artifact.id %}" class="img-thumbnail" alt="{{ artifact.name }}">
+      <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}" class="img-thumbnail" alt="{{ artifact.name }}">
     {% elif artifact.type.short_name == "VIDEO" %}
        <video controls>
-        <source src="{% url "collect_artifact_download_view" pk=artifact.id %}">
+        <source src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}">
       Your browser does not support the video tag.
       </video>
     {% endif %}

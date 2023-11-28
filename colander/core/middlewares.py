@@ -40,7 +40,7 @@ class ContextualCaseMiddleware:
         print('process_view', 'start', view_func)
         print('process_view', 'start', view_args)
         print('process_view', 'start', view_kwargs)
-        if request.user is None:
+        if request.user is None or not request.user.is_authenticated:
             print('process_view', 'no user')
             return
 

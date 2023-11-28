@@ -51,9 +51,22 @@ case_contextualized_url_patterns = [
     path("", case_workspace_view, name="case_workspace_view"),
     path("/collect", quick_creation_view, name="collect_quick_creation_view"),
     path("/collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
-    path("/collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
-    path("/collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+    path("/collect/actor/<slug:pk>", ActorDetailsView.as_view(), name="collect_actor_details_view"),
+    path("/collect/actor/<slug:pk>/edit", ActorUpdateView.as_view(), name="collect_actor_update_view"),
     path("/collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
+
+    path("/collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
+    path("/collect/artifact/upload", initialize_upload, name="initialize_upload"),
+    path("/collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
+    path("/collect/artifact/<slug:pk>", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
+    path("/collect/artifact/<slug:pk>/edit", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
+    path("/collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
+    path("/collect/artifact/<slug:pk>/view", view_artifact, name="collect_artifact_view_view"),
+    path("/collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
+    path("/collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
+
+    path("/collect/entity_relation", create_or_edit_entity_relation_view, name="collect_entity_relation_create_view"),
+    path("/collect/entity_relation/<slug:pk>/delete", delete_relation_view, name="collect_entity_relation_delete_view"),
 
     path("/graph", graph_base_view, name="graph_base_view"),
 ]
@@ -101,6 +114,7 @@ urlpatterns = [
       #path("case", CaseCreateView.as_view(), name="case_create_view"),
       #path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
       #path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
+
       path("case", CaseCreateView.as_view(), name="case_base_view"),
       path("case/create", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),
@@ -131,15 +145,15 @@ urlpatterns = [
       #path("collect/", collect_base_view, name="collect_base_view"),
       #path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
 
-      path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
-      path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
-      path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
-      path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
-      path("collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
-      path("collect/artifact/<slug:pk>/view", view_artifact, name="collect_artifact_view_view"),
-      path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
-      path("collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
-      path("collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
+      # path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
+      # path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
+      # path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
+      # path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
+      # path("collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
+      # path("collect/artifact/<slug:pk>/view", view_artifact, name="collect_artifact_view_view"),
+      # path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
+      # path("collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
+      # path("collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
 
 
       path("collect/device", DeviceCreateView.as_view(), name="collect_device_create_view"),
@@ -158,8 +172,8 @@ urlpatterns = [
       path("collect/observable/<slug:pk>/details", ObservableDetailsView.as_view(), name="collect_observable_details_view"),
       path("collect/observable/<slug:pk>/delete", delete_observable_view, name="collect_observable_delete_view"),
 
-      path("collect/entity_relation", create_or_edit_entity_relation_view, name="collect_entity_relation_create_view"),
-      path("collect/entity_relation/<slug:pk>/delete", delete_relation_view, name="collect_entity_relation_delete_view"),
+      # path("collect/entity_relation", create_or_edit_entity_relation_view, name="collect_entity_relation_create_view"),
+      # path("collect/entity_relation/<slug:pk>/delete", delete_relation_view, name="collect_entity_relation_delete_view"),
 
       # path("collect/relation", ObservableRelationCreateView.as_view(), name="collect_relation_create_view"),
       # path("collect/relation/<slug:pk>", ObservableRelationUpdateView.as_view(), name="collect_relation_update_view"),

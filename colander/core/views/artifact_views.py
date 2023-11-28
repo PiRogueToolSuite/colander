@@ -8,20 +8,21 @@ from django.db import transaction
 from django.forms.widgets import Textarea, RadioSelect
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 from nacl.encoding import Base64Encoder
 
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, ArtifactType, Device, UploadRequest
-from colander.core.views.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseRequiredMixin, CaseContextMixin
 from colander.core.signals import process_hash_and_signing
 
-class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = Artifact
     template_name = 'pages/collect/artifacts.html'
-    success_url = reverse_lazy('collect_artifact_create_view')
+    #success_url = reverse_lazy('collect_artifact_create_view')
+    contextual_success_url = 'collect_artifact_create_view'
     fields = [
         #'file',
         'type',
@@ -35,7 +36,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['artifacts'] = Artifact.get_user_artifacts(self.request.user, self.request.session.get('active_case'))
+        ctx['artifacts'] = Artifact.get_user_artifacts(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
@@ -52,13 +53,12 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         return super().form_invalid(form)
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
 
-        if form.is_valid() and active_case:
+        if form.is_valid() and self.active_case:
             artifact = form.save(commit=False)
             if not hasattr(artifact, 'owner'):
                 artifact.owner = self.request.user
-                artifact.case = active_case
+                artifact.case = self.active_case
 
             upr = UploadRequest.objects.get(pk=form.cleaned_data['upload_request_ref'])
 
@@ -96,9 +96,8 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_form(self, form_class=None):
-        active_case = get_active_case(self.request)
         form = super(ArtifactCreateView, self).get_form(form_class)
-        devices_qset = Device.get_user_devices(self.request.user, active_case)
+        devices_qset = Device.get_user_devices(self.request.user, self.active_case)
         artifact_types = ArtifactType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -109,16 +108,17 @@ class ArtifactCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         form.fields['extracted_from'].queryset = devices_qset
         form.fields['upload_request_ref'] = forms.CharField(widget = forms.HiddenInput(), required = True)
         form.fields['file'] = forms.FileField(required=False)
-        form.initial['tlp'] = active_case.tlp
-        form.initial['pap'] = active_case.pap
+        form.initial['tlp'] = self.active_case.tlp
+        form.initial['pap'] = self.active_case.pap
 
         return form
 
 
-class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
+class ArtifactUpdateView(LoginRequiredMixin, CaseContextMixin, UpdateView):
     model = Artifact
     template_name = 'pages/collect/artifacts.html'
-    success_url = reverse_lazy('collect_artifact_create_view')
+    #success_url = reverse_lazy('collect_artifact_create_view')
+    contextual_success_url = 'collect_artifact_create_view'
     fields = [
         'original_name',
         'type',
@@ -131,9 +131,8 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
     case_required_message_action = "edit artifact"
 
     def get_form(self, form_class=None):
-        active_case = get_active_case(self.request)
         form = super(ArtifactUpdateView, self).get_form(form_class)
-        devices_qset = Device.get_user_devices(self.request.user, active_case)
+        devices_qset = Device.get_user_devices(self.request.user, self.active_case)
         artifact_types = ArtifactType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -147,12 +146,12 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['artifacts'] = Artifact.get_user_artifacts(self.request.user, self.request.session.get('active_case'))
+        ctx['artifacts'] = Artifact.get_user_artifacts(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
 
-class ArtifactDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class ArtifactDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
     model = Artifact
     template_name = 'pages/collect/artifact_details.html'
     case_required_message_action = "view artifact details"
@@ -188,4 +187,4 @@ def download_artifact_signature(request, pk):
 def delete_artifact_view(request, pk):
     obj = Artifact.objects.get(id=pk)
     obj.delete()
-    return redirect("collect_artifact_create_view")
+    return redirect(reverse("collect_artifact_create_view", kwargs={'case_id': request.contextual_case.id}))

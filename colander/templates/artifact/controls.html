@@ -3,29 +3,29 @@
 
 <div class="btn-group" role="group">
   {% if "details" not in exclude %}
-    <a href="{% url "collect_artifact_details_view" pk=artifact.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_artifact_details_view" case_id=artifact.case.id pk=artifact.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-eye"></i>
       {% translate "Details" %}
     </a>
   {% endif %}
   {% if "edit" not in exclude %}
-    <a href="{% url "collect_artifact_update_view" pk=artifact.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_artifact_update_view" case_id=artifact.case.id pk=artifact.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}
     </a>
   {% endif %}
   {% if "play" not in exclude and artifact.can_be_displayed %}
-    <a href="{% url "collect_artifact_view_view" pk=artifact.id %}" class="btn btn-primary {{ btn_class }}" target="_blank">
+    <a href="{% url "collect_artifact_view_view" case_id=artifact.case.id pk=artifact.id %}" class="btn btn-primary {{ btn_class }}" target="_blank">
       <i class="nf nf-fa-play"></i>
       {% translate "Open" %}
     </a>
   {% endif %}
-  <a href="{% url "collect_artifact_download_view" pk=artifact.id %}" class="btn btn-primary text-white {{ btn_class }} {% if not artifact.has_been_processed %}disabled{% endif %}">
+  <a href="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}" class="btn btn-primary text-white {{ btn_class }} {% if not artifact.has_been_processed %}disabled{% endif %}">
     <i class="nf nf-fa-download"></i>
     {% translate "Download" %}
   </a>
   {% if artifact.has_been_processed and "delete" not in exclude %}
-      <a href="{% url "collect_artifact_delete_view" pk=artifact.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+      <a href="{% url "collect_artifact_delete_view" case_id=artifact.case.id pk=artifact.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
         <i class="nf nf-fa-trash"></i>
         Delete
       </a>

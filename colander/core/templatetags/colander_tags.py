@@ -31,7 +31,7 @@ def to_b64(instance):
     if type(instance) is not str:
         return instance
     encoded = instance.encode('utf-8')
-    return urlsafe_b64encode(encoded).decode()
+    return urlsafe_b64encode(encoded).decode().replace('=', '')
 
 
 @register.filter(name="to_cyberchef_input")

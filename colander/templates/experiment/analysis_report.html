@@ -53,11 +53,10 @@
             </table>
           </div>
         </div>
+      </div>
+      <div class="row" style="page-break-before: always; break-before: page;">
         <div class="col-md-12 mt-2">
           <h2>Analysis material</h2>
-        </div>
-
-        <div class="col-md-12 mt-2">
           <h3>Artifacts</h3>
           <p>This report is based on the automatic analysis of the following artifacts</p>
           {% if experiment.pcap %}
@@ -98,6 +97,8 @@
             {% include "experiment/m_analysis_report_artifact_details.html" with artifact=experiment.target_artifact %}
           {% endif %}
         </div>
+      </div>
+      <div class="row" style="page-break-before: always; break-before: page;">
         <div class="col-md-12 mt-2 d-print-block">
           <h3>Detection rules</h3>
           {% for id, rule in rules.items %}
@@ -110,6 +111,8 @@
             </div>
           {% endfor %}
         </div>
+      </div>
+      <div class="row" style="page-break-before: always; break-before: page;">
         {% if inbound_summary or outbound_summary %}
           <div class="col-md-12 mt-2">
             <h2>Detection summary</h2>
@@ -123,6 +126,8 @@
             {% endif %}
           </div>
         {% endif %}
+      </div>
+      <div class="row" style="page-break-before: always; break-before: page;">
         <div class="col-md-12 mt-2">
           <h2>Details</h2>
           {% for a in experiment.analysis %}

@@ -159,10 +159,11 @@
       <div class="rounded text-wrap">
         {% if analysis.decoded_data %}
           <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.decoded_data }}</pre>
-        {% else %}
+        {% elif analysis.result.data %}
           <pre class="bg-dark text-white rounded p-3 mt-2">{{ analysis.result.data }}</pre>
+        {% else %}
+          No data
         {% endif %}
-        </pre>
       </div>
     </div>
   </div>

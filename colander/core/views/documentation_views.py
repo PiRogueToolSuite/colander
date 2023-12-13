@@ -7,7 +7,8 @@ from colander.core.views.views import get_active_case
 
 @login_required
 def write_documentation_view(request):
-    active_case = get_active_case(request)
+    #active_case = get_active_case(request)
+    active_case = request.contextual_case
     if not active_case:
         messages.add_message(request, messages.WARNING,
                              "In order to write case documentation, you must first select a case to work on")

@@ -14,11 +14,11 @@
 
     {% include "experiment/controls.html" with exclude="details" btn_class="" %}
     {#    <div class="btn-group" role="group">#}
-    {#      <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary">#}
+    {#      <a href="{% url "collect_experiment_decryption_view" case_id=experiment.case.id pk=experiment.id %}" class="btn btn-primary">#}
     {#        <i class="nf nf-mdi-key_remove"></i>#}
     {#        {% translate "Decrypt" %}#}
     {#      </a>#}
-    {#      <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary">#}
+    {#      <a href="{% url "collect_experiment_update_view" case_id=experiment.case.id pk=experiment.id %}" class="btn btn-primary">#}
     {#        <i class="nf nf-fa-edit"></i>#}
     {#        {% translate "Edit" %}#}
     {#      </a>#}
@@ -79,7 +79,7 @@
         <td>
           {% if experiment.target_artifact %}
             <i class="nf {{ experiment.target_artifact.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=experiment.target_artifact.id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=experiment.target_artifact.case.id pk=experiment.target_artifact.id %}">
               {{ experiment.target_artifact.original_name }}
             </a>
             ({{ experiment.target_artifact.type }})
@@ -93,7 +93,7 @@
         <td>
           {% if experiment.pcap %}
             <i class="nf {{ experiment.pcap.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=experiment.pcap.id %}">
+            <a href="{% url "collect_artifact_details_view"  case_id=experiment.pcap.case.id pk=experiment.pcap.id %}">
               {{ experiment.pcap.original_name }}
             </a>
             ({{ experiment.pcap.type }})
@@ -107,7 +107,7 @@
         <td>
           {% if experiment.sslkeylog %}
             <i class="nf {{ experiment.sslkeylog.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=experiment.sslkeylog.id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=experiment.sslkeylog.case.id pk=experiment.sslkeylog.id %}">
               {{ experiment.sslkeylog.original_name }}
             </a>
             ({{ experiment.sslkeylog.type }})
@@ -121,7 +121,7 @@
         <td>
           {% if experiment.screencast %}
             <i class="nf {{ experiment.screencast.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=experiment.screencast.id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=experiment.screencast.case.id pk=experiment.screencast.id %}">
               {{ experiment.screencast.original_name }}
             </a>
             ({{ experiment.screencast.type }})
@@ -135,7 +135,7 @@
         <td>
           {% if experiment.socket_trace %}
             <i class="nf {{ experiment.socket_trace.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=experiment.socket_trace.id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=experiment.socket_trace.case.id pk=experiment.socket_trace.id %}">
               {{ experiment.socket_trace.original_name }}
             </a>
             ({{ experiment.socket_trace.type }})
@@ -150,7 +150,7 @@
   {% if experiment.screencast %}
     <div class="col-md-3 mt-5 text-end">
       <video width="240" height="320" controls>
-        <source src="{% url "collect_artifact_download_view" pk=experiment.screencast.id %}" type="video/mp4">
+        <source src="{% url "collect_artifact_download_view" case_id=experiment.screencast.case.id pk=experiment.screencast.id %}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
     </div>

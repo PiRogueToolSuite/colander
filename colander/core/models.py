@@ -1,4 +1,5 @@
 import base64
+import logging
 import os
 import random
 import string
@@ -25,7 +26,9 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_q.models import Schedule
-from elasticsearch_dsl import Document, Keyword, Date, Object, Text
+from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Index
+
+logger = logging.getLogger(__name__)
 
 
 class Appendix:
@@ -711,7 +714,7 @@ class Device(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_device_details_view', kwargs={'pk': self.id})
+        return reverse('collect_device_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):
@@ -968,7 +971,7 @@ class Threat(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_threat_details_view', kwargs={'pk': self.id})
+        return reverse('collect_threat_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):
@@ -1086,7 +1089,7 @@ class Observable(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_observable_details_view', kwargs={'pk': self.id})
+        return reverse('collect_observable_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):
@@ -1340,7 +1343,7 @@ class ObservableRelation(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_relation_details_view', kwargs={'pk': self.id})
+        return reverse('collect_relation_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):
@@ -1416,7 +1419,7 @@ class DetectionRule(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_detection_rule_details_view', kwargs={'pk': self.id})
+        return reverse('collect_detection_rule_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def absolute_url(self):
@@ -1472,7 +1475,7 @@ class DataFragment(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_data_fragment_details_view', kwargs={'pk': self.id})
+        return reverse('collect_data_fragment_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def absolute_url(self):
@@ -1595,7 +1598,7 @@ class Event(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_event_details_view', kwargs={'pk': self.id})
+        return reverse('collect_event_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):
@@ -1786,7 +1789,7 @@ class PiRogueExperiment(Entity):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('collect_experiment_details_view', kwargs={'pk': self.id})
+        return reverse('collect_experiment_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def to_mermaid(self):
@@ -1887,6 +1890,19 @@ class PiRogueExperiment(Entity):
                 )
             )
         return relations
+
+@receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')
+def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
+    print(f'Delete the PiRogue experiment [{instance.name}] {instance.id}')
+    from elasticsearch_dsl import connections
+    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    index_name = instance.get_es_index()
+    try:
+        index = Index(index_name)
+        if index.exists():
+            index.delete()
+    except Exception as e:
+        logger.error(e)
 
 
 class ObservableAnalysisEngine(models.Model):

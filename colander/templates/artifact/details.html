@@ -149,7 +149,7 @@
         <td>
           {% if artifact.extracted_from %}
             <i class="nf {{ artifact.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_device_details_view" pk=artifact.extracted_from_id %}">
+            <a href="{% url "collect_device_details_view" case_id=artifact.case.id pk=artifact.extracted_from_id %}">
               {{ artifact.extracted_from.name }}
             </a>
             ({{ artifact.extracted_from.type }})

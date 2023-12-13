@@ -9,13 +9,14 @@ from datetime import datetime
 from colander.core.forms import CommentForm
 from colander.core.models import PiRogueExperiment, Artifact, PiRogueExperimentAnalysis, DetectionRule
 from colander.core.experiment_tasks import save_decrypted_traffic, apply_detection_rules
-from colander.core.views.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseContextMixin
 
 
-class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class PiRogueExperimentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = PiRogueExperiment
     template_name = 'pages/collect/experiments.html'
-    success_url = reverse_lazy('collect_experiment_create_view')
+    contextual_success_url = 'collect_experiment_create_view'
+    #success_url = reverse_lazy('collect_experiment_create_view')
     fields = [
         'name',
         'pcap',
@@ -30,8 +31,8 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
     case_required_message_action = "create PiRogue experiments"
 
     def get_form(self, form_class=None, edit=False):
-        active_case = get_active_case(self.request)
-        artifacts_qset = Artifact.get_user_artifacts(self.request.user, active_case).filter(sha256__isnull=False)
+        #active_case = get_active_case(self.request)
+        artifacts_qset = Artifact.get_user_artifacts(self.request.user, self.active_case).filter(sha256__isnull=False)
         form = super(PiRogueExperimentCreateView, self).get_form(form_class)
         form.fields['pcap'].queryset = artifacts_qset.filter(type__short_name='PCAP', sha256__isnull=False)
         form.fields['socket_trace'].queryset = artifacts_qset.filter(type__short_name='SOCKET_T', sha256__isnull=False)
@@ -41,18 +42,18 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
         form.fields['target_artifact'].queryset = artifacts_qset
 
         if not edit:
-            form.initial['tlp'] = active_case.tlp
-            form.initial['pap'] = active_case.pap
+            form.initial['tlp'] = self.active_case.tlp
+            form.initial['pap'] = self.active_case.pap
 
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
-        if form.is_valid() and active_case:
+        #active_case = get_active_case(self.request)
+        if form.is_valid() and self.active_case:
             device = form.save(commit=False)
             if not hasattr(device, 'owner'):
                 device.owner = self.request.user
-                device.case = active_case
+                device.case = self.active_case
             device.save()
             form.save_m2m()
         return super().form_valid(form)
@@ -60,7 +61,7 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateV
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user,
-                                                                      self.request.session.get('active_case'))
+                                                                      self.active_case)
         ctx['is_editing'] = False
         return ctx
 
@@ -71,7 +72,7 @@ class PiRogueExperimentUpdateView(PiRogueExperimentCreateView, UpdateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['experiments'] = PiRogueExperiment.get_user_pirogue_dumps(self.request.user,
-                                                                      self.request.session.get('active_case'))
+                                                                      self.active_case)
         ctx['is_editing'] = True
         return ctx
 
@@ -134,7 +135,7 @@ def get_detection_summary(analysis):
     r1.update(r2)
     return inbound, outbound, r1
 
-class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
     model = PiRogueExperiment
     template_name = 'pages/collect/experiment_details.html'
     context_object_name = 'experiment'
@@ -149,7 +150,7 @@ class PiRogueExperimentDetailsView(LoginRequiredMixin, CaseRequiredMixin, Detail
         ctx['rules'] = rules
         return ctx
 
-class PiRogueExperimentAnalysisReportView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class PiRogueExperimentAnalysisReportView(LoginRequiredMixin, CaseContextMixin, DetailView):
     model = PiRogueExperiment
     template_name = 'experiment/analysis_report.html'
     context_object_name = 'experiment'
@@ -178,7 +179,7 @@ def delete_experiment_view(request, pk):
     obj = PiRogueExperiment.objects.get(id=pk)
     # ToDo delete ES data too
     obj.delete()
-    return redirect("collect_experiment_create_view")
+    return redirect("collect_experiment_create_view", case_id=request.contextual_case.id)
 
 
 @login_required
@@ -196,7 +197,7 @@ def save_decoded_content_view(request, pk):
             messages.success(request, "Decoded content successfully saved")
         except Exception as e:
             print(e)
-    return redirect("collect_experiment_details_view", pk=pk)
+    return redirect("collect_experiment_details_view", pk=pk, case_id=request.contextual_case.id)
 
 
 @login_required

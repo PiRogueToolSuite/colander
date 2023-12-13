@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 from bootstrap_datepicker_plus.widgets import DateTimePickerInput
@@ -10,13 +9,14 @@ from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from colander.core.forms import CommentForm
 from colander.core.models import Event, EventType, Observable, Artifact, Device, DetectionRule
 from colander.core.serializers.generic import EventSerializer
-from colander.core.views.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import CaseContextMixin
 
 
-class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = Event
     template_name = 'pages/collect/events.html'
-    success_url = reverse_lazy('collect_event_create_view')
+    contextual_success_url = 'collect_event_create_view'
+    #success_url = reverse_lazy('collect_event_create_view')
     fields = [
         'type',
         'name',
@@ -35,11 +35,11 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
     case_required_message_action = "create events"
 
     def get_form(self, form_class=None, edit=False):
-        active_case = get_active_case(self.request)
-        observable_qset = Observable.get_user_observables(self.request.user, active_case)
-        artifact_qset = Artifact.get_user_artifacts(self.request.user, active_case)
-        devices_qset = Device.get_user_devices(self.request.user, active_case)
-        rules_qset = DetectionRule.get_user_detection_rules(self.request.user, active_case)
+        #active_case = get_active_case(self.request)
+        observable_qset = Observable.get_user_observables(self.request.user, self.active_case)
+        artifact_qset = Artifact.get_user_artifacts(self.request.user, self.active_case)
+        devices_qset = Device.get_user_devices(self.request.user, self.active_case)
+        rules_qset = DetectionRule.get_user_detection_rules(self.request.user, self.active_case)
         form = super(EventCreateView, self).get_form(form_class)
         event_types = EventType.objects.all()
         choices = [
@@ -64,25 +64,25 @@ class EventCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
         )
 
         if not edit:
-            form.initial['tlp'] = active_case.tlp
-            form.initial['pap'] = active_case.pap
+            form.initial['tlp'] = self.active_case.tlp
+            form.initial['pap'] = self.active_case.pap
 
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
-        if form.is_valid() and active_case:
+        #active_case = get_active_case(self.request)
+        if form.is_valid() and self.active_case:
             event = form.save(commit=False)
             if not hasattr(event, 'owner'):
                 event.owner = self.request.user
-                event.case = active_case
+                event.case = self.active_case
             event.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        events = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
+        events = Event.get_user_events(self.request.user, self.active_case)
         ctx['events'] = events
         ctx['is_editing'] = False
         return ctx
@@ -93,7 +93,7 @@ class EventUpdateView(EventCreateView, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['events'] = Event.get_user_events(self.request.user, self.request.session.get('active_case'))
+        ctx['events'] = Event.get_user_events(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
@@ -101,7 +101,7 @@ class EventUpdateView(EventCreateView, UpdateView):
         return super().get_form(form_class, True)
 
 
-class EventDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class EventDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
     model = Event
     template_name = 'pages/collect/event_details.html'
     case_required_message_action = "view event details"
@@ -116,4 +116,4 @@ class EventDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
 def delete_event_view(request, pk):
     obj = Event.objects.get(id=pk)
     obj.delete()
-    return redirect("collect_event_create_view")
+    return redirect("collect_event_create_view", case_id=request.contextual_case.id)

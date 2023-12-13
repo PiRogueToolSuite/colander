@@ -8,14 +8,14 @@
   {% url 'case_workspace_view' case_id=contextual_case.id as case_ws_url %}
   {% url 'collect_quick_creation_view' case_id=contextual_case.id as collect_quick_creation_view_url %}
   {% url 'graph_base_view' case_id=contextual_case.id as graph_base_view_url %}
-  {% url 'investigate_base_view' as investigate_base_view_url %}
+  {% url 'investigate_base_view' case_id=contextual_case.id as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
   {% url 'report_base_view' as report_base_view_url %}
-  {% url 'document_case_write_doc_view' as document_cases_write_doc_url %}
+  {% url 'document_case_write_doc_view' case_id=contextual_case.id as document_cases_write_doc_url %}
 
   <div class="list-group list-group-flush">
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == case_ws_url %} active {% endif %}" href="{{case_ws_url}}">
-      <i class="nf nf-fa-home list-group-item-icon"></i>
+      <i class="fa fa-folder-open list-group-item-icon"></i>
       <span class="d-none d-sm-inline list-group-item-label">Case overview</span>
     </a>
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
@@ -51,9 +51,42 @@
       <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
     </a>
   </div>
-
 {% endblock root-sidebar-menu %}
 
 {% block content %}
   {% include "case/details.html" with case=active_case %}
 {% endblock content %}
+
+{% block offcanvas %}
+  {% if contextual_case %}
+    <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+         id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">
+      <div id="documentation-actions" class="btn-group" role="group">
+        <button id="documentationToggle" class='btn btn-primary' data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+          <i class="nf nf-fa-file_text"></i>
+          <span>Documentation editor : {{ contextual_case.name }}</span>
+        </button>
+        <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
+          Cancel & Close
+        </button>
+        <button id='documentation-save' class="btn btn-primary text-white" role="button">
+          <i class="nf nf-fa-save"></i> Save & Close
+        </button>
+      </div>
+      <!--div class="offcanvas-header pb-1">
+        <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div-->
+      <div class="offcanvas-body mt-0 p-0">
+        {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+      </div>
+      <script type="text/javascript">
+        $(function() {
+          $('#documentation-cancel').click(() => {
+            $('#case_documentation_form').trigger("reset");
+          });
+        });
+      </script>
+    </div>
+  {% endif %}
+{% endblock offcanvas %}

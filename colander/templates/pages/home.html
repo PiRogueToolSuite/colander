@@ -56,7 +56,7 @@
           {% for e in entities %}
             <tr>
               <td class="text-nowrap">
-                <a href="{% url 'cases_select_view' e.case.id %}" title="Select case: {{ e.case }}" data-bs-toggle="tooltip" data-bs-placement="top">{{ e.case }}</a>
+                <a href="{% url 'case_workspace_view' case_id=e.case.id %}" title="Open case: {{ e.case }}" data-bs-toggle="tooltip" data-bs-placement="top">{{ e.case }}</a>
               </td>
               <td class="text-nowrap">{{ e.updated_at }}</td>
               <td>

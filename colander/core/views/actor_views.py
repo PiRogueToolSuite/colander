@@ -2,13 +2,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.shortcuts import redirect
-from django.urls import reverse_lazy, reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
 from colander.core.models import Actor, ActorType
-from colander.core.views.views import get_active_case, CaseRequiredMixin, CaseContextMixin
+from colander.core.views.views import CaseContextMixin
 
 
 class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
@@ -85,4 +84,4 @@ class ActorDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
 def delete_actor_view(request, pk):
     obj = Actor.objects.get(id=pk)
     obj.delete()
-    return redirect(reverse("collect_actor_create_view", kwargs={'case_id':request.contextual_case.id}))
+    return redirect("collect_actor_create_view", case_id=request.contextual_case.id)

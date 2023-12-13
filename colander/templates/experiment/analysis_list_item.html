@@ -248,7 +248,7 @@
             </div>
             <div class="modal-body">
               <form class="form" method="post"
-                    action="{% url "collect_experiment_save_decoded_content_view" pk=experiment.id %}">
+                    action="{% url "collect_experiment_save_decoded_content_view" case_id=experiment.case.id pk=experiment.id %}">
                 {% csrf_token %}
                 <input type="hidden" name="analysis_id" value="{{ analysis.analysis_id }}">
                 <label for="human_readable_content" class="form-label">Human readable content</label>

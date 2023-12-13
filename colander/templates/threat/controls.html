@@ -3,18 +3,18 @@
 
 <div class="btn-group" role="group">
   {% if "details" not in exclude %}
-    <a href="{% url "collect_threat_details_view" pk=threat.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_threat_details_view" case_id=threat.case.id pk=threat.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-eye"></i>
       {% translate "Details" %}
     </a>
   {% endif %}
   {% if "edit" not in exclude %}
-    <a href="{% url "collect_threat_update_view" pk=threat.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_threat_update_view" case_id=threat.case.id pk=threat.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}
     </a>
   {% endif %}
-  <a href="{% url "collect_threat_delete_view" pk=threat.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+  <a href="{% url "collect_threat_delete_view" case_id=threat.case.id pk=threat.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
     <i class="nf nf-fa-trash"></i>
     Delete
   </a>

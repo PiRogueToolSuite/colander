@@ -8,14 +8,13 @@ from django.db import transaction
 from django.forms.widgets import Textarea, RadioSelect
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse_lazy, reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 from nacl.encoding import Base64Encoder
 
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, ArtifactType, Device, UploadRequest
-from colander.core.views.views import get_active_case, CaseRequiredMixin, CaseContextMixin
+from colander.core.views.views import CaseContextMixin
 from colander.core.signals import process_hash_and_signing
 
 class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
@@ -187,4 +186,4 @@ def download_artifact_signature(request, pk):
 def delete_artifact_view(request, pk):
     obj = Artifact.objects.get(id=pk)
     obj.delete()
-    return redirect(reverse("collect_artifact_create_view", kwargs={'case_id': request.contextual_case.id}))
+    return redirect("collect_artifact_create_view", case_id=request.contextual_case.id)

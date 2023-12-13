@@ -1,13 +1,13 @@
 {% load crispy_forms_tags %}
 {% if documentation_form %}
   <form class="form" method="post" id="case_documentation_form"
-        action="{% url "cases_save_doc_view" pk=request.active_case.id %}">
+        action="{% url "cases_save_doc_view" case_id=request.contextual_case.id %}">
     {% csrf_token %}
     <div class="form-group">
       {{ documentation_form | crispy }}
     </div>
     <div id='documentation-save-hidden-in-offcanvas' class="form-group text-end">
-      <a id='documentation-export-as-markdown' class="btn btn-primary text-white" role="button" href="{% url "cases_doc_export_as_markdown_view" pk=request.active_case.id %}" target="_blank">
+      <a id='documentation-export-as-markdown' class="btn btn-primary text-white" role="button" href="{% url "cases_doc_export_as_markdown_view" case_id=request.contextual_case.id %}" target="_blank">
         <i class="nf fa fa-file-text-o"></i> Export as Markdown
       </a>
       <button id='documentation-save' class="btn btn-primary text-white" type="submit" role="button">

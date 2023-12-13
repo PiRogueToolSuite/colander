@@ -82,3 +82,8 @@ INSTALLED_APPS += ["django_extensions"]  # noqa F405
 #         ]
 #     }
 # }
+
+CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='beta.cyberchef.defensive-lab.agency')
+THREATR_FQDN = env('THREATR_FQDN', default='beta.threatr.defensive-lab.agency')
+CYBERCHEF_BASE_URL = env('CYBERCHEF_BASE_URL', default=f'https://{CYBERCHEF_FQDN}')
+THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'https://{THREATR_FQDN}')

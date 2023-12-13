@@ -12,7 +12,7 @@
   </td>
   <td class="text-wrap">
     <i class="nf {{ event.type.nf_icon }}"></i>
-    <a class="" href="{% url "collect_event_details_view" pk=event.id %}">
+    <a class="" href="{% url "collect_event_details_view" case_id=event.case.id pk=event.id %}">
       {{ event.name|truncatechars_html:80 }}
     </a>
     ({{ event.type }})

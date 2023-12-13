@@ -258,39 +258,7 @@
   </div>
   {% endblock %}
 
-  {% block offcanvas %}
-    {% if request.active_case %}
-      <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
-           id="documentationOffCanvas" aria-labelledby="documentationOffCanvasLabel">
-        <div id="documentation-actions" class="btn-group" role="group">
-          <button id="documentationToggle" class='btn btn-primary' data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-            <i class="nf nf-fa-file_text"></i>
-            <span>Documentation editor : {{ request.active_case.name }}</span>
-          </button>
-          <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-            Cancel & Close
-          </button>
-          <button id='documentation-save' class="btn btn-primary text-white" role="button">
-            <i class="nf nf-fa-save"></i> Save & Close
-          </button>
-        </div>
-        <!--div class="offcanvas-header pb-1">
-          <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div-->
-        <div class="offcanvas-body mt-0 p-0">
-          {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
-        </div>
-        <script type="text/javascript">
-          $(function() {
-            $('#documentation-cancel').click(() => {
-              $('#case_documentation_form').trigger("reset");
-            });
-          });
-        </script>
-      </div>
-    {% endif %}
-  {% endblock offcanvas %}
+  {% block offcanvas %}{% endblock offcanvas %}
   {% block modal %}
     <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
       <div class="modal-dialog">

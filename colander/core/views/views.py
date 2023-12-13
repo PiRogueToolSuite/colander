@@ -92,8 +92,9 @@ def disable_documentation_editor(request):
 
 
 @login_required
-def save_case_documentation_view(request, pk):
-    active_case = get_active_case(request)
+def save_case_documentation_view(request):
+    #active_case = get_active_case(request)
+    active_case = request.contextual_case
     if not active_case:
         return redirect('case_create_view')
 
@@ -106,8 +107,9 @@ def save_case_documentation_view(request, pk):
 
 
 @login_required
-def export_case_documentation_as_markdown_view(request, pk):
-    case = Case.objects.get(pk=pk)
+def export_case_documentation_as_markdown_view(request):
+    #case = Case.objects.get(pk=pk)
+    case = request.contextual_case
     if not case:
         return redirect('document_case_write_doc_view')
     if not case.can_contribute(request.user):
@@ -117,7 +119,7 @@ def export_case_documentation_as_markdown_view(request, pk):
     if case.documentation is not None:
         content = case.documentation
 
-    file_to_send = ContentFile(content)
+    file_to_send = ContentFile(content.encode(encoding="UTF-8"))
     response = HttpResponse(file_to_send, 'text/markdown')
     response['Content-Length'] = file_to_send.size
     response['Content-Disposition'] = f'attachment; filename="{case.name}.md"'

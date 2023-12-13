@@ -44,7 +44,11 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
         return EntityRelation.objects.filter(case__in=cases)
 
     def perform_create(self, serializer):
-        print( "perform_create", serializer.validated_data )
+        case_id = self.request.data.pop("case_id")
+
+        print( "perform_create data", self.request.data )
+        print( "perform_create validated_data", serializer.validated_data )
+
         # Bug-0004 : 'upgrade' obj_form and obj_to value to their respective concrete class
         abstract_from = serializer.validated_data['obj_from']
         abstract_to = serializer.validated_data['obj_to']
@@ -57,7 +61,7 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
 
         return serializer.save(
             owner=self.request.user,
-            case=Case.objects.get(pk=self.request.session.get('active_case'))
+            case=Case.objects.get(pk=case_id)
         )
 
 
@@ -79,12 +83,13 @@ class EntityViewSet(mixins.CreateModelMixin,
         return obj
 
     def perform_create(self, serializer):
-        active_case = get_active_case(self.request)
+        case_id = self.request.data.pop("case_id")
+        case = Case.objects.get(pk=case_id) #get_active_case(self.request)
         return serializer.save(
             owner=self.request.user,
-            case=active_case,
-            tlp=active_case.tlp,
-            pap=active_case.pap,
+            case=case,
+            tlp=case.tlp,
+            pap=case.pap,
         )
 
 
@@ -154,10 +159,11 @@ def import_entity_from_threatr(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         print(data)
+        case_id = data.get('case_id', None)
         root = data.get('root', None)
         entity = data.get('entity', None)
         relation = data.get('relation', None)
-        case = Case.objects.get(pk=request.session.get('active_case'))
+        case = Case.objects.get(pk=case_id)
         if root and entity and relation:
             root_model, root_type = get_threatr_entity_type(root)
             entity_model, entity_type = get_threatr_entity_type(entity)

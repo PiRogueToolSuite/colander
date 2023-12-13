@@ -7,7 +7,7 @@
       <div class="col-md-12 text-truncate">
         <div class="border-bottom border-secondary">
           {% include "icons/detection_rule_icon.html" with c="h4 text-primary" %}
-          <a class="h4" href="{% url "collect_detection_rule_details_view" pk=detection_rule.id %}">
+          <a class="h4" href="{% url "collect_detection_rule_details_view" case_id=detection_rule.case.id pk=detection_rule.id %}">
             {{ detection_rule.name }}
           </a>
           <div class="text-muted small">

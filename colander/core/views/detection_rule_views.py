@@ -2,19 +2,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
 from colander.core.forms import CommentForm
 from colander.core.models import DetectionRule, DetectionRuleType
-from colander.core.views.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import CaseContextMixin
 
 
-class DetectionRuleCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = DetectionRule
     template_name = 'pages/collect/detection_rules.html'
-    success_url = reverse_lazy('collect_detection_rule_create_view')
+    contextual_success_url = 'collect_detection_rule_create_view'
+    #success_url = reverse_lazy('collect_detection_rule_create_view')
     fields = [
         'type',
         'name',
@@ -27,7 +27,7 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView)
     case_required_message_action = "create detection rules"
 
     def get_form(self, form_class=None, edit=False):
-        active_case = get_active_case(self.request)
+        #active_case = get_active_case(self.request)
         form = super(DetectionRuleCreateView, self).get_form(form_class)
         rule_types = DetectionRuleType.objects.all()
         choices = [
@@ -38,25 +38,25 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
 
         if not edit:
-            form.initial['tlp'] = active_case.tlp
-            form.initial['pap'] = active_case.pap
+            form.initial['tlp'] = self.active_case.tlp
+            form.initial['pap'] = self.active_case.pap
 
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
-        if form.is_valid() and active_case:
+        #active_case = get_active_case(self.request)
+        if form.is_valid() and self.active_case:
             rule = form.save(commit=False)
             if not hasattr(rule, 'owner'):
                 rule.owner = self.request.user
-                rule.case = active_case
+                rule.case = self.active_case
             rule.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.request.session.get('active_case'))
+        ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
@@ -67,7 +67,7 @@ class DetectionRuleUpdateView(DetectionRuleCreateView, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.request.session.get('active_case'))
+        ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
@@ -75,7 +75,7 @@ class DetectionRuleUpdateView(DetectionRuleCreateView, UpdateView):
         return super().get_form(form_class, True)
 
 
-class DetectionRuleDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView):
+class DetectionRuleDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
     model = DetectionRule
     template_name = 'pages/collect/detection_rule_details.html'
     context_object_name = 'detection_rule'
@@ -91,4 +91,4 @@ class DetectionRuleDetailsView(LoginRequiredMixin, CaseRequiredMixin, DetailView
 def delete_detection_rule_view(request, pk):
     obj = DetectionRule.objects.get(id=pk)
     obj.delete()
-    return redirect("collect_detection_rule_create_view")
+    return redirect("collect_detection_rule_create_view", case_id=request.contextual_case.id)

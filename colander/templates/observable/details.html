@@ -74,7 +74,7 @@
         <td>
           {% if observable.extracted_from %}
             <i class="nf {{ observable.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=observable.extracted_from.id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=observable.extracted_from.case.id  pk=observable.extracted_from.id %}">
               {{ observable.extracted_from.original_name }}
             </a>
             ({{ observable.extracted_from.type }})
@@ -102,7 +102,7 @@
         <td>
           {% if observable.associated_threat %}
             <i class="nf {{ observable.associated_threat.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_threat_details_view" pk=observable.associated_threat_id %}">
+            <a href="{% url "collect_threat_details_view" case_id=observable.associated_threat.case.id pk=observable.associated_threat_id %}">
               {{ observable.associated_threat.name }}
             </a>
             ({{ observable.associated_threat.type }})
@@ -116,7 +116,7 @@
         <td>
           {% if observable.operated_by %}
             <i class="nf {{ observable.operated_by.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_actor_details_view" case_id=observable.case.id pk=observable.operated_by_id %}">
+            <a href="{% url "collect_actor_details_view" case_id=observable.operated_by.case.id pk=observable.operated_by_id %}">
               {{ observable.operated_by.name }}
             </a>
             ({{ observable.operated_by.type }})

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "pages/workspace/base.html" %}
 {% load i18n %}
 {% load static %}
 {% load crispy_forms_tags %}
@@ -179,6 +179,7 @@
           'X-CSRFToken': '{{ csrf_token }}',
         },
         body: JSON.stringify({
+          'case_id': "{{ contextual_case.id }}",
           'root': root,
           'entity': entity,
           'relation': relation

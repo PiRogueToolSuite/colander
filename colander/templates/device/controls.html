@@ -3,18 +3,18 @@
 
 <div class="btn-group" role="group">
   {% if "details" not in exclude %}
-    <a href="{% url "collect_device_details_view" pk=device.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_device_details_view" case_id=device.case.id pk=device.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-eye"></i>
       {% translate "Details" %}
     </a>
   {% endif %}
   {% if "edit" not in exclude %}
-    <a href="{% url "collect_device_update_view" pk=device.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_device_update_view" case_id=device.case.id pk=device.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}
     </a>
   {% endif %}
-  <a href="{% url "collect_device_delete_view" pk=device.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+  <a href="{% url "collect_device_delete_view" case_id=device.case.id pk=device.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
     <i class="nf nf-fa-trash"></i>
     Delete
   </a>

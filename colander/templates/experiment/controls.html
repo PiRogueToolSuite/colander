@@ -3,40 +3,40 @@
 
 <div class="btn-group" role="group">
   {% if "details" not in exclude %}
-    <a href="{% url "collect_experiment_details_view" pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_experiment_details_view" case_id=experiment.case.id pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-eye"></i>
       {% translate "Details" %}
     </a>
   {% endif %}
   {% if "edit" not in exclude %}
-    <a href="{% url "collect_experiment_update_view" pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_experiment_update_view" case_id=experiment.case.id pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}
     </a>
   {% endif %}
   {% if "decrypt" not in exclude %}
-    <a href="{% url "collect_experiment_decryption_view" pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_experiment_decryption_view" case_id=experiment.case.id pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-mdi-key_remove"></i>
       {% translate "Decrypt" %}
     </a>
   {% endif %}
   {% if "detect" not in exclude %}
-    <a href="{% url "collect_experiment_detection_view" pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
+    <a href="{% url "collect_experiment_detection_view" case_id=experiment.case.id pk=experiment.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-magic"></i>
       {% translate "Detect" %}
     </a>
   {% endif %}
   {% if "report" not in exclude %}
-    <a href="{% url "collect_experiment_analysis_report_view" pk=experiment.id %}"
+    <a href="{% url "collect_experiment_analysis_report_view" case_id=experiment.case.id pk=experiment.id %}"
        target="_blank"
        class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-file_text"></i>
       {% translate "View report" %}
     </a>
   {% endif %}
-{#  <a href="{% url "collect_experiment_delete_view" pk=experiment.id %}"#}
-{#     class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">#}
-{#    <i class="nf nf-fa-trash"></i>#}
-{#    Delete#}
-{#  </a>#}
+  <a href="{% url "collect_experiment_delete_view" case_id=experiment.case.id pk=experiment.id %}"
+     class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+    <i class="nf nf-fa-trash"></i>
+    Delete
+  </a>
 </div>

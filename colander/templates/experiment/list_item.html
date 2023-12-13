@@ -7,7 +7,7 @@
       <div class="col-md-12 text-truncate">
         <div class="border-bottom border-secondary">
           {% include "icons/experiment_icon.html" with c="h4 text-primary" %}
-          <a class="h4" href="{% url "collect_experiment_details_view" pk=experiment.id %}">
+          <a class="h4" href="{% url "collect_experiment_details_view" case_id=experiment.case.id pk=experiment.id %}">
             {{ experiment.name }}
           </a>
           <div class="text-muted small">

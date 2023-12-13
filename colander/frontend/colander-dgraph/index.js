@@ -332,7 +332,9 @@ class ColanderDGraph {
       throw new Error('Empty relation name');
     }
 
-    let post_data = Object.assign({}, ctx);
+    let post_data = Object.assign({
+      case_id: this._config.caseId
+    }, ctx);
     delete post_data.pending_edge;
 
     const rawResponse = await fetch(
@@ -426,7 +428,9 @@ class ColanderDGraph {
   }
 
   async _do_createOrEditEntity(ctx) {
-    let post_data = Object.assign({}, ctx);
+    let post_data = Object.assign({
+      case_id: this._config.caseId
+    }, ctx);
     delete post_data.position;
 
     const rawResponse = await fetch(

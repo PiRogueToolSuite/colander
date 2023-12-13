@@ -74,7 +74,7 @@
         <td>
           {% if data_fragment.extracted_from %}
             <i class="nf {{ data_fragment.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" pk=data_fragment.extracted_from.id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=data_fragment.extracted_from.case.id pk=data_fragment.extracted_from.id %}">
               {{ data_fragment.extracted_from.original_name }}
             </a>
             ({{ data_fragment.extracted_from.type }})

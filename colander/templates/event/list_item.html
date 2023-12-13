@@ -7,7 +7,7 @@
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <i class="nf {{ event.type.nf_icon }} h4 text-primary"></i>
-          <a class="h4" href="{% url "collect_event_details_view" pk=event.id %}">
+          <a class="h4" href="{% url "collect_event_details_view" case_id=event.case.id pk=event.id %}">
             <samp>{{ event.name }}</samp>
           </a>
         </div>

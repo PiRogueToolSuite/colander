@@ -338,6 +338,18 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   margin-left: 0;
 }
 
+header .navbar-nav
+{
+  height: 3rem;
+  .nav-item {
+    height: 3rem;
+    .nav-link {
+      padding: 0.90rem;
+      background-color: rgba(0, 0, 0, 0.25);
+    }
+  }
+}
+
 @media (min-width: 768px) {
   #sidebar-wrapper {
     margin-left: 0;
@@ -387,6 +399,7 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   {
     opacity: 1;
   }
+
 
   #page-content-wrapper {
     min-width: 0;
@@ -514,13 +527,98 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   }
 }
 
-#overall-search-form {
+#overall-case-or-search {
   position: relative;
+  display: flex;
+  height: 3rem;
 
-  #overall-search-result {
+  #overall-case-selection {
+    background-color: rgba(255, 255, 255, 0.1);
+    /*background-color: var(--bs-primary);*/
+    /*vertical-align: middle;*/
+    /*line-height: 3rem;*/
+    /*font-size: 1rem;*/
+    box-sizing: border-box;
+    color: white;
+    border: solid #5519A3;
+    border-width: 0 2px 0 0;
+
+    .case-title {
+      padding: 1rem 1rem;
+      box-sizing: border-box;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    #overall-case-list-toggle-icon
+    {
+      position: absolute;
+      top: 0rem;
+      left: calc( 50% - 3rem );
+      margin: 1.25rem;
+      rotate: 0deg;
+      transition: 0.25s rotate;
+    }
+
+    &:focus {
+      color: black;
+      background-color: white;
+      /*background-color: rgba(255, 255, 255, 0.1);*/
+      #overall-case-list {
+        max-height: 30vh;
+      }
+      #overall-case-list-toggle-icon
+      {
+        rotate: 180deg;
+      }
+    }
+  }
+
+  #overall-search-form {
+    #overall-search-icon
+    {
+      color: #868e96;
+      color: white;
+      position: absolute;
+      top: 0;
+      margin: 1rem 0.75rem;
+      font-size: 1.3rem;
+    }
+
+    #overall-search {
+      &::placeholder
+      {
+        color: white;
+      }
+      padding: 1rem 1rem;
+      padding-left: 2.5rem;
+      &:focus {
+        border: none;
+        outline: none;
+        color: black;
+        box-shadow: none;
+        &::placeholder
+        {
+          color: black;
+        }
+        + #overall-search-icon {
+          color: black;
+        }
+        ~ #overall-search-result {
+          max-height: 30vh;
+        }
+      }
+    }
+  }
+
+  #overall-search-result,
+  #overall-case-list {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     position: absolute;
     width: 100%;
+    top: 3rem;
+    left: 0;
     max-height: 0;
     overflow: hidden auto;
     transition: max-height 0.25s ease-out;
@@ -529,22 +627,6 @@ body.sb-sidenav-toggled #sidebar-wrapper {
     }
     .list-group {
       border-radius: 0;
-    }
-  }
-
-  #overall-search {
-    font-size: 1rem;
-    &::placeholder {
-      color: white;
-      font-size: 1rem;
-    }
-    &:focus {
-      &::placeholder {
-        color: black;
-      }
-      + #overall-search-result {
-        max-height: 30vh;
-      }
     }
   }
 }

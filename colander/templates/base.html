@@ -75,29 +75,57 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     -->
-    <form id="overall-search-form" method="post" action="{% url "quick_search_view" %}" class="w-100">
-      {% csrf_token %}
+    <div id="overall-case-or-search" class="w-100">
       {% if contextual_case %}
         {% define contextual_case.name as title_placeholder %}
       {% else %}
         {% define "Select a case to work on" as title_placeholder %}
       {% endif %}
-      <input id="overall-search" class="form-control form-control-dark w-100" name="q" type="text" placeholder="{{ title_placeholder }}" aria-label="Search" autocomplete="off"/>
-      <div id="overall-search-result">
-        <div class="list-group">
-          {% for case in request.user_cases %}
-            <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
-              <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">{{ case.name }}</h5>
-                <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
-              </div>
-              <p class="mb-1">Some placeholder content in a paragraph.</p>
-              <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
-            </a>
-          {% endfor %}
+      <div id="overall-case-selection" class="w-50" tabindex="0">
+        <div class="case-title">
+          {% if contextual_case %}
+            <i class="fa fa-folder-open" aria-hidden="true"></i>
+          {% else %}
+            <i class="fa fa-folder" aria-hidden="true"></i>
+          {% endif %}
+          {{ title_placeholder }}
+          <i id="overall-case-list-toggle-icon" class="nf nf-fa-toggle_down" aria-hidden="true"></i>
         </div>
+        <div id="overall-case-list">
+            <div class="list-group">
+              {% for case in request.user_cases %}
+                <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ case.name }}</h5>
+                    <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
+                  </div>
+                  <p class="mb-1">Some placeholder content in a paragraph.</p>
+                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
       </div>
-    </form>
+      <form id="overall-search-form" method="post" action="{% url "quick_search_view" %}" class="w-50">
+        {% csrf_token %}
+        <input id="overall-search" class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search" autocomplete="off"/>
+        <i id="overall-search-icon" class="nf nf-md-magnify" aria-hidden="true"></i>
+        <div id="overall-search-result">
+          <div class="list-group">
+            {% for case in request.user_cases %}
+              <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">{{ case.name }}</h5>
+                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
+                </div>
+                <p class="mb-1">Some placeholder content in a paragraph.</p>
+                <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+    </div>
     <div class="navbar-nav">
       <div class="nav-item">
         {% if request.user.is_authenticated %}

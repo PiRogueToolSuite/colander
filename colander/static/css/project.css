@@ -11088,6 +11088,17 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   margin-left: 0;
 }
 
+header .navbar-nav {
+  height: 3rem;
+}
+header .navbar-nav .nav-item {
+  height: 3rem;
+}
+header .navbar-nav .nav-item .nav-link {
+  padding: 0.9rem;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
 @media (min-width: 768px) {
   #sidebar-wrapper {
     margin-left: 0;
@@ -11234,35 +11245,96 @@ body.sb-sidenav-toggled #sidebar-wrapper {
   padding: 0.5rem;
 }
 
-#overall-search-form {
+#overall-case-or-search {
   position: relative;
+  display: flex;
+  height: 3rem;
 }
-#overall-search-form #overall-search-result {
+#overall-case-or-search #overall-case-selection {
+  background-color: rgba(255, 255, 255, 0.1);
+  /*background-color: var(--bs-primary);*/
+  /*vertical-align: middle;*/
+  /*line-height: 3rem;*/
+  /*font-size: 1rem;*/
+  box-sizing: border-box;
+  color: white;
+  border: solid #5519A3;
+  border-width: 0 2px 0 0;
+}
+#overall-case-or-search #overall-case-selection .case-title {
+  padding: 1rem 1rem;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+#overall-case-or-search #overall-case-selection #overall-case-list-toggle-icon {
+  position: absolute;
+  top: 0rem;
+  left: calc(50% - 3rem);
+  margin: 1.25rem;
+  rotate: 0deg;
+  transition: 0.25s rotate;
+}
+#overall-case-or-search #overall-case-selection:focus {
+  color: black;
+  background-color: white;
+  /*background-color: rgba(255, 255, 255, 0.1);*/
+}
+#overall-case-or-search #overall-case-selection:focus #overall-case-list {
+  max-height: 30vh;
+}
+#overall-case-or-search #overall-case-selection:focus #overall-case-list-toggle-icon {
+  rotate: 180deg;
+}
+#overall-case-or-search #overall-search-form #overall-search-icon {
+  color: #868e96;
+  color: white;
+  position: absolute;
+  top: 0;
+  margin: 1rem 0.75rem;
+  font-size: 1.3rem;
+}
+#overall-case-or-search #overall-search-form #overall-search {
+  padding: 1rem 1rem;
+  padding-left: 2.5rem;
+}
+#overall-case-or-search #overall-search-form #overall-search::placeholder {
+  color: white;
+}
+#overall-case-or-search #overall-search-form #overall-search:focus {
+  border: none;
+  outline: none;
+  color: black;
+  box-shadow: none;
+}
+#overall-case-or-search #overall-search-form #overall-search:focus::placeholder {
+  color: black;
+}
+#overall-case-or-search #overall-search-form #overall-search:focus + #overall-search-icon {
+  color: black;
+}
+#overall-case-or-search #overall-search-form #overall-search:focus ~ #overall-search-result {
+  max-height: 30vh;
+}
+#overall-case-or-search #overall-search-result,
+#overall-case-or-search #overall-case-list {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
   position: absolute;
   width: 100%;
+  top: 3rem;
+  left: 0;
   max-height: 0;
   overflow: hidden auto;
   transition: max-height 0.25s ease-out;
 }
-#overall-search-form #overall-search-result:hover {
+#overall-case-or-search #overall-search-result:hover,
+#overall-case-or-search #overall-case-list:hover {
   max-height: 30vh;
 }
-#overall-search-form #overall-search-result .list-group {
+#overall-case-or-search #overall-search-result .list-group,
+#overall-case-or-search #overall-case-list .list-group {
   border-radius: 0;
-}
-#overall-search-form #overall-search {
-  font-size: 1rem;
-}
-#overall-search-form #overall-search::placeholder {
-  color: white;
-  font-size: 1rem;
-}
-#overall-search-form #overall-search:focus::placeholder {
-  color: black;
-}
-#overall-search-form #overall-search:focus + #overall-search-result {
-  max-height: 30vh;
 }
 
 /*# sourceMappingURL=project.css.map */

@@ -328,11 +328,20 @@ def download_case_public_key(request, pk):
 
 @login_required
 def entity_exists(request):
-    if request.method == 'GET':
-        entity_type = request.GET.get('type', None)
-        value = request.GET.get('value', None)
-        active_case = get_active_case(request)
-        if not active_case or not entity_type or not value:
+    if request.method == 'POST':
+        case_id = request.POST.get('case_id', None)
+        entity_type = request.POST.get('type', None)
+        value = request.POST.get('value', None)
+
+        if case_id is None:
+            return JsonResponse([], safe=False)
+
+        active_case = Case.objects.get(pk=case_id)
+
+        if not active_case:
+            return JsonResponse([], safe=False)
+
+        if not entity_type or not value:
             return JsonResponse([], safe=False)
 
         results = active_case.quick_search(value, type=entity_type)

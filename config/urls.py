@@ -250,15 +250,18 @@ urlpatterns = [
 
       # path("ws/<str:case_id>/graph", graph_base_view, name="graph_base_view"),
 
+      # TODO: Check if deprecated
       path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
 
-      path("entity/suggest", entity_exists, name="entity_exists_view"),
+      # path("entity/suggest", entity_exists, name="entity_exists_view"),
       #
       # path("investigate/", investigate_search_view, name="investigate_base_view"),
+      # TODO: Check if deprecated
       path("report/", report_base_view, name="report_base_view"),
 
-      path("document/enable", enable_documentation_editor, name="enable_documentation_editor_view"),
-      path("document/disable", disable_documentation_editor, name="disable_documentation_editor_view"),
+      # TODO: Clean / Deprecated
+      # path("document/enable", enable_documentation_editor, name="enable_documentation_editor_view"),
+      # path("document/disable", disable_documentation_editor, name="disable_documentation_editor_view"),
 
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),

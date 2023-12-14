@@ -1,8 +1,33 @@
-function suggest_entity(input, type) {
+function suggest_entity(input, type, csrf, cid) {
+    let case_id = cid || null;
     input.on('input', function () {
         $('.suggested-entity').remove()
         const value = input.val();
         if (value.length > 4) {
+            $.ajax({
+                type: 'POST',
+                url: '/rest/entity/suggest',
+                dataType: 'json',
+                data: {
+                    type: type,
+                    value: value,
+                    case_id: case_id,
+                },
+                headers: {
+                    'X-CSRFToken': csrf,
+                },
+                success: function (data) {
+                    data.forEach(function (d) {
+                        const message = `
+                        <div class="text-muted mb-0 suggested-entity">
+                            Do you mean <a href="${d.url}" class="">${d.text}</a>?
+                        </div>
+                    `
+                        input.after(message)
+                    })
+                }
+            });
+            /*
             $.get(`/entity/suggest?type=${type}&value=${value}`, function (data) {
                 data.forEach(function (d) {
                     const message = `
@@ -13,6 +38,8 @@ function suggest_entity(input, type) {
                     input.after(message)
                 })
             })
+
+             */
         }
     })
 }

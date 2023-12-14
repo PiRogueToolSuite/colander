@@ -53,7 +53,7 @@
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       let input = $("input[name=name]");
-      suggest_entity(input, 'DetectionRule')
+      suggest_entity(input, 'DetectionRule', '{{ csrf_token }}', '{{ contextual_case.id }}');
     });
   </script>
 {% endblock inline_javascript %}

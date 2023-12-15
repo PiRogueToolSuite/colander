@@ -2,32 +2,23 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import Textarea, RadioSelect
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, UpdateView, DetailView
 
-from colander.core.forms import CommentForm
+from colander.core.forms import CommentForm, DetectionRuleForm
 from colander.core.models import DetectionRule, DetectionRuleType
 from colander.core.views.views import CaseContextMixin
 
 
 class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
-    model = DetectionRule
+    form_class = DetectionRuleForm
     template_name = 'pages/collect/detection_rules.html'
+    success_url = reverse_lazy('collect_detection_rule_create_view')
+    case_required_message_action = 'create detection rules'
     contextual_success_url = 'collect_detection_rule_create_view'
-    #success_url = reverse_lazy('collect_detection_rule_create_view')
-    fields = [
-        'type',
-        'name',
-        'description',
-        'source_url',
-        'tlp',
-        'pap',
-        'content'
-    ]
-    case_required_message_action = "create detection rules"
 
     def get_form(self, form_class=None, edit=False):
-        #active_case = get_active_case(self.request)
         form = super(DetectionRuleCreateView, self).get_form(form_class)
         rule_types = DetectionRuleType.objects.all()
         choices = [
@@ -35,13 +26,13 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
             for t in rule_types
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
-        form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp
             form.initial['pap'] = self.active_case.pap
 
         return form
+
 
     def form_valid(self, form):
         #active_case = get_active_case(self.request)
@@ -62,6 +53,7 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
 
 class DetectionRuleUpdateView(DetectionRuleCreateView, UpdateView):
+    model = DetectionRule
     context_object_name = 'detection_rule'
     case_required_message_action = "update detection rule"
 
@@ -72,7 +64,7 @@ class DetectionRuleUpdateView(DetectionRuleCreateView, UpdateView):
         return ctx
 
     def get_form(self, form_class=None):
-        return super().get_form(form_class, True)
+        return super().get_form(self.form_class, True)
 
 
 class DetectionRuleDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):

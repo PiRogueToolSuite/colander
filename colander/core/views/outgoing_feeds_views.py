@@ -19,9 +19,9 @@ from colander.core.views.views import get_active_case, CaseContextMixin
 
 class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = DetectionRuleOutgoingFeed
-    template_name = 'pages/export_feeds/detection_rule_out_feeds.html'
-    contextual_success_url = 'export_feeds_detection_rule_out_feed_create_view'
-    #success_url = reverse_lazy('export_feeds_detection_rule_out_feed_create_view')
+    template_name = 'pages/feeds/detection_rule_out_feeds.html'
+    contextual_success_url = 'feeds_detection_rule_out_feed_create_view'
+    #success_url = reverse_lazy('feeds_detection_rule_out_feed_create_view')
     fields = [
         'name',
         'description',
@@ -76,14 +76,14 @@ class DetectionRuleOutgoingFeedUpdateView(DetectionRuleOutgoingFeedCreateView, U
 def delete_detection_rule_out_feed_view(request, pk):
     obj = DetectionRuleOutgoingFeed.objects.get(id=pk)
     obj.delete()
-    return redirect("export_feeds_detection_rule_out_feed_create_view", case_id=request.contextual_case.id)
+    return redirect("feeds_detection_rule_out_feed_create_view", case_id=request.contextual_case.id)
 
 
 class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = EntityOutgoingFeed
-    template_name = 'pages/export_feeds/entity_out_feeds.html'
-    contextual_success_url = 'export_feeds_entity_out_feed_create_view'
-    #success_url = reverse_lazy('export_feeds_entity_out_feed_create_view')
+    template_name = 'pages/feeds/entity_out_feeds.html'
+    contextual_success_url = 'feeds_entity_out_feed_create_view'
+    #success_url = reverse_lazy('feeds_entity_out_feed_create_view')
     fields = [
         'name',
         'description',
@@ -139,7 +139,7 @@ class EntityOutgoingFeedUpdateView(EntityOutgoingFeedCreateView, UpdateView):
 def delete_entity_out_feed_view(request, pk):
     obj = EntityOutgoingFeed.objects.get(id=pk)
     obj.delete()
-    return redirect("export_feeds_entity_out_feed_create_view", case_id=request.contextual_case.id)
+    return redirect("feeds_entity_out_feed_create_view", case_id=request.contextual_case.id)
 
 
 def outgoing_entities_feed_view(request, pk):

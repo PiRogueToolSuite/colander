@@ -2,12 +2,12 @@
 
 
 <div class="btn-group" role="group">
-  <a href="{% url "export_feeds_detection_rule_out_feed_update_view" case_id=feed.case.id pk=feed.id %}"
+  <a href="{% url "feeds_detection_rule_out_feed_update_view" case_id=feed.case.id pk=feed.id %}"
      class="btn btn-sm btn-primary {{ btn_class }}">
     <i class="nf nf-fa-edit"></i>
     {% translate "Edit" %}
   </a>
-  <a href="{% url "export_feeds_detection_rule_out_feed_delete_view" case_id=feed.case.id pk=feed.id %}"
+  <a href="{% url "feeds_detection_rule_out_feed_delete_view" case_id=feed.case.id pk=feed.id %}"
      class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}">
     <i class="nf nf-fa-trash"></i>
     Delete

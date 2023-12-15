@@ -12,7 +12,7 @@
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
   {% url 'report_base_view' as report_base_view_url %}
   {% url 'document_case_write_doc_view' case_id=contextual_case.id as document_cases_write_doc_url %}
-  {% url 'export_feeds_view' case_id=contextual_case.id as export_feeds_view_url %}
+  {% url 'feeds_view' case_id=contextual_case.id as feeds_view_url %}
 
   <div class="list-group list-group-flush">
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == case_ws_url %} active {% endif %}" href="{{case_ws_url}}">
@@ -40,13 +40,13 @@
       <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
       <span class="d-none d-sm-inline list-group-item-label">Document</span>
     </a>
-    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link export_feeds_view_url %}"
-       href="{{ export_feeds_view_url }}">
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link feeds_view_url %}"
+       href="{{ feeds_view_url }}">
       <i class="nf nf-fa-feed list-group-item-icon" aria-hidden="true"></i>
-      <span class="d-none d-sm-inline list-group-item-label">Export feeds</span>
+      <span class="d-none d-sm-inline list-group-item-label">Feeds</span>
     </a>
     <div class="list-group list-group-flush list-group-secondary">
-      {% block export-feeds-sidebar-items %}{% endblock export-feeds-sidebar-items %}
+      {% block feeds-sidebar-items %}{% endblock feeds-sidebar-items %}
     </div>
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
        href="{{ investigate_base_view_url }}">

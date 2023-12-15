@@ -21,7 +21,8 @@ from os import path
 
 from colander.core import datasets
 from colander.core.forms import DocumentationForm
-from colander.core.models import Entity, Case, colander_models, color_scheme, icons
+from colander.core.models import Entity, Case, colander_models, color_scheme, icons, DetectionRuleOutgoingFeed, \
+    EntityOutgoingFeed
 from colander.core.templatetags.colander_tags import model_name
 
 
@@ -416,8 +417,14 @@ def case_workspace_view(request):
 
 
 @login_required
-def export_feeds_view(request):
-    return render(request, 'pages/export_feeds/base.html')
+def feeds_view(request):
+    feeds = []
+    feeds.extend( DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(request.user, request.contextual_case) )
+    feeds.extend( EntityOutgoingFeed.get_user_entity_out_feeds(request.user, request.contextual_case) )
+    ctx = {
+        'feeds': feeds
+    }
+    return render(request, 'pages/feeds/base.html', context=ctx)
 
 
 def do_search(query, cases):

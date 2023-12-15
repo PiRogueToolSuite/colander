@@ -7,24 +7,24 @@ volumes:
   colander_local_es_data: { }
 
 services:
-  traefik:
-    image: traefik:v2.9.8
-    command:
-      - "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-    depends_on:
-      - django
-      - cyberchef
-      - keycloak
-    restart: unless-stopped
-    ports:
-      - "88:80"
-      - "8088:8080" # The Web UI (enabled by --api)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+#  traefik:
+#    image: traefik:v2.9.8
+#    command:
+#      - "--log.level=DEBUG"
+#      - "--api.insecure=true"
+#      - "--providers.docker=true"
+#      - "--providers.docker.exposedbydefault=false"
+#      - "--entrypoints.web.address=:80"
+#    depends_on:
+#      - django
+#      - cyberchef
+#      - keycloak
+#    restart: unless-stopped
+#    ports:
+#      - "88:80"
+#      - "8088:8080" # The Web UI (enabled by --api)
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
 
   django: &django
     build:
@@ -49,17 +49,6 @@ services:
     ports:
       - "8000:8000"
     command: /start
-    labels:
-      # This is enableing treafik to proxy this service
-      - "traefik.enable=true"
-      # Here we have to define the URL
-      - "traefik.http.routers.django.rule=Host(`colander.radis`)"
-      # Here we are defining wich entrypoint should be used by clients to access this service
-      - "traefik.http.routers.django.entrypoints=web"
-      # Here we define in wich network treafik can find this service
-      - "traefik.docker.network=web"
-      # This is the port that traefik should proxy
-      - "traefik.http.services.django.loadbalancer.server.port=8000"
 
   worker:
     <<: *django
@@ -83,9 +72,6 @@ services:
       - ./.envs/.local/.postgres
     command: /start-worker
     ports: [ ]
-    labels:
-      # This is enableing treafik to proxy this service
-      - "traefik.enable=false"
 
   redis:
     image: redis:6
@@ -121,17 +107,6 @@ services:
     ports:
       - 8001:8000
     restart: unless-stopped
-    labels:
-      # This is enableing treafik to proxy this service
-      - "traefik.enable=true"
-      # Here we have to define the URL
-      - "traefik.http.routers.cyberchef.rule=Host(`cyberchef.radis`)"
-      # Here we are defining wich entrypoint should be used by clients to access this service
-      - "traefik.http.routers.cyberchef.entrypoints=web"
-      # Here we define in wich network treafik can find this service
-      - "traefik.docker.network=web"
-      # This is the port that traefik should proxy
-      - "traefik.http.services.cyberchef.loadbalancer.server.port=8000"
 
   playwright:
     image: ghcr.io/piroguetoolsuite/playwright-rest-api:main
@@ -150,41 +125,41 @@ services:
       - xpack.security.enabled='false'
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
 
-  keycloak-db:
-    build:
-      context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
-    image: colander_production_postgres
-    container_name: colander_local_keycloak_db
-    environment:
-      - POSTGRES_DB=keycloakdb
-      - POSTGRES_USER=hhGArHWVrVQjuDcgBUNNlQqZNfqyNPfQ
-      - POSTGRES_PASSWORD=vW9WtXmFWpsq5tATgcYNAi62cC1tWar1BsSrksBodMrra2bv4NHVvRyIm9k29Ro9
-
-  keycloak:
-#    https://hub.docker.com/r/bitnami/keycloak
-    image: bitnami/keycloak:20.0.5
-    env_file:
-      - ./.envs/.local/.keycloak
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    depends_on:
-      - keycloak-db
-    ports:
-      - 8003:8080
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=Host(`auth.radis`)"
-      - "traefik.http.routers.keycloak.service=keycloak"
-      - "traefik.http.routers.keycloak.entrypoints=web"
-      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
-      - "traefik.http.services.keycloak.loadbalancer.passhostheader=true"
-      - "traefik.http.routers.keycloak.middlewares=compresstraefik"
-      - "traefik.http.middlewares.compresstraefik.compress=true"
-    restart: unless-stopped
+#  keycloak-db:
+#    build:
+#      context: .
+#      dockerfile: ./compose/production/postgres/Dockerfile
+#    image: colander_production_postgres
+#    container_name: colander_local_keycloak_db
+#    environment:
+#      - POSTGRES_DB=keycloakdb
+#      - POSTGRES_USER=hhGArHWVrVQjuDcgBUNNlQqZNfqyNPfQ
+#      - POSTGRES_PASSWORD=vW9WtXmFWpsq5tATgcYNAi62cC1tWar1BsSrksBodMrra2bv4NHVvRyIm9k29Ro9
+#
+#  keycloak:
+##    https://hub.docker.com/r/bitnami/keycloak
+#    image: bitnami/keycloak:20.0.5
+#    env_file:
+#      - ./.envs/.local/.keycloak
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#    depends_on:
+#      - keycloak-db
+#    ports:
+#      - 8003:8080
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.keycloak.rule=Host(`auth.radis`)"
+#      - "traefik.http.routers.keycloak.service=keycloak"
+#      - "traefik.http.routers.keycloak.entrypoints=web"
+#      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+#      - "traefik.http.services.keycloak.loadbalancer.passhostheader=true"
+#      - "traefik.http.routers.keycloak.middlewares=compresstraefik"
+#      - "traefik.http.middlewares.compresstraefik.compress=true"
+#    restart: unless-stopped
 
   kibana:
     image: kibana:8.4.1

@@ -6,7 +6,7 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge"/>
   <title>{% block title %}colander{% endblock title %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Assets storage and analysis"/>
+  <meta name="description" content="Digital investigation platform"/>
   <meta name="author" content="Esther Onfroy"/>
 
   <link rel="shortcut icon" type="image/png" href="{% static 'images/favicons/favicon-16x16.png' %}" />
@@ -20,7 +20,6 @@
       <link href="{% static 'css/tempus-dominus.min.css' %}" type="text/css" rel="stylesheet">
       <link href="{% static 'css/flag-icons.min.css' %}" type="text/css" rel="stylesheet">
       <link href="{% static 'css/nf.min.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'css/myLib.css' %}" type="text/css" rel="stylesheet">
       <link href="{% static 'pts-assets/css/pts-assets.css' %}" type="text/css" media="all" rel="stylesheet"/>
       <link href="{% static 'vendors/simplemde/css/simplemde.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
@@ -32,10 +31,10 @@
   ================================================== -->
   {# Placed at the top of the document so pages load faster with defer #}
   {% block javascript %}
-    <!-- place project specific Javascript in this file -->
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/project.js' %}"></script>
     <script src="{% static 'js/file_upload.js' %}"></script>
+    <!-- place project specific Javascript in this file -->
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/vue.min.js' %}"></script>

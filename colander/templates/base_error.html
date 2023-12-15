@@ -1,0 +1,32 @@
+{% load static i18n compress %}{% load colander_tags %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+  <title>{% block title %}colander{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Digital investigation platform"/>
+  <meta name="author" content="Esther Onfroy"/>
+  <link rel="shortcut icon" type="image/png" href="{% static 'images/favicons/favicon-16x16.png' %}"/>
+
+  {% block css %}
+    {% compress css %}
+      <link href="{% static 'css/project.css' %}" type="text/css" rel="stylesheet">
+    {% endcompress %}
+  {% endblock %}
+  {% compress css %}
+    {% block context_css %}{% endblock %}
+  {% endcompress %}
+</head>
+
+<body>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>

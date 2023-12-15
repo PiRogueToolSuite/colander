@@ -1,6 +1,8 @@
+import yara
 from django import forms
+from django.core.exceptions import ValidationError
 
-from colander.core.models import Case, Comment, ObservableType
+from colander.core.models import Case, Comment, ObservableType, DetectionRule
 from django.utils.translation import gettext_lazy as _
 
 
@@ -19,6 +21,35 @@ class CaseForm(forms.ModelForm):
     def set_user(self, connected_user):
         if connected_user:
             self.instance.owner = connected_user
+
+
+class DetectionRuleForm(forms.ModelForm):
+    class Meta:
+        model = DetectionRule
+        fields = [
+            'type',
+            'name',
+            'description',
+            'source_url',
+            'tlp',
+            'pap',
+            'content'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 2, 'cols': 20}),
+        }
+
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        _type = self.cleaned_data.get('type')
+        if _type.short_name == 'YARA':
+            try:
+                yara.compile(source=content)
+            except Exception as e:
+                raise ValidationError(
+                    f'The Yara rule does not compile: {e}'
+                )
+        return content
 
 
 class CommentForm(forms.ModelForm):

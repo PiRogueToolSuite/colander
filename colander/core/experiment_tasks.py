@@ -1,9 +1,11 @@
+import base64
 import binascii
 import datetime
 import json
 import re
 import subprocess
 import tempfile
+from binascii import hexlify
 
 import communityid
 import requests
@@ -351,8 +353,8 @@ def dispatch(packet):
         return packets
 
 
-def attach_aes_information(aes_traces, packet):
-    packet_raw_data = packet.get('raw_data')
+def attach_aes_information(aes_traces, packet, field='raw_data'):
+    packet_raw_data = packet.get(field)
     packet['aes_info'] = {
         'decrypted': '',
         'alg': '',
@@ -361,24 +363,27 @@ def attach_aes_information(aes_traces, packet):
     }
     for aes_trace in aes_traces:
         data = aes_trace.get('data')
-        if len(data.get('in'))<32 or len(data.get('out'))<32:
+        if not packet_raw_data:
             continue
-        if data.get('in') in packet_raw_data:
+        if len(data.get('in'))<16 or len(data.get('out'))<16:
+            continue
+        if data.get('in') in packet_raw_data or packet_raw_data in data.get('in'):
             packet['aes_info'] = {
                 'decrypted': data.get('out'),
                 'alg': data.get('alg'),
                 'iv': data.get('iv'),
                 'key': data.get('key')
             }
-            return
-        elif data.get('out') in packet_raw_data:
+            return True
+        elif data.get('out') in packet_raw_data or packet_raw_data in data.get('out'):
             packet['aes_info'] = {
                 'decrypted': data.get('in'),
                 'alg': data.get('alg'),
                 'iv': data.get('iv'),
                 'key': data.get('key')
             }
-            return
+            return True
+    return False
 
 
 def get_detected_tracker(tracker_definitions, stack_trace):
@@ -486,7 +491,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                         continue
                     for p in d:
                         try:
-                            if p.get('data'):
+                            if p.get('data') or True:
                                 p['experiment_id'] = pirogue_dump_id
                                 if socket_traces and p.get('community_id') in socket_traces:
                                     operations = ['write', 'sendto']
@@ -495,13 +500,23 @@ def save_decrypted_traffic(pirogue_dump_id):
                                     full_stack_trace = get_stack_trace(traces, p.get('community_id'), p.get('timestamp'), operations)
                                     p['full_stack_trace'] = full_stack_trace
                                     p['stack_trace'] = _compact_stack_trace(full_stack_trace)
+                                is_json = False
                                 try:
                                     data = json.loads(p.get('data'))
                                     p['data'] = json.dumps(data, indent=2)
+                                    is_json = True
+                                except:
+                                    pass
+                                try:
+                                    if not is_json:
+                                        data = base64.b64decode(p.get('data').replace('\n', '').strip())
+                                        if data:
+                                            p['data'] = hexlify(data).decode('utf-8')
                                 except:
                                     pass
                                 if aes_traces:
-                                    attach_aes_information(aes_traces, p)
+                                    if not attach_aes_information(aes_traces, p, field='raw_data'):
+                                        attach_aes_information(aes_traces, p, field='data')
                                 if tracker_definitions:
                                     t = get_detected_tracker(tracker_definitions, p['stack_trace'])
                                 # Save in ES

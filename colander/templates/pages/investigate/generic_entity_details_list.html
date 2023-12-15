@@ -30,12 +30,7 @@
       <li><b>Description</b>: {{ entity.description }}</li>
     {% endif %}
     {% if entity.source_url %}
-      <li><b>Source URL</b>:
-        <a href="{{ entity.source_url }}" target="_blank">
-          {{ entity.source_url }}
-          <i class="nf nf-fa-external_link text-primary"></i>
-        </a>
-      </li>
+      <li><b>Source URL</b>:<samp>{{ entity.source_url }}</samp></li>
     {% endif %}
     <li><b>Created at</b>: {{ entity.created_at }}</li>
     <li><b>Updated at</b>: {{ entity.updated_at }}</li>

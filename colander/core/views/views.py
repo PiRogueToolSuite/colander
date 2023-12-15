@@ -503,7 +503,7 @@ def overall_search(request):
         if hasattr(r, 'attributes'):
             if r.attributes:
                 if 'is_malicious' in r.attributes:
-                    rr['is_malicious'] = r.attributes['is_malicious'] == 1 or r.attributes['is_malicious'] == "True"
+                    rr['is_malicious'] = r.attributes['is_malicious'] == "1" or r.attributes['is_malicious'] == "True"
         serializable_results.append(rr)
 
     return JsonResponse(serializable_results, safe=False)

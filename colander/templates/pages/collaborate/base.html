@@ -8,14 +8,15 @@
 
 {% block collaborate-sidebar-items %}
   {% url 'collaborate_team_create_view' as collaborate_team_create_view_url %}
-  {% url 'collaborate_detection_rule_out_feed_create_view' as collaborate_detection_rule_out_feed_create_view_url %}
-  {% url 'collaborate_entity_out_feed_create_view' as collaborate_entity_out_feed_create_view_url %}
   <a
     class="list-group-item list-group-item-action list-group-item-light{% if collaborate_team_create_view_url in request.path %} active {% endif %}"
     href="{% url "collaborate_team_create_view" %}" title="Teams">
     {% include "icons/team_icon.html" %}
     <span class="list-group-item-label">Teams</span>
   </a>
+  {% comment %}
+  {% url 'collaborate_detection_rule_out_feed_create_view' as collaborate_detection_rule_out_feed_create_view_url %}
+  {% url 'collaborate_entity_out_feed_create_view' as collaborate_entity_out_feed_create_view_url %}
   <a
     class="list-group-item list-group-item-action list-group-item-light{% if collaborate_entity_out_feed_create_view_url in request.path %} active {% endif %}"
     href="{% url "collaborate_entity_out_feed_create_view" %}" title="Entities export feeds">
@@ -28,6 +29,7 @@
     {% include "icons/out_feed_icon.html" %}
     <span class="list-group-item-label">Detection rules export feeds</span>
   </a>
+  {% endcomment %}
 {% endblock collaborate-sidebar-items %}
 
 {% block content %}

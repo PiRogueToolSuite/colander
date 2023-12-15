@@ -4,58 +4,63 @@
 
 {% block content %}
   {% block inner-content %}
-    <div class="row justify-content-center">
-      <div class="col-md-12" id="quick-create-entities">
-        <h2 class="my-2">Quickly create a new entity</h2>
-        <div class="card mb-4 bg-secondary-light">
-          <div class="card-body">
-            <form method="post" autocomplete="off">
-              {% csrf_token %}
-              <div class="row">
-                <div class="col">
-                  <h4>Entity</h4>
-                  <b-form-select
-                    v-model="selectedModel"
-                    :options="modelNames()"
-                    :select-size="6"
-                    value-field="name"
-                    text-field="name"
-                    required
-                    class="form-select"
-                    name="model"
-                    @change="resetSelectedType()"
-                  ></b-form-select>
+    {% if search_results %}
+       <div class="row justify-content-center mt-2">
+       </div>
+    {% else %}
+      <div class="row justify-content-center">
+        <div class="col-md-12" id="quick-create-entities">
+          <h2 class="my-2">Quickly create a new entity</h2>
+          <div class="card mb-4 bg-secondary-light">
+            <div class="card-body">
+              <form method="post" autocomplete="off">
+                {% csrf_token %}
+                <div class="row">
+                  <div class="col">
+                    <h4>Entity</h4>
+                    <b-form-select
+                      v-model="selectedModel"
+                      :options="modelNames()"
+                      :select-size="6"
+                      value-field="name"
+                      text-field="name"
+                      required
+                      class="form-select"
+                      name="model"
+                      @change="resetSelectedType()"
+                    ></b-form-select>
+                  </div>
+                  <div class="col">
+                    <h4>Type</h4>
+                    <b-form-select
+                      v-model="selectedType"
+                      :options="modelTypes()"
+                      :select-size="6"
+                      value-field="id"
+                      text-field="label"
+                      required
+                      name="type"
+                      class="form-select"
+                    ></b-form-select>
+                  </div>
                 </div>
-                <div class="col">
-                  <h4>Type</h4>
-                  <b-form-select
-                    v-model="selectedType"
-                    :options="modelTypes()"
-                    :select-size="6"
-                    value-field="id"
-                    text-field="label"
-                    required
-                    name="type"
-                    class="form-select"
-                  ></b-form-select>
+                <div class="row justify-content-center">
+                  <div class="col-md-9 mt-3 text-center">
+                    <h4>Name or value</h4>
+                    <b-form-input
+                      name="name"
+                      required
+                      placeholder="Enter the name or the value of this entity"
+                    ></b-form-input>
+                    <b-button class="mt-3" type="submit" name="create_entity" variant="primary">Submit</b-button>
+                  </div>
                 </div>
-              </div>
-              <div class="row justify-content-center">
-                <div class="col-md-9 mt-3 text-center">
-                  <h4>Name or value</h4>
-                  <b-form-input
-                    name="name"
-                    required
-                    placeholder="Enter the name or the value of this entity"
-                  ></b-form-input>
-                  <b-button class="mt-3" type="submit" name="create_entity" variant="primary">Submit</b-button>
-                </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    {% endif %}
     <div class="row justify-content-center">
       <div class="col">
         {% include "pages/quick_search/m_result_table.html" with results=entities %}

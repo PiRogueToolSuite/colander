@@ -566,7 +566,7 @@ header .navbar-nav
       background-color: white;
       /*background-color: rgba(255, 255, 255, 0.1);*/
       #overall-case-list {
-        max-height: 30vh;
+        max-height: 40vh;
       }
       #overall-case-list-toggle-icon
       {
@@ -606,7 +606,7 @@ header .navbar-nav
           color: black;
         }
         ~ #overall-search-result {
-          max-height: 30vh;
+          max-height: 40vh;
         }
       }
     }
@@ -623,7 +623,7 @@ header .navbar-nav
     overflow: hidden auto;
     transition: max-height 0.25s ease-out;
     &:hover {
-        max-height: 30vh;
+        max-height: 40vh;
     }
     .list-group {
       border-radius: 0;

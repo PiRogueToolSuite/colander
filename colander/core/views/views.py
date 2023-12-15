@@ -1,3 +1,6 @@
+import json
+from urllib.parse import urlparse
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
@@ -5,7 +8,7 @@ from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse, reverse_lazy, resolve
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
@@ -18,7 +21,8 @@ from os import path
 
 from colander.core import datasets
 from colander.core.forms import DocumentationForm
-from colander.core.models import Entity, Case, colander_models
+from colander.core.models import Entity, Case, colander_models, color_scheme, icons
+from colander.core.templatetags.colander_tags import model_name
 
 
 @login_required
@@ -28,6 +32,11 @@ def landing_view(request):
     ctx['cases'] = Case.objects.filter(owner=request.user)[:3]
     #ctx['entities'] = Entity.objects.filter(owner=request.user)[:10]
     ctx['entities'] = Entity.filter_by_name_or_value(owner=request.user)[:10]
+    ctx['search_results'] = False
+    if request.method == 'POST':
+        query = request.POST.get('q', '')
+        ctx['entities'] = do_search(query, Case.get_user_cases(request.user))
+        ctx['search_results'] = True
     return render(request, 'pages/home.html', context=ctx)
 
 class CaseRequiredMixin(AccessMixin):
@@ -49,14 +58,14 @@ class CaseContextMixin(AccessMixin):
     active_case = None
 
     def dispatch(self, request, *args, **kwargs):
-        print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
+        #print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
         #self.active_case = get_active_case(request, kwargs['case_id'])
         if hasattr(request, 'contextual_case'):
             self.active_case = request.contextual_case
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        print("get_success_url", self.active_case)
+        #print("get_success_url", self.active_case)
         return reverse(self.contextual_success_url, kwargs={'case_id': self.active_case.id})
 
 
@@ -134,11 +143,12 @@ def case_close(request):
 
 @login_required
 def quick_creation_view(request):
-    #print("Case id:", case_id)
-    #active_case = get_active_case(request, case_id)
     active_case = request.contextual_case
     if not active_case:
         return redirect('case_create_view')
+
+    search_results = False
+    entities_list = []
 
     if request.method == 'POST':
         if 'create_entity' in request.POST:
@@ -152,36 +162,27 @@ def quick_creation_view(request):
                 case=active_case,
                 owner=request.user,
                 type=type,
-                name=name
+                name=name,
+                tlp=active_case.tlp,
+                pap=active_case.pap
             )
             entity.save()
             messages.add_message(request, messages.SUCCESS, f" {type} {model_name} successfully created: {name}")
+        else:
+            query = request.POST.get('q', '')
+            entities_list = do_search(query, [active_case])
+            search_results = True
 
-    models = []
-    types = {}
-    exclude = ['Artifact', 'Case', 'DetectionRule', 'EntityRelation', 'Event']
-    for name, model in colander_models.items():
-        if hasattr(model, 'type') and name not in exclude:
-            models.append({
-                'name': name
-            })
-            types[name] = [
-                {'label': t.name,
-                 'id': t.short_name, }
-                for t in model.type.get_queryset().all()
-            ]
-
-    model_data = {
-        'models': models,
-        'types': types
-    }
+    if not search_results:
+        entities_list = active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
 
     model_data = datasets.creatable_entity_and_types
 
     ctx = {
         'active_case': active_case,
         'models': model_data,
-        'entities': active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
+        'entities': entities_list,
+        'search_results': search_results
     }
 
     return render(request, 'pages/quick_creation/base.html', context=ctx)
@@ -359,18 +360,6 @@ def entity_exists(request):
 
 
 @login_required
-def quick_search(request):
-    active_case = get_active_case(request)
-    if not active_case:
-        return redirect(request.META.get('HTTP_REFERER'))
-    if request.method == 'POST':
-        query = request.POST['q']
-        results = active_case.quick_search(query, exclude_types=['Case', 'EntityRelation'])
-        return render(request, 'pages/quick_search/result_list.html', context={'results': results})
-    return redirect(request.META.get('HTTP_REFERER'))
-
-
-@login_required
 def report_base_view(request):
     return render(request, 'pages/collect/base.html')
 
@@ -383,6 +372,7 @@ def forward_auth(request):
     # return redirect('http://spiderfoot.localhost:88')
     # return HttpResponse(status=200,headers=request.headers)
 
+
 @login_required
 @cache_page(60)
 def cron_ish_view(request):
@@ -390,27 +380,123 @@ def cron_ish_view(request):
         RunJobs.run_all_jobs()
         return HttpResponse('')
 
+
 @login_required
 def vues_view(request, component_name):
     if request.method != 'GET':
         return HttpResponseNotFound("Not found")
+
+    # Inject contextual case (if any) into requested vues parts
+    referer = request.META.get("HTTP_REFERER", None) or "/"
+    parsed = urlparse(referer)
+    func, args, kwargs = resolve(parsed[2])
+    ctx = {}
+    if 'case_id' in kwargs:
+        case = Case.objects.get(pk=kwargs['case_id'])
+        if case and case.can_contribute(request.user):
+            ctx['contextual_case'] = case
+
     if "part" in request.GET:
         if request.GET.get("part") == "js":
-            return render(request, f'{component_name}/{component_name}.js')
+            return render(request, f'{component_name}/{component_name}.js', context=ctx)
         if request.GET.get("part") == "css":
-            return render(request, f'{component_name}/{component_name}.css')
+            return render(request, f'{component_name}/{component_name}.css', context=ctx)
         return HttpResponseNotFound("Not found")
-    return render(request, f'{component_name}/{component_name}.html')
+
+    return render(request, f'{component_name}/{component_name}.html', context=ctx)
 
 
 @login_required
 def case_workspace_view(request):
-    print("Contextual case", request.contextual_case)
-    #active_case = get_active_case(request, case_id)
     active_case = request.contextual_case
-    print("Active case", active_case)
     ctx = {
       'active_case': active_case,
     }
-    #ctx = {}
     return render(request, 'pages/workspace/base.html', context=ctx)
+
+
+@login_required
+def export_feeds_view(request):
+    return render(request, 'pages/export_feeds/base.html')
+
+
+def do_search(query, cases):
+    overall_results = []
+    for c in cases:
+        results = c.quick_search(query, exclude_types=['Case', 'EntityRelation'])
+        overall_results.extend(results)
+    return overall_results
+
+
+@login_required
+def quick_search(request):
+    if request.method != 'POST':
+        return redirect(request.META.get('HTTP_REFERER'))
+
+    case_id = request.POST.get('case_id', None)
+    query = request.POST.get('q', '')
+
+    cases = []
+    if case_id:
+        case = Case.objects.get(pk=case_id)
+        if case and case.can_contribute(request.user):
+            cases.append(case)
+    else:
+        cases = Case.get_user_cases(request.user)
+
+    results = do_search(query, cases)
+    return render(request, 'pages/quick_search/result_list.html', context={'results': results})
+
+    #return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def overall_search(request):
+    if request.method != 'POST':
+        return JsonResponse([], safe=False)
+
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    query = body.get('query', '')
+    case_id_ctx = body.get('case_id', None)
+
+    if not query:
+        return JsonResponse([], safe=False)
+
+    cases = []
+    if case_id_ctx:
+        case_ctx = Case.objects.get(pk=case_id_ctx)
+        if case_ctx.can_contribute(request.user):
+            cases.append(case_ctx)
+    else:
+        cases = Case.get_user_cases(request.user)
+
+    overall_results = []
+    for c in cases:
+        results = c.quick_search(query, exclude_types=['Case', 'EntityRelation'])
+        overall_results.extend(results)
+
+    serializable_results = []
+    for r in overall_results:
+        rr = {
+            'case': r.case.name,
+            'name': r.name,
+            'color': color_scheme[type(r)],
+            'icon': icons[type(r)],
+            'model_name': model_name(r).capitalize(),
+            'type': r.type.name if hasattr(r, 'type') else None,
+            'type_icon': r.type.nf_icon if hasattr(r, 'type') else None,
+            'url': r.absolute_url,
+            'tlp': r.tlp,
+            'pap': r.pap,
+            'is_malicious': False,
+        }
+        if hasattr(r, 'associated_threat'):
+             rr['is_malicious'] = bool(r.associated_threat)
+        if hasattr(r, 'attributes'):
+            if r.attributes:
+                if 'is_malicious' in r.attributes:
+                    rr['is_malicious'] = r.attributes['is_malicious'] == 1 or r.attributes['is_malicious'] == "True"
+        serializable_results.append(rr)
+
+    return JsonResponse(serializable_results, safe=False)

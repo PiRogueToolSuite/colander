@@ -14,13 +14,14 @@ from colander.core.exporters.stix2 import Stix2CaseExporter
 from colander.core.models import DetectionRuleOutgoingFeed, \
     DetectionRuleType, EntityOutgoingFeed
 from colander.core.serializers.generic import OutgoingFeedSerializer
-from colander.core.views.views import get_active_case, CaseRequiredMixin
+from colander.core.views.views import get_active_case, CaseContextMixin
 
 
-class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = DetectionRuleOutgoingFeed
-    template_name = 'pages/collaborate/detection_rule_out_feeds.html'
-    success_url = reverse_lazy('collaborate_detection_rule_out_feed_create_view')
+    template_name = 'pages/export_feeds/detection_rule_out_feeds.html'
+    contextual_success_url = 'export_feeds_detection_rule_out_feed_create_view'
+    #success_url = reverse_lazy('export_feeds_detection_rule_out_feed_create_view')
     fields = [
         'name',
         'description',
@@ -44,21 +45,19 @@ class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseRequiredMixin,
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
-        if form.is_valid() and active_case:
+        #active_case = get_active_case(self.request)
+        if form.is_valid() and self.active_case:
             feed = form.save(commit=False)
             if not hasattr(feed, 'owner'):
                 feed.owner = self.request.user
-                feed.case = active_case
+                feed.case = self.active_case
             feed.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(self.request.user,
-                                                                                   self.request.session.get(
-                                                                                       'active_case'))
+        ctx['feeds'] = DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
@@ -68,9 +67,7 @@ class DetectionRuleOutgoingFeedUpdateView(DetectionRuleOutgoingFeedCreateView, U
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(self.request.user,
-                                                                                   self.request.session.get(
-                                                                                       'active_case'))
+        ctx['feeds'] = DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
@@ -79,13 +76,14 @@ class DetectionRuleOutgoingFeedUpdateView(DetectionRuleOutgoingFeedCreateView, U
 def delete_detection_rule_out_feed_view(request, pk):
     obj = DetectionRuleOutgoingFeed.objects.get(id=pk)
     obj.delete()
-    return redirect("collaborate_detection_rule_out_feed_create_view")
+    return redirect("export_feeds_detection_rule_out_feed_create_view", case_id=request.contextual_case.id)
 
 
-class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseRequiredMixin, CreateView):
+class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = EntityOutgoingFeed
-    template_name = 'pages/collaborate/entity_out_feeds.html'
-    success_url = reverse_lazy('collaborate_entity_out_feed_create_view')
+    template_name = 'pages/export_feeds/entity_out_feeds.html'
+    contextual_success_url = 'export_feeds_entity_out_feed_create_view'
+    #success_url = reverse_lazy('export_feeds_entity_out_feed_create_view')
     fields = [
         'name',
         'description',
@@ -110,20 +108,19 @@ class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseRequiredMixin, Create
         return form
 
     def form_valid(self, form):
-        active_case = get_active_case(self.request)
-        if form.is_valid() and active_case:
+        #active_case = get_active_case(self.request)
+        if form.is_valid() and self.active_case:
             feed = form.save(commit=False)
             if not hasattr(feed, 'owner'):
                 feed.owner = self.request.user
-                feed.case = active_case
+                feed.case = self.active_case
             feed.save()
             form.save_m2m()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = EntityOutgoingFeed.get_user_entity_out_feeds(self.request.user,
-                                                                    self.request.session.get('active_case'))
+        ctx['feeds'] = EntityOutgoingFeed.get_user_entity_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
@@ -133,8 +130,7 @@ class EntityOutgoingFeedUpdateView(EntityOutgoingFeedCreateView, UpdateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = EntityOutgoingFeed.get_user_entity_out_feeds(self.request.user,
-                                                                    self.request.session.get('active_case'))
+        ctx['feeds'] = EntityOutgoingFeed.get_user_entity_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
@@ -143,7 +139,7 @@ class EntityOutgoingFeedUpdateView(EntityOutgoingFeedCreateView, UpdateView):
 def delete_entity_out_feed_view(request, pk):
     obj = EntityOutgoingFeed.objects.get(id=pk)
     obj.delete()
-    return redirect("collaborate_entity_out_feed_create_view")
+    return redirect("export_feeds_entity_out_feed_create_view", case_id=request.contextual_case.id)
 
 
 def outgoing_entities_feed_view(request, pk):

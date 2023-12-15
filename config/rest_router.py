@@ -5,7 +5,7 @@ from django.urls import path
 from colander.core.api.views import ApiCaseViewSet, ApiDeviceViewSet, ApiDeviceTypeViewSet, ApiArtifactViewSet, \
     ApiArtifactTypeViewSet, ApiUploadRequestViewSet, ApiPiRogueExperimentViewSet
 from colander.core.rest.views import EntityRelationViewSet, import_entity_from_threatr, EntityViewSet, DatasetViewSet
-from colander.core.views.views import entity_exists
+from colander.core.views.views import entity_exists, overall_search
 
 if settings.DEBUG:
     router = DefaultRouter()
@@ -23,4 +23,5 @@ urlpatterns = router.urls
 urlpatterns += [
     path("threatr_entity", import_entity_from_threatr, name="import_entity_from_threatr_view"),
     path("entity/suggest", entity_exists, name="entity_exists_view"),
+    path("search", overall_search, name="overall_search"),
 ]

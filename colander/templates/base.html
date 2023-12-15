@@ -45,6 +45,7 @@
       <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
       <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
       <script src="{% static 'vendors/simplemde/js/simplemde.min.js' %}"></script>
+      <script src="{% static 'js/colander-widgets.js' %}"></script>
     {% endcompress %}
   {% endblock javascript %}
   {% compress js %}
@@ -106,25 +107,27 @@
             </div>
           </div>
       </div>
-      <form id="overall-search-form" method="post" action="{% url "quick_search_view" %}" class="w-50">
-        {% csrf_token %}
-        <input id="overall-search" class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search" autocomplete="off"/>
-        <i id="overall-search-icon" class="nf nf-md-magnify" aria-hidden="true"></i>
-        <div id="overall-search-result">
-          <div class="list-group">
-            {% for case in request.user_cases %}
-              <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
-                <div class="d-flex w-100 justify-content-between">
-                  <h5 class="mb-1">{{ case.name }}</h5>
-                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
-                </div>
-                <p class="mb-1">Some placeholder content in a paragraph.</p>
-                <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
-              </a>
-            {% endfor %}
+      <div id="toolbar-search" class="w-50" style="overflow: hidden;">
+        <form id="overall-search-form" method="post" action="{% url "quick_search_view" %}" class="w-50">
+          {% csrf_token %}
+          <input id="overall-search" class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search" autocomplete="off"/>
+          <i id="overall-search-icon" class="nf nf-md-magnify" aria-hidden="true"></i>
+          <div id="overall-search-result">
+            <div class="list-group">
+              {% for case in request.user_cases %}
+                <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ case.name }}</h5>
+                    <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
+                  </div>
+                  <p class="mb-1">Some placeholder content in a paragraph.</p>
+                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
+                </a>
+              {% endfor %}
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
     <div class="navbar-nav">
       <div class="nav-item">
@@ -204,7 +207,8 @@
           </a>
           <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collaborate_base_view_url %}"
              href="{{ collaborate_base_view_url }}">
-            <i class="nf nf-fa-share_alt" aria-hidden="true"></i>
+            {% comment %}<i class="nf nf-fa-share_alt" aria-hidden="true"></i>{% endcomment %}
+            <i class="nf nf-fa-handshake_o" aria-hidden="true"></i>
             <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
           </a>
           <div class="list-group list-group-flush list-group-secondary">

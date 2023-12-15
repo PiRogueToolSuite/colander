@@ -1,0 +1,50 @@
+{% extends "pages/export_feeds/base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+
+{% block inner-content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
+      {% if is_editing %}
+        <h2>{% translate "Edit this feed" %}</h2>
+      {% else %}
+        <h2>{% translate "New feed" %}</h2>
+      {% endif %}
+      <div class="card mb-4 bg-secondary-light">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="row justify-content-center">
+              <div class="col-md-4">
+                {{ form.content_type|as_crispy_field }}
+              </div>
+              <div class="col">
+                {{ form.name|as_crispy_field }}
+                {{ form.description|as_crispy_field }}
+                {{ form.secret|as_crispy_field }}
+                {{ form.max_tlp|as_crispy_field }}
+                {{ form.max_pap|as_crispy_field }}
+                {% if is_editing %}
+                  <button class="btn btn-primary" type="submit" name="save_feed">{% translate "Update" %}</button>
+                {% else %}
+                  <button class="btn btn-primary" type="submit" name="save_feed">{% translate "Create" %}</button>
+                {% endif %}
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center mt-4">
+    <div class="col-md-12">
+      <h2>{% translate "Latest feeds" %}</h2>
+      {% if feeds %}
+        {% for feed in feeds %}
+          {% include "feed/list_item.html" %}
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock inner-content %}

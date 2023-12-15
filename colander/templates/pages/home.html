@@ -42,7 +42,11 @@
   </div>
   <div class='row'>
     <div class='col-12'>
-      <h2>Latest entity overview</h2>
+      {% if search_results %}
+        <h2>Search result: {{ entities|length }} entities found</h2>
+      {% else %}
+        <h2>Latest entity overview</h2>
+      {% endif %}
       <table class="table table-hover">
         <thead>
           <tr>

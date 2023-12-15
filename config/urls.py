@@ -40,7 +40,7 @@ from colander.core.views.views import case_close, landing_view, collect_base_vie
     CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
     save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
     forward_auth, cron_ish_view, collaborate_base_view, vues_view, export_case_documentation_as_markdown_view, \
-    case_workspace_view
+    case_workspace_view, export_feeds_view
 from colander.core.graph.views import case_graph
 from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
@@ -114,6 +114,16 @@ case_contextualized_url_patterns = [
     path("document/save", save_case_documentation_view, name="cases_save_doc_view"),
     path("document/export/markdown", export_case_documentation_as_markdown_view, name="cases_doc_export_as_markdown_view"),
 
+    path("export-feeds", export_feeds_view, name="export_feeds_view"),
+
+    path("export-feeds/detection_rules", DetectionRuleOutgoingFeedCreateView.as_view(), name="export_feeds_detection_rule_out_feed_create_view"),
+    path("export-feeds/detection_rules/<slug:pk>/edit", DetectionRuleOutgoingFeedUpdateView.as_view(), name="export_feeds_detection_rule_out_feed_update_view"),
+    path("export-feeds/detection_rules/<slug:pk>/delete", delete_detection_rule_out_feed_view, name="export_feeds_detection_rule_out_feed_delete_view"),
+
+    path("export-feeds/entity_out_feed", EntityOutgoingFeedCreateView.as_view(), name="export_feeds_entity_out_feed_create_view"),
+    path("export-feeds/entity_out_feed/<slug:pk>/edit", EntityOutgoingFeedUpdateView.as_view(), name="export_feeds_entity_out_feed_update_view"),
+    path("export-feeds/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="export_feeds_entity_out_feed_delete_view"),
+
     path("investigate/", investigate_search_view, name="investigate_base_view"),
 ]
 
@@ -143,19 +153,20 @@ urlpatterns = [
 
       path("collaborate/", collaborate_base_view, name="collaborate_base_view"),
       path("collaborate/team", ColanderTeamCreateView.as_view(), name="collaborate_team_create_view"),
-      path("collaborate/team/<slug:pk>", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
+      path("collaborate/team/<slug:pk>", ColanderTeamDetailsView.as_view(), name="collaborate_team_details_view"),
+      path("collaborate/team/<slug:pk>/edit", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
-      path("collaborate/team/<slug:pk>/details", ColanderTeamDetailsView.as_view(), name="collaborate_team_details_view"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
-      path("collaborate/detection_rule_out_feed", DetectionRuleOutgoingFeedCreateView.as_view(), name="collaborate_detection_rule_out_feed_create_view"),
-      path("collaborate/detection_rule_out_feed/<slug:pk>", DetectionRuleOutgoingFeedUpdateView.as_view(), name="collaborate_detection_rule_out_feed_update_view"),
-      path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
-      path("collaborate/detection_rule_out_feed/<slug:pk>/delete", delete_detection_rule_out_feed_view, name="collaborate_detection_rule_out_feed_delete_view"),
 
-      path("collaborate/entity_out_feed", EntityOutgoingFeedCreateView.as_view(), name="collaborate_entity_out_feed_create_view"),
-      path("collaborate/entity_out_feed/<slug:pk>", EntityOutgoingFeedUpdateView.as_view(), name="collaborate_entity_out_feed_update_view"),
+      # path("collaborate/detection_rule_out_feed", DetectionRuleOutgoingFeedCreateView.as_view(), name="collaborate_detection_rule_out_feed_create_view"),
+      # path("collaborate/detection_rule_out_feed/<slug:pk>", DetectionRuleOutgoingFeedUpdateView.as_view(), name="collaborate_detection_rule_out_feed_update_view"),
+      # path("collaborate/detection_rule_out_feed/<slug:pk>/delete", delete_detection_rule_out_feed_view, name="collaborate_detection_rule_out_feed_delete_view"),
+      path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
+
+      # path("collaborate/entity_out_feed", EntityOutgoingFeedCreateView.as_view(), name="collaborate_entity_out_feed_create_view"),
+      # path("collaborate/entity_out_feed/<slug:pk>", EntityOutgoingFeedUpdateView.as_view(), name="collaborate_entity_out_feed_update_view"),
+      # path("collaborate/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="collaborate_entity_out_feed_delete_view"),
       path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
-      path("collaborate/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="collaborate_entity_out_feed_delete_view"),
 
       #path("case", CaseCreateView.as_view(), name="case_create_view"),
       #path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),

@@ -11282,7 +11282,7 @@ header .navbar-nav .nav-item .nav-link {
   /*background-color: rgba(255, 255, 255, 0.1);*/
 }
 #overall-case-or-search #overall-case-selection:focus #overall-case-list {
-  max-height: 30vh;
+  max-height: 40vh;
 }
 #overall-case-or-search #overall-case-selection:focus #overall-case-list-toggle-icon {
   rotate: 180deg;
@@ -11315,7 +11315,7 @@ header .navbar-nav .nav-item .nav-link {
   color: black;
 }
 #overall-case-or-search #overall-search-form #overall-search:focus ~ #overall-search-result {
-  max-height: 30vh;
+  max-height: 40vh;
 }
 #overall-case-or-search #overall-search-result,
 #overall-case-or-search #overall-case-list {
@@ -11330,7 +11330,7 @@ header .navbar-nav .nav-item .nav-link {
 }
 #overall-case-or-search #overall-search-result:hover,
 #overall-case-or-search #overall-case-list:hover {
-  max-height: 30vh;
+  max-height: 40vh;
 }
 #overall-case-or-search #overall-search-result .list-group,
 #overall-case-or-search #overall-case-list .list-group {

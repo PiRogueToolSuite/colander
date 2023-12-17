@@ -129,9 +129,7 @@ case_contextualized_url_patterns = [
 
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
-      #path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
       path("", landing_view, name="home"),
-      # path("about/", TemplateView.as_view(template_name="index.html"), name="about"),
       path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
       # Django Admin, use {% url 'admin:index' %}
       path(settings.ADMIN_URL, admin.site.urls),
@@ -141,13 +139,7 @@ urlpatterns = [
       path('accounts/2fa/authenticate', TwoFactorAuthenticate.as_view(), name="two-factor-authenticate",),
       path('accounts/2fa/backup-tokens', TwoFactorBackupTokens.as_view(), name="two-factor-backup-tokens",),
       path('accounts/2fa/remove', TwoFactorRemove.as_view(), name="two-factor-remove",),
-
       path("accounts/", include("allauth.urls")),
-
-      # path("evidences", evidences_view),
-      # path('dj-rest-auth/', include('dj_rest_auth.urls')),
-      # path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-      # Your stuff: custom urls includes go here
 
       path("quick_search/", quick_search, name='quick_search_view'),
 
@@ -157,21 +149,8 @@ urlpatterns = [
       path("collaborate/team/<slug:pk>/edit", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
-
-      # path("collaborate/detection_rule_out_feed", DetectionRuleOutgoingFeedCreateView.as_view(), name="collaborate_detection_rule_out_feed_create_view"),
-      # path("collaborate/detection_rule_out_feed/<slug:pk>", DetectionRuleOutgoingFeedUpdateView.as_view(), name="collaborate_detection_rule_out_feed_update_view"),
-      # path("collaborate/detection_rule_out_feed/<slug:pk>/delete", delete_detection_rule_out_feed_view, name="collaborate_detection_rule_out_feed_delete_view"),
       path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
-
-      # path("collaborate/entity_out_feed", EntityOutgoingFeedCreateView.as_view(), name="collaborate_entity_out_feed_create_view"),
-      # path("collaborate/entity_out_feed/<slug:pk>", EntityOutgoingFeedUpdateView.as_view(), name="collaborate_entity_out_feed_update_view"),
-      # path("collaborate/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="collaborate_entity_out_feed_delete_view"),
       path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
-
-      #path("case", CaseCreateView.as_view(), name="case_create_view"),
-      #path("case/<slug:pk>", CaseUpdateView.as_view(), name="case_update_view"),
-      #path("case/<slug:pk>/details", CaseDetailsView.as_view(), name="case_details_view"),
-
       path("case", CaseCreateView.as_view(), name="case_base_view"),
       path("case/create", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),
@@ -179,106 +158,13 @@ urlpatterns = [
       path("case/<slug:pk>", CaseDetailsView.as_view(), name="case_details_view"),
       path("case/<slug:pk>/graph", case_graph, name="case_graph"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
-      # path("case/<slug:pk>/doc/save", save_case_documentation_view, name="cases_save_doc_view"),
-      # path("case/<slug:pk>/doc/export/markdown", export_case_documentation_as_markdown_view, name="cases_doc_export_as_markdown_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
-
       path("ws/<str:case_id>/", include(case_contextualized_url_patterns)),
-
-      # path("ws/<str:case_id>", case_workspace_view, name="case_workspace_view"),
-      # path("ws/<str:case_id>/collect", quick_creation_view, name="collect_quick_creation_view"),
-      # path("ws/<str:case_id>/collect/actor", ActorCreateView.as_view(), name="collect_actor_create_view"),
-      # path("ws/<str:case_id>/collect/actor/<slug:pk>", ActorUpdateView.as_view(), name="collect_actor_update_view"),
-      # path("ws/<str:case_id>/collect/actor/<slug:pk>/details", ActorDetailsView.as_view(), name="collect_actor_details_view"),
-      # path("ws/<str:case_id>/collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
-
-      #path("collect/case", CaseCreateView.as_view(), name="collect_case_create_view"),
-      #path("collect/case/<slug:pk>", CaseUpdateView.as_view(), name="collect_case_update_view"),
-      #path("collect/case/<slug:pk>/details", CaseDetailsView.as_view(), name="collect_case_details_view"),
-      #path("collect/case/<slug:pk>/select", collect_cases_select_view, name="collect_cases_select_view"),
-      #path("collect/case/<slug:pk>/doc/save", save_case_documentation_view, name="collect_cases_save_doc_view"),
-      #path("collect/case/<slug:pk>/download_key", download_case_public_key, name="collect_cases_download_key_view"),
-
-      #path("collect/", collect_base_view, name="collect_base_view"),
-      #path("collect/quick", quick_creation_view, name="collect_quick_creation_view"),
-
-      # path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
-      # path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
-      # path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
-      # path("collect/artifact/<slug:pk>", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
-      # path("collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
-      # path("collect/artifact/<slug:pk>/view", view_artifact, name="collect_artifact_view_view"),
-      # path("collect/artifact/<slug:pk>/details", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
-      # path("collect/artifact/<slug:pk>/download", download_artifact, name="collect_artifact_download_view"),
-      # path("collect/artifact/<slug:pk>/download_sig", download_artifact_signature, name="collect_artifact_download_signature_view"),
-
-      #
-      # path("collect/device", DeviceCreateView.as_view(), name="collect_device_create_view"),
-      # path("collect/device/<slug:pk>", DeviceUpdateView.as_view(), name="collect_device_update_view"),
-      # path("collect/device/<slug:pk>/details", DeviceDetailsView.as_view(), name="collect_device_details_view"),
-      # path("collect/device/<slug:pk>/delete", delete_device_view, name="collect_device_delete_view"),
-      #
-      # path("collect/event", EventCreateView.as_view(), name="collect_event_create_view"),
-      # path("collect/event/<slug:pk>", EventUpdateView.as_view(), name="collect_event_update_view"),
-      # path("collect/event/<slug:pk>/details", EventDetailsView.as_view(), name="collect_event_details_view"),
-      # path("collect/event/<slug:pk>/delete", delete_event_view, name="collect_event_delete_view"),
-
-      # path("collect/observable", ObservableCreateView.as_view(), name="collect_observable_create_view"),
-      # path("collect/observable/<slug:pk>", ObservableUpdateView.as_view(), name="collect_observable_update_view"),
-      # path("collect/observable/<slug:pk>/capture", capture_observable_view, name="collect_observable_capture_view"),
-      # path("collect/observable/<slug:pk>/details", ObservableDetailsView.as_view(), name="collect_observable_details_view"),
-      # path("collect/observable/<slug:pk>/delete", delete_observable_view, name="collect_observable_delete_view"),
-
-      # path("collect/entity_relation", create_or_edit_entity_relation_view, name="collect_entity_relation_create_view"),
-      # path("collect/entity_relation/<slug:pk>/delete", delete_relation_view, name="collect_entity_relation_delete_view"),
-
-      # path("collect/relation", ObservableRelationCreateView.as_view(), name="collect_relation_create_view"),
-      # path("collect/relation/<slug:pk>", ObservableRelationUpdateView.as_view(), name="collect_relation_update_view"),
-      #
-      # path("collect/threat", ThreatCreateView.as_view(), name="collect_threat_create_view"),
-      # path("collect/threat/<slug:pk>", ThreatUpdateView.as_view(), name="collect_threat_update_view"),
-      # path("collect/threat/<slug:pk>/details", ThreatDetailsView.as_view(), name="collect_threat_details_view"),
-      # path("collect/threat/<slug:pk>/delete", delete_threat_view, name="collect_threat_delete_view"),
-
-      # path("collect/detection_rule", DetectionRuleCreateView.as_view(), name="collect_detection_rule_create_view"),
-      # path("collect/detection_rule/<slug:pk>", DetectionRuleUpdateView.as_view(), name="collect_detection_rule_update_view"),
-      # path("collect/detection_rule/<slug:pk>/details", DetectionRuleDetailsView.as_view(), name="collect_detection_rule_details_view"),
-      # path("collect/detection_rule/<slug:pk>/delete", delete_detection_rule_view, name="collect_detection_rule_delete_view"),
-      #
-      # path("collect/data_fragment", DataFragmentCreateView.as_view(), name="collect_data_fragment_create_view"),
-      # path("collect/data_fragment/<slug:pk>", DataFragmentUpdateView.as_view(), name="collect_data_fragment_update_view"),
-      # path("collect/data_fragment/<slug:pk>/details", DataFragmentDetailsView.as_view(), name="collect_data_fragment_details_view"),
-      # path("collect/data_fragment/<slug:pk>/delete", delete_data_fragment_view, name="collect_data_fragment_delete_view"),
-      #
-      # path("collect/experiment", PiRogueExperimentCreateView.as_view(), name="collect_experiment_create_view"),
-      # path("collect/experiment/<slug:pk>", PiRogueExperimentUpdateView.as_view(), name="collect_experiment_update_view"),
-      # path("collect/experiment/<slug:pk>/details", PiRogueExperimentDetailsView.as_view(), name="collect_experiment_details_view"),
-      # path("collect/experiment/<slug:pk>/delete", delete_experiment_view, name="collect_experiment_delete_view"),
-      # path("collect/experiment/<slug:pk>/decrypt", start_decryption, name="collect_experiment_decryption_view"),
-      # path("collect/experiment/<slug:pk>/detect", start_detection, name="collect_experiment_detection_view"),
-      # path("collect/experiment/<slug:pk>/analysis_report", PiRogueExperimentAnalysisReportView.as_view(), name="collect_experiment_analysis_report_view"),
-      # path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
-
-      # path("ws/<str:case_id>/graph", graph_base_view, name="graph_base_view"),
-
-      # TODO: Check if deprecated
-      path("analyze/<slug:observable_id>", enrich_observable, name="analyze_base_view"),
-
-      # path("entity/suggest", entity_exists, name="entity_exists_view"),
-      #
-      # path("investigate/", investigate_search_view, name="investigate_base_view"),
-      # TODO: Check if deprecated
-      path("report/", report_base_view, name="report_base_view"),
-
-      # TODO: Clean / Deprecated
-      # path("document/enable", enable_documentation_editor, name="enable_documentation_editor_view"),
-      # path("document/disable", disable_documentation_editor, name="disable_documentation_editor_view"),
-
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),
       path("comment/<slug:pk>/delete", delete_comment_view, name="delete_comment_view"),
 
-      path("_auth", forward_auth, name="forward-auth_view"),
+      # path("_auth", forward_auth, name="forward-auth_view"),
 
       path("cron", cron_ish_view, name='cron-jobs'),
 

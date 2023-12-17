@@ -17,13 +17,13 @@
           </h4>
 
           <p>
-            {% trans 'Scan the QR code below with a token generator of your choice (for instance Google Authenticator). Alternatively, you can copy and paste the code below in your password manager.' %}
+            {% trans 'Scan the QR code below with a token generator of your choice (for instance Google Authenticator). Alternatively, you can copy and paste the URL below in your password manager.' %}
           </p>
 
           <div class="text-center">
             <img src="{{ qr_code_url }}"/>
             <p class="font-monospace">
-              {{ secret }}
+              {{ totp_url }}
             </p>
           </div>
 

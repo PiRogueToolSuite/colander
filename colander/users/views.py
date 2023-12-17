@@ -1,4 +1,5 @@
 from base64 import b32encode
+from urllib.parse import quote, urlencode
 
 from allauth_2fa.views import TwoFactorSetup
 from django.contrib.auth import get_user_model
@@ -52,8 +53,18 @@ user_redirect_view = UserRedirectView.as_view()
 
 
 class UserTwoFactorSetup(TwoFactorSetup):
+    def generate_totp_url(self, secret):
+        params = {
+            "secret": secret,
+            "algorithm": "SHA1",
+            "digits": self.device.digits,
+            "period": self.device.step,
+            "issuer": self.get_qr_code_kwargs().get('issuer', ''),
+        }
+        return f"otpauth://totp/{quote(self.get_qr_code_kwargs().get('label', ''))}?{urlencode(params)}"
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        secret = b32encode(self.device.bin_key).decode("utf-8")
-        context["secret"] = secret
+        context["totp_url"] = self.generate_totp_url(context.get('secret'))
         return context

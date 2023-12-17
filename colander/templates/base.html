@@ -99,8 +99,8 @@
                     <h5 class="mb-1">{{ case.name }}</h5>
                     <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
                   </div>
-                  <p class="mb-1">Some placeholder content in a paragraph.</p>
-                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
+                  <p class="mb-1 text-muted">{{ case.description }}</p>
+{#                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>#}
                 </a>
               {% endfor %}
             </div>
@@ -119,8 +119,8 @@
                     <h5 class="mb-1">{{ case.name }}</h5>
                     <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
                   </div>
-                  <p class="mb-1">Some placeholder content in a paragraph.</p>
-                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>
+                  <p class="mb-1 text-muted">{{ case.description }}</p>
+{#                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>#}
                 </a>
               {% endfor %}
             </div>

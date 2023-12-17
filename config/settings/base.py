@@ -161,6 +161,8 @@ MIDDLEWARE = [
     # AuthenticationMiddleware.
     "django_otp.middleware.OTPMiddleware",
 
+    "allauth.account.middleware.AccountMiddleware",
+
     # Reset login flow middleware. If this middleware is included, the login
     # flow is reset if another page is loaded between login and successfully
     # entering two-factor credentials.
@@ -191,7 +193,16 @@ MEDIA_ROOT = str(APPS_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
-DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "minio_storage.storage.MinioMediaStorage"
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    }
+}
+
+# DEFAULT_FILE_STORAGE = "minio_storage.storage.MinioMediaStorage" #  deprecated in Django 4.2 LTS
 MINIO_STORAGE_ENDPOINT = env('MINIO_ENDPOINT', default='minio:9000')
 MINIO_STORAGE_ACCESS_KEY = env('MINIO_ACCESS_KEY')
 MINIO_STORAGE_SECRET_KEY = env('MINIO_SECRET_KEY')

@@ -335,7 +335,7 @@ def entity_exists(request):
         entity_type = request.POST.get('type', None)
         value = request.POST.get('value', None)
 
-        if case_id is None:
+        if not case_id:
             return JsonResponse([], safe=False)
 
         active_case = Case.objects.get(pk=case_id)

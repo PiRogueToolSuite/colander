@@ -7,4 +7,5 @@ set -o nounset
 
 python manage.py migrate --skip-checks
 
-python manage.py runserver_plus 0.0.0.0:8000
+exec gunicorn config.asgi_local:application --bind 0.0.0.0:8000 --reload-engine 'inotify' --reload -k uvicorn.workers.UvicornWorker
+#exec uvicorn config.asgi_local:application --host 0.0.0.0 --reload --reload-include '*.html'

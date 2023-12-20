@@ -28,4 +28,5 @@ if compress_enabled; then
 fi
 
 python manage.py migrate --skip-checks
-/usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app
+exec gunicorn config.asgi_local:application --bind 0.0.0.0:5000 -k uvicorn.workers.UvicornWorker
+

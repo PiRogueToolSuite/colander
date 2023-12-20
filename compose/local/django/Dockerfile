@@ -11,7 +11,7 @@ ARG BUILD_ENVIRONMENT=local
 # Install apt packages
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   # dependencies for building Python packages
-  build-essential git \
+  build-essential git inotify-tools\
   # psycopg2 dependencies
   libpq-dev libmagic1 tshark wireshark-common libssl-dev python3-dev
 
@@ -38,7 +38,7 @@ WORKDIR ${APP_HOME}
 # Install required system dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
-  libpq-dev \
+  libpq-dev  inotify-tools \
   # Translations dependencies
   gettext libmagic1 tshark wireshark-common libssl-dev python3-dev \
   # cleaning up unused files

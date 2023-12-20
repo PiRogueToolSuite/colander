@@ -64,20 +64,24 @@ class CommentForm(forms.ModelForm):
             'commented_object': forms.TextInput()
         },
 
-
     def set_user(self, connected_user):
         if connected_user:
             self.instance.owner = connected_user
 
 
 class InvestigateSearchForm(forms.Form):
-    type = forms.ChoiceField(choices=[(t.short_name, t.name) for t in ObservableType.objects.all()])
+    type = forms.ChoiceField(choices=[])
     value = forms.CharField(max_length=128)
     force_update = forms.BooleanField(required=False, label='Update results from vendors.')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['type'].choices = [(t.short_name, t.name) for t in ObservableType.objects.all()]
 
 
 class DocumentationForm(forms.Form):
     documentation = forms.CharField(widget=forms.Textarea(), label=False)
+
 
 class EntityRelationForm(forms.Form):
     name = forms.CharField(

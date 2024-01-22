@@ -1,20 +1,16 @@
 from django.http import Http404, HttpResponse
 from rest_framework import mixins
-from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.generics import CreateAPIView, UpdateAPIView, RetrieveUpdateAPIView
 
 from colander.core.api.serializers import ArtifactSerializer, \
-    ArtifactTypeSerializer, \
-    CaseSerializer, \
-    DeviceSerializer, \
-    DeviceTypeSerializer, PiRogueExperimentSerializer
+    ArtifactTypeSerializer,  CaseSerializer,  DeviceSerializer, \
+    DeviceTypeSerializer, PiRogueExperimentSerializer, ObservableSerializer, ObservableTypeSerializer
+from colander.core.models import Artifact, ArtifactType, Device, DeviceType, UploadRequest, PiRogueExperiment, \
+    Observable, ObservableType
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
-from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest, PiRogueExperiment
 
 
 class ApiCaseViewSet(mixins.RetrieveModelMixin,
@@ -26,7 +22,7 @@ class ApiCaseViewSet(mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         queryset = self.request.user.all_my_cases
-        #queryset = Case.objects.filter(case__in=cases)
+        # queryset = Case.objects.filter(case__in=cases)
 
         name = self.request.query_params.get('name')
         if name is not None:
@@ -138,3 +134,39 @@ class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)
+
+
+class ApiObservableViewSet(mixins.CreateModelMixin,
+                           mixins.RetrieveModelMixin,
+                           # mixins.UpdateModelMixin,
+                           mixins.ListModelMixin,
+                           GenericViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ObservableSerializer
+
+    def get_queryset(self):
+        cases = self.request.user.all_my_cases
+        queryset = Observable.objects.filter(case__in=cases)
+
+        case_id = self.request.query_params.get('case_id')
+        if case_id is not None:
+            queryset = queryset.filter(case=case_id)
+
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        return serializer.save(owner=self.request.user)
+
+
+class ApiObservableTypeViewSet(mixins.RetrieveModelMixin,
+                               mixins.ListModelMixin,
+                               GenericViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ObservableTypeSerializer
+    queryset = ObservableType.objects.all()

@@ -4,9 +4,8 @@ import pathlib
 from rest_framework import serializers
 from django.db import transaction
 
-from rest_framework.reverse import reverse_lazy, reverse
-
-from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest, PiRogueExperiment
+from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest, PiRogueExperiment, \
+    Observable, ObservableType
 from colander.core.signals import process_hash_and_signing
 
 
@@ -149,3 +148,34 @@ class PiRogueExperimentSerializer(serializers.ModelSerializer):
             pre.pap = pre.case.pap
         pre.save()
         return pre
+
+
+class ObservableSerializer(serializers.ModelSerializer):
+    type_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Observable
+        exclude = [
+            'owner',
+            'raw_value',
+            'analysis_index',
+            'es_prefix',
+        ]
+
+    def get_type_name(self, obj):
+        return obj.type.short_name
+
+    def create(self, validated_data):
+        d = super().create(validated_data)
+        if 'tlp' not in validated_data:
+            d.tlp = d.case.tlp
+        if 'pap' not in validated_data:
+            d.pap = d.case.pap
+        d.save()
+        return d
+
+
+class ObservableTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ObservableType
+        fields = ['id', 'name', 'short_name']

@@ -2,7 +2,8 @@ from django.conf import settings
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from colander.core.api.views import ApiCaseViewSet, ApiDeviceViewSet, ApiDeviceTypeViewSet, ApiArtifactViewSet, \
-    ApiArtifactTypeViewSet, ApiUploadRequestViewSet, ApiPiRogueExperimentViewSet
+    ApiArtifactTypeViewSet, ApiUploadRequestViewSet, ApiPiRogueExperimentViewSet, ApiObservableViewSet, \
+    ApiObservableTypeViewSet
 from colander.users.api.views import UserViewSet
 
 if settings.DEBUG:
@@ -18,6 +19,8 @@ router.register("artifact_types", ApiArtifactTypeViewSet, basename='artifacts_ty
 router.register("upload_requests", ApiUploadRequestViewSet, basename='upload_requests')
 router.register("devices", ApiDeviceViewSet, basename='devices')
 router.register("device_types", ApiDeviceTypeViewSet, basename='device_types')
+router.register("observables", ApiObservableViewSet, basename='observables')
+router.register("observable_types", ApiObservableTypeViewSet, basename='observable_types')
 router.register("pirogue_experiments", ApiPiRogueExperimentViewSet, basename='pirogue_experiments')
 
 app_name = "api"

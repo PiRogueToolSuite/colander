@@ -52,6 +52,12 @@
                 {{ observable.operated_by.name }}
               </div>
             {% endif %}
+            {% if observable.classification %}
+              <div class="small">
+                <i class="fa fa-info text-primary"></i>
+                {{ observable.classification }}
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>

@@ -70,6 +70,16 @@
         </td>
       </tr>
       <tr>
+        <td>Classification</td>
+        <td>
+          {% if observable.classification %}
+              {{ observable.classification }}
+          {% else %}
+            {% translate "No classification specified" %}
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
         <td>Extracted from</td>
         <td>
           {% if observable.extracted_from %}

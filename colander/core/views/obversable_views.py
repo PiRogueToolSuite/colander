@@ -25,6 +25,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'operated_by',
         'name',
         'description',
+        'classification',
         'tlp',
         'pap',
         'source_url',

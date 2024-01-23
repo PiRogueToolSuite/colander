@@ -1020,6 +1020,7 @@ class Observable(Entity):
     )
     classification = models.CharField(
         max_length=512,
+        help_text=_('Optional field containing an arbitrary string of your choice.'),
         blank=True,
         null=True
     )

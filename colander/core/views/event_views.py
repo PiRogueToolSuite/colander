@@ -26,6 +26,7 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'count',
         'extracted_from',
         'observed_on',
+        'attributes',
         'detected_by',
         'involved_observables',
         'source_url',

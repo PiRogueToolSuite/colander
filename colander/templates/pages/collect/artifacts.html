@@ -17,7 +17,7 @@
             {% csrf_token %}
             <fieldset class='disableable'>
               <div class="row justify-content-center">
-                <div class="col-md-4">
+                <div class="col-md-3">
                   {{ form.type|as_crispy_field }}
                 </div>
                 <div class="col">
@@ -48,6 +48,9 @@
                     <button id='upload_btn' class="btn btn-primary" type="submit" name="upload_artifact">{% translate "Upload" %}</button>
                     <button id='upload_submit_btn' class="btn btn-primary" type="submit" name="save_artifact">{% translate "Create" %}</button>
                   {% endif %}
+                </div>
+                <div class="col">
+                  {{ form.attributes|as_crispy_field }}
                   {% if not is_editing %}
                     <hr>
                     <p class="mt-2">

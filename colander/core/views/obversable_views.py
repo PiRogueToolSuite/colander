@@ -26,6 +26,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'name',
         'description',
         'classification',
+        'attributes',
         'tlp',
         'pap',
         'source_url',

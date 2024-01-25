@@ -687,6 +687,8 @@ class Device(Entity):
         blank=True,
     )
     attributes = HStoreField(
+        help_text=_('Add custom attributes to this device.'),
+        verbose_name='Custom attributes',
         blank=True,
         null=True
     )
@@ -801,6 +803,8 @@ class Artifact(Entity):
         blank=True,
     )
     attributes = HStoreField(
+        help_text=_('Add custom attributes to this artifact.'),
+        verbose_name='Custom attributes',
         blank=True,
         null=True
     )
@@ -1055,10 +1059,11 @@ class Observable(Entity):
         blank=True,
     )
     attributes = HStoreField(
+        help_text=_('Add custom attributes to this observable.'),
+        verbose_name='Custom attributes',
         blank=True,
         null=True
     )
-
     es_prefix = models.CharField(
         max_length=16,
         editable=False,
@@ -1574,7 +1579,12 @@ class Event(Entity):
         null=True,
         blank=True,
     )
-    attributes = HStoreField(null=True, blank=True)
+    attributes = HStoreField(
+        help_text=_('Add custom attributes to this event.'),
+        verbose_name='Custom attributes',
+        null=True,
+        blank=True
+    )
 
     @property
     def value(self):

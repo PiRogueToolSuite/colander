@@ -21,6 +21,7 @@ class DeviceCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'description',
         'operated_by',
         'source_url',
+        'attributes',
         'tlp',
         'pap'
     ]

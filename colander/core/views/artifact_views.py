@@ -28,6 +28,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'description',
         'extracted_from',
         'source_url',
+        'attributes',
         'tlp',
         'pap',
     ]
@@ -123,6 +124,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseContextMixin, UpdateView):
         'type',
         'description',
         'extracted_from',
+        'attributes',
         'source_url',
         'tlp',
         'pap',

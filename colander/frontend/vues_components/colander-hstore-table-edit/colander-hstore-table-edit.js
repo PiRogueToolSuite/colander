@@ -56,7 +56,6 @@ new Vue({
         }
     },
     mounted: function(){
-        console.log($('textarea#id_attributes'));
         $('textarea#id_attributes').css('visibility', 'hidden');
         $('textarea#id_attributes').css('position', 'absolute');
     }

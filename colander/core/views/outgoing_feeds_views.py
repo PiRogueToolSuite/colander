@@ -218,7 +218,7 @@ def outgoing_detection_rules_feed_view(request, pk):
     rules = feed.get_entities()
     export = '\n'.join([r.content for r in rules.all()])
     cache.set(cache_key, export, 3600)
-    response = HttpResponse(cached, content_type='application/octet-stream')
+    response = HttpResponse(export, content_type='application/octet-stream')
     response['X-Colander-Feed-Cache'] = 'miss'
     response['Content-Disposition'] = f'attachment; filename={filename}'
     return response

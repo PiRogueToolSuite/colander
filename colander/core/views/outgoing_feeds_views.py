@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 from django.views.generic import CreateView, UpdateView
 from django.core.cache import cache
 
@@ -207,7 +208,7 @@ def outgoing_detection_rules_feed_view(request, pk):
     cache_key = f'feed_{feed.id}_{feed.secret}'
     cached = cache.get(cache_key)
 
-    filename = f'Colander_{feed.id}_{feed.content_type.short_name.lower()}.rules'
+    filename = f'Colander_{slugify(feed.name)}_{feed.id}_{feed.content_type.short_name.lower()}.rules'
     if cached:
         response = HttpResponse(cached, content_type='application/octet-stream')
         response['X-Colander-Feed-Cache'] = 'hit'

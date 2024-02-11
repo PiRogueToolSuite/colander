@@ -149,6 +149,7 @@ urlpatterns = [
       path("collaborate/team/<slug:pk>/edit", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
+      path("feed/detection_rules/colander_<slug:pk>.rules", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view-rules"),  # to please suricata-update 🤪🤦‍♀️
       path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
       path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
       path("case", CaseCreateView.as_view(), name="case_base_view"),

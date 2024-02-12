@@ -155,20 +155,25 @@ def quick_creation_view(request):
         if 'create_entity' in request.POST:
             model_name = request.POST.get('model')
             type_name = request.POST.get('type')
-            name = request.POST.get('name')
+            names = request.POST.get('name')
             model = colander_models.get(model_name)
             type_model = model.type.field.related_model
             type = type_model.objects.get(short_name=type_name)
-            entity = model(
-                case=active_case,
-                owner=request.user,
-                type=type,
-                name=name,
-                tlp=active_case.tlp,
-                pap=active_case.pap
-            )
-            entity.save()
-            messages.add_message(request, messages.SUCCESS, f" {type} {model_name} successfully created: {name}")
+            for name in names.splitlines():
+                name = name.strip()
+                if name and model.objects.filter(case=active_case, type=type, name=name).count() == 0:
+                    entity = model(
+                        case=active_case,
+                        owner=request.user,
+                        type=type,
+                        name=name,
+                        tlp=active_case.tlp,
+                        pap=active_case.pap
+                    )
+                    entity.save()
+                    messages.add_message(request, messages.SUCCESS, f"The {model_name} named {name} of type {type} successfully created.")
+                else:
+                    messages.add_message(request, messages.WARNING, f"The {model_name} named {name} of type {type} already exists.")
         else:
             query = request.POST.get('q', '')
             entities_list = do_search(query, [active_case])

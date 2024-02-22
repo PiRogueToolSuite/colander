@@ -388,7 +388,7 @@ class ColanderDGraph {
   _createEntity(type, position) {
     let ctx = {
       super_type: type,
-      name: 'New entity',
+      name: null,
       position: position,
     };
     this._createOrEditEntity(ctx);

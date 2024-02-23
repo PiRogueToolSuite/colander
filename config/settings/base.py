@@ -431,3 +431,10 @@ CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='192.168.0.12:8001')
 THREATR_FQDN = env('THREATR_FQDN', default='threatr.radis:9000')
 CYBERCHEF_BASE_URL = env('CYBERCHEF_BASE_URL', default=f'http://{CYBERCHEF_FQDN}')
 THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'http://{THREATR_FQDN}')
+
+# WebSocket channel group messaging feature (enabling by creating default one)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}

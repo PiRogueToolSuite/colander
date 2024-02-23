@@ -1,7 +1,8 @@
-from django.urls import re_path
+from django.urls import re_path, path
 
-from colander.websocket.consumers import ChatConsumer
+from colander.websocket.consumers import GlobalContextConsumer, CaseContextConsumer
 
 websocket_urlpatterns = [
-    re_path(r"ws/chat/(?P<room_name>\w+)/$", ChatConsumer.as_asgi()),
+    path("ws/global/", GlobalContextConsumer.as_asgi()),
+    path("ws/case/<slug:case_id>/", CaseContextConsumer.as_asgi()),
 ]

@@ -13,7 +13,7 @@
     <i id="overall-search-icon" class="nf nf-md-magnify" aria-hidden="true"></i>
     <div id="overall-search-result" v-if="results.length > 0">
       <div class="list-group">
-        <a v-for="r in results" v-bind:href="r.url" class="list-group-item list-group-item-action">
+        <a v-for="r in results" v-bind:href="r.url" class="list-group-item list-group-item-action" draggable="true" @dragstart="startDrag($event, r)">
           <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">
               <i class="fa fa-circle" v-bind:style="{color:r.color}" data-bs-toggle="tooltip" data-bs-placement="top" v-bind:title="r.model_name"></i>

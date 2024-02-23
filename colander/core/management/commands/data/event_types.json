@@ -5,5 +5,7 @@
   {"short_name": "COMPROMISE", "name": "Compromise", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-disk_alert"},
   {"short_name": "INFECTION", "name": "Infection", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-disk_alert"},
   {"short_name": "ALERT", "name": "Alert", "description": "", "svg_icon": "", "nf_icon": "nf-oct-alert"},
-  {"short_name": "HIT", "name": "Hit", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-white_balance_sunny"}
+  {"short_name": "AV_DETECTION", "name": "AntiVirus detection", "description": "", "svg_icon": "", "nf_icon": "nf-oct-alert"},
+  {"short_name": "HIT", "name": "Hit", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-white_balance_sunny"},
+  {"short_name": "PASSIVE_DNS", "name": "Passive DNS", "description": "", "svg_icon": "", "nf_icon": "nf-mdi-white_balance_sunny"}
 ]

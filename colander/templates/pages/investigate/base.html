@@ -61,6 +61,9 @@
                 </tr>
                 </thead>
                 <tbody>
+                {% if root_entity %}
+                  {% include "pages/investigate/m_observable_table_row.html" with observable=root_entity %}
+                {% endif %}
                 {% for entity in results.entities.values|dictsort:"type.name" %}
                   {% if entity.super_type.short_name == "OBSERVABLE" %}
                     {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
@@ -79,6 +82,7 @@
                     <th>Type</th>
                     <th>Event</th>
                     <th>Time period</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -91,6 +95,13 @@
                       </td>
                       <td>{{ entity.name }}</td>
                       <td>{{ entity.first_seen }} - {{ entity.last_seen }} ({{ entity.count }} time{{ entity.count|pluralize }})</td>
+                      <td class="text-end">
+                        <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
+                          data-bs-toggle="tooltip" data-bs-title="Import to the current case"
+                          type="button" data-obj-id="{{ entity.id }}">
+                          <i class="nf nf-fa-plus"></i>
+                        </button>
+                      </td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -162,14 +173,27 @@
       const data = JSON.parse($('#results-data').text());
       const id = $(this).attr('data-obj-id');
       const root = data['root_entity'];
-      const entity = data['entities'][id];
-      var relation = undefined
-      data['relations'].forEach(function (r){
-          if((r.obj_from == root.id && r.obj_to == entity.id) || (r.obj_to == root.id && r.obj_from == entity.id)) {
+      let relation = undefined;
+      let entity = undefined;
+      let event = undefined;
+      data['events'].forEach(function (e) {
+        if(e.id === id){
+          event = e;
+          event.super_type = {name:'Event', short_name:'EVENT'}
+        }
+        return
+      })
+      if (id !== root['id']) {
+        entity = data['entities'][id];
+        if(entity !== undefined) {
+          data['relations'].forEach(function (r) {
+          if ((r.obj_from == root.id && r.obj_to == entity.id) || (r.obj_to == root.id && r.obj_from == entity.id)) {
             relation = r;
             return
           }
         })
+        }
+      }
 
       const response = await fetch(`/rest/threatr_entity`, {
         method: 'POST',
@@ -182,6 +206,7 @@
           'case_id': "{{ contextual_case.id }}",
           'root': root,
           'entity': entity,
+          'event': event,
           'relation': relation
         })
       });

@@ -57,8 +57,10 @@ def investigate_search_view(request):
             wait = response.status_code == 201
             if response.status_code == 200:
                 results = response.json()
-                entity_super_type = results.get('root_entity').get('super_type').get('name')
+                root_entity = results.get('root_entity')
+                entity_super_type = root_entity.get('super_type').get('name')
                 if entity_super_type in colander_models:
+                    types_to_display[root_entity.get('super_type').get('short_name')] = root_entity.get('super_type')
                     model = colander_models[entity_super_type]
                     if model in color_scheme:
                         results['root_entity']['color'] = color_scheme[model]

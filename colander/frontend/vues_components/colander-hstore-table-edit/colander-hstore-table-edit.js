@@ -2,6 +2,7 @@ new Vue({
     delimiters: ['[[', ']]'],
     data: {
         textArea: $('textarea#id_attributes'),
+        entityTypesContainer: $('script#entity_types'),
         storedAttributes: [],
         dataLoaded: false,
     },
@@ -25,12 +26,31 @@ new Vue({
             this.update_json();
         },
         add_attribute: function(){
-            this.$set(this.storedAttributes, this.storedAttributes.length, {key: 'new_key', value: 'value'});
+            this.$set(this.storedAttributes, this.storedAttributes.length, {key: 'new_key', value: ''});
+        },
+        on_type_selection_changed: function (e) {
+            const default_attributes = this.entity_types[e.target.value].attributes;
+            this.dataLoaded = false; // Reload from textarea
+            this.attributes;
+            for (let k in default_attributes) {
+                if (!this._is_key_stored(k)) {
+                    this.$set(this.storedAttributes, this.storedAttributes.length, {key: k, value: default_attributes[k]});
+                }
+            }
+        },
+        _is_key_stored: function (k) {
+            for (let i in this.storedAttributes) {
+                if (this.storedAttributes[i].key === k) {
+                    return true
+                }
+            }
+            return false;
         },
         update_json: function(){
             let obj = {};
             for (let i in this.storedAttributes){
-                obj[this.storedAttributes[i].key] = this.storedAttributes[i].value;
+                if (this.storedAttributes[i].value)
+                    obj[this.storedAttributes[i].key] = this.storedAttributes[i].value;
             }
             try {
                 this.textArea.val(JSON.stringify(obj));
@@ -38,8 +58,19 @@ new Vue({
         }
     },
     computed: {
-        attributes: function () {
+        entity_types: function() {
+            const types_from_container = this.entityTypesContainer.text();
+            if (types_from_container.length > 1) {
+                try {
+                    return JSON.parse(types_from_container);
+                } catch (SyntaxError) {
+                }
+            }
+            return {};
+        },
+        attributes: function() {
             if (!this.dataLoaded) {
+                this.storedAttributes = [];
                 let attr_from_textarea = this.textArea.val();
                 if (attr_from_textarea.length > 1) {
                     try {
@@ -58,5 +89,6 @@ new Vue({
     mounted: function(){
         $('textarea#id_attributes').css('visibility', 'hidden');
         $('textarea#id_attributes').css('position', 'absolute');
+        $('input[type=radio][name="type"]').on('click', this.on_type_selection_changed);
     }
 });

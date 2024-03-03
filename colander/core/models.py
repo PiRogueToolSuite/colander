@@ -170,6 +170,11 @@ class CommonModelType(models.Model):
         blank=True,
         null=True
     )
+    default_attributes = HStoreField(
+        verbose_name='Default attributes',
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return self.name

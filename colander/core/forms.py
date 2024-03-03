@@ -70,10 +70,14 @@ class CommentForm(forms.ModelForm):
             self.instance.owner = connected_user
 
 
+def _get_types_for_investigation_form():
+    return [(t.short_name, t.name) for t in ObservableType.objects.all()]
+
 class InvestigateSearchForm(forms.Form):
-    type = forms.ChoiceField(choices=[(t.short_name, t.name) for t in ObservableType.objects.all()])
+    type = forms.ChoiceField(choices=_get_types_for_investigation_form)
     value = forms.CharField(max_length=128)
     force_update = forms.BooleanField(required=False, label='Update results from vendors.')
+
 
 
 class DocumentationForm(forms.Form):

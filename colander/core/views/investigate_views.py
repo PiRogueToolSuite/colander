@@ -12,7 +12,6 @@ from colander.core.models import colander_models, color_scheme, icons, BackendCr
 
 THREAT_BACKEND_IDENTIFIER = 'threatr'
 logger = logging.getLogger(__name__)
-types = {t.short_name.lower(): t for t in ObservableType.objects.all()}
 
 
 def get_threatr_types(api_key):
@@ -30,6 +29,7 @@ def investigate_search_view(request):
     wait = False
     types_to_display = {}
     mermaid = ''
+    types = {t.short_name.lower(): t for t in ObservableType.objects.all()}
 
     if request.GET.keys():
         credentials = BackendCredentials.objects.filter(backend=THREAT_BACKEND_IDENTIFIER)

@@ -25,6 +25,7 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
             for t in rule_types
         ]
+        form.fields['content'].widget.attrs.update({'class': 'colander-text-editor'})
         form.fields['type'].widget = RadioSelect(choices=choices)
 
         if not edit:

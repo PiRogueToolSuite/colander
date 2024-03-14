@@ -41,6 +41,7 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['extracted_from'].queryset = artifact_qset
+        form.fields['content'].widget.attrs.update({'class': 'colander-text-editor'})
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

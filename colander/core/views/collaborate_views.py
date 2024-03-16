@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -64,6 +66,8 @@ class ColanderTeamDetailsView(LoginRequiredMixin, OwnershipRequiredMixin, Detail
 @login_required
 def add_remove_team_contributor(request, pk):
     team = ColanderTeam.objects.get(id=pk)
+    if team.owner != request.user:  # Todo: support team administrators
+        return HttpResponseForbidden()
     if request.method == 'POST' and team.owner == request.user:
         form = AddRemoveTeamContributorForm(request.POST)
         if form.is_valid():
@@ -92,6 +96,9 @@ def add_remove_team_contributor(request, pk):
 
 @login_required
 def delete_team_view(request, pk):
-    obj = ColanderTeam.objects.get(id=pk)
-    obj.delete()
+    team = ColanderTeam.objects.get(id=pk)
+    if team.owner == request.user:
+        team.delete()
+    else:
+        return HttpResponseForbidden()
     return redirect("collaborate_team_create_view")

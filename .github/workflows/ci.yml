@@ -35,7 +35,9 @@ jobs:
       - name: Run DB Migrations
         run:  docker-compose -f local.yml run --rm django python manage.py migrate --skip-checks
       - name: Run Django Tests
-        run:  docker-compose -f local.yml run django pytest
+        run:  docker-compose -f local.yml run --rm django pytest
+      - name: Run Django Tests
+        run:  docker-compose -f local.yml run --rm django coverage run manage.py test colander
       - name: Tear down the Stack
         run:  docker-compose -f local.yml down
 

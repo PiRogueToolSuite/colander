@@ -333,3 +333,10 @@ colander/media/
 /colander/core/migrationszzz/
 
 trash/
+
+notes
+.coverage
+htmlcov
+coverage.lcov
+.mypy_cache
+.ruff_cache

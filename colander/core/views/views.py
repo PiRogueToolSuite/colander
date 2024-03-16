@@ -59,11 +59,12 @@ class CaseContextMixin(AccessMixin):
     active_case = None
 
     def dispatch(self, request, *args, **kwargs):
-        #print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
-        #self.active_case = get_active_case(request, kwargs['case_id'])
-        if hasattr(request, 'contextual_case'):
+        # print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
+        if hasattr(request, 'contextual_case') and request.contextual_case.can_contribute(request.user):
             self.active_case = request.contextual_case
-        return super().dispatch(request, *args, **kwargs)
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return self.handle_no_permission()
 
     def get_success_url(self):
         #print("get_success_url", self.active_case)

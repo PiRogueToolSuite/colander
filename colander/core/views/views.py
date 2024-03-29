@@ -1,28 +1,31 @@
 import json
 from urllib.parse import urlparse
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
 from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy, resolve
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
+from django.views.generic import CreateView, DetailView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import ModelFormMixin
 from django_serverless_cron.services import RunJobs
-
-from django.views.static import serve
-from os import path
 
 from colander.core import datasets
 from colander.core.forms import DocumentationForm
-from colander.core.models import Entity, Case, colander_models, color_scheme, icons, DetectionRuleOutgoingFeed, \
-    EntityOutgoingFeed
+from colander.core.models import (
+    Case,
+    DetectionRuleOutgoingFeed,
+    Entity,
+    EntityOutgoingFeed,
+    colander_models,
+    color_scheme,
+    icons,
+)
 from colander.core.templatetags.colander_tags import model_name
 
 

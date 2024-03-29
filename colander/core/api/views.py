@@ -5,11 +5,26 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from colander.core.api.serializers import ArtifactSerializer, \
-    ArtifactTypeSerializer,  CaseSerializer,  DeviceSerializer, \
-    DeviceTypeSerializer, PiRogueExperimentSerializer, ObservableSerializer, ObservableTypeSerializer
-from colander.core.models import Artifact, ArtifactType, Device, DeviceType, UploadRequest, PiRogueExperiment, \
-    Observable, ObservableType
+from colander.core.api.serializers import (
+    ArtifactSerializer,
+    ArtifactTypeSerializer,
+    CaseSerializer,
+    DeviceSerializer,
+    DeviceTypeSerializer,
+    ObservableSerializer,
+    ObservableTypeSerializer,
+    PiRogueExperimentSerializer,
+)
+from colander.core.models import (
+    Artifact,
+    ArtifactType,
+    Device,
+    DeviceType,
+    Observable,
+    ObservableType,
+    PiRogueExperiment,
+    UploadRequest,
+)
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
 
 

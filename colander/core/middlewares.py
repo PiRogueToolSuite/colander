@@ -4,7 +4,6 @@ from django.http import HttpResponseForbidden
 from colander.core.forms import DocumentationForm
 from colander.core.models import Case
 
-
 # class ActiveCaseMiddleware:
 #     def __init__(self, get_response):
 #         self.get_response = get_response

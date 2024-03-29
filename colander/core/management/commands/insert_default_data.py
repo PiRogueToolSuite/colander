@@ -3,8 +3,16 @@ import json
 import pkg_resources
 from django.core.management.base import BaseCommand
 
-from colander.core.models import ArtifactType, ObservableType, ThreatType, ActorType, EventType, DeviceType, \
-    DetectionRuleType, DataFragmentType
+from colander.core.models import (
+    ActorType,
+    ArtifactType,
+    DataFragmentType,
+    DetectionRuleType,
+    DeviceType,
+    EventType,
+    ObservableType,
+    ThreatType,
+)
 
 
 class Command(BaseCommand):

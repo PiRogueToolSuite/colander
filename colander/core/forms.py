@@ -1,9 +1,9 @@
 import yara
 from django import forms
 from django.core.exceptions import ValidationError
-
-from colander.core.models import Case, Comment, ObservableType, DetectionRule
 from django.utils.translation import gettext_lazy as _
+
+from colander.core.models import Case, Comment, DetectionRule, ObservableType
 
 
 class CaseForm(forms.ModelForm):

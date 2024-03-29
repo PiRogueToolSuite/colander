@@ -1,11 +1,20 @@
-import magic
 import pathlib
 
-from rest_framework import serializers
+import magic
 from django.db import transaction
+from rest_framework import serializers
 
-from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest, PiRogueExperiment, \
-    Observable, ObservableType
+from colander.core.models import (
+    Artifact,
+    ArtifactType,
+    Case,
+    Device,
+    DeviceType,
+    Observable,
+    ObservableType,
+    PiRogueExperiment,
+    UploadRequest,
+)
 from colander.core.signals import process_hash_and_signing
 
 

@@ -4,7 +4,7 @@ from zipfile import ZipFile
 import requests
 
 from colander.core.artifact_utils import import_file_as_artifact
-from colander.core.models import Observable, EntityRelation, ArtifactType
+from colander.core.models import ArtifactType, EntityRelation, Observable
 
 
 def capture_url(observable_id):

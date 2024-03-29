@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from colander.core.models import Artifact, Device, Actor, Threat, Observable, EntityRelation, Event
+from colander.core.models import Actor, Artifact, Device, EntityRelation, Event, Observable, Threat
 
 
 class EntitySerializer(serializers.Serializer):

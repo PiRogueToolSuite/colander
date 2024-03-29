@@ -1,14 +1,12 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
-from django.contrib import messages
-from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from colander.core.forms import EntityRelationForm
 from colander.core.models import EntityRelation
-from colander.core.views.views import get_active_case
 
 
 @login_required
@@ -52,7 +50,7 @@ def create_or_edit_entity_relation_view(request):
                 try:
                     relation.full_clean()
                     relation.save()
-                except ValidationError as e:
+                except ValidationError:
                     messages.info(request, 'This relation already exists.', extra_tags='danger')
             else:
                 messages.info(request, 'The two entities have to belong to the active case.', extra_tags='danger')

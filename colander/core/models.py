@@ -8,25 +8,20 @@ from hashlib import sha256
 
 import django
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric import utils
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa, utils
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
-from django.db.models import F
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from django_q.models import Schedule
-from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Index
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text
 
 logger = logging.getLogger(__name__)
 
@@ -1797,7 +1792,7 @@ class PiRogueExperiment(Entity):
             total = search.count()
             search = search[0:total]
             return search.sort('-timestamp').execute()
-        except Exception as e:
+        except Exception:
             return None
 
     def get_es_index(self):

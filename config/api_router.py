@@ -1,10 +1,17 @@
 from django.conf import settings
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
-from colander.core.api.views import ApiCaseViewSet, ApiDeviceViewSet, ApiDeviceTypeViewSet, ApiArtifactViewSet, \
-    ApiArtifactTypeViewSet, ApiUploadRequestViewSet, ApiPiRogueExperimentViewSet, ApiObservableViewSet, \
-    ApiObservableTypeViewSet
-from colander.users.api.views import UserViewSet
+from colander.core.api.views import (
+    ApiArtifactTypeViewSet,
+    ApiArtifactViewSet,
+    ApiCaseViewSet,
+    ApiDeviceTypeViewSet,
+    ApiDeviceViewSet,
+    ApiObservableTypeViewSet,
+    ApiObservableViewSet,
+    ApiPiRogueExperimentViewSet,
+    ApiUploadRequestViewSet,
+)
 
 if settings.DEBUG:
     router = DefaultRouter()

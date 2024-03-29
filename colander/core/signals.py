@@ -1,7 +1,8 @@
+from threading import Thread
+
 import django.dispatch
 from django.core.files import File
 from django.dispatch import receiver
-from threading import Thread
 
 from colander.core.models import Artifact, UploadRequest
 from colander.core.utils import hash_file

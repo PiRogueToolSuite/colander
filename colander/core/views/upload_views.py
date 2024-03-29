@@ -1,11 +1,13 @@
+import hashlib
+import json
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
-import json
+
 from colander.core.models import UploadRequest
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
-import logging
-import hashlib
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +29,8 @@ def initialize_upload(request):
                 with open(upload_request.path, 'wb') as f:
                     f.seek(file_size - 1)
                     f.write(b'\0')
-            except IOError as e:
-                error_message = "Unable to create file: {}".format(e)
+            except OSError as e:
+                error_message = f"Unable to create file: {e}"
                 logger.error(error_message, exc_info=True)
                 upload_request.cleanup()
                 upload_request.status = UploadRequest.Status.FAILED

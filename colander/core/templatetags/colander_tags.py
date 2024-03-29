@@ -1,6 +1,7 @@
 from base64 import urlsafe_b64encode
 
 from django import template
+
 register = template.Library()
 
 @register.filter(name="model_name")

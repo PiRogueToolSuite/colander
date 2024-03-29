@@ -1,21 +1,19 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.forms.widgets import RadioSelect, Textarea
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.generic import CreateView, UpdateView
-from django.core.cache import cache
 
 from colander.core.exporters.csv import CsvCaseExporter
 from colander.core.exporters.json import JsonCaseExporter
 from colander.core.exporters.stix2 import Stix2CaseExporter
-from colander.core.models import DetectionRuleOutgoingFeed, \
-    DetectionRuleType, EntityOutgoingFeed
+from colander.core.models import DetectionRuleOutgoingFeed, DetectionRuleType, EntityOutgoingFeed
 from colander.core.serializers.generic import OutgoingFeedSerializer
-from colander.core.views.views import get_active_case, CaseContextMixin
+from colander.core.views.views import CaseContextMixin
 
 
 class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
@@ -165,9 +163,7 @@ def outgoing_entities_feed_view(request, pk):
     cache_key = f'feed_{feed.id}_{format}_{feed.secret}'
     cached = cache.get(cache_key)
     if cached:
-        if format == 'json':
-            return JsonResponse(cached, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'hit'})
-        elif format == 'stix2':
+        if format == 'json' or format == 'stix2':
             return JsonResponse(cached, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'hit'})
         elif format == 'csv':
             return HttpResponse(cached, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'hit'})

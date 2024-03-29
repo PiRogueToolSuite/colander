@@ -1,8 +1,26 @@
 from django.contrib import admin
 
-from colander.core.models import ObservableType, Observable, Case, Threat, ObservableRelation, \
-    Artifact, ArtifactType, Event, Actor, EventType, Comment, PiRogueExperiment, EntityRelation, BackendCredentials, \
-    DetectionRule, UploadRequest, ColanderTeam, DetectionRuleOutgoingFeed, EntityOutgoingFeed
+from colander.core.models import (
+    Actor,
+    Artifact,
+    ArtifactType,
+    BackendCredentials,
+    Case,
+    ColanderTeam,
+    Comment,
+    DetectionRule,
+    DetectionRuleOutgoingFeed,
+    EntityOutgoingFeed,
+    EntityRelation,
+    Event,
+    EventType,
+    Observable,
+    ObservableRelation,
+    ObservableType,
+    PiRogueExperiment,
+    Threat,
+    UploadRequest,
+)
 
 
 class ColanderTeamAdmin(admin.ModelAdmin):

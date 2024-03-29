@@ -1,22 +1,29 @@
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework import mixins
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import GenericViewSet, ViewSet
-from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from colander.core import datasets
 from colander.core.graph.serializers import GraphRelationSerializer
-from colander.core.models import Case, EntityRelation, Entity, ObservableType, Observable, Threat, ThreatType, Event, \
-    EventType
+from colander.core.models import (
+    Case,
+    Entity,
+    EntityRelation,
+    Event,
+    EventType,
+    Observable,
+    ObservableType,
+    Threat,
+    ThreatType,
+)
 from colander.core.rest.serializers import DetailedEntitySerializer
-from colander.core.views.views import get_active_case
 
 
 class DatasetViewSet(ViewSet):

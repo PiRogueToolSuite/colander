@@ -1,4 +1,3 @@
-from base64 import b32encode
 from urllib.parse import quote, urlencode
 
 from allauth_2fa.views import TwoFactorSetup

@@ -1,6 +1,7 @@
-import pytz
 import logging
 from datetime import datetime, timedelta
+
+import pytz
 from django.core.files import File
 
 from colander.core.models import Artifact, UploadRequest

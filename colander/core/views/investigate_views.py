@@ -2,13 +2,13 @@ import logging
 
 import requests
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
 from colander.core.forms import InvestigateSearchForm
-from colander.core.models import colander_models, color_scheme, icons, BackendCredentials, ObservableType
+from colander.core.models import BackendCredentials, ObservableType, colander_models, color_scheme
 
 THREAT_BACKEND_IDENTIFIER = 'threatr'
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ def investigate_search_view(request):
         api_key = credentials.credentials.get('api_key')
         threatr_types = get_threatr_types(api_key)
         if not threatr_types:
-            logger.error(f'Unable to retrieve threatr types')
+            logger.error('Unable to retrieve threatr types')
 
         entities = {}
         form = InvestigateSearchForm(request.GET)

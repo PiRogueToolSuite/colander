@@ -37,9 +37,9 @@ jobs:
       - name: Run Django Tests
         run:  docker-compose -f local.yml run --rm django pytest
       - name: Tear down the database
-        run:  docker-compose -f local.yml run --rm django python manage.py drop_test_database
+        run:  docker-compose -f local.yml run --rm django python manage.py drop_test_database --no-input
       - name: Run Django Tests
-        run:  docker-compose -f local.yml run --rm django coverage run manage.py test colander
+        run:  docker-compose -f local.yml run --rm django coverage run manage.py test colander --no-input
       - name: Tear down the Stack
         run:  docker-compose -f local.yml down
 

@@ -1,7 +1,7 @@
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 
-from colander.core.models import Case, ColanderTeam, ActorType, Actor
+from colander.core.models import Actor, ActorType, Case, ColanderTeam
 from colander.users.models import User
 
 

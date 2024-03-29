@@ -96,15 +96,11 @@ jobs:
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
-      - name: Archive deployment package
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-package
-          path: deploy_package
+      - name: Compress the deployment package
+        run: tar czf deployment-package.tar.gz deploy_package
       - name: Release
         uses: fnkr/github-action-ghr@v1
         if: startsWith(github.ref, 'refs/tags/')
         env:
-          GHR_COMPRESS: gz
-          GHR_PATH: deploy_package/
+          GHR_PATH: deployment-package.tar.gz
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

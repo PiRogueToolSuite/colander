@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   # With no caching at all the entire ci process takes 4m 30s to complete!
-  pytest:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
@@ -36,6 +36,8 @@ jobs:
         run:  docker-compose -f local.yml run --rm django python manage.py migrate --skip-checks
       - name: Run Django Tests
         run:  docker-compose -f local.yml run --rm django pytest
+      - name: Tear down the Stack
+        run:  docker-compose -f local.yml down
       - name: Run Django Tests
         run:  docker-compose -f local.yml run --rm django coverage run manage.py test colander
       - name: Tear down the Stack
@@ -43,7 +45,7 @@ jobs:
 
   docker-build:
     if: github.event_name == 'push'
-    needs: [pytest]
+    needs: [tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -29,7 +29,7 @@ class ContextualCaseMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if request.user is None or not request.user.is_authenticated:
-            return HttpResponseForbidden()
+            return
 
         workspace_case_id = view_kwargs.pop('case_id', None)
         if workspace_case_id is None:

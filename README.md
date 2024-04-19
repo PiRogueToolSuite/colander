@@ -7,6 +7,11 @@ Colander is an incident response and knowledge management platform, delivered as
 <p>
 License: GPLv3
 </p>
+<p>
+<a href="https://pts-project.org">Website</a> | 
+<a href="https://pts-project.org/docs/colander/overview/">Documentation</a> | 
+<a href="https://discord.gg/qGX73GYNdp">Support</a>
+</p>
 </div>
 
 # Features

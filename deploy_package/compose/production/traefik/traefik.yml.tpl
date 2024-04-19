@@ -57,16 +57,6 @@ http:
       service: cyberchef
       tls:
         certResolver: letsencrypt
-    web-secure-keycloak:
-      rule: "Host(\"${KEYCLOAK_FQDN}\")"
-      entryPoints:
-        - web-secure
-      middlewares:
-        - compress-http
-        - csrf
-      service: keycloak
-      tls:
-        certResolver: letsencrypt
 
   middlewares:
   	compress-http:
@@ -91,10 +81,6 @@ http:
       loadBalancer:
         servers:
           - url: http://cyberchef:8000
-    keycloak:
-      loadBalancer:
-        servers:
-          - url: http://keycloak:8000
 
 providers:
   # https://docs.traefik.io/master/providers/file/

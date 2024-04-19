@@ -39,7 +39,9 @@ In participating in our vulnerability disclosure program in good faith, we ask t
 * Do not engage in extortion.  
 
 ## Official Channels 
-Please report security issues via `contact[at]defensive-lab.agency`, providing all relevant information. The more details you provide, the easier it will be for us to triage and fix the issue.
+In order for the vulnerability reports to reach maintainers as soon as possible, the preferred way is to use the `Report a vulnerability` button on the `Security` tab in the respective GitHub repository. It creates a private communication channel between the reporter and the maintainers.
+
+If you are absolutely unable to or have strong reasons not to use GitHub reporting workflow, please reach out to the maintainers at `contact[at]defensive-lab.agency`, providing all relevant information. The more details you provide, the easier it will be for us to triage and fix the issue.
 
 ## Safe Harbor
 When conducting vulnerability research, according to this policy, we consider this research conducted under this policy to be:

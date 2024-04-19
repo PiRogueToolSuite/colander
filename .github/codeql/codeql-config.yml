@@ -2,4 +2,4 @@ name: "PTS CodeQL config"
 
 paths-ignore:
   # Ignore static, compiled JS files
-  - "colander/static/**.min.js"
+  - "colander/static/js/*.min.js"

@@ -44,7 +44,7 @@ jobs:
         run:  docker-compose -f local.yml down
 
   docker-build:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
     needs: [tests]
     runs-on: ubuntu-latest
     permissions:
@@ -73,24 +73,39 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./compose/production/django/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: |
+            annotation.org.opencontainers.image.source="https://github.com/PiRogueToolSuite/colander"
+            annotation.org.opencontainers.image.description="Case, knowledge management and digital investigation platform"
+            annotation.org.opencontainers.image.vendor="Defensive Lab Agency"
+            annotation.org.opencontainers.image.licenses="GPL-3.0"
+            annotation.org.opencontainers.image.revision="${{ github.sha }}"
 
   build-deployment-package:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
     needs: [docker-build]
     runs-on: ubuntu-latest
     steps:

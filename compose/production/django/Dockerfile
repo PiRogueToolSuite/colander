@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.9-slim-bullseye
+ARG PYTHON_VERSION=3.10-slim-bookworm
 
 
 

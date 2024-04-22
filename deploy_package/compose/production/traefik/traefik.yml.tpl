@@ -27,14 +27,14 @@ certificatesResolvers:
 
 http:
   routers:
-    web-secure-django:
+    web-secure-colander:
       rule: "Host(\"${COLANDER_FQDN}\")"
       entryPoints:
         - web-secure
       middlewares:
         - compress-http
         - csrf
-      service: django
+      service: colander
       tls:
         certResolver: letsencrypt
     web-secure-threatr:
@@ -59,9 +59,9 @@ http:
         certResolver: letsencrypt
 
   middlewares:
-  	compress-http:
-  	  # https://doc.traefik.io/traefik/middlewares/http/compress/
-	  compress: true
+    compress-http:
+      # https://doc.traefik.io/traefik/middlewares/http/compress/
+      compress: true
     csrf:
       # https://docs.traefik.io/master/middlewares/headers/#hostsproxyheaders
       # https://docs.djangoproject.com/en/dev/ref/csrf/#ajax

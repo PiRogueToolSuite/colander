@@ -10,6 +10,8 @@ from colander.core.api.views import (
     ApiObservableTypeViewSet,
     ApiObservableViewSet,
     ApiPiRogueExperimentViewSet,
+    ApiRelationViewSet,
+    ApiTeamViewSet,
     ApiUploadRequestViewSet,
 )
 
@@ -29,6 +31,8 @@ router.register("device_types", ApiDeviceTypeViewSet, basename='device_types')
 router.register("observables", ApiObservableViewSet, basename='observables')
 router.register("observable_types", ApiObservableTypeViewSet, basename='observable_types')
 router.register("pirogue_experiments", ApiPiRogueExperimentViewSet, basename='pirogue_experiments')
+router.register("relations", ApiRelationViewSet, basename='relations')
+router.register("teams", ApiTeamViewSet, basename='teams')
 
 app_name = "api"
 urlpatterns = router.urls

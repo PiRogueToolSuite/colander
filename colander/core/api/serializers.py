@@ -3,17 +3,20 @@ import pathlib
 import magic
 from django.db import transaction
 from rest_framework import serializers
+from rest_framework.serializers import Serializer
 
 from colander.core.models import (
     Artifact,
     ArtifactType,
     Case,
+    ColanderTeam,
     Device,
     DeviceType,
+    EntityRelation,
     Observable,
     ObservableType,
     PiRogueExperiment,
-    UploadRequest,
+    UploadRequest, Entity,
 )
 from colander.core.signals import process_hash_and_signing
 
@@ -27,7 +30,8 @@ class ArtifactTypeSerializer(serializers.ModelSerializer):
 class CaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
-        fields = ['id', 'created_at', 'updated_at', 'name', 'description']
+        fields = ['id', 'created_at', 'updated_at', 'name', 'description', 'tlp', 'pap', 'teams']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -188,3 +192,22 @@ class ObservableTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObservableType
         fields = ['id', 'name', 'short_name']
+
+
+class RelationSerializer(serializers.ModelSerializer):
+    #obj_from = serializers.SerializerMethodField()
+    obj_from = serializers.PrimaryKeyRelatedField(queryset=Entity.objects)
+    #obj_to = serializers.SerializerMethodField()
+    obj_to = serializers.PrimaryKeyRelatedField(queryset=Entity.objects)
+
+    class Meta:
+        model = EntityRelation
+        fields = ['id', 'name', 'case', 'created_at', 'updated_at', 'attributes', 'obj_from', 'obj_to']
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ColanderTeam
+        fields = ['id', 'name']
+

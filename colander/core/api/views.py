@@ -14,12 +14,16 @@ from colander.core.api.serializers import (
     ObservableSerializer,
     ObservableTypeSerializer,
     PiRogueExperimentSerializer,
+    RelationSerializer,
+    TeamSerializer,
 )
 from colander.core.models import (
     Artifact,
     ArtifactType,
+    ColanderTeam,
     Device,
     DeviceType,
+    EntityRelation,
     Observable,
     ObservableType,
     PiRogueExperiment,
@@ -30,6 +34,7 @@ from colander.core.serializers.upload_request_serializers import UploadRequestSe
 
 class ApiCaseViewSet(mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
+                     mixins.CreateModelMixin,
                      GenericViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -44,6 +49,9 @@ class ApiCaseViewSet(mixins.RetrieveModelMixin,
             queryset = queryset.filter(name__icontains=name)
 
         return queryset
+
+    def perform_create(self, serializer):
+        return serializer.save(owner=self.request.user)
 
 
 class ApiDeviceTypeViewSet(mixins.RetrieveModelMixin,
@@ -185,3 +193,57 @@ class ApiObservableTypeViewSet(mixins.RetrieveModelMixin,
     permission_classes = [IsAuthenticated]
     serializer_class = ObservableTypeSerializer
     queryset = ObservableType.objects.all()
+
+
+class ApiRelationViewSet(mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
+                         GenericViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = RelationSerializer
+
+    def get_queryset(self):
+        cases = self.request.user.all_my_cases
+        queryset = EntityRelation.objects.filter(case__in=cases)
+
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        case_id = self.request.query_params.get('case_id')
+        if case_id is not None:
+            queryset = queryset.filter(case=case_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        # Bug-0004 : 'upgrade' obj_form and obj_to value to their respective concrete class
+        abstract_from = serializer.validated_data['obj_from']
+        abstract_to = serializer.validated_data['obj_to']
+
+        concrete_from = abstract_from.concrete()
+        concrete_to = abstract_to.concrete()
+
+        serializer.validated_data['obj_from'] = concrete_from
+        serializer.validated_data['obj_to'] = concrete_to
+
+        return serializer.save(owner=self.request.user)
+
+
+class ApiTeamViewSet(mixins.RetrieveModelMixin,
+                     mixins.ListModelMixin,
+                     GenericViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = TeamSerializer
+
+    def get_queryset(self):
+        teams = self.request.user.my_teams_as_qset
+
+        name = self.request.query_params.get('name')
+        if name is not None:
+            teams = teams.filter(name__icontains=name)
+
+        return teams
+

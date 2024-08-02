@@ -14,9 +14,9 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models import F, Q
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -24,6 +24,11 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text
 
 logger = logging.getLogger(__name__)
+
+
+class BusinessIntegrityError(IntegrityError):
+    """Generic Error class to raise and describe business logic violation"""
+    pass
 
 
 class Appendix:
@@ -1294,6 +1299,14 @@ class EntityRelation(models.Model):
         return ier
 
 
+@receiver(pre_save, sender=EntityRelation, dispatch_uid="bic_entity_relation_pre_save")
+def bic_entity_relation_pre_save(sender, instance, **kwargs):
+    if instance.case.pk != instance.obj_from.case.pk:
+        raise BusinessIntegrityError("Relation 'case' differs from related source entity 'case'")
+    if instance.case.pk != instance.obj_to.case.pk:
+        raise BusinessIntegrityError("Relation 'case' differs from related target entity 'case'")
+
+
 @receiver(pre_delete, sender=Entity, dispatch_uid="entity_relation_cascade")
 def entity_relation_cascade(sender, instance, using, **kwargs):
     EntityRelation.objects.filter(
@@ -1900,6 +1913,15 @@ class PiRogueExperiment(Entity):
                     target=self.aes_trace
                 )
             )
+        if self.extra_files:
+            for ef in self.extra_files.all():
+                relations.append(
+                    EntityRelation.immutable_instance(
+                        name="generated",
+                        source=self,
+                        target=ef
+                    )
+                )
         return relations
 
 @receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')

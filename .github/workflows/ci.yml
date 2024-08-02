@@ -31,17 +31,17 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
       - name: Build the Stack
-        run:  docker-compose -f local.yml build
+        run:  docker compose -f local.yml build
       - name: Run DB Migrations
-        run:  docker-compose -f local.yml run --rm django python manage.py migrate --skip-checks
+        run:  docker compose -f local.yml run --rm django python manage.py migrate --skip-checks
       - name: Run Django Tests
-        run:  docker-compose -f local.yml run --rm django pytest
+        run:  docker compose -f local.yml run --rm django pytest
       - name: Tear down the database
-        run:  docker-compose -f local.yml run --rm django python manage.py drop_test_database --no-input
+        run:  docker compose -f local.yml run --rm django python manage.py drop_test_database --no-input
       - name: Run Django Tests
-        run:  docker-compose -f local.yml run --rm django coverage run manage.py test colander --no-input
+        run:  docker compose -f local.yml run --rm django coverage run manage.py test colander --no-input
       - name: Tear down the Stack
-        run:  docker-compose -f local.yml down
+        run:  docker compose -f local.yml down
 
   docker-build:
     if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
@@ -102,7 +102,7 @@ jobs:
             annotation.org.opencontainers.image.vendor="Defensive Lab Agency"
             annotation.org.opencontainers.image.licenses="GPL-3.0"
             annotation.org.opencontainers.image.revision="${{ github.sha }}"
-      
+
       - name: Log into Docker Hub
         uses: docker/login-action@v3.1.0
         with:

@@ -2,7 +2,6 @@ import time
 
 from elasticsearch.client import Elasticsearch
 
-
 geoip_pipeline_id = 'geoip_pipeline'
 
 

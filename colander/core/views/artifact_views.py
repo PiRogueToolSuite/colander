@@ -5,17 +5,18 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.forms.widgets import Textarea, RadioSelect
+from django.forms.widgets import RadioSelect, Textarea
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import redirect
 from django.utils.safestring import mark_safe
-from django.views.generic import CreateView, UpdateView, DetailView
+from django.views.generic import CreateView, DetailView, UpdateView
 from nacl.encoding import Base64Encoder
 
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, ArtifactType, Device, UploadRequest
-from colander.core.views.views import CaseContextMixin
 from colander.core.signals import process_hash_and_signing
+from colander.core.views.views import CaseContextMixin
+
 
 class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = Artifact
@@ -28,6 +29,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'description',
         'extracted_from',
         'source_url',
+        'attributes',
         'tlp',
         'pap',
     ]
@@ -123,6 +125,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseContextMixin, UpdateView):
         'type',
         'description',
         'extracted_from',
+        'attributes',
         'source_url',
         'tlp',
         'pap',

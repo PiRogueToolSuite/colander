@@ -13,7 +13,10 @@
     </div>
     {% include "event/controls.html" with exclude="details" btn_class="" %}
   </div>
-  <div class="col-md-12 mt-2">
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-6 mt-2">
     <h3>{% translate "Details" %}</h3>
     <table class="table table-sm">
       <tbody>
@@ -118,9 +121,13 @@
       </tbody>
     </table>
   </div>
+  <div class="col-md-6 mt-2">
+    <h3>{% translate "Attributes" %}</h3>
+    {% include "helpers/extra_attributes_light.html" with attributes=event.attributes %}
+  </div>
+</div>
 
-  {% include "helpers/extra_attributes.html" with attributes=event.attributes %}
-
+<div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h3>{% translate "Involved observables" %}</h3>
     {% for observable in event.involved_observables.all %}

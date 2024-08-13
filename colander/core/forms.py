@@ -1,9 +1,9 @@
 import yara
 from django import forms
 from django.core.exceptions import ValidationError
-
-from colander.core.models import Case, Comment, ObservableType, DetectionRule
 from django.utils.translation import gettext_lazy as _
+
+from colander.core.models import Case, Comment, DetectionRule, ObservableType
 
 
 class CaseForm(forms.ModelForm):
@@ -69,8 +69,12 @@ class CommentForm(forms.ModelForm):
             self.instance.owner = connected_user
 
 
+def _get_types_for_investigation_form():
+    return [(t.short_name, t.name) for t in ObservableType.objects.all()]
+
+
 class InvestigateSearchForm(forms.Form):
-    type = forms.ChoiceField(choices=[])
+    type = forms.ChoiceField(choices=_get_types_for_investigation_form)
     value = forms.CharField(max_length=128)
     force_update = forms.BooleanField(required=False, label='Update results from vendors.')
 

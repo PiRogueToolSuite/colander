@@ -209,11 +209,44 @@
     "stix2_pattern_type": "stix2"
   },
   {
+    "short_name": "JSON",
+    "name": "JSON file",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-cod-json",
+    "stix2_type": "artifact",
+    "stix2_value_field_name": "hashes",
+    "stix2_pattern": "file:hashes.",
+    "stix2_pattern_type": "stix2"
+  },
+  {
+    "short_name": "TEXT",
+    "name": "Text file",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-file_text",
+    "stix2_type": "artifact",
+    "stix2_value_field_name": "hashes",
+    "stix2_pattern": "file:hashes.",
+    "stix2_pattern_type": "stix2"
+  },
+  {
+    "short_name": "BINARY",
+    "name": "Binary file",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-cod-file_binary",
+    "stix2_type": "artifact",
+    "stix2_value_field_name": "hashes",
+    "stix2_pattern": "file:hashes.",
+    "stix2_pattern_type": "stix2"
+  },
+  {
     "short_name": "OTHER",
     "name": "Other type of file",
     "description": "",
     "svg_icon": "",
-    "nf_icon": "nf-mdi-file_document",
+    "nf_icon": "nf-cod-file_binary",
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",

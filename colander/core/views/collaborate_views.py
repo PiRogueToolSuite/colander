@@ -1,9 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.contrib import messages
-from django.views.generic import CreateView, UpdateView, DetailView
+from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import AddRemoveTeamContributorForm
 from colander.core.models import ColanderTeam
@@ -64,12 +65,14 @@ class ColanderTeamDetailsView(LoginRequiredMixin, OwnershipRequiredMixin, Detail
 @login_required
 def add_remove_team_contributor(request, pk):
     team = ColanderTeam.objects.get(id=pk)
+    if team.owner != request.user:  # Todo: support team administrators
+        return HttpResponseForbidden()
     if request.method == 'POST' and team.owner == request.user:
         form = AddRemoveTeamContributorForm(request.POST)
         if form.is_valid():
             contributor_id = form.cleaned_data['contributor_id']
             if contributor_id == request.user.contributor_id and 'add_contributor' in request.POST:
-                messages.warning(request, f'You can not add the owner of this team as a contributor too.')
+                messages.warning(request, 'You can not add the owner of this team as a contributor too.')
             else:
                 try:
                     contributor = User.objects.get(contributor_id=contributor_id)
@@ -92,6 +95,9 @@ def add_remove_team_contributor(request, pk):
 
 @login_required
 def delete_team_view(request, pk):
-    obj = ColanderTeam.objects.get(id=pk)
-    obj.delete()
+    team = ColanderTeam.objects.get(id=pk)
+    if team.owner == request.user:
+        team.delete()
+    else:
+        return HttpResponseForbidden()
     return redirect("collaborate_team_create_view")

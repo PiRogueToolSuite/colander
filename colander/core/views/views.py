@@ -1,28 +1,31 @@
 import json
 from urllib.parse import urlparse
 
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
 from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
-from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy, resolve
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, UpdateView, DetailView
 from django.views.decorators.cache import cache_page
+from django.views.generic import CreateView, DetailView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import ModelFormMixin
 from django_serverless_cron.services import RunJobs
-
-from django.views.static import serve
-from os import path
 
 from colander.core import datasets
 from colander.core.forms import DocumentationForm
-from colander.core.models import Entity, Case, colander_models, color_scheme, icons, DetectionRuleOutgoingFeed, \
-    EntityOutgoingFeed
+from colander.core.models import (
+    Case,
+    DetectionRuleOutgoingFeed,
+    Entity,
+    EntityOutgoingFeed,
+    colander_models,
+    color_scheme,
+    icons,
+)
 from colander.core.templatetags.colander_tags import model_name
 
 
@@ -59,11 +62,12 @@ class CaseContextMixin(AccessMixin):
     active_case = None
 
     def dispatch(self, request, *args, **kwargs):
-        #print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
-        #self.active_case = get_active_case(request, kwargs['case_id'])
-        if hasattr(request, 'contextual_case'):
+        # print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
+        if hasattr(request, 'contextual_case') and request.contextual_case.can_contribute(request.user):
             self.active_case = request.contextual_case
-        return super().dispatch(request, *args, **kwargs)
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return self.handle_no_permission()
 
     def get_success_url(self):
         #print("get_success_url", self.active_case)
@@ -155,20 +159,25 @@ def quick_creation_view(request):
         if 'create_entity' in request.POST:
             model_name = request.POST.get('model')
             type_name = request.POST.get('type')
-            name = request.POST.get('name')
+            names = request.POST.get('name')
             model = colander_models.get(model_name)
             type_model = model.type.field.related_model
             type = type_model.objects.get(short_name=type_name)
-            entity = model(
-                case=active_case,
-                owner=request.user,
-                type=type,
-                name=name,
-                tlp=active_case.tlp,
-                pap=active_case.pap
-            )
-            entity.save()
-            messages.add_message(request, messages.SUCCESS, f" {type} {model_name} successfully created: {name}")
+            for name in names.splitlines():
+                name = name.strip()
+                if name and model.objects.filter(case=active_case, type=type, name=name).count() == 0:
+                    entity = model(
+                        case=active_case,
+                        owner=request.user,
+                        type=type,
+                        name=name,
+                        tlp=active_case.tlp,
+                        pap=active_case.pap
+                    )
+                    entity.save()
+                    messages.add_message(request, messages.SUCCESS, f"The {model_name} named {name} of type {type} successfully created.")
+                else:
+                    messages.add_message(request, messages.WARNING, f"The {model_name} named {name} of type {type} already exists.")
         else:
             query = request.POST.get('q', '')
             entities_list = do_search(query, [active_case])

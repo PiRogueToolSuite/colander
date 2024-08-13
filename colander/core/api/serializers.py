@@ -1,12 +1,23 @@
-import magic
 import pathlib
 
-from rest_framework import serializers
+import magic
 from django.db import transaction
+from rest_framework import serializers
+from rest_framework.serializers import Serializer
 
-from rest_framework.reverse import reverse_lazy, reverse
-
-from colander.core.models import Artifact, ArtifactType, Case, Device, DeviceType, UploadRequest, PiRogueExperiment
+from colander.core.models import (
+    Artifact,
+    ArtifactType,
+    Case,
+    ColanderTeam,
+    Device,
+    DeviceType,
+    EntityRelation,
+    Observable,
+    ObservableType,
+    PiRogueExperiment,
+    UploadRequest, Entity,
+)
 from colander.core.signals import process_hash_and_signing
 
 
@@ -19,7 +30,8 @@ class ArtifactTypeSerializer(serializers.ModelSerializer):
 class CaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
-        fields = ['id', 'created_at', 'updated_at', 'name', 'description']
+        fields = ['id', 'created_at', 'updated_at', 'name', 'description', 'tlp', 'pap', 'teams']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class DeviceSerializer(serializers.ModelSerializer):
@@ -149,3 +161,53 @@ class PiRogueExperimentSerializer(serializers.ModelSerializer):
             pre.pap = pre.case.pap
         pre.save()
         return pre
+
+
+class ObservableSerializer(serializers.ModelSerializer):
+    type_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Observable
+        exclude = [
+            'owner',
+            'raw_value',
+            'analysis_index',
+            'es_prefix',
+        ]
+
+    def get_type_name(self, obj):
+        return obj.type.short_name
+
+    def create(self, validated_data):
+        d = super().create(validated_data)
+        if 'tlp' not in validated_data:
+            d.tlp = d.case.tlp
+        if 'pap' not in validated_data:
+            d.pap = d.case.pap
+        d.save()
+        return d
+
+
+class ObservableTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ObservableType
+        fields = ['id', 'name', 'short_name']
+
+
+class RelationSerializer(serializers.ModelSerializer):
+    #obj_from = serializers.SerializerMethodField()
+    obj_from = serializers.PrimaryKeyRelatedField(queryset=Entity.objects)
+    #obj_to = serializers.SerializerMethodField()
+    obj_to = serializers.PrimaryKeyRelatedField(queryset=Entity.objects)
+
+    class Meta:
+        model = EntityRelation
+        fields = ['id', 'name', 'case', 'created_at', 'updated_at', 'attributes', 'obj_from', 'obj_to']
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ColanderTeam
+        fields = ['id', 'name']
+

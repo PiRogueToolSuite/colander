@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-import colander.core.templatetags.colander_tags
-from colander.core.models import colander_models, Entity, EntityRelation
+from colander.core.models import Entity, EntityRelation, colander_models
 from colander.core.rest.commons import CommonTypeSerializer, KeyedListSerializer
 
 

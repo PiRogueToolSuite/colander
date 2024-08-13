@@ -1,8 +1,5 @@
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-
-from colander.core.views.views import get_active_case
+from django.shortcuts import render
 
 
 @login_required

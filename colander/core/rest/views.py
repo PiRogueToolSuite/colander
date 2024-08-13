@@ -1,21 +1,29 @@
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework import mixins
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import GenericViewSet, ViewSet
-from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from colander.core import datasets
 from colander.core.graph.serializers import GraphRelationSerializer
-from colander.core.models import Case, EntityRelation, Entity, ObservableType, Observable
+from colander.core.models import (
+    Case,
+    Entity,
+    EntityRelation,
+    Event,
+    EventType,
+    Observable,
+    ObservableType,
+    Threat,
+    ThreatType,
+)
 from colander.core.rest.serializers import DetailedEntitySerializer
-from colander.core.views.views import get_active_case
 
 
 class DatasetViewSet(ViewSet):
@@ -45,9 +53,6 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         case_id = self.request.data.pop("case_id")
-
-        print( "perform_create data", self.request.data )
-        print( "perform_create validated_data", serializer.validated_data )
 
         # Bug-0004 : 'upgrade' obj_form and obj_to value to their respective concrete class
         abstract_from = serializer.validated_data['obj_from']
@@ -99,6 +104,16 @@ def get_threatr_entity_type(entity):
             return Observable, ObservableType.objects.get(short_name=entity['type']['short_name'])
         except Exception:
             return None, None
+    if entity['super_type']['short_name'] == 'THREAT':
+        try:
+            return Threat, ThreatType.objects.get(short_name=entity['type']['short_name'])
+        except Exception:
+            return None, None
+    if entity['super_type']['short_name'] == 'EVENT':
+        try:
+            return Event, EventType.objects.get(short_name=entity['type']['short_name'])
+        except Exception:
+            return None, None
     return None, None
 
 
@@ -115,6 +130,34 @@ def update_or_create_entity(entity: dict, model: type, entity_type, case: Case, 
             'source_url': entity.get('source_url'),
         }
     )
+    if hasattr(obj, 'attributes'):
+        obj_attributes = obj.attributes
+        if obj_attributes:
+            obj.attributes.update(entity.get('attributes'))
+            obj.save()
+        elif entity.get('attributes'):
+            obj.attributes = entity.get('attributes')
+            obj.save()
+    return obj, created
+
+
+def update_or_create_event(entity: dict, entity_type, root_entity, case: Case, owner):
+    obj, created = Event.objects.update_or_create(
+        type=entity_type,
+        name=entity.get('name'),
+        case=case,
+        defaults={
+            'owner': owner,
+            'first_seen': entity.get('first_seen'),
+            'last_seen': entity.get('last_seen'),
+            'count': entity.get('count'),
+            'description': entity.get('description'),
+            'source_url': entity.get('source_url'),
+        }
+    )
+    if root_entity.super_type == 'Observable':
+        obj.involved_observables.add(root_entity)
+        obj.save()
     obj_attributes = obj.attributes
     if obj_attributes:
         obj.attributes.update(entity.get('attributes'))
@@ -125,9 +168,32 @@ def update_or_create_entity(entity: dict, model: type, entity_type, case: Case, 
     return obj, created
 
 
+def __create_immutable_relation(obj_from, obj_to, relation):
+    attr_name = relation.get('name').strip().lower().replace(' ', '_')
+    if hasattr(obj_to, attr_name) and not getattr(obj_to, attr_name):
+        try:
+            setattr(obj_to, attr_name, obj_from)
+            obj_to.save()
+            return True
+        except:
+            pass
+    elif hasattr(obj_from, attr_name) and not getattr(obj_from, attr_name):
+        try:
+            setattr(obj_from, attr_name, obj_to)
+            obj_from.save()
+            return True
+        except:
+            pass
+    return False
+
+
 def update_or_create_entity_relation(obj_from, obj_to, relation, case: Case, owner):
     obj = None
     created = True
+
+    if __create_immutable_relation(obj_from, obj_to, relation):
+        return obj, created
+
     existing_relations = EntityRelation.objects.filter(
         name=relation.get('name'),
         case=case,
@@ -162,19 +228,29 @@ def import_entity_from_threatr(request):
         case_id = data.get('case_id', None)
         root = data.get('root', None)
         entity = data.get('entity', None)
+        event = data.get('event', None)
         relation = data.get('relation', None)
         case = Case.objects.get(pk=case_id)
-        if root and entity and relation:
+        if root :
             root_model, root_type = get_threatr_entity_type(root)
-            entity_model, entity_type = get_threatr_entity_type(entity)
             root_obj, _ = update_or_create_entity(root, root_model, root_type, case, request.user)
-            entity_obj, _ = update_or_create_entity(entity, entity_model, entity_type, case, request.user)
-            if relation.get('obj_from') == root.get('id'):
-                obj_from = root_obj
-                obj_to = entity_obj
-            else:
-                obj_from = entity_obj
-                obj_to = root_obj
-            relation_obj, _ = update_or_create_entity_relation(obj_from, obj_to, relation, case, request.user)
+            if event:
+                _, entity_type = get_threatr_entity_type(event)
+                try:
+                    update_or_create_event(event, entity_type, root_obj, case, request.user)
+                except:
+                    return JsonResponse({'status': -1})
+            elif entity and relation:
+                entity_model, entity_type = get_threatr_entity_type(entity)
+                if not entity_model:
+                    return JsonResponse({'status': -1})
+                entity_obj, _ = update_or_create_entity(entity, entity_model, entity_type, case, request.user)
+                if relation.get('obj_from') == root.get('id'):
+                    obj_from = root_obj
+                    obj_to = entity_obj
+                else:
+                    obj_from = entity_obj
+                    obj_to = root_obj
+                update_or_create_entity_relation(obj_from, obj_to, relation, case, request.user)
             return JsonResponse({'status': 0})
     return JsonResponse({'status': -1})

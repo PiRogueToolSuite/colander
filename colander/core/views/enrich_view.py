@@ -6,7 +6,7 @@ import requests
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render
-from elasticsearch_dsl import Document, Keyword, Date, Index, Object
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object
 
 from colander.core.models import Observable
 from colander.core.scarlet_utils import clean_results

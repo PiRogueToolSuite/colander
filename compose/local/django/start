@@ -6,6 +6,7 @@ set -o nounset
 
 
 python manage.py migrate --skip-checks
+python manage.py insert_default_data --skip-checks
 
 #exec gunicorn config.asgi_local:application --bind 0.0.0.0:8000 --reload-engine 'inotify' --reload -k uvicorn.workers.UvicornWorker
 exec uvicorn config.asgi_local:application --host 0.0.0.0 --port 8000 --reload --reload-include '*.html'

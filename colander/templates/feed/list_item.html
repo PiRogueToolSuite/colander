@@ -49,16 +49,18 @@
               Download <a href="https://yara.readthedocs.io/en/stable/index.html" title="Yara documentation" target="_blank">Yara</a> rules:
               <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
                 curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
-                -o rules-{{ feed.id }}.yar \ <br>
+                -o Colander_{{ feed.name|slugify }}_{{ feed.id }}.yar \ <br>
                 {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
               </p>
             {% endif %}
             {% if feed.content_type.short_name == "SURICATA" %}
+              {% url "collaborate_detection_rule_out_feed_view-rules" pk=feed.id as feed_url %}
+
               Download rules and use with <a href="https://suricata.io/" title="Suricata documentation" target="_blank">Suricata</a>:
               <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
-                suricata-update add-source Colander_<b>[custom value]</b> {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}<br>
-                suricata-update update-sources <br>
-                suricata-update
+                suricata-update add-source --no-checksum colander/{{ feed.name|slugify }} {{ request.scheme }}://{{ request.META.HTTP_HOST }}{{ feed_url }}?secret={{ feed.secret }}<br>
+                suricata-update<br>
+                suricatasc -c reload-rules
               </p>
             {% endif %}
             {% if feed.feed_type == "entities" %}

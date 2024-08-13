@@ -14,8 +14,9 @@ services:
   colander-postgres:
     build:
       context: .
-      dockerfile: ./compose/postgres/Dockerfile
+      dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_postgres
+    restart: unless-stopped
     volumes:
       - production_colander_postgres_data:/var/lib/postgresql/data:Z
       - production_colander_postgres_data_backups:/backups:z
@@ -25,8 +26,9 @@ services:
   threatr-postgres:
     build:
       context: .
-      dockerfile: ./compose/postgres/Dockerfile
+      dockerfile: ./compose/production/postgres/Dockerfile
     image: colander_production_threatr_postgres
+    restart: unless-stopped
     volumes:
       - production_threatr_postgres_data:/var/lib/postgresql/data:Z
       - production_threatr_postgres_data_backups:/backups:z
@@ -35,6 +37,7 @@ services:
 
   colander-front:
     image: ghcr.io/piroguetoolsuite/colander:main
+    restart: unless-stopped
     depends_on:
       - colander-postgres
       - cyberchef
@@ -53,6 +56,7 @@ services:
 
   colander-worker:
     image: ghcr.io/piroguetoolsuite/colander:main
+    restart: unless-stopped
     depends_on:
       - colander-postgres
       - elasticsearch
@@ -70,6 +74,7 @@ services:
 
   threatr-front:
     image: ghcr.io/piroguetoolsuite/threatr:main
+    restart: unless-stopped
     depends_on:
       - threatr-postgres
       - elasticsearch
@@ -84,6 +89,7 @@ services:
 
   threatr-worker:
     image: ghcr.io/piroguetoolsuite/threatr:main
+    restart: unless-stopped
     depends_on:
       - threatr-postgres
       - elasticsearch
@@ -99,8 +105,9 @@ services:
   traefik:
     build:
       context: .
-      dockerfile: ./compose/traefik/Dockerfile
+      dockerfile: ./compose/production/traefik/Dockerfile
     image: colander_production_traefik
+    restart: unless-stopped
     depends_on:
       - colander-front
       - threatr-front
@@ -126,6 +133,7 @@ services:
 
   elasticsearch:
     image: elasticsearch:8.4.1
+    restart: unless-stopped
     volumes:
       - production_colander_es_data:/usr/share/elasticsearch/data
     environment:
@@ -140,6 +148,7 @@ services:
     env_file:
       - .envs/.production/.minio
     command: server /data
+    restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 30s
@@ -148,7 +157,7 @@ services:
 
   watchtower:
     image: containrrr/watchtower
-    restart: always
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /etc/timezone:/etc/timezone:ro
@@ -162,3 +171,4 @@ services:
 
   redis:
     image: redis:6
+    restart: unless-stopped

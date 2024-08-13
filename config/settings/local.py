@@ -60,6 +60,8 @@ if env("USE_DOCKER") == "yes":
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa F405
 
+TEMPLATES[0]['OPTIONS']['debug'] = True
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 # SOCIALACCOUNT_PROVIDERS = {

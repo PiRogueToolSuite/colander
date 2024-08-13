@@ -24,8 +24,9 @@ def import_file_as_artifact(input_file, owner, case, artifact_type, name, mimety
         sha1=sha1,
         sha256=sha256,
         md5=md5,
-        size_in_bytes=size_in_bytes,
-        file=File(file=input_file, name=name)
+        size_in_bytes=size_in_bytes
     )
+    artifact.save()
+    artifact.file = File(file=input_file, name=name)
     artifact.save()
     return artifact

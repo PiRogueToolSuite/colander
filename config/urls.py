@@ -6,46 +6,93 @@ from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
-from drf_spectacular.views import SpectacularAPIView, SpectacularJSONAPIView, SpectacularSwaggerView
-from django_serverless_cron.views import RunJobsView
 from rest_framework.schemas import get_schema_view
 
-from colander.core.views.actor_views import ActorDetailsView, ActorUpdateView, ActorCreateView, delete_actor_view
-from colander.core.views.artifact_views import ArtifactDetailsView, ArtifactCreateView, ArtifactUpdateView, \
-    download_artifact, \
-    download_artifact_signature, delete_artifact_view, view_artifact
-from colander.core.views.collaborate_views import ColanderTeamCreateView, ColanderTeamUpdateView, delete_team_view, \
-    ColanderTeamDetailsView, add_remove_team_contributor
-from colander.core.views.comment_views import create_comment_view, delete_comment_view, CommentUpdateView
-from colander.core.views.data_fragment_views import DataFragmentCreateView, DataFragmentUpdateView, \
-    DataFragmentDetailsView, delete_data_fragment_view
-from colander.core.views.detection_rule_views import delete_detection_rule_view, DetectionRuleCreateView, \
-    DetectionRuleUpdateView, DetectionRuleDetailsView
-from colander.core.views.device_views import DeviceDetailsView, DeviceCreateView, DeviceUpdateView, delete_device_view
+from colander.core.graph.views import case_graph
+from colander.core.views.actor_views import ActorCreateView, ActorDetailsView, ActorUpdateView, delete_actor_view
+from colander.core.views.artifact_views import (
+    ArtifactCreateView,
+    ArtifactDetailsView,
+    ArtifactUpdateView,
+    delete_artifact_view,
+    download_artifact,
+    download_artifact_signature,
+    view_artifact,
+)
+from colander.core.views.collaborate_views import (
+    ColanderTeamCreateView,
+    ColanderTeamDetailsView,
+    ColanderTeamUpdateView,
+    add_remove_team_contributor,
+    delete_team_view,
+)
+from colander.core.views.comment_views import CommentUpdateView, create_comment_view, delete_comment_view
+from colander.core.views.data_fragment_views import (
+    DataFragmentCreateView,
+    DataFragmentDetailsView,
+    DataFragmentUpdateView,
+    delete_data_fragment_view,
+)
+from colander.core.views.detection_rule_views import (
+    DetectionRuleCreateView,
+    DetectionRuleDetailsView,
+    DetectionRuleUpdateView,
+    delete_detection_rule_view,
+)
+from colander.core.views.device_views import DeviceCreateView, DeviceDetailsView, DeviceUpdateView, delete_device_view
 from colander.core.views.documentation_views import write_documentation_view
-from colander.core.views.enrich_view import enrich_observable
-from colander.core.views.experiment_views import PiRogueExperimentCreateView, PiRogueExperimentUpdateView, \
-    PiRogueExperimentDetailsView, start_decryption, delete_experiment_view, save_decoded_content_view, start_detection, \
-    PiRogueExperimentAnalysisReportView
+from colander.core.views.event_views import EventCreateView, EventDetailsView, EventUpdateView, delete_event_view
+from colander.core.views.experiment_views import (
+    PiRogueExperimentAnalysisReportView,
+    PiRogueExperimentCreateView,
+    PiRogueExperimentDetailsView,
+    PiRogueExperimentUpdateView,
+    delete_experiment_view,
+    save_decoded_content_view,
+    start_decryption,
+    start_detection,
+)
 from colander.core.views.graph_views import graph_base_view
 from colander.core.views.investigate_views import investigate_search_view
-from colander.core.views.obversable_views import ObservableCreateView, ObservableUpdateView, \
-    ObservableDetailsView, delete_observable_view, capture_observable_view
-from colander.core.views.outgoing_feeds_views import DetectionRuleOutgoingFeedCreateView, \
-    DetectionRuleOutgoingFeedUpdateView, delete_detection_rule_out_feed_view, outgoing_detection_rules_feed_view, \
-    delete_entity_out_feed_view, EntityOutgoingFeedCreateView, EntityOutgoingFeedUpdateView, outgoing_entities_feed_view
+from colander.core.views.obversable_views import (
+    ObservableCreateView,
+    ObservableDetailsView,
+    ObservableUpdateView,
+    capture_observable_view,
+    delete_observable_view,
+)
+from colander.core.views.outgoing_feeds_views import (
+    DetectionRuleOutgoingFeedCreateView,
+    DetectionRuleOutgoingFeedUpdateView,
+    EntityOutgoingFeedCreateView,
+    EntityOutgoingFeedUpdateView,
+    delete_detection_rule_out_feed_view,
+    delete_entity_out_feed_view,
+    outgoing_detection_rules_feed_view,
+    outgoing_entities_feed_view,
+)
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
-from colander.core.views.views import case_close, landing_view, collect_base_view, \
-    report_base_view, cases_select_view, CaseCreateView, \
-    CaseUpdateView, entity_exists, quick_search, CaseDetailsView, download_case_public_key, \
-    save_case_documentation_view, enable_documentation_editor, disable_documentation_editor, quick_creation_view, \
-    forward_auth, cron_ish_view, collaborate_base_view, vues_view, export_case_documentation_as_markdown_view, \
-    case_workspace_view, feeds_view
-from colander.core.graph.views import case_graph
-from colander.core.views.event_views import EventCreateView, EventUpdateView, EventDetailsView, delete_event_view
-from colander.core.views.threat_views import ThreatCreateView, ThreatUpdateView, ThreatDetailsView, delete_threat_view
+from colander.core.views.threat_views import ThreatCreateView, ThreatDetailsView, ThreatUpdateView, delete_threat_view
+from colander.core.views.upload_views import append_to_upload, initialize_upload
+from colander.core.views.views import (
+    CaseCreateView,
+    CaseDetailsView,
+    CaseUpdateView,
+    case_close,
+    case_workspace_view,
+    cases_select_view,
+    collaborate_base_view,
+    cron_ish_view,
+    download_case_public_key,
+    export_case_documentation_as_markdown_view,
+    feeds_view,
+    landing_view,
+    quick_creation_view,
+    quick_search,
+    save_case_documentation_view,
+    vues_view,
+)
 from colander.users.views import UserTwoFactorSetup
-from colander.core.views.upload_views import initialize_upload, append_to_upload
 
 case_contextualized_url_patterns = [
     path("", case_workspace_view, name="case_workspace_view"),
@@ -149,6 +196,7 @@ urlpatterns = [
       path("collaborate/team/<slug:pk>/edit", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
+      path("feed/detection_rules/colander_<slug:pk>.rules", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view-rules"),  # to please suricata-update 🤪🤦‍♀️
       path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
       path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
       path("case", CaseCreateView.as_view(), name="case_base_view"),

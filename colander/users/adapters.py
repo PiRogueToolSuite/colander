@@ -1,6 +1,5 @@
 from typing import Any
 
-from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth_2fa.adapter import OTPAdapter
 from django.conf import settings

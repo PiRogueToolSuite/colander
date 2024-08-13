@@ -1,5 +1,7 @@
-from django.contrib.auth.decorators import login_required
 import logging
+
+from django.contrib.auth.decorators import login_required
+
 from colander.core.models import BackendCredentials
 
 THREAT_BACKEND_IDENTIFIER='threatr'

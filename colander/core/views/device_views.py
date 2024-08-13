@@ -1,12 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.forms.widgets import Textarea, RadioSelect
+from django.forms.widgets import RadioSelect, Textarea
 from django.shortcuts import redirect
 from django.utils.safestring import mark_safe
-from django.views.generic import CreateView, UpdateView, DetailView
+from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm
-from colander.core.models import Device, DeviceType, Actor
+from colander.core.models import Actor, Device, DeviceType
 from colander.core.views.views import CaseContextMixin
 
 
@@ -21,6 +21,7 @@ class DeviceCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'description',
         'operated_by',
         'source_url',
+        'attributes',
         'tlp',
         'pap'
     ]

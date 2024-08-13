@@ -28,12 +28,14 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
+    "codemirror": "^6.0.1",
     "cytoscape": "^3.25.0",
     "cytoscape-context-menus": "^4.1.0",
     "cytoscape-edgehandles": "^4.0.1",
     "cytoscape-fcose": "^2.2.0",
     "cytoscape-layout-utilities": "^1.1.1",
     "markdown-it": "^13.0.1",
+    "thememirror": "^2.0.1",
     "web-worker": "^1.2.0"
   }
 }

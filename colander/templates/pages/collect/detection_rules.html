@@ -14,24 +14,27 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <form method="post">
+          <form method="post" id="crud_form">
             {% csrf_token %}
             <div class="row justify-content-center">
               <div class="col-md-4">
                 {{ form.type|as_crispy_field }}
-              </div>
-              <div class="col">
-                {{ form.name|as_crispy_field }}
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}
                 {{ form.source_url|as_crispy_field }}
                 {{ form.description|as_crispy_field }}
+                <div class="text-end">
+                  {% if is_editing %}
+                    <button class="btn btn-primary" type="submit" form="crud_form" name="save_detection_rule">{% translate "Update" %}</button>
+                  {% else %}
+                    <button class="btn btn-primary" type="submit" form="crud_form" name="save_detection_rule">{% translate "Create" %}</button>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-8">
+                {{ form.name|as_crispy_field }}
                 {{ form.content|as_crispy_field }}
-            {% if is_editing %}
-              <button class="btn btn-primary" type="submit" name="save_detection_rule">{% translate "Update" %}</button>
-            {% else %}
-              <button class="btn btn-primary" type="submit" name="save_detection_rule">{% translate "Create" %}</button>
-            {% endif %}
+              </div>
           </form>
         </div>
       </div>

@@ -3,8 +3,16 @@ import json
 import pkg_resources
 from django.core.management.base import BaseCommand
 
-from colander.core.models import ArtifactType, ObservableType, ThreatType, ActorType, EventType, DeviceType, \
-    DetectionRuleType, DataFragmentType
+from colander.core.models import (
+    ActorType,
+    ArtifactType,
+    DataFragmentType,
+    DetectionRuleType,
+    DeviceType,
+    EventType,
+    ObservableType,
+    ThreatType,
+)
 
 
 class Command(BaseCommand):
@@ -33,6 +41,7 @@ class Command(BaseCommand):
                     defaults={
                         'name': obj_type.get('name'),
                         'description': obj_type.get('description'),
+                        'default_attributes': obj_type.get('default_attributes', {}),
                         'svg_icon': obj_type.get('svg_icon'),
                         'nf_icon': obj_type.get('nf_icon'),
                         'stix2_type': obj_type.get('stix2_type', ''),

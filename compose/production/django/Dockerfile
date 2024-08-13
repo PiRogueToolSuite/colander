@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.9-slim-bullseye
+ARG PYTHON_VERSION=3.10-slim-bookworm
 
 
 
@@ -27,6 +27,11 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels  \
 
 # Python 'run' stage
 FROM python as python-run-stage
+
+LABEL org.opencontainers.image.source="https://github.com/PiRogueToolSuite/colander" \
+      org.opencontainers.image.description="Case, knowledge management and digital investigation platform" \
+      org.opencontainers.image.vendor="Defensive Lab Agency" \
+      org.opencontainers.image.licenses="GPL-3.0"
 
 ARG BUILD_ENVIRONMENT=production
 ARG APP_HOME=/app

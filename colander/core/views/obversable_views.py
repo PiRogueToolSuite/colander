@@ -1,14 +1,14 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.forms.widgets import Textarea, RadioSelect
+from django.forms.widgets import RadioSelect, Textarea
 from django.shortcuts import redirect
 from django.utils.safestring import mark_safe
-from django.views.generic import CreateView, UpdateView, DetailView
+from django.views.generic import CreateView, DetailView, UpdateView
 from django_q.tasks import async_task
 
 from colander.core.forms import CommentForm
-from colander.core.models import Observable, ObservableRelation, ObservableType, Artifact, Threat, Actor
+from colander.core.models import Actor, Artifact, Observable, ObservableRelation, ObservableType, Threat
 from colander.core.observable_tasks import capture_url
 from colander.core.views.views import CaseContextMixin
 
@@ -25,6 +25,8 @@ class ObservableCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'operated_by',
         'name',
         'description',
+        'classification',
+        'attributes',
         'tlp',
         'pap',
         'source_url',
@@ -33,6 +35,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in ObservableType.objects.all()}
         ctx['observables'] = Observable.get_user_observables(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx

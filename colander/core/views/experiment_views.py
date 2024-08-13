@@ -1,15 +1,16 @@
+from datetime import datetime
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
-from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView, DetailView
-from django.contrib import messages
+from django.views.generic import CreateView, DetailView, UpdateView
 from django_q.tasks import async_task
-from datetime import datetime
+
+from colander.core.experiment_tasks import apply_detection_rules, save_decrypted_traffic
 from colander.core.forms import CommentForm
-from colander.core.models import PiRogueExperiment, Artifact, PiRogueExperimentAnalysis, DetectionRule
-from colander.core.experiment_tasks import save_decrypted_traffic, apply_detection_rules
-from colander.core.views.views import get_active_case, CaseContextMixin
+from colander.core.models import Artifact, DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
+from colander.core.views.views import CaseContextMixin
 
 
 class PiRogueExperimentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):

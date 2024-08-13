@@ -14,7 +14,7 @@ from elasticsearch_dsl import Index
 from yara import StringMatchInstance
 
 from colander.core.es_utils import geoip_pipeline_id
-from colander.core.models import PiRogueExperiment, PiRogueExperimentAnalysis, DetectionRule
+from colander.core.models import DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
 
 external_packages = [
     'com.android.org.conscrypt.',
@@ -82,7 +82,7 @@ def build_stack_traces(socket_trace_file):
         trace['data']['dest_ip'] = flow_data.get('dst_ip')
         trace['data']['community_id'] = flow_data.get('community_id')
         traces.append(trace)
-        if not flow_data.get('community_id') in community_id_stack_trace:
+        if flow_data.get('community_id') not in community_id_stack_trace:
             community_id_stack_trace[flow_data.get('community_id')] = trace
 
     return community_id_stack_trace, traces
@@ -121,7 +121,7 @@ def parse_ip_layer(ip_layer: dict):
                    'ip': ip_layer.get('ip_ip_dst'),
                    'host': ip_layer.get('ip_ip_dst_host'),
                }
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -467,7 +467,7 @@ def save_decrypted_traffic(pirogue_dump_id):
         aes_traces = []
         if pirogue_dump.aes_trace:
             aes_traces_file = f'{tmp_dir}/{aes_trace}'
-            with open(aes_traces_file, 'r') as aes:
+            with open(aes_traces_file) as aes:
                 aes_traces = json.load(aes)
 
         tracker_definitions = {}

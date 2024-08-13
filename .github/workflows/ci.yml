@@ -12,11 +12,11 @@ env:
 on:
   pull_request:
     branches: [ "master", "main" ]
-    paths-ignore: [ "docs/**" ]
+    paths-ignore: [ "docs/**", "README.md" ]
 
   push:
     branches: [ "master", "main" ]
-    paths-ignore: [ "docs/**" ]
+    paths-ignore: [ "docs/**", "README.md" ]
     tags: [ 'v*.*.*' ]
 
 concurrency:
@@ -25,30 +25,33 @@ concurrency:
 
 jobs:
   # With no caching at all the entire ci process takes 4m 30s to complete!
-  pytest:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
       - name: Build the Stack
-        run:  docker-compose -f local.yml build
+        run:  docker compose -f local.yml build
       - name: Run DB Migrations
-        run:  docker-compose -f local.yml run --rm django python manage.py migrate --skip-checks
+        run:  docker compose -f local.yml run --rm django python manage.py migrate --skip-checks
       - name: Run Django Tests
-        run:  docker-compose -f local.yml run django pytest
+        run:  docker compose -f local.yml run --rm django pytest
+      - name: Tear down the database
+        run:  docker compose -f local.yml run --rm django python manage.py drop_test_database --no-input
+      - name: Run Django Tests
+        run:  docker compose -f local.yml run --rm django coverage run manage.py test colander --no-input
       - name: Tear down the Stack
-        run:  docker-compose -f local.yml down
+        run:  docker compose -f local.yml down
 
   docker-build:
-    if: github.event_name == 'push'
-    needs: [pytest]
+    if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
+    needs: [tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
       id-token: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -69,32 +72,74 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./compose/production/django/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          annotations: |
+            annotation.org.opencontainers.image.source="https://github.com/PiRogueToolSuite/colander"
+            annotation.org.opencontainers.image.description="Case, knowledge management and digital investigation platform"
+            annotation.org.opencontainers.image.vendor="Defensive Lab Agency"
+            annotation.org.opencontainers.image.licenses="GPL-3.0"
+            annotation.org.opencontainers.image.revision="${{ github.sha }}"
 
+      - name: Log into Docker Hub
+        uses: docker/login-action@v3.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1
+        with:
+          command: cves,sbom
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_METADATA_OUTPUT_VERSION }}
+          sarif-file: sarif.output.json
+          summary: true
+          only-severities: critical,high
+          write-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload SARIF result
+        id: upload-sarif
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: sarif.output.json
 
   build-deployment-package:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
     needs: [docker-build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
-      - name: Archive deployment package
-        uses: actions/upload-artifact@v2
-        with:
-          name: deployment-package
-          path: deploy_package
+      - name: Compress the deployment package
+        run: tar czf deployment-package.tar.gz deploy_package
+      - name: Release
+        uses: fnkr/github-action-ghr@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GHR_PATH: deployment-package.tar.gz
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

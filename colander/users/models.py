@@ -1,12 +1,12 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.db.models import CharField, Q
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
-from django.db import models
 
 from colander.core.models import Case, ColanderTeam
 

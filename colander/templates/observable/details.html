@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load markdownify %}
+{% load colander_tags %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
@@ -13,7 +14,8 @@
     </div>
     {% include "observable/controls.html" with exclude="details" %}
   </div>
-  <div class="col-md-12 mt-2">
+<div class="row justify-content-center">
+  <div class="col-md-6 mt-2">
     <h3>{% translate "Details" %}</h3>
     <table class="table table-sm">
       <tbody>
@@ -67,6 +69,16 @@
         <td>TLP/PAP</td>
         <td>
           {% include "tlp/show_tlp_pap.html" with element=observable %}
+        </td>
+      </tr>
+      <tr>
+        <td>Classification</td>
+        <td>
+          {% if observable.classification %}
+              {{ observable.classification }}
+          {% else %}
+            {% translate "No classification specified" %}
+          {% endif %}
         </td>
       </tr>
       <tr>
@@ -128,9 +140,13 @@
       </tbody>
     </table>
   </div>
+  <div class="col-md-6 mt-2">
+    <h3>{% translate "Attributes" %}</h3>
+    {% include "helpers/extra_attributes_light.html" with attributes=observable.attributes %}
+  </div>
+</div>
 
-  {% include "helpers/extra_attributes.html" with attributes=observable.attributes %}
-
+<div class="row justify-content-center">
   {% include "entity_relation/related_entities.html" with entity=observable %}
 
   <div class="col-md-12 mt-2">

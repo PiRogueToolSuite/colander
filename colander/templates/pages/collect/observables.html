@@ -16,7 +16,7 @@
           <form method="post" autocomplete="off">
             {% csrf_token %}
             <div class="row justify-content-center">
-              <div class="col-md-4">
+              <div class="col-md-3">
                 {{ form.type|as_crispy_field }}
               </div>
               <div class="col">
@@ -33,6 +33,10 @@
                 {% else %}
                   <button class="btn btn-primary" type="submit" name="save_observable">{% translate "Create" %}</button>
                 {% endif %}
+              </div>
+              <div class="col">
+                {{ form.classification|as_crispy_field }}
+                {{ form.attributes|as_crispy_field }}
               </div>
             </div>
           </form>

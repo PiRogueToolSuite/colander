@@ -216,23 +216,31 @@
 </div>
 
 <div class="row justify-content-center">
-  <div class="col-md-4 mt-2">
-    {% if artifact.type.short_name == "IMAGE" %}
-      <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}" class="img-thumbnail" alt="{{ artifact.name }}">
-    {% elif artifact.type.short_name == "VIDEO" %}
-       <video controls>
-        <source src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}">
-      Your browser does not support the video tag.
-      </video>
-    {% endif %}
-  </div>
+  {% include "helpers/extra_attributes.html" with attributes=artifact.attributes %}
+  {% include "entity_relation/related_entities.html" with entity=artifact %}
 </div>
 
 <div class="row justify-content-center">
-  {% include "helpers/extra_attributes.html" with attributes=artifact.attributes %}
+  {% if artifact.type.short_name == "IMAGE" %}
+    <div class="col-md-4 mt-2">
+      <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
+           class="img-thumbnail" alt="{{ artifact.name }}">
+    </div>
+  {% elif artifact.type.short_name == "VIDEO" %}
+    <div class="col-md-4 mt-2">
+      <video controls>
+        <source src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" %}
+    <div class="col-md-10 mt-2">
+      <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
+    </div>
+  {% endif %}
+</div>
 
-  {% include "entity_relation/related_entities.html" with entity=artifact %}
-
+<div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h3>{% translate "Comments" %}</h3>
     {% for comment in artifact.sorted_comments %}

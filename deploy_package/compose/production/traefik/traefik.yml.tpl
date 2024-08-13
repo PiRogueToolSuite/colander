@@ -27,14 +27,14 @@ certificatesResolvers:
 
 http:
   routers:
-    web-secure-django:
+    web-secure-colander:
       rule: "Host(\"${COLANDER_FQDN}\")"
       entryPoints:
         - web-secure
       middlewares:
         - compress-http
         - csrf
-      service: django
+      service: colander
       tls:
         certResolver: letsencrypt
     web-secure-threatr:
@@ -57,21 +57,11 @@ http:
       service: cyberchef
       tls:
         certResolver: letsencrypt
-    web-secure-keycloak:
-      rule: "Host(\"${KEYCLOAK_FQDN}\")"
-      entryPoints:
-        - web-secure
-      middlewares:
-        - compress-http
-        - csrf
-      service: keycloak
-      tls:
-        certResolver: letsencrypt
 
   middlewares:
-  	compress-http:
-  	  # https://doc.traefik.io/traefik/middlewares/http/compress/
-	  compress: true
+    compress-http:
+      # https://doc.traefik.io/traefik/middlewares/http/compress/
+      compress: true
     csrf:
       # https://docs.traefik.io/master/middlewares/headers/#hostsproxyheaders
       # https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
@@ -91,10 +81,6 @@ http:
       loadBalancer:
         servers:
           - url: http://cyberchef:8000
-    keycloak:
-      loadBalancer:
-        servers:
-          - url: http://keycloak:8000
 
 providers:
   # https://docs.traefik.io/master/providers/file/

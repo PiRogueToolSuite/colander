@@ -45,6 +45,7 @@
       <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
       <script src="{% static 'vendors/simplemde/js/simplemde.min.js' %}"></script>
       <script src="{% static 'js/colander-widgets.js' %}"></script>
+      <script src="{% static 'js/colander-text-editor.js' %}"></script>
     {% endcompress %}
   {% endblock javascript %}
   {% compress js %}
@@ -258,6 +259,24 @@
         {% endcomment %}
         </div>
       {% endblock root-sidebar-menu %}
+      <div class="fixed-bottom m-2 h4">
+        <a href="https://pts-project.org/docs/colander/overview/"
+           class="link-secondary link-offset-2 link-underline-opacity-0 link-underline-opacity-0-hover"
+           alt="Colander documentation"
+           title="Colander documentation"
+           target="_blank"
+        >
+          <i class="nf nf-cod-book"></i>
+        </a>
+        <a href="https://github.com/PiRogueToolSuite/colander"
+           class="link-secondary link-offset-2 link-underline-opacity-0 link-underline-opacity-0-hover"
+           alt="Colander source code on GitHub"
+           title="Colander source code on GitHub"
+           target="_blank"
+        >
+          <i class="nf nf-fa-github"></i>
+        </a>
+      </div>
     </aside>
     <div id="page-content-wrapper">
       <main class="container-fluid">

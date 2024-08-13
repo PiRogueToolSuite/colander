@@ -8,27 +8,27 @@ from hashlib import sha256
 
 import django
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric import utils
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa, utils
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
-from django.db import models
-from django.db.models import F
-from django.db.models import Q
-from django.db.models.signals import pre_delete
+from django.db import models, IntegrityError
+from django.db.models import F, Q
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from django_q.models import Schedule
-from elasticsearch_dsl import Document, Keyword, Date, Object, Text, Index
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text
 
 logger = logging.getLogger(__name__)
+
+
+class BusinessIntegrityError(IntegrityError):
+    """Generic Error class to raise and describe business logic violation"""
+    pass
 
 
 class Appendix:
@@ -167,6 +167,11 @@ class CommonModelType(models.Model):
     )
     stix2_pattern_type = models.CharField(
         max_length=256,
+        blank=True,
+        null=True
+    )
+    default_attributes = HStoreField(
+        verbose_name='Default attributes',
         blank=True,
         null=True
     )
@@ -687,6 +692,8 @@ class Device(Entity):
         blank=True,
     )
     attributes = HStoreField(
+        help_text=_('Add custom attributes to this device.'),
+        verbose_name='Custom attributes',
         blank=True,
         null=True
     )
@@ -801,6 +808,8 @@ class Artifact(Entity):
         blank=True,
     )
     attributes = HStoreField(
+        help_text=_('Add custom attributes to this artifact.'),
+        verbose_name='Custom attributes',
         blank=True,
         null=True
     )
@@ -1020,6 +1029,7 @@ class Observable(Entity):
     )
     classification = models.CharField(
         max_length=512,
+        help_text=_('Optional field containing an arbitrary string of your choice.'),
         blank=True,
         null=True
     )
@@ -1054,10 +1064,11 @@ class Observable(Entity):
         blank=True,
     )
     attributes = HStoreField(
+        help_text=_('Add custom attributes to this observable.'),
+        verbose_name='Custom attributes',
         blank=True,
         null=True
     )
-
     es_prefix = models.CharField(
         max_length=16,
         editable=False,
@@ -1286,6 +1297,14 @@ class EntityRelation(models.Model):
         ier.id = f'{source.id}|{name}|{target.id}'
         ier.immutable = True
         return ier
+
+
+@receiver(pre_save, sender=EntityRelation, dispatch_uid="bic_entity_relation_pre_save")
+def bic_entity_relation_pre_save(sender, instance, **kwargs):
+    if instance.case.pk != instance.obj_from.case.pk:
+        raise BusinessIntegrityError("Relation 'case' differs from related source entity 'case'")
+    if instance.case.pk != instance.obj_to.case.pk:
+        raise BusinessIntegrityError("Relation 'case' differs from related target entity 'case'")
 
 
 @receiver(pre_delete, sender=Entity, dispatch_uid="entity_relation_cascade")
@@ -1573,7 +1592,12 @@ class Event(Entity):
         null=True,
         blank=True,
     )
-    attributes = HStoreField(null=True, blank=True)
+    attributes = HStoreField(
+        help_text=_('Add custom attributes to this event.'),
+        verbose_name='Custom attributes',
+        null=True,
+        blank=True
+    )
 
     @property
     def value(self):
@@ -1781,7 +1805,7 @@ class PiRogueExperiment(Entity):
             total = search.count()
             search = search[0:total]
             return search.sort('-timestamp').execute()
-        except Exception as e:
+        except Exception:
             return None
 
     def get_es_index(self):
@@ -1889,6 +1913,15 @@ class PiRogueExperiment(Entity):
                     target=self.aes_trace
                 )
             )
+        if self.extra_files:
+            for ef in self.extra_files.all():
+                relations.append(
+                    EntityRelation.immutable_instance(
+                        name="generated",
+                        source=self,
+                        target=ef
+                    )
+                )
         return relations
 
 @receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')

@@ -29,7 +29,7 @@
   {% endif %}
   {% if elt.associated_threat %}
     <i class="fa fa-circle text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Malicious"></i>
-  {% elif elt.attributes.is_malicious == "1" or elt.attributes.is_malicious == "True" %}
+  {% elif elt.attributes.is_malicious == "1" or elt.attributes.is_malicious.lower == "true" or elt.attributes.malicious.lower == "true" %}
     <i class="fa fa-circle text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Malicious"></i>
   {% else %}
     <i class="fa fa-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="No threat"></i>

@@ -2,17 +2,16 @@ import logging
 
 import requests
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
 from colander.core.forms import InvestigateSearchForm
-from colander.core.models import colander_models, color_scheme, icons, BackendCredentials, ObservableType
+from colander.core.models import BackendCredentials, ObservableType, colander_models, color_scheme
 
 THREAT_BACKEND_IDENTIFIER = 'threatr'
 logger = logging.getLogger(__name__)
-types = {t.short_name.lower(): t for t in ObservableType.objects.all()}
 
 
 def get_threatr_types(api_key):
@@ -30,6 +29,7 @@ def investigate_search_view(request):
     wait = False
     types_to_display = {}
     mermaid = ''
+    types = {t.short_name.lower(): t for t in ObservableType.objects.all()}
 
     if request.GET.keys():
         credentials = BackendCredentials.objects.filter(backend=THREAT_BACKEND_IDENTIFIER)
@@ -41,7 +41,7 @@ def investigate_search_view(request):
         api_key = credentials.credentials.get('api_key')
         threatr_types = get_threatr_types(api_key)
         if not threatr_types:
-            logger.error(f'Unable to retrieve threatr types')
+            logger.error('Unable to retrieve threatr types')
 
         entities = {}
         form = InvestigateSearchForm(request.GET)
@@ -57,8 +57,10 @@ def investigate_search_view(request):
             wait = response.status_code == 201
             if response.status_code == 200:
                 results = response.json()
-                entity_super_type = results.get('root_entity').get('super_type').get('name')
+                root_entity = results.get('root_entity')
+                entity_super_type = root_entity.get('super_type').get('name')
                 if entity_super_type in colander_models:
+                    types_to_display[root_entity.get('super_type').get('short_name')] = root_entity.get('super_type')
                     model = colander_models[entity_super_type]
                     if model in color_scheme:
                         results['root_entity']['color'] = color_scheme[model]

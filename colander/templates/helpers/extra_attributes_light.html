@@ -1,0 +1,15 @@
+{% load i18n %}
+{% load colander_tags %}
+
+<table class="table table-sm">
+  <tbody>
+  {% for k,v in attributes.items %}
+    {% if v %}
+      <tr>
+        <td data-bs-toggle="tooltip" data-bs-placement="left" title="{{ k }}">{{ k|to_title }}</td>
+        <td class="font-monospace text-wrap4">{{ v }}</td>
+      </tr>
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>

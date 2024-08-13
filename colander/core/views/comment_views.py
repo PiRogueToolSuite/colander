@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
-from django.views.generic import DeleteView, UpdateView
+from django.views.generic import UpdateView
 
 from colander.core.forms import CommentForm
 from colander.core.models import Comment

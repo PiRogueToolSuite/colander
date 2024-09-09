@@ -169,8 +169,10 @@ class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
 
     @action(methods=['get'], detail=True)
     def analysis(self, request, pk):
+        _analysis = None
+        cases = self.request.user.all_my_cases
         try:
-            experiment = PiRogueExperiment.objects.get(pk=pk, owner=request.user)
+            experiment = PiRogueExperiment.objects.get(pk=pk, case__in=cases)
             _analysis = experiment.analysis
         except Artifact.DoesNotExist:
             raise Http404

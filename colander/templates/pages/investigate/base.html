@@ -60,7 +60,7 @@
               <div class="col-md-12 text-small">
               If you prefer to interact with Threatr from command line, execute:
   <pre class="bg-dark text-white p-2 mt-2 rounded"><code>curl -X POST --location "{{ threatr_url }}/api/request/" -H "Content-Type: application/json" \
-  -H "Authorization: Token {{ user.get_auth_token }}" \
+  -H "Authorization: Token [your Threatr API key]" \
   -d "{{ request_data|json_format }}"</code></pre>
               </div>
             {% endif %}
@@ -114,7 +114,6 @@
               </pre>
               <div id="mermaid-output" class="text-center"></div>
             </div>
-          {% if results.entities %}
 {#          Entities #}
             {% for type, object in ordering.types.items %}
               <div id="{{ type }}" class="col-md-12 tab-pane {% if forloop.first %}active{% endif %}" role="tabpanel" aria-labelledby="{{ type }}-tab">
@@ -144,7 +143,6 @@
                 </div>
               </div>
             {% endfor %}
-          {% endif %}
           {% if results.events %}
 {#          Events #}
             <div id="events" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="events-tab">

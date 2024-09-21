@@ -36,7 +36,7 @@ def investigate_search_view(request):
     request_data = {}
 
     if not threatr_client.is_correctly_configured():
-        messages.error(request, 'Threatr is not correctly configured.', extra_tags='danger')
+        messages.error(request, 'Threatr is not correctly configured. Unable to retrieve the API schema (<threatr domain>/api/schema/)', extra_tags='danger')
         logger.error(f'Threatr is not correctly configured. {THREAT_BACKEND_IDENTIFIER}')
         return render(
             request,
@@ -64,6 +64,7 @@ def investigate_search_view(request):
                 "force": form.cleaned_data.get('force_update', False)
             }
             threatr_results, wait = threatr_client.send_request(request_data)
+            request_data.pop('force', False)
             if not wait and type(threatr_results) is dict:
                 ordering = {'global':{
                     'total': len(threatr_results['entities']),
@@ -123,7 +124,7 @@ def investigate_search_view(request):
                     obj['entities'] = sorted(obj['entities'], key=lambda x: x.get('type').get('name'))
                 threatr_results['entities'] = entities
                 threatr_results['reports'] = external_doc_entities
-            request_data.pop('force', False)
+
     return render(
         request,
         'pages/investigate/base.html',

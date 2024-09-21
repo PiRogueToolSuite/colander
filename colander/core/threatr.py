@@ -23,6 +23,7 @@ class ThreatrClient:
             response = requests.head(f'{self.url}/api/schema/', headers=self.__get_headers(), timeout=10)
             return response.status_code == 200
         except requests.exceptions.RequestException as e:
+            logger.error(e)
             return False
 
     def is_online(self):

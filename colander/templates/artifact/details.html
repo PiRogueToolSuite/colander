@@ -234,9 +234,12 @@
       </video>
     </div>
   {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" %}
-    <div class="col-md-10 mt-2">
-      <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
-    </div>
+    {% if artifact.size_in_bytes < 500000 %}
+      <div class="col-md-12 mt-4 mb-2">
+        <h3>Content</h3>
+        <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
+      </div>
+    {% endif %}
   {% endif %}
 </div>
 

@@ -1,3 +1,4 @@
+import json
 from base64 import urlsafe_b64encode
 
 from django import template
@@ -59,6 +60,18 @@ def split(instance, delim):
         return instance
     words = instance.split(delim)
     return words
+
+
+@register.filter(name="json_format")
+def json_format(obj, indent=2):
+    if not obj or type(obj) is not dict:
+        return obj
+    formatted = obj.copy()
+    try:
+        formatted = json.dumps(formatted, indent=indent)
+    except:
+        pass
+    return formatted
 
 
 @register.simple_tag(takes_context=True)

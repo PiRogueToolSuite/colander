@@ -1,0 +1,16 @@
+<tr>
+  <td>
+      {% if module.configured > 0 %}
+        <i class=" nf nf-fa-circle text-success-light"></i>
+      {% else %}
+        <i class=" nf nf-fa-circle text-dark-light"></i>
+      {% endif %}
+    {{ module.vendor }}
+  </td>
+  <td class="font-monospace text-muted">{{ module.id }}</td>
+  <td>
+    {% include "helpers/square_pill.html" with value=module.configured %}
+    <span class="">API key{{ module.configured|pluralize }} configured</span>
+  </td>
+  <td>{{ module.description }}</td>
+</tr>

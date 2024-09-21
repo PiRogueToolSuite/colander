@@ -1,0 +1,19 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">
+      {{ module.vendor }}
+      {% if module.configured > 0 %}
+        <i class=" nf nf-fa-circle text-success-light"></i>
+      {% else %}
+        <i class=" nf nf-fa-circle text-dark-light"></i>
+      {% endif %}
+    </h5>
+    <div class="card-subtitle mb-1">
+      {% include "helpers/square_pill.html" with value=module.configured %}
+      <span class=" text-muted">API key{{ module.configured|pluralize }} configured</span>
+    </div>
+    <div class="card-text">
+      <p>{{ module.description }}</p>
+    </div>
+  </div>
+</div>

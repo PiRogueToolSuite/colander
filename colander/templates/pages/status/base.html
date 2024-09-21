@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load colander_tags %}
+{% load humanize %}
+{% block content %}
+  <div class='row mt-2 p-1'>
+    <div class='col-12'>
+      <h3>
+        <i class="nf nf-fa-circle text-success-light"></i> Colander
+        <a href="https://pts-project.org/docs/colander/" target="_blank">
+          <i class="nf nf-cod-book text-secondary"></i>
+        </a>
+        <a href="https://github.com/PiRogueToolSuite/colander" target="_blank">
+          <i class="nf nf-cod-github text-secondary"></i>
+        </a>
+      </h3>
+      <ul class="">
+        <li>Version:
+          <a href="https://github.com/PiRogueToolSuite/colander/commit/{{ colander.git_commit_hash }}" target="_blank">
+            {{ colander.git_commit_hash|truncatechars:7 }}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class='row mt-2 p-1'>
+    <div class='col-12'>
+      <h3>
+        <i class="nf nf-fa-circle {% if threatr.configured %}text-success{% else %}text-dark{% endif %}-light"></i>
+        Threatr
+        <a href="https://pts-project.org/docs/colander/external-sources/" target="_blank">
+          <i class="nf nf-cod-book text-secondary"></i>
+        </a>
+        <a href="https://github.com/PiRogueToolSuite/threatr" target="_blank">
+          <i class="nf nf-cod-github text-secondary"></i>
+        </a>
+      </h3>
+      {% if threatr.configured %}
+        <ul class="">
+          <li>Version:
+            <a href="https://github.com/PiRogueToolSuite/threatr/commit/{{ threatr.git_commit_hash }}" target="_blank">
+              {{ threatr.git_commit_hash|truncatechars:7 }}
+            </a>
+          </li>
+          <li>{% include "helpers/square_pill.html" with value=threatr.cached_entities %} cached entities</li>
+          <li>{% include "helpers/square_pill.html" with value=threatr.cached_relations %} cached relations</li>
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+  {% if threatr.configured %}
+    <div class='row p-1 g-1'>
+      <div class='col-12'>
+        <h5>
+          <i class="nf nf-fa-plug"></i> Available modules
+        </h5>
+        <table class="table table-responsive table-hover table-bordered">
+          <tbody>
+            {% for module in threatr.available_modules %}
+              {% include "pages/status/module_row.html" %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class='row justify-content-center p-1 g-1'>
+      <div class='col'>
+        <h5>
+          <i class="nf nf-cod-server_process"></i> Workers
+        </h5>
+        <table class="table table-responsive table-hover table-bordered">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th class=" text-end">Uptime</th>
+              <th class=" text-end">Enqueued tasks</th>
+              <th class=" text-end">Available results</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for worker in threatr.workers %}
+            <tr>
+              <td class="font-monospace">
+                {% if worker.status == "Starting" %}
+                  <i class="nf nf-fa-circle text-dark-light"></i>
+                {% elif worker.status == "Idle" or worker.status == "Working" %}
+                  <i class="nf nf-fa-circle text-success-light"></i>
+                {% else %}
+                  <i class="nf nf-fa-circle text-danger-light"></i>
+                {% endif %}
+                {{ worker.id }}
+              </td>
+              <td class="font-monospace">{{ worker.status }}</td>
+              <td class="text-end">{{ worker.uptime|humanize_duration }}</td>
+              <td class="text-end">{{ worker.enqueued_tasks }}</td>
+              <td class="text-end">{{ worker.available_results }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

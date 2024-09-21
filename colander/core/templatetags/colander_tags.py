@@ -1,5 +1,6 @@
 import json
 from base64 import urlsafe_b64encode
+from datetime import timedelta
 
 from django import template
 
@@ -35,6 +36,9 @@ def to_b64(instance):
     encoded = instance.encode('utf-8')
     return urlsafe_b64encode(encoded).decode().replace('=', '')
 
+@register.filter(name="humanize_duration")
+def to_humanized_duration(instance):
+    return "{:0>8}".format(str(timedelta(seconds=int(instance))))
 
 @register.filter(name="to_cyberchef_input")
 def to_cyberchef_input(instance):

@@ -54,6 +54,22 @@ class ThreatrClient:
             credentials = credentials.first()
             self.api_key = credentials.credentials.get('api_key', '')
 
+    def get_status(self):
+        """
+        Get the status of Threatr server.
+        :return: the status of Threatr
+        """
+        status = {
+            'configured': True
+        }
+        if not self.__correctly_configured:
+            status['configured'] = False
+            return status
+        response = requests.get(f'{self.url}/api/status/', headers=self.__get_headers())
+        if response.status_code < 300:
+            status.update(response.json())
+        return status
+
     def get_types(self):
         """
         Get all the types defined in Threatr models.

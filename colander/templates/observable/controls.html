@@ -22,6 +22,7 @@
   {% endif %}
   {% if "analyze" not in exclude %}
     <form class="form-inline" action="{% url "investigate_base_view" case_id=observable.case.id  %}" method="get" id="investigate-{{ observable.id }}">
+      <input type="hidden" name="super_type" value="OBSERVABLE">
       <input type="hidden" name="type" value="{{ observable.type.short_name }}">
       <input type="hidden" name="value" value="{{ observable.value }}">
     </form>
@@ -30,10 +31,6 @@
       {% translate "Investigate" %}
     </button>
 
-{#    <a href="{% url "analyze_base_view" observable_id=observable.id %}" class="btn btn-primary {{ btn_class }}">#}
-{#      <i class="nf nf-fa-filter"></i>#}
-{#      {% translate "Investigate" %}#}
-{#    </a>#}
   {% endif %}
   {% if "delete" not in exclude %}
     <a href="{% url "collect_observable_delete_view" case_id=observable.case.id pk=observable.id %}"

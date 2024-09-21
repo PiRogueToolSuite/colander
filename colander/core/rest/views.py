@@ -21,7 +21,7 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType,
+    ThreatType, Device, DeviceType,
 )
 from colander.core.rest.serializers import DetailedEntitySerializer
 
@@ -102,6 +102,11 @@ def get_threatr_entity_type(entity):
     if entity['super_type']['short_name'] == 'OBSERVABLE':
         try:
             return Observable, ObservableType.objects.get(short_name=entity['type']['short_name'])
+        except Exception:
+            return None, None
+    if entity['super_type']['short_name'] == 'DEVICE':
+        try:
+            return Device, DeviceType.objects.get(short_name=entity['type']['short_name'])
         except Exception:
             return None, None
     if entity['super_type']['short_name'] == 'THREAT':
@@ -224,7 +229,6 @@ def update_or_create_entity_relation(obj_from, obj_to, relation, case: Case, own
 def import_entity_from_threatr(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        print(data)
         case_id = data.get('case_id', None)
         root = data.get('root', None)
         entity = data.get('entity', None)

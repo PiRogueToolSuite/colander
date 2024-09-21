@@ -12,14 +12,22 @@
         <div class="card mb-4 bg-secondary-light">
           <div class="card-body">
             <form method="get" autocomplete="off" id="investigate_form">
+              <div class="row justify-content-center" id="type-selector">
+                {% include "helpers/dynamic_type_selector.html" %}
+              </div>
               <div class="row justify-content-center">
-                <div class="col-md-4">
-                  {{ form.type|as_crispy_field }}
-                </div>
-                <div class="col-md-8">
-                  {{ form.value|as_crispy_field }}
+                <div class="col-md-8 mt-3">
+                  <div class="input-group input-group-lg">
+                    <input type="text" class="form-control" id="id_value" name="value" aria-label="Value" required=""
+                           aria-describedby="button-search" maxlength="128"
+                           placeholder="Name or value of the entity you are looking for"
+                      {% if form.value.value %} value="{{ form.value.value }}"{% endif %}
+                    >
+                    <button class="btn btn-primary" type="submit" id="button-search">
+                      {% translate "Search" %}
+                    </button>
+                  </div>
                   {{ form.force_update|as_crispy_field }}
-                  <button class="btn btn-primary" type="submit">{% translate "Search" %}</button>
                 </div>
               </div>
             </form>
@@ -28,6 +36,7 @@
       </div>
     </div>
     <div class="row justify-content-center">
+{#    Wait for the threatr request to complete  #}
       {% if wait %}
         <div class="col-md-6">
           <div class="card card-body bg-secondary-light text-center">
@@ -39,101 +48,189 @@
           </div>
         </div>
       {% endif %}
+{#    We received the results  #}
       {% if results %}
+        {# List the root entity at the top #}
         {% with root_entity=results.root_entity %}
-          <div class="col-md-12">
-            {% include "pages/investigate/generic_entity_details.html" with entity=root_entity %}
+          <div class="row justify-content-center">
+            <div class="col-md-12">
+              {% include "pages/investigate/generic_entity_details.html" with entity=root_entity %}
+            </div>
+            {% if request_data %}
+              <div class="col-md-12 text-small">
+              If you prefer to interact with Threatr from command line, execute:
+  <pre class="bg-dark text-white p-2 mt-2 rounded"><code>curl -X POST --location "{{ threatr_url }}/api/request/" -H "Content-Type: application/json" \
+  -H "Authorization: Token {{ user.get_auth_token }}" \
+  -d "{{ request_data|json_format }}"</code></pre>
+              </div>
+            {% endif %}
           </div>
-          <div class="col-md-12">
-        <pre class="mermaid text-center" id="mermaid-code" style="display: none">
-            {{ results.graph }}
-        </pre>
-            <div id="mermaid-output" class="text-center"></div>
+          <div class="row justify-content-center">
+{#          Tabs #}
+            <div class="col-md-12 mb-5 mt-3">
+              <ul id="tabs-menu" class="nav nav-pills h5 justify-content-center">
+                <li class="nav-item">
+                  <a data-toggle="pill" role="tab" aria-controls="graph" aria-selected="false"
+                     class="nav-link" aria-current="page" href="#graph" id="graph-tab">
+                    Graph
+                  </a>
+                </li>
+                {% for st, object in ordering.types.items %}
+                  {% if object %}
+                    <li class="nav-item">
+                      <a data-toggle="pill" role="tab" aria-controls="{{ object.super_type.short_name }}"
+                         class="nav-link {% if forloop.first %}active{% endif %}"
+                         href="#{{ object.super_type.short_name }}" aria-selected="true"
+                         id="{{ object.super_type.short_name }}-tab">
+                          {{ object.super_type.name }} ({{ object.count }})
+                      </a>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+                {% if ordering.global.events > 0 %}
+                <li class="nav-item">
+                  <a data-toggle="pill" role="tab" aria-controls="events" aria-selected="false"
+                     class="nav-link" href="#events" id="events-tab">
+                    Events ({{ ordering.global.events }})
+                  </a>
+                </li>
+                {% endif %}
+                {% if ordering.global.external_doc > 0 %}
+                <li class="nav-item">
+                  <a data-toggle="pill" role="tab" aria-controls="" aria-selected="false"
+                     class="nav-link" href="#reports" id="reports-tab">
+                    Reports ({{ ordering.global.external_doc }})
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
           </div>
-          {% if "OBSERVABLE" in types_to_display %}
-            <h3>Related observables</h3>
-            <div class="px-2">
+          <div class="row justify-content-center tab-content">
+{#        Graph tab #}
+          <div id="graph" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="graph-tab">
+              <pre class="mermaid text-center" id="mermaid-code" style="display: none">
+                  {{ results.graph }}
+              </pre>
+              <div id="mermaid-output" class="text-center"></div>
+            </div>
+          {% if results.entities %}
+{#          Entities #}
+            {% for type, object in ordering.types.items %}
+              <div id="{{ type }}" class="col-md-12 tab-pane {% if forloop.first %}active{% endif %}" role="tabpanel" aria-labelledby="{{ type }}-tab">
+                <div class="px-2">
+                {% if type == 'OBSERVABLE' %}
+                  <table class="table table-hover table-responsive table-sm">
+                    <thead class="bg-secondary-light">
+                    <tr><th>Entity</th><th class="text-end">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                      {% for entity in object.entities %}
+                        {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% else %}
+                  <div class="row" data-masonry='{"percentPosition": true }'>
+                    {% for entity in object.entities %}
+                      <div class="col-md-6 text-wrap mb-2">
+                        <div class="card card-body bg-secondary-light">
+                          {% include "pages/investigate/generic_entity_details_list.html" with entity=entity importable_types=ordering.importable_types %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% if results.events %}
+{#          Events #}
+            <div id="events" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="events-tab">
+              <div class="px-2">
               <table class="table table-hover table-responsive table-sm">
                 <thead class="bg-secondary-light">
                 <tr>
-                  <th>Entity</th>
-                  <th class="text-end">Actions</th>
+                  <th>Type</th>
+                  <th>Event</th>
+                  <th>Time period</th>
+                  <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% if root_entity %}
-                  {% include "pages/investigate/m_observable_table_row.html" with observable=root_entity %}
-                {% endif %}
-                {% for entity in results.entities.values|dictsort:"type.name" %}
-                  {% if entity.super_type.short_name == "OBSERVABLE" %}
-                    {% include "pages/investigate/m_observable_table_row.html" with observable=entity %}
-                  {% endif %}
+                {% for entity in results.events %}
+                  <tr>
+                    <td>
+                      {% if entity.type.nf_icon %}<i class="text-primary nf {{ entity.type.nf_icon }}"></i>
+                      {% else %}<i class="fas fa-rocket text-primary fa-sm fa-fw"></i>{% endif %}
+                      <b>{{ entity.type.name }}</b>
+                    </td>
+                    <td>
+                      {{ entity.name }}
+                      {% if entity.attributes %}
+                        <a class="text-primary" data-bs-container="body" data-bs-toggle="popover"
+                           data-bs-placement="right" title="Properties" data-bs-trigger="hover focus"
+                           data-bs-content-id="popover-content-{{ entity.id }}">
+                          <i class="nf nf-fa-list" aria-hidden="true"></i>
+                        </a>
+                        <div id="popover-content-{{ entity.id }}" class="d-none">
+                          <ul class='text-start list-unstyled m-0'>
+                            {% for k_, v_ in entity.attributes.items %}
+                              {% if "tag" not in k_ %}
+                                <li><b>{{ k_|to_title }}</b>: <span class="font-monospace">{{ v_ }}</span></li>
+                              {% endif %}
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td>{{ entity.first_seen }} - {{ entity.last_seen }} ({{ entity.count }}
+                      time{{ entity.count|pluralize }})
+                    </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
+                              data-bs-toggle="tooltip" data-bs-title="Import to the current case"
+                              type="button" data-obj-id="{{ entity.id }}">
+                        <i class="nf nf-fa-plus"></i>
+                      </button>
+                    </td>
+                  </tr>
                 {% endfor %}
                 </tbody>
               </table>
             </div>
-          {% endif %}
-          {% if results.events %}
-            <h3>Related events</h3>
-            <div class="">
-              <table class="table table-hover table-responsive table-sm">
-                <thead class="bg-secondary-light">
-                  <tr>
-                    <th>Type</th>
-                    <th>Event</th>
-                    <th>Time period</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for entity in results.events %}
-                    <tr>
-                      <td>
-                        {% if entity.type.nf_icon %}<i class="text-primary nf {{ entity.type.nf_icon }}"></i>
-                        {% else %}<i class="fas fa-rocket text-primary fa-sm fa-fw"></i>{% endif %}
-                        <b>{{ entity.type.name }}</b>
-                      </td>
-                      <td>{{ entity.name }}</td>
-                      <td>{{ entity.first_seen }} - {{ entity.last_seen }} ({{ entity.count }} time{{ entity.count|pluralize }})</td>
-                      <td class="text-end">
-                        <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
-                          data-bs-toggle="tooltip" data-bs-title="Import to the current case"
-                          type="button" data-obj-id="{{ entity.id }}">
-                          <i class="nf nf-fa-plus"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
             </div>
           {% endif %}
-          <div class="col-md-12">
-            {% for short_name, super_type in types_to_display.items %}
-              {% if short_name != "OBSERVABLE" %}
-                <h3>Related {{ super_type.name|lower }}s</h3>
-                <div class="row" data-masonry='{"percentPosition": true }'>
-                  {% for id, entity in results.entities.items %}
-                    {% if entity.super_type.short_name == super_type.short_name %}
-                      <div class="col-md-4 text-wrap mb-2">
+          {% if results.reports %}
+{#          Reports #}
+            <div id="reports" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="reports-tab">
+                <div class="px-2">
+                  <div class="row masonry-row" data-masonry='{"percentPosition": true }'>
+                    {% for entity in results.reports %}
+                      <div class="col-md-6 text-wrap mb-2">
                         <div class="card card-body bg-secondary-light">
-                          {% include "pages/investigate/generic_entity_details_list.html" with entity=entity %}
+                          {% include "pages/investigate/generic_entity_details_list.html" with entity=entity importable_types=ordering.importable_types %}
                         </div>
                       </div>
-                    {% endif %}
-                  {% endfor %}
+                    {% endfor %}
+                  </div>
                 </div>
-              {% endif %}
-            {% endfor %}
-          </div>
+            </div>
+          {%  endif %}
         {% endwith %}
       {% elif not wait %}
         <h2>No results found.</h2>
       {% endif %}
     </div>
   {% endblock inner-content %}
+  {{ models|json_script:"models-data" }}
   {{ results|json_script:"results-data" }}
 {% endblock content %}
+
+{% block vue_javascript %}
+  {% include "helpers/dynamic_type_selector_js.html" with dom_container="type-selector" dom_data_container="models-data" %}
+{% endblock vue_javascript %}
 
 {% block inline_javascript %}
   <script type="module">
@@ -143,8 +240,9 @@
         $('#investigate_form').submit();
       }, 5000);
     {% endif %}
-    import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
 
+    // Mermaid
+    import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
     mermaid.initialize({
       theme: 'base',
       startOnLoad: false,
@@ -160,13 +258,17 @@
         lineColor: '#999999'
       }
     });
-
     $(async function () {
       const insertSvg = function (svgCode, bindFunctions) {
         document.getElementById('mermaid-output').innerHTML = svgCode
       };
       const graphDefinition = document.getElementById('mermaid-code').innerText;
       mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
+    });
+
+    // Masonry - necessary to make it work with Bootstrap tabs
+    $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+      $('.masonry-row').masonry({ itemSelector: '.card', percentPosition: true });
     });
 
     $('.investigate-add-entity-btn').click(async function () {
@@ -177,21 +279,21 @@
       let entity = undefined;
       let event = undefined;
       data['events'].forEach(function (e) {
-        if(e.id === id){
+        if (e.id === id) {
           event = e;
-          event.super_type = {name:'Event', short_name:'EVENT'}
+          event.super_type = {name: 'Event', short_name: 'EVENT'}
         }
         return
       })
       if (id !== root['id']) {
         entity = data['entities'][id];
-        if(entity !== undefined) {
+        if (entity !== undefined) {
           data['relations'].forEach(function (r) {
-          if ((r.obj_from == root.id && r.obj_to == entity.id) || (r.obj_to == root.id && r.obj_from == entity.id)) {
-            relation = r;
-            return
-          }
-        })
+            if ((r.obj_from == root.id && r.obj_to == entity.id) || (r.obj_to == root.id && r.obj_from == entity.id)) {
+              relation = r;
+              return
+            }
+          })
         }
       }
 
@@ -214,12 +316,11 @@
       const json_response = await response.json()
       $(this).removeClass('bg-primary');
       $(this).unbind('click');
-      if(json_response.status == 0) {
+      if (json_response.status == 0) {
         $(this).addClass('bg-success');
       } else {
         $(this).addClass('bg-danger');
       }
     })
-
   </script>
 {% endblock inline_javascript %}

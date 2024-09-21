@@ -4,9 +4,9 @@
   <div class="mb-2">
     {% include "icons/pills.html" with elt=entity %}
     {% if entity.name %}
-      <samp>{{ entity.name }}</samp> (<i>{{ entity.type.name }}</i>)
+      <span class="text-code font-monospace">{{ entity.name }}</span> (<i>{{ entity.type.name }}</i>)
     {% else %}
-      <samp>{{ entity.value }}</samp> (<i>{{ entity.type.name }}</i>)
+      <span class="text-code font-monospace">{{ entity.value }}</span> (<i>{{ entity.type.name }}</i>)
     {% endif %}
     {% if entity.attributes.category or entity.attributes.tags %}
       <div>
@@ -17,7 +17,7 @@
         {% endif %}
         {% if entity.attributes.tags %}
           {% for t in entity.attributes.tags|split:"," %}
-            <span class="badge bg-dark"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+            <span class="badge bg-secondary"><i class="nf nf-fa-tag"></i> {{ t }}</span>
           {% endfor %}
         {% endif %}
       </div>
@@ -43,13 +43,22 @@
       {% endfor %}
     {% endif %}
   </ul>
-  {% if entity.super_type.short_name in "THREAT" %}
-    <div class="text-end">
-      <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
-              data-bs-toggle="tooltip" data-bs-title="Import to the current case"
-              type="button" data-obj-id="{{ entity.id }}">
-        <i class="nf nf-fa-plus"></i>
-      </button>
+  {% if entity.super_type.short_name in importable_types %}
+    <div class="text-start">
+      <form class="form-inline" action="{% url "investigate_base_view" case_id=request.contextual_case.id %}"
+            method="get">
+        <input type="hidden" name="type" value="{{ entity.type.short_name }}">
+        <input type="hidden" name="value" value="{{ entity.name }}">
+        <input type="hidden" name="super_type" value="{{ entity.super_type.short_name }}">
+        <button class="btn btn-sm bg-primary text-white" type="submit" data-bs-toggle="tooltip" data-bs-title="Pivot">
+          <i class="nf nf-fa-search"></i>
+        </button>
+        <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
+                data-bs-toggle="tooltip" data-bs-title="Import to the current case"
+                type="button" data-obj-id="{{ entity.id }}">
+          <i class="nf nf-fa-plus"></i>
+        </button>
+      </form>
     </div>
   {% endif %}
 {% endif %}

@@ -1,0 +1,44 @@
+<script>
+  $(function () {
+    new Vue({
+      el: '#{{ dom_container }}',
+      delimiters: ['[[', ']]'],
+      data: {
+        raw: JSON.parse(document.getElementById('{{ dom_data_container }}').textContent),
+        queryString: window.location.search,
+        resetToModel: null,
+        modelNames: function () {
+          return this.raw.super_types;
+        },
+        modelTypes: function () {
+          return this.raw.types[this.selectedModel];
+        },
+        resetSelectedType: function (e) {
+          this.resetToModel = e;
+        }
+      },
+      computed: {
+        selectedModel: function(){
+          if(this.resetToModel){
+            let m = this.resetToModel;
+            this.resetToModel = null;
+            return m;
+          }
+          if(this.queryString){
+            let urlParams = new URLSearchParams(this.queryString);
+            return urlParams.get('super_type');
+          }
+          return 'OBSERVABLE'
+        },
+        selectedType: function(){
+          if(this.queryString){
+            let urlParams = new URLSearchParams(this.queryString);
+            return urlParams.get('type');
+          }
+          return 'IPV4';
+        }
+      },
+      methods: {},
+    });
+  });
+</script>

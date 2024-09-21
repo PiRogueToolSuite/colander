@@ -1,0 +1,27 @@
+<div class="col">
+  <h4>Entity</h4>
+  <b-form-select
+    v-model="selectedModel"
+    :options="modelNames()"
+    :select-size="6"
+    value-field="short_name"
+    text-field="name"
+    required
+    class="form-select"
+    name="super_type"
+    @change="resetSelectedType($event)"
+  ></b-form-select>
+</div>
+<div class="col">
+  <h4>Type</h4>
+  <b-form-select
+    v-model="selectedType"
+    :options="modelTypes()"
+    :select-size="6"
+    value-field="id"
+    text-field="name"
+    required
+    name="type"
+    class="form-select"
+  ></b-form-select>
+</div>

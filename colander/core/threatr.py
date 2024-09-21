@@ -15,18 +15,23 @@ class ThreatrClient:
     def __init__(self):
         self.api_key = ''
         self.types = []
-        self.supported_types = []
+        self.supported_types = {}
         self.__load_credentials()
+        self.__correctly_configured, self.__error_message = self.is_correctly_configured()
 
     def is_correctly_configured(self):
+        if not self.api_key:
+            return False, 'No Threatr API key found, check the documentation.'
         try:
             response = requests.head(f'{self.url}/api/schema/', headers=self.__get_headers(), timeout=10)
             return response.status_code == 200
         except requests.exceptions.RequestException as e:
             logger.error(e)
-            return False
+            return False, 'Unable to retrieve the API schema (https://<threatr domain>/api/schema/)'
 
     def is_online(self):
+        if not self.__correctly_configured:
+            return False
         try:
             requests.head(f'{self.url}/api/schema/', headers=self.__get_headers(), timeout=10)
             return True
@@ -47,13 +52,16 @@ class ThreatrClient:
         credentials = BackendCredentials.objects.filter(backend=ThreatrClient.backend_identifier)
         if credentials:
             credentials = credentials.first()
-            self.api_key = credentials.credentials.get('api_key')
+            self.api_key = credentials.credentials.get('api_key', '')
 
     def get_types(self):
         """
         Get all the types defined in Threatr models.
         :return: all the types defined in Threatr models
         """
+        if not self.__correctly_configured:
+            self.types = []
+            return self.types
         if self.types:
             return self.types
         response = requests.get(f'{self.url}/api/types/', headers=self.__get_headers())
@@ -83,6 +91,9 @@ class ThreatrClient:
 
         :return: the entity types supported by the modules available on Threatr
         """
+        if not self.__correctly_configured:
+            self.supported_types = {}
+            return self.supported_types
         if self.supported_types:
             return self.supported_types
         response = requests.get(f'{self.url}/api/types/supported/', headers=self.__get_headers())
@@ -109,6 +120,8 @@ class ThreatrClient:
         :param data: the data to be sent
         :return: the query results and a boolean telling if the client has to wait and come back later
         """
+        if not self.__correctly_configured:
+            return [], False
         if not data:
             return [], False
         response = requests.post(f'{self.url}/api/request/', headers=self.__get_headers(), json=data)

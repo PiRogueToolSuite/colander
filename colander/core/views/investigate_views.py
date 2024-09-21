@@ -26,7 +26,6 @@ def get_threatr_types(api_key):
 @login_required
 @csrf_exempt
 def investigate_search_view(request):
-    form = InvestigateSearchForm()
     threatr_client = ThreatrClient()
     threatr_results = {}
     wait = False
@@ -35,14 +34,15 @@ def investigate_search_view(request):
     ordering = {}
     request_data = {}
 
-    if not threatr_client.is_correctly_configured():
-        messages.error(request, 'Threatr is not correctly configured. Unable to retrieve the API schema (<threatr domain>/api/schema/)', extra_tags='danger')
-        logger.error(f'Threatr is not correctly configured. {THREAT_BACKEND_IDENTIFIER}')
+    correctly_configured, message = threatr_client.is_correctly_configured()
+    if not correctly_configured:
+        messages.error(request, message, extra_tags='danger')
+        logger.error(f'Threatr is not correctly configured. {THREAT_BACKEND_IDENTIFIER}. {message}')
         return render(
             request,
             'pages/investigate/base.html',
             {
-                'form': form,
+                'form': None,
                 'request_data': request_data,
                 'results': threatr_results,
                 'mermaid': mermaid,
@@ -52,6 +52,7 @@ def investigate_search_view(request):
         )
 
     types = threatr_client.get_supported_types()
+    form = InvestigateSearchForm()
 
     if request.GET.keys():
         entities = {}

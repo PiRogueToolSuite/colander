@@ -85,6 +85,10 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
 
+      # Add the Git commit hash into base.py GIT_COMMIT_HASH
+      - name: Add the Git commit hash
+        run: echo "${{ github.sha }}" >> config/settings/base.py
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image

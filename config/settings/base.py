@@ -170,6 +170,7 @@ MIDDLEWARE = [
 
     # Workspace middleware
     "colander.core.middlewares.ContextualCaseMiddleware",
+    "colander.core.middlewares.GitCommitHashMiddleware",
 ]
 
 # STATIC

@@ -276,6 +276,14 @@
         >
           <i class="nf nf-fa-github"></i>
         </a>
+        <a href="https://github.com/PiRogueToolSuite/colander/commit/{{ request.GIT_COMMIT_HASH }}"
+           class="link-offset-2 link-underline-opacity-0 link-underline-opacity-0-hover"
+           alt="Git commit hash"
+           title="Git commit hash"
+           target="_blank"
+        >
+          <span class="font-monospace text-muted text-small">{{ request.GIT_COMMIT_HASH|truncatechars:7 }}</span>
+        </a>
       </div>
     </aside>
     <div id="page-content-wrapper">

@@ -86,6 +86,6 @@ TEMPLATES[0]['OPTIONS']['debug'] = True
 # }
 
 CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='beta.cyberchef.defensive-lab.agency')
-THREATR_FQDN = env('THREATR_FQDN', default='beta.threatr.defensive-lab.agency')
+THREATR_FQDN = env('THREATR_FQDN', default='10.8.0.14:9000')
 CYBERCHEF_BASE_URL = env('CYBERCHEF_BASE_URL', default=f'https://{CYBERCHEF_FQDN}')
-THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'https://{THREATR_FQDN}')
+THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'http://{THREATR_FQDN}')

@@ -45,6 +45,12 @@ $alert-bg-scale: -99%;
 $alert-border-scale: 0%;
 $alert-color-scale: -20%;
 
+// Popovers
+$popover-bg: mix(white,$secondary, 90%);
+$popover-max-width: 512px;
+$popover-body-padding-x: 0.5*$spacer;
+$popover-body-padding-y: 0.5*$spacer;
+
 .bg-secondary-light {
   background-color: rgba($secondary, 0.1) !important;
 }
@@ -53,4 +59,8 @@ $alert-color-scale: -20%;
 }
 .text-tiny {
   font-size: $font-size-base * 0.8;
+}
+.text-code {
+  color: #d33c3c;
+  font-size: $font-size-base * 1;
 }

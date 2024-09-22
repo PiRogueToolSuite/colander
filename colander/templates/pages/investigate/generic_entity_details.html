@@ -14,9 +14,7 @@
         {% endfor %}
       {% endif %}
       {% if entity.attributes.tags %}
-          {% for t in entity.attributes.tags|split:"," %}
-            <span class="badge bg-secondary"><i class="nf nf-fa-tag"></i> {{ t }}</span>
-          {% endfor %}
+        {% include "helpers/tags.html" %}
       {% endif %}
       </div>
     {% endif %}

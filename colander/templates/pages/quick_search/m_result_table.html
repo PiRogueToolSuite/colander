@@ -15,6 +15,7 @@
         <td>
           {% include "icons/pills.html" with elt=r %}
           <a href="{{ r.absolute_url }}"><samp>{{ r.value }}</samp></a>
+          {% include "helpers/tags.html" with entity=r %}
         </td>
         <td>
           {{ r|model_name|capfirst }}

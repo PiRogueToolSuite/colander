@@ -4,7 +4,7 @@
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
   <div class="card-body p-2">
     <div class="row">
-      <div class="col-md-12 text-truncate">
+      <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           {% include "icons/data_fragment_icon.html" with c="h4 text-primary" %}
           <a class="h4" href="{% url "collect_data_fragment_details_view" case_id=data_fragment.case.id pk=data_fragment.id %}">
@@ -29,6 +29,16 @@
           <div class="text-tiny text-muted">
             {% include "icons/user_icon.html" %}
             {{ data_fragment.owner }} {% if data_fragment.owner == request.user %}(me){% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-truncate ">
+        <div class="row">
+          <div class="col">
+            {% include "tlp/show_tlp_pap.html" with element=data_fragment %}
+            {% if data_fragment.attributes.tags %}
+              {% include "helpers/tags.html" with entity=data_fragment %}
+            {% endif %}
           </div>
         </div>
       </div>

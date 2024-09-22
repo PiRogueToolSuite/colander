@@ -4,6 +4,9 @@
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2>{% include "icons/pills.html" with elt=event %} {{ event.name }}</h2>
+    {% if event.attributes.tags %}
+      <div class="my-2">{% include "helpers/tags.html" with entity=event %}</div>
+    {% endif %}
     <div class="mb-3">
       {% if event.description %}
         {{ event.description | markdownify }}

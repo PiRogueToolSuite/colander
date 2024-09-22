@@ -1,0 +1,7 @@
+{% load colander_tags %}
+
+{% if entity.attributes.tags %}
+  {% for t in entity.attributes.tags|split:"," %}
+    <span class="badge bg-secondary mx-1"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+  {% endfor %}
+{% endif %}

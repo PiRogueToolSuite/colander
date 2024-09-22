@@ -153,53 +153,19 @@
                 <thead class="bg-secondary-light">
                 <tr>
                   <th>Type</th>
-                  <th>Event</th>
-                  <th>Time period</th>
-                  <th>Actions</th>
+                  <th><i class="nf nf-fa-bolt"></i> Event</th>
+                  <th class="text-left"><i class="nf nf-fa-clock_o"></i> Last seen</th>
+                  <th class="text-center"><i class="nf nf-fa-calendar"></i> Time period</th>
+                  <th class="text-end">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for entity in results.events %}
-                  <tr>
-                    <td>
-                      {% if entity.type.nf_icon %}<i class="text-primary nf {{ entity.type.nf_icon }}"></i>
-                      {% else %}<i class="fas fa-rocket text-primary fa-sm fa-fw"></i>{% endif %}
-                      <b>{{ entity.type.name }}</b>
-                    </td>
-                    <td>
-                      {{ entity.name }}
-                      {% if entity.attributes %}
-                        <a class="text-primary" data-bs-container="body" data-bs-toggle="popover"
-                           data-bs-placement="right" title="Properties" data-bs-trigger="hover focus"
-                           data-bs-content-id="popover-content-{{ entity.id }}">
-                          <i class="nf nf-fa-list" aria-hidden="true"></i>
-                        </a>
-                        <div id="popover-content-{{ entity.id }}" class="d-none">
-                          <ul class='text-start list-unstyled m-0'>
-                            {% for k_, v_ in entity.attributes.items %}
-                              {% if "tag" not in k_ %}
-                                <li><b>{{ k_|to_title }}</b>: <span class="font-monospace">{{ v_ }}</span></li>
-                              {% endif %}
-                            {% endfor %}
-                          </ul>
-                        </div>
-                      {% endif %}
-                    </td>
-                    <td>{{ entity.first_seen }} - {{ entity.last_seen }} ({{ entity.count }}
-                      time{{ entity.count|pluralize }})
-                    </td>
-                    <td class="text-end">
-                      <button class="btn btn-sm bg-primary text-white investigate-add-entity-btn"
-                              data-bs-toggle="tooltip" data-bs-title="Import to the current case"
-                              type="button" data-obj-id="{{ entity.id }}">
-                        <i class="nf nf-fa-plus"></i>
-                      </button>
-                    </td>
-                  </tr>
+                {% for event in results.events %}
+                  {% include 'pages/investigate/generic_event_row.html' %}
                 {% endfor %}
                 </tbody>
               </table>
-            </div>
+              </div>
             </div>
           {% endif %}
           {% if results.reports %}

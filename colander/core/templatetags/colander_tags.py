@@ -1,8 +1,12 @@
+import datetime
 import json
 from base64 import urlsafe_b64encode
 from datetime import timedelta
 
 from django import template
+from django.utils.dateparse import parse_datetime
+from django.utils.timesince import timeuntil
+from rest_framework.fields import DateTimeField
 
 register = template.Library()
 
@@ -39,6 +43,18 @@ def to_b64(instance):
 @register.filter(name="humanize_duration")
 def to_humanized_duration(instance):
     return "{:0>8}".format(str(timedelta(seconds=int(instance))))
+
+@register.filter(name="to_datetime")
+def to_datetime(instance):
+    if not instance or type(instance) is not str:
+        return instance
+    return parse_datetime(str(instance))
+
+@register.filter(name="humanize_event_duration")
+def to_humanized_event_duration(instance):
+    start = parse_datetime(instance.get('first_seen'))
+    end = parse_datetime(instance.get('last_seen'))
+    return timeuntil(end, start)
 
 @register.filter(name="to_cyberchef_input")
 def to_cyberchef_input(instance):

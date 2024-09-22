@@ -74,7 +74,7 @@ def investigate_search_view(request):
                     'external_doc': 0,
                     },
                     # ToDo: get rid of the hardcoded list of types
-                    'importable_types': ['OBSERVABLE', 'DEVICE', 'THREAT'],
+                    'importable_types': ['OBSERVABLE', 'DEVICE', 'THREAT', 'ACTOR'],
                     'types': {
                     }
                 }

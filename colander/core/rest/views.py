@@ -21,7 +21,7 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType, Device, DeviceType,
+    ThreatType, Device, DeviceType, Actor, ActorType,
 )
 from colander.core.rest.serializers import DetailedEntitySerializer
 
@@ -112,6 +112,11 @@ def get_threatr_entity_type(entity):
     if entity['super_type']['short_name'] == 'THREAT':
         try:
             return Threat, ThreatType.objects.get(short_name=entity['type']['short_name'])
+        except Exception:
+            return None, None
+    if entity['super_type']['short_name'] == 'ACTOR':
+        try:
+            return Actor, ActorType.objects.get(short_name=entity['type']['short_name'])
         except Exception:
             return None, None
     if entity['super_type']['short_name'] == 'EVENT':

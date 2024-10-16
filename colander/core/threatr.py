@@ -140,6 +140,8 @@ class ThreatrClient:
             return [], False
         if not data:
             return [], False
+        if not data.get('value', ''):
+            return [], False
         response = requests.post(f'{self.url}/api/request/', headers=self.__get_headers(), json=data)
         if response.status_code == 201:
             return [], True

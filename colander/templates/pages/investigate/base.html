@@ -8,7 +8,7 @@
 {% block content %}
   {% block inner-content %}
     {% if form %}
-      <div class="row justify-content-center mt-2">
+      <div class="row justify-content-center mt-2" {% if wait %}style="display: none"{% endif %}>
         <div class="col-md-12">
           <div class="card mb-4 bg-secondary-light">
             <div class="card-body">
@@ -42,7 +42,7 @@
       {% if wait %}
         <div class="col-md-6">
           <div class="card card-body bg-secondary-light text-center">
-            <div class="spinner-grow text-primary" role="status">
+            <div id="id_waiting_spinner" class="spinner-grow text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
             <h2>We are processing your request</h2>
@@ -115,7 +115,7 @@
                   {{ results.graph }}
               </pre>
               <div id="mermaid-output" class="text-center"></div>
-            </div>
+          </div>
 {#          Entities #}
             {% for type, object in ordering.types.items %}
               <div id="{{ type }}" class="col-md-12 tab-pane {% if forloop.first %}active{% endif %}" role="tabpanel" aria-labelledby="{{ type }}-tab">
@@ -207,7 +207,7 @@
       }, 5000);
     {% endif %}
 
-    // Mermaid
+    // Mermaid graph of the results from Threatr
     import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
     mermaid.initialize({
       theme: 'base',
@@ -228,8 +228,11 @@
       const insertSvg = function (svgCode, bindFunctions) {
         document.getElementById('mermaid-output').innerHTML = svgCode
       };
-      const graphDefinition = document.getElementById('mermaid-code').innerText;
-      mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
+      const graphCodeContainer = document.getElementById('mermaid-code');
+      if(graphCodeContainer) {
+        const graphDefinition = document.getElementById('mermaid-code').innerText;
+        mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
+      }
     });
 
     // Masonry - necessary to make it work with Bootstrap tabs
@@ -237,6 +240,7 @@
       $('.masonry-row').masonry({ itemSelector: '.card', percentPosition: true });
     });
 
+    // Listen on the "Add to current case buttons" to import a result into the current case.
     $('.investigate-add-entity-btn').click(async function () {
       const data = JSON.parse($('#results-data').text());
       const id = $(this).attr('data-obj-id');

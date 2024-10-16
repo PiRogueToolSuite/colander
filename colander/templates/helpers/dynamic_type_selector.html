@@ -4,6 +4,7 @@
     v-model="selectedModel"
     :options="modelNames()"
     :select-size="6"
+    id="id_super_type_selector"
     value-field="short_name"
     text-field="name"
     required
@@ -18,6 +19,7 @@
     v-model="selectedType"
     :options="modelTypes()"
     :select-size="6"
+    id="id_type_selector"
     value-field="id"
     text-field="name"
     required

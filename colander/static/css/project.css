@@ -11356,4 +11356,37 @@ header .navbar-nav .nav-item .nav-link {
   border-radius: 0;
 }
 
+.modal-header-wizard {
+  flex-wrap: wrap;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.modal-header-wizard .modal-header-break {
+  flex-basis: 100%;
+  height: 0;
+}
+.modal-header-wizard .nav-tabs {
+  margin-top: 0.4rem;
+  position: relative;
+  width: 100%;
+}
+.modal-header-wizard .nav-tabs:before, .modal-header-wizard .nav-tabs:after {
+  z-index: 0;
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  width: 1.2rem;
+  border: #EEE solid;
+  border-width: 0 0 1px 0;
+  box-sizing: border-box;
+}
+.modal-header-wizard .nav-tabs:before {
+  left: 0;
+  margin-left: -1.2rem;
+}
+.modal-header-wizard .nav-tabs:after {
+  right: 0;
+  margin-right: -1.2rem;
+}
+
 /*# sourceMappingURL=project.css.map */

@@ -357,6 +357,13 @@ CORS_ORIGIN_WHITELIST = [
 ]
 # CORS_ORIGIN_ALLOW_ALL = True
 
+# fetch API support
+CSRF_TRUSTED_ORIGINS = [
+    "moz-extension://531906d3-e22f-4a6c-a102-8057b88a1a63",
+    "moz-extension://531906d3-e22f-4a6c-a102-8057b88a1a42",
+]
+
+
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
@@ -435,6 +442,9 @@ THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'http://{THREATR_FQDN}')
 # WebSocket channel group messaging feature (enabling by creating default one)
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
     }
 }

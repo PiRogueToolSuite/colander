@@ -1,15 +1,18 @@
 import {vueComponent} from '../vues_components/vue-sub-component';
 import EventEmitter from 'events';
+import {Cache} from './cache';
 
 let Event_System = new EventEmitter();
-window.Colander = Object.assign(window.Colander || {}, {Bus: Event_System});
+window.Colander = Object.assign(
+    window.Colander || {},
+    {Bus: Event_System, Cache: new Cache()});
 
 let loc = window.location;
-let ws_url_base = `ws://${loc.host}/ws`;
+let ws_url_base = `ws://${loc.host}/ws-channel`;
 let ws_url_case = `${ws_url_base}/global/`;
-let ws = new WebSocket(ws_url_case);
+// let ws = new WebSocket(ws_url_case);
+let ws = new WebSocket(`ws://${loc.host}${window.location.pathname}`);
 ws.addEventListener('message', function(evt) {
-   console.log('message', arguments);
    let data = JSON.parse(evt.data)
    console.log('message data', data);
 });

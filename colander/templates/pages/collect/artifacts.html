@@ -84,7 +84,7 @@
 {% block inline_javascript %}
   <script>
     $( () => {
-      if ( $('#id_upload_request_ref').val().trim() ) {
+      if ( $('#id_upload_request_ref').val()?.trim() ) {
           $('#upload_btn').prop('disabled', true);
           $('#upload_btn').hide();
           return;

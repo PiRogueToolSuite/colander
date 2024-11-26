@@ -89,3 +89,6 @@ CYBERCHEF_FQDN = env('CYBERCHEF_FQDN', default='beta.cyberchef.defensive-lab.age
 THREATR_FQDN = env('THREATR_FQDN', default='10.8.0.14:9000')
 CYBERCHEF_BASE_URL = env('CYBERCHEF_BASE_URL', default=f'https://{CYBERCHEF_FQDN}')
 THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'http://{THREATR_FQDN}')
+
+# Based for WebSocket channel instanciation
+ASGI_APPLICATION = "config.asgi_local.application"

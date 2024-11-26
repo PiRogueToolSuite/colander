@@ -1,3 +1,4 @@
+import mimetypes
 import pathlib
 
 import magic
@@ -12,6 +13,7 @@ from colander.core.models import (
     ColanderTeam,
     Device,
     DeviceType,
+    DroppedFile,
     EntityRelation,
     Observable,
     ObservableType,
@@ -19,12 +21,13 @@ from colander.core.models import (
     UploadRequest, Entity,
 )
 from colander.core.signals import process_hash_and_signing
+from colander.core.utils import get_upload_file_mime_type
 
 
 class ArtifactTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtifactType
-        fields = ['id', 'name', 'short_name']
+        fields = ['id', 'name', 'short_name', 'default_attributes']
 
 
 class CaseSerializer(serializers.ModelSerializer):
@@ -211,3 +214,29 @@ class TeamSerializer(serializers.ModelSerializer):
         model = ColanderTeam
         fields = ['id', 'name']
 
+
+class DroppedFileSerializer(serializers.ModelSerializer):
+    source_url = serializers.CharField(write_only=True, allow_blank=True)
+
+    class Meta:
+        model = DroppedFile
+        exclude = ['owner']
+
+    def create(self, validated_data):
+        extra_attributes = {}
+        if 'source_url' in validated_data:
+            extra_attributes = {
+                'source_url': validated_data.pop('source_url'),
+                'content_type': validated_data['file'].content_type,
+                'magic_mime_type': get_upload_file_mime_type(validated_data['file'])
+            }
+        dropped_file = super().create(validated_data)
+        mime_type = mimetypes.guess_type(validated_data['file'].name)
+        if mime_type[0] is None:
+            dropped_file.mime_type = get_upload_file_mime_type(validated_data['file'])
+        else:
+            dropped_file.mime_type = mime_type[0]
+        dropped_file.filename = validated_data['file'].name
+        dropped_file.attributes = extra_attributes
+        dropped_file.save()
+        return dropped_file

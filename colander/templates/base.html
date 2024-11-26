@@ -59,6 +59,7 @@
   {% url 'case_base_view' as case_base_view_url %}
   {% url 'case_create_view' as case_create_view_url %}
   {% url 'collaborate_base_view' as collaborate_base_view_url %}
+  {% url 'dropped_files_triage_base_view' as dropped_files_triage_base_view_url %}
   {% url 'cron-jobs' as cron_url %}
 
   {% block top_bar %}
@@ -210,6 +211,11 @@
             {% include "icons/case_icon.html" with open=False %}
             <span class="list-group-item-label">Cases</span>
           </a>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link dropped_files_triage_base_view_url %}"
+             href="{{ dropped_files_triage_base_view_url }}" title="Dropped files triage">
+            <i class="nf nf-fa-inbox list-group-item-icon"></i>
+            <span class="list-group-item-label">Drops</span>
+          </a>
           <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collaborate_base_view_url %}"
              href="{{ collaborate_base_view_url }}">
             {% comment %}<i class="nf nf-fa-share_alt" aria-hidden="true"></i>{% endcomment %}
@@ -320,7 +326,20 @@
     </div>
   </div>
   {% endblock %}
-
+  {% comment %}
+  <div class="toast-container position-absolute p-3 pt-5 top-0 end-0" style="z-index: 10000;">
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-secondary text-light">
+        <strong class="me-auto">New toast</strong>
+        <small class=" text-light">just now</small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        Toast content sample.
+      </div>
+    </div>
+  </div>
+  {% endcomment %}
   {% block offcanvas %}{% endblock offcanvas %}
   {% block modal %}
     <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">

@@ -4,6 +4,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from colander.core.api.security import BearerTokenAuthentication
 
 from colander.core.api.serializers import (
     ArtifactSerializer,
@@ -11,6 +12,7 @@ from colander.core.api.serializers import (
     CaseSerializer,
     DeviceSerializer,
     DeviceTypeSerializer,
+    DroppedFileSerializer,
     ObservableSerializer,
     ObservableTypeSerializer,
     PiRogueExperimentSerializer,
@@ -23,6 +25,7 @@ from colander.core.models import (
     ColanderTeam,
     Device,
     DeviceType,
+    DroppedFile,
     EntityRelation,
     Observable,
     ObservableType,
@@ -30,13 +33,14 @@ from colander.core.models import (
     UploadRequest,
 )
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
+from colander.websocket.consumers import CaseContextConsumer
 
 
 class ApiCaseViewSet(mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
                      mixins.CreateModelMixin,
                      GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = CaseSerializer
 
@@ -57,7 +61,7 @@ class ApiCaseViewSet(mixins.RetrieveModelMixin,
 class ApiDeviceTypeViewSet(mixins.RetrieveModelMixin,
                            mixins.ListModelMixin,
                            GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = DeviceTypeSerializer
     queryset = DeviceType.objects.all()
@@ -67,7 +71,7 @@ class ApiArtifactViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          mixins.CreateModelMixin,
                          GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ArtifactSerializer
 
@@ -92,7 +96,7 @@ class ApiArtifactViewSet(mixins.RetrieveModelMixin,
 class ApiArtifactTypeViewSet(mixins.RetrieveModelMixin,
                              mixins.ListModelMixin,
                              GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ArtifactTypeSerializer
     queryset = ArtifactType.objects.all()
@@ -103,7 +107,7 @@ class ApiUploadRequestViewSet(mixins.RetrieveModelMixin,
                               mixins.CreateModelMixin,
                               mixins.UpdateModelMixin,
                               GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ["get", "post", "patch", "put"]
     serializer_class = UploadRequestSerializer
@@ -120,7 +124,7 @@ class ApiDeviceViewSet(mixins.CreateModelMixin,
                        # mixins.UpdateModelMixin,
                        mixins.ListModelMixin,
                        GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = DeviceSerializer
 
@@ -146,7 +150,7 @@ class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
                                   mixins.RetrieveModelMixin,
                                   mixins.ListModelMixin,
                                   GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PiRogueExperimentSerializer
 
@@ -186,7 +190,7 @@ class ApiObservableViewSet(mixins.CreateModelMixin,
                            # mixins.UpdateModelMixin,
                            mixins.ListModelMixin,
                            GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ObservableSerializer
 
@@ -211,7 +215,7 @@ class ApiObservableViewSet(mixins.CreateModelMixin,
 class ApiObservableTypeViewSet(mixins.RetrieveModelMixin,
                                mixins.ListModelMixin,
                                GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = ObservableTypeSerializer
     queryset = ObservableType.objects.all()
@@ -221,7 +225,7 @@ class ApiRelationViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          mixins.CreateModelMixin,
                          GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = RelationSerializer
 
@@ -256,7 +260,7 @@ class ApiRelationViewSet(mixins.RetrieveModelMixin,
 class ApiTeamViewSet(mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
                      GenericViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = TeamSerializer
 
@@ -269,3 +273,22 @@ class ApiTeamViewSet(mixins.RetrieveModelMixin,
 
         return teams
 
+
+class ApiDroppedFileViewSet(mixins.CreateModelMixin,
+                            GenericViewSet):
+    # authentication_classes class order matter: SessionAuthentication must be last
+    # The order matter when the following conditions are met simultaneously:
+    #   - POST is made by a webextension (using default [now standard] fetch api)
+    #   - POST is made in a browser the user is also authenticated to colander frontend
+    # The 'crfstoken' cookie is sent by the fetch api POST if it exists,
+    # and webextension can't bypass this behavior. On the other side, Django SessionAuthenfication
+    # will fail AND shortcut other authenticators on that specific 'crfstoken' check even
+    # the POST doesn't care about Session challenge by providing Token challenge.
+    authentication_classes = [TokenAuthentication, BearerTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DroppedFileSerializer
+
+    def perform_create(self, serializer):
+        inst = serializer.save(owner=self.request.user)
+        CaseContextConsumer.send_message_to_user_consumers(self.request.user, { 'msg': 'New dropped file' })
+        return inst

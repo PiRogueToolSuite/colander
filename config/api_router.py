@@ -7,6 +7,7 @@ from colander.core.api.views import (
     ApiCaseViewSet,
     ApiDeviceTypeViewSet,
     ApiDeviceViewSet,
+    ApiDroppedFileViewSet,
     ApiObservableTypeViewSet,
     ApiObservableViewSet,
     ApiPiRogueExperimentViewSet,
@@ -28,6 +29,7 @@ router.register("artifact_types", ApiArtifactTypeViewSet, basename='artifacts_ty
 router.register("upload_requests", ApiUploadRequestViewSet, basename='upload_requests')
 router.register("devices", ApiDeviceViewSet, basename='devices')
 router.register("device_types", ApiDeviceTypeViewSet, basename='device_types')
+router.register("drops", ApiDroppedFileViewSet, basename='drops')
 router.register("observables", ApiObservableViewSet, basename='observables')
 router.register("observable_types", ApiObservableTypeViewSet, basename='observable_types')
 router.register("pirogue_experiments", ApiPiRogueExperimentViewSet, basename='pirogue_experiments')

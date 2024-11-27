@@ -1,3 +1,5 @@
+import '@ungap/custom-elements';
+
 import cytoscape from 'cytoscape';
 import _ from 'lodash';
 import contextMenus from 'cytoscape-context-menus';

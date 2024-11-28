@@ -66,6 +66,27 @@
   {% include "case/details.html" with case=active_case %}
 {% endblock content %}
 
+{% block modal %}
+  <div class="modal fade" id="unsaved-case-documentation-modal" tabindex="-1" role="dialog" aria-labelledby="unsaved-case-documentation-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-primary" id="unsaved-case-documentation-modal-title"><i class="nf nf-fa-warning text-warning"></i> Unsaved documentation</h5>
+        </div>
+        <div class="modal-body">
+          <p>You have unsaved documentation changes on this device.</p>
+          <p>These changes have been saved temporarily on this device but not submitted to the server.</p>
+          <p>Note: Changes will be lost if you use revert action.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Remind me later</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" role="review-documentation">Review now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock modal %}
+
 {% block offcanvas %}
   {% if contextual_case %}
     <div class="offcanvas offcanvas-bottom" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
@@ -75,24 +96,20 @@
           <i class="nf nf-fa-file_text"></i>
           <span>Documentation editor : {{ contextual_case.name }}</span>
         </button>
-        <button id='documentation-cancel' class="btn btn-secondary text-white" role="button" data-bs-toggle="offcanvas" data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-          Cancel & Close
+        <button id='documentation-revert' class="btn btn-primary text-white" role="button" title="Revert to original version and lose changes" disabled>
+          <i class="nf nf-fa-undo"></i> Revert
         </button>
-        <button id='documentation-save' class="btn btn-primary text-white" role="button">
-          <i class="nf nf-fa-save"></i> Save & Close
+        <button id='documentation-save' class="btn btn-primary text-white" role="button" disabled>
+          <i class="nf nf-fa-save"></i> Save
         </button>
       </div>
-      <!--div class="offcanvas-header pb-1">
-        <h5 class="offcanvas-title" id="documentationOffCanvasLabel">Documentation editor</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div-->
       <div class="offcanvas-body mt-0 p-0">
         {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
       </div>
       <script type="text/javascript">
-        $(function() {
-          $('#documentation-cancel').click(() => {
-            $('#case_documentation_form').trigger("reset");
+        $(() => {
+          $('#unsaved-case-documentation-modal button[role=review-documentation]').click(() => {
+            $('#documentationOffCanvas').offcanvas("show");
           });
         });
       </script>

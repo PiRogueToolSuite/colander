@@ -72,6 +72,7 @@ from colander.core.views.outgoing_feeds_views import (
     outgoing_entities_feed_view,
 )
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
+from colander.core.views.status_views import colander_status_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatDetailsView, ThreatUpdateView, delete_threat_view
 from colander.core.views.upload_views import append_to_upload, initialize_upload
 from colander.core.views.views import (
@@ -189,6 +190,8 @@ urlpatterns = [
       path("accounts/", include("allauth.urls")),
 
       path("quick_search/", quick_search, name='quick_search_view'),
+
+      path("status/", colander_status_view, name='colander_status_view'),
 
       path("collaborate/", collaborate_base_view, name="collaborate_base_view"),
       path("collaborate/team", ColanderTeamCreateView.as_view(), name="collaborate_team_create_view"),

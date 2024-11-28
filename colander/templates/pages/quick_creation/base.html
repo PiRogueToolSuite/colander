@@ -16,33 +16,7 @@
               <form method="post" autocomplete="off">
                 {% csrf_token %}
                 <div class="row">
-                  <div class="col">
-                    <h4>Entity</h4>
-                    <b-form-select
-                      v-model="selectedModel"
-                      :options="modelNames()"
-                      :select-size="6"
-                      value-field="name"
-                      text-field="name"
-                      required
-                      class="form-select"
-                      name="model"
-                      @change="resetSelectedType()"
-                    ></b-form-select>
-                  </div>
-                  <div class="col">
-                    <h4>Type</h4>
-                    <b-form-select
-                      v-model="selectedType"
-                      :options="modelTypes()"
-                      :select-size="6"
-                      value-field="id"
-                      text-field="label"
-                      required
-                      name="type"
-                      class="form-select"
-                    ></b-form-select>
-                  </div>
+                  {% include "helpers/dynamic_type_selector.html" %}
                 </div>
                 <div class="row justify-content-center">
                   <div class="col-md-9 mt-3 text-center">
@@ -72,27 +46,5 @@
 {% endblock content %}
 
 {% block vue_javascript %}
-  <script>
-    $(function () {
-      new Vue({
-        el: '#quick-create-entities',
-        delimiters: ['[[', ']]'],
-        data: {
-          'raw': JSON.parse(document.getElementById('models-data').textContent),
-          'selectedModel': 'Actor',
-          'selectedType': null,
-          modelNames: function () {
-            return this.raw.models
-          },
-          modelTypes: function () {
-            return this.raw.types[this.selectedModel]
-          },
-          resetSelectedType: function () {
-            this.selectedType = null
-          }
-        },
-        methods: {}
-      });
-    });
-  </script>
+  {% include "helpers/dynamic_type_selector_js.html" with dom_container="quick-create-entities" dom_data_container="models-data" %}
 {% endblock vue_javascript %}

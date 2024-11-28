@@ -5,6 +5,9 @@
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2>{% include "icons/pills.html" with elt=artifact %} {{ artifact.original_name }}</h2>
+    {% if artifact.attributes.tags %}
+      <div class="my-2">{% include "helpers/tags.html" with entity=artifact %}</div>
+    {% endif %}
     <div class="mb-3">
       {% if artifact.description %}
         {{ artifact.description | markdownify }}
@@ -234,9 +237,12 @@
       </video>
     </div>
   {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" %}
-    <div class="col-md-10 mt-2">
-      <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
-    </div>
+    {% if artifact.size_in_bytes < 500000 %}
+      <div class="col-md-12 mt-4 mb-2">
+        <h3>Content</h3>
+        <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
+      </div>
+    {% endif %}
   {% endif %}
 </div>
 

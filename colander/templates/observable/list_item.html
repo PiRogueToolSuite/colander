@@ -33,11 +33,14 @@
         <div class="row">
           <div class="col">
             {% include "tlp/show_tlp_pap.html" with element=observable %}
+            {% if observable.attributes.tags %}
+              {% include "helpers/tags.html" with entity=observable %}
+            {% endif %}
             {% if observable.is_malicious %}
               <div class="badge bg-danger">
                 Malicious
               </div>
-          {% endif %}
+            {% endif %}
             <div class="small">
               {% include "icons/event_icon.html" with c="text-primary" %}
               {{ observable.event_count }} events

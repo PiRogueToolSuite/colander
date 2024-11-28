@@ -2,14 +2,41 @@
 
 {% if observable %}
   <tr>
-    <td>
-      {% include "icons/pills.html" with elt=observable %} <b>{{ observable.type.name }}</b><br>
-      <code>{{ observable.name }}</code>
+    <td class="text-wrap">
+      <div>
+        {% include "icons/pills.html" with elt=observable %} <b>{{ observable.type.name }}</b>
+        {% if observable.attributes %}
+          <a class="text-primary" data-bs-container="body" data-bs-toggle="popover"
+             data-bs-placement="right" title="Properties" data-bs-trigger="hover focus"
+             data-bs-content-id="popover-content-{{ observable.id }}">
+            <i class="nf nf-fa-list" aria-hidden="true"></i>
+          </a>
+          <div id="popover-content-{{ observable.id }}" class="d-none">
+            <ul class='text-start list-unstyled m-0'>
+              {% for k_, v_ in observable.attributes.items %}
+                {% if "tag" not in k_ %}
+                  <li><b>{{ k_|to_title }}</b>: <span class="font-monospace">{{ v_ }}</span></li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+        {% if observable.attributes.tags %}
+          {% for t in observable.attributes.tags|split:"," %}
+            <span class="badge bg-secondary text-small"><i class="nf nf-fa-tag"></i> {{ t }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div>
+        <span class="font-monospace text-code">{{ observable.name|truncatechars:128 }}</span>
+      </div>
     </td>
     <td class="text-end">
-      <form class="form-inline" action="{% url "investigate_base_view" case_id=request.contextual_case.id %}" method="get">
+      <form class="form-inline" action="{% url "investigate_base_view" case_id=request.contextual_case.id %}"
+            method="get">
         <input type="hidden" name="type" value="{{ observable.type.short_name }}">
         <input type="hidden" name="value" value="{{ observable.name }}">
+        <input type="hidden" name="super_type" value="{{ observable.super_type.short_name }}">
         <button class="btn btn-sm bg-primary text-white" type="submit" data-bs-toggle="tooltip" data-bs-title="Pivot">
           <i class="nf nf-fa-search"></i>
         </button>

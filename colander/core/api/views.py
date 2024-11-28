@@ -1,5 +1,5 @@
-from django.http import Http404, HttpResponse
-from rest_framework import mixins
+from django.http import Http404, HttpResponse, JsonResponse
+from rest_framework import mixins, status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -144,7 +144,6 @@ class ApiDeviceViewSet(mixins.CreateModelMixin,
 
 class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
                                   mixins.RetrieveModelMixin,
-                                  # mixins.UpdateModelMixin,
                                   mixins.ListModelMixin,
                                   GenericViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
@@ -153,10 +152,33 @@ class ApiPiRogueExperimentViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         cases = self.request.user.all_my_cases
-        return PiRogueExperiment.objects.filter(case__in=cases)
+        queryset = PiRogueExperiment.objects.filter(case__in=cases)
+
+        case_id = self.request.query_params.get('case_id')
+        if case_id is not None:
+            queryset = queryset.filter(case=case_id)
+
+        name = self.request.query_params.get('name')
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        return queryset
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)
+
+    @action(methods=['get'], detail=True)
+    def analysis(self, request, pk):
+        _analysis = None
+        cases = self.request.user.all_my_cases
+        try:
+            experiment = PiRogueExperiment.objects.get(pk=pk, case__in=cases)
+            _analysis = experiment.analysis
+        except Artifact.DoesNotExist:
+            raise Http404
+        if _analysis:
+            return JsonResponse(_analysis.to_dict(), safe=False, status=status.HTTP_200_OK)
+        raise Http404
 
 
 class ApiObservableViewSet(mixins.CreateModelMixin,

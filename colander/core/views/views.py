@@ -154,13 +154,14 @@ def quick_creation_view(request):
 
     search_results = False
     entities_list = []
+    model_data = datasets.creatable_entity_and_types
 
     if request.method == 'POST':
         if 'create_entity' in request.POST:
-            model_name = request.POST.get('model')
-            type_name = request.POST.get('type')
+            model_name = request.POST.get('super_type')  # OBSERVABLE
+            type_name = request.POST.get('type')  # DOMAIN
             names = request.POST.get('name')
-            model = colander_models.get(model_name)
+            model = {t.upper(): m for t, m in colander_models.items()}.get(model_name.upper())
             type_model = model.type.field.related_model
             type = type_model.objects.get(short_name=type_name)
             for name in names.splitlines():
@@ -175,9 +176,9 @@ def quick_creation_view(request):
                         pap=active_case.pap
                     )
                     entity.save()
-                    messages.add_message(request, messages.SUCCESS, f"The {model_name} named {name} of type {type} successfully created.")
+                    messages.add_message(request, messages.SUCCESS, f"The {model_name.title()} named {name} of type {type} successfully created.")
                 else:
-                    messages.add_message(request, messages.WARNING, f"The {model_name} named {name} of type {type} already exists.")
+                    messages.add_message(request, messages.WARNING, f"The {model_name.title()} named {name} of type {type} already exists.")
         else:
             query = request.POST.get('q', '')
             entities_list = do_search(query, [active_case])
@@ -185,8 +186,6 @@ def quick_creation_view(request):
 
     if not search_results:
         entities_list = active_case.get_all_entities(exclude_types=['Case', 'EntityRelation'])
-
-    model_data = datasets.creatable_entity_and_types
 
     ctx = {
         'active_case': active_case,

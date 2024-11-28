@@ -27,19 +27,6 @@ function suggest_entity(input, type, csrf, cid) {
                     })
                 }
             });
-            /*
-            $.get(`/entity/suggest?type=${type}&value=${value}`, function (data) {
-                data.forEach(function (d) {
-                    const message = `
-                        <div class="text-muted mb-0 suggested-entity">
-                            Do you mean <a href="${d.url}" class="">${d.text}</a>?
-                        </div>
-                    `
-                    input.after(message)
-                })
-            })
-
-             */
         }
     })
 }
@@ -78,7 +65,21 @@ $(function () {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => {
+        let opts = {
+            html: true
+        }
+        if (popoverTriggerEl.hasAttribute('data-bs-content-id')) {
+            opts.content = document.getElementById(popoverTriggerEl.getAttribute('data-bs-content-id')).innerHTML;
+        }
+        new bootstrap.Popover(popoverTriggerEl, opts)
+    })
+
+    // Enable tabs
+    $('#tabs-menu a').on('click', function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+    })
 
     handle_comment_controls();
     handle_entity_delete_control();

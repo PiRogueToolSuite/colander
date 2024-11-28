@@ -43,16 +43,22 @@ def __creatable_entity_and_types():
     for name, model in colander_models.items():
         if hasattr(model, 'type') and name not in exclude:
             models.append({
-                'name': name
+                 'name': name,
+                 'short_name': name.upper()
             })
-            types[name] = [
-                {'label': t.name,
-                 'id': t.short_name, }
+            types[name.upper()] = [
+                {
+                    'label': t.name,
+                    'name': t.name,
+                    'id': t.short_name,
+                }
                 for t in model.type.get_queryset().all()
             ]
+            types[name] = types[name.upper()]
 
     model_data = {
         'models': models,
+        'super_types': models,
         'types': types
     }
 

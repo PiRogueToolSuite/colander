@@ -36,6 +36,9 @@
         <div class="row">
           <div class="col">
             {% include "tlp/show_tlp_pap.html" with element=artifact %}
+            {% if artifact.attributes.tags %}
+              {% include "helpers/tags.html" with entity=artifact %}
+            {% endif %}
             <div class="small">
               {% if artifact.has_been_processed %}
                 {% include "icons/id_icon.html" with c="text-primary" %}

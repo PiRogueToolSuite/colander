@@ -468,6 +468,7 @@ header .navbar-nav
   position: absolute;
   top: -2.2rem;
   right: 0;
+  background-color: white;
 }
 
 #documentation-actions button:first-child {
@@ -486,11 +487,12 @@ header .navbar-nav
   display: inline-block;
   max-width: 0;
   padding: 0;
-  /*margin: -3px;*/
   white-space: nowrap;
+  /*margin-right: -2px;*/
+  border-width: 0;
 
   transition: 0.25s ease-out;
-  transition-property: max-width, margin, padding;
+  transition-property: max-width, margin, padding, border-width;
   /*color: red !important;*/
 }
 

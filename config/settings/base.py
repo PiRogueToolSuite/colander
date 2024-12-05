@@ -8,7 +8,7 @@ import environ
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # colander/
 APPS_DIR = ROOT_DIR / "colander"
-env = environ.Env()
+env = environ.FileAwareEnv()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
 if READ_DOT_ENV_FILE:

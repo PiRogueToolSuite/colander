@@ -8,10 +8,14 @@ window.Colander = Object.assign(
     {Bus: Event_System, Cache: new Cache()});
 
 let loc = window.location;
+let ws_protocol = 'ws:';
+if (loc.protocol.startsWith('https')) {
+    ws_protocol = 'wss:';
+}
 let ws_url_base = `ws://${loc.host}/ws-channel`;
 let ws_url_case = `${ws_url_base}/global/`;
 // let ws = new WebSocket(ws_url_case);
-let ws = new WebSocket(`ws://${loc.host}${window.location.pathname}`);
+let ws = new WebSocket(`${ws_protocol}//${loc.host}${loc.pathname}`);
 ws.addEventListener('message', function(evt) {
    let data = JSON.parse(evt.data)
    console.log('message data', data);

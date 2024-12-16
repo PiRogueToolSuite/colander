@@ -11,11 +11,11 @@ env:
 
 on:
   pull_request:
-    branches: [ "master", "main" ]
+    branches: [ "master", "main", "next" ]
     paths-ignore: [ "docs/**", "README.md" ]
 
   push:
-    branches: [ "master", "main" ]
+    branches: [ "master", "main", "next" ]
     paths-ignore: [ "docs/**", "README.md" ]
     tags: [ 'v*.*.*' ]
 

@@ -360,7 +360,7 @@ CORS_ORIGIN_WHITELIST = [
 # fetch API support
 CSRF_TRUSTED_ORIGINS = [
     "moz-extension://531906d3-e22f-4a6c-a102-8057b88a1a63",
-    "moz-extension://531906d3-e22f-4a6c-a102-8057b88a1a42",
+    "moz-extension://423633ff-8bea-435f-bafd-dcbf0f6b1625",
 ]
 
 

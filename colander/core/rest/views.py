@@ -155,6 +155,9 @@ def update_or_create_event(entity: dict, entity_type, root_entity, case: Case, o
     obj, created = Event.objects.update_or_create(
         type=entity_type,
         name=entity.get('name'),
+        # ToDo: unique together "type", "name", "first_seen", "last_seen", "involved_entity"
+        # 'first_seen': entity.get('first_seen'),
+        # 'last_seen': entity.get('last_seen'),
         case=case,
         defaults={
             'owner': owner,

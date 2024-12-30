@@ -10,6 +10,7 @@ from colander.core.models import (
     Comment,
     DetectionRule,
     DetectionRuleOutgoingFeed,
+    DroppedFile,
     EntityOutgoingFeed,
     EntityRelation,
     Event,
@@ -118,6 +119,7 @@ class BackendCredentialsAdmin(admin.ModelAdmin):
     # list_filter = ('name', 'observable_from', 'observable_to')
 admin.site.register(BackendCredentials, BackendCredentialsAdmin)
 
+
 class UploadRequestAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner', 'created_at', 'status')
     # list_filter = ('name', 'observable_from', 'observable_to')
@@ -132,3 +134,8 @@ admin.site.register(EntityOutgoingFeed, EntityOutFeedAdmin)
 class DetectionRuleOutFeedAdmin(admin.ModelAdmin):
     list_display = ('name',)
 admin.site.register(DetectionRuleOutgoingFeed, DetectionRuleOutFeedAdmin)
+
+
+class DroppedFileAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'dropped_at', 'case', 'filename', 'mime_type')
+admin.site.register(DroppedFile, DroppedFileAdmin)

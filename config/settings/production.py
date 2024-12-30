@@ -166,3 +166,6 @@ LOGGING = {
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+# Based for WebSocket channel instanciation
+ASGI_APPLICATION = "config.asgi_production.application"

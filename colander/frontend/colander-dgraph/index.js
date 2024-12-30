@@ -145,6 +145,13 @@ styles.push({
   }
 });
 
+styles.push({
+  selector: '.hidden',
+  style: {
+    'display': 'none',
+  }
+});
+
 class ColanderDGraph {
   // Attributes
   jRootElement;
@@ -703,7 +710,24 @@ class ColanderDGraph {
                 this._createEntity(t, e.position);
               }
             })),
-          }
+          },
+          {
+            id: 'add-linked-to-doc',
+            content: 'Add to documentation',
+            tooltipText: 'Add linked tree to documentation',
+            selector: 'node',
+            image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let linked = ColanderDGraph.cy_linked(e.target);
+              let complement = linked.absoluteComplement();
+              complement.addClass('hidden');
+              let png64 = this.cy.png({full:true, bg: 'white', scale: 2});
+
+              complement.removeClass('hidden');
+
+              Colander.Bus.emit('documentation-add-image', `![Sub Graph](${png64})`);
+            }
+          },
         ],
 
         submenuIndicator: {src: '/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y: 4},

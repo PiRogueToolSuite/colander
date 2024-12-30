@@ -65,7 +65,6 @@ class CommentForm(forms.ModelForm):
             'commented_object': forms.TextInput()
         },
 
-
     def set_user(self, connected_user):
         if connected_user:
             self.instance.owner = connected_user
@@ -111,9 +110,9 @@ class InvestigateSearchForm(forms.Form):
             )
 
 
-
 class DocumentationForm(forms.Form):
     documentation = forms.CharField(widget=forms.Textarea(), label=False)
+
 
 class EntityRelationForm(forms.Form):
     name = forms.CharField(

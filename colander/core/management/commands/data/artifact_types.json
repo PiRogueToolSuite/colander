@@ -1,5 +1,23 @@
 [
   {
+    "short_name": "ARCHIVE",
+    "name": "Archive",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-file_zip_o",
+    "stix2_type": "artifact",
+    "stix2_value_field_name": "hashes",
+    "stix2_pattern": "file:hashes.",
+    "stix2_pattern_type": "stix2",
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "application/*-compressed"
+        ]
+      }
+    }
+  },
+  {
     "short_name": "EMAIL",
     "name": "Email file",
     "description": "",
@@ -8,7 +26,14 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "message/rfc822"
+        ]
+      }
+    }
   },
   {
     "short_name": "BACKUP",
@@ -151,7 +176,10 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "default_attributes": {
+      "content_warning": ""
+    }
   },
   {
     "short_name": "IMAGE",
@@ -162,7 +190,17 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "default_attributes": {
+      "content_warning": ""
+    },
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "image/*"
+        ]
+      }
+    }
   },
   {
     "short_name": "VIDEO",
@@ -173,7 +211,38 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "default_attributes": {
+      "content_warning": ""
+    },
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "video/*"
+        ]
+      }
+    }
+  },
+  {
+    "short_name": "AUDIO",
+    "name": "Audio",
+    "description": "",
+    "svg_icon": "",
+    "nf_icon": "nf-fa-file_audio_o",
+    "stix2_type": "artifact",
+    "stix2_value_field_name": "hashes",
+    "stix2_pattern": "file:hashes.",
+    "stix2_pattern_type": "stix2",
+    "default_attributes": {
+      "content_warning": ""
+    },
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "audio/*"
+        ]
+      }
+    }
   },
   {
     "short_name": "WEBPAGE",
@@ -184,7 +253,18 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "default_attributes": {
+      "content_warning": ""
+    },
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "text/html",
+          "application/xhtml+xml"
+        ]
+      }
+    }
   },
   {
     "short_name": "SOCIAL_POST",
@@ -195,7 +275,10 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "default_attributes": {
+      "content_warning": ""
+    }
   },
   {
     "short_name": "REPORT",
@@ -217,7 +300,14 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "application/json"
+        ]
+      }
+    }
   },
   {
     "short_name": "TEXT",
@@ -228,7 +318,14 @@
     "stix2_type": "artifact",
     "stix2_value_field_name": "hashes",
     "stix2_pattern": "file:hashes.",
-    "stix2_pattern_type": "stix2"
+    "stix2_pattern_type": "stix2",
+    "type_hints": {
+      "suggested_by_mime_types": {
+        "types": [
+          "text/plain"
+        ]
+      }
+    }
   },
   {
     "short_name": "BINARY",

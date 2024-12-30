@@ -1,16 +1,23 @@
+import fnmatch
+import mimetypes
+
 import json
+import magic
 
 from django.contrib.auth.decorators import login_required
+from django.core import serializers
 from django.http import JsonResponse
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
-from rest_framework.mixins import RetrieveModelMixin
+from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from colander.core import datasets
+from colander.core.api.serializers import DroppedFileSerializer, CaseSerializer, \
+    ArtifactTypeSerializer, DeviceSerializer
 from colander.core.graph.serializers import GraphRelationSerializer
 from colander.core.models import (
     Case,
@@ -21,7 +28,7 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType, Device, DeviceType, Actor, ActorType,
+    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType,
 )
 from colander.core.rest.serializers import DetailedEntitySerializer
 
@@ -96,6 +103,83 @@ class EntityViewSet(mixins.CreateModelMixin,
             tlp=case.tlp,
             pap=case.pap,
         )
+
+
+class DroppedFileViewSet(RetrieveModelMixin,
+                         GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = DroppedFileSerializer
+
+    def get_queryset(self):
+        return DroppedFile.objects.filter(owner=self.request.user)
+
+
+class CaseViewSet(RetrieveModelMixin,
+                  GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = CaseSerializer
+
+    def get_queryset(self):
+        return self.request.user.all_my_cases
+
+    @action(detail=True, methods=['GET'])
+    def devices(self, request, pk=None):
+        # Implicitly 'case' the user can contribute
+        case = self.get_queryset().get(pk=pk)
+        devices = Device.objects.filter(case__id=case.id)
+        devicesDictionary = {}
+        serializer = DeviceSerializer()
+        for device in devices:
+            devicesDictionary[str(device.id)] = serializer.to_representation(device)
+        return JsonResponse(devicesDictionary, safe=False)
+
+
+class ArtifactTypeViewSet(ListModelMixin,
+                          RetrieveModelMixin,
+                          GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ArtifactTypeSerializer
+
+    def get_queryset(self):
+        return ArtifactType.objects.all()
+
+    def _get_artifact_types_from_mime_type(self, tested_mime_type):
+        serialized_artifact_types = []
+
+        for at in ArtifactType.objects.all():
+            if 'suggested_by_mime_types' not in at.type_hints:
+                continue
+            if 'types' not in at.type_hints['suggested_by_mime_types']:
+                continue
+            print(at.type_hints['suggested_by_mime_types']['types'])
+            for t in at.type_hints['suggested_by_mime_types']['types']:
+                print(f'type: {tested_mime_type} against {t}')
+                if fnmatch.fnmatch(tested_mime_type, t):
+                    serializer = self.get_serializer(at)
+                    serialized_artifact_types.append(serializer.data)
+                    break
+
+        return serialized_artifact_types
+
+    @action(detail=False, methods=['POST'])
+    def suggest_by_filename(self, request):
+        if 'filename' not in request.data:
+            return Response("Missing filename field", status.HTTP_400_BAD_REQUEST)
+        mime_type = mimetypes.guess_type(request.data['filename'])
+        if mime_type[0] is None:
+            return JsonResponse([], safe=False)
+        serialized_artifact_types = self._get_artifact_types_from_mime_type(mime_type[0])
+        return JsonResponse(serialized_artifact_types, safe=False)
+
+    @action(detail=False, methods=['POST'])
+    def suggest_by_mimetype(self, request):
+        if 'mime_type' not in request.data:
+            return Response("Missing mime_type field", status.HTTP_400_BAD_REQUEST)
+        serialized_artifact_types = self._get_artifact_types_from_mime_type(request.data['mime_type'])
+        return JsonResponse(serialized_artifact_types, safe=False)
 
 
 def get_threatr_entity_type(entity):

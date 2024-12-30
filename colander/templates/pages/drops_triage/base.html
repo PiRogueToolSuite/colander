@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+{% block modal %}
+  <style>
+  #triage-modal .batch-elem {
+    display: none;
+  }
+  #triage-modal.batch {
+    .batch-elem {
+      display: initial;
+    }
+    .non-batch-elem {
+      display: none;
+    }
+  }
+  #triage-form .tab-pane .modal-body
+  {
+  }
+  </style>
+  <div class="modal fade" id="triage-modal" tabindex="-1" aria-labelledby="triage-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header modal-header-wizard">
+          <h1 class="modal-title fs-5" id="triage-modal-title">{% translate "Convert to Artifact" %}</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-header-break"></div>
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <button id="triage-case-tab" data-bs-target="#triage-case" class="nav-link active disabled" data-bs-toggle="tab" role="tab" aria-selected="true">1. Case</button>
+            </li>
+            <li class="nav-item">
+              <button id="triage-artifact-tab" data-bs-target="#triage-artifact" class="nav-link disabled" data-bs-toggle="tab" role="tab" aria-selected="false">2. Artifact</button>
+            </li>
+            <li class="nav-item">
+              <button id="triage-attributes-tab" data-bs-target="#triage-attributes" class="nav-link disabled" data-bs-toggle="tab" role="tab" aria-selected="false">3. Attributes</button>
+            </li>
+            <li class="nav-item">
+              <button id="triage-details-tab" data-bs-target="#triage-details" class="nav-link disabled" data-bs-toggle="tab" role="tab" aria-selected="false">4. Details</button>
+            </li>
+          </ul>
+        </div>
+        <form id="triage-form" class="tab-content" method="post">
+          {% csrf_token %}
+          {{ conversion_form.delete_action }}
+          <div class="visually-hidden">
+            {{ conversion_form.dropped_files|as_crispy_field }}
+          </div>
+          <div class="tab-pane active" id="triage-case" role="tabpanel" aria-labelledby="triage-case-tab">
+            <div class="modal-body">
+              <div class="row batch-elem">
+                <div class="col-12 alert alert-info">
+                  Please pay attention: following properties will apply to all converted dropped files into artifacts.
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  {{ conversion_form.case|as_crispy_field }}
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" role="next" disabled>Next</button>
+            </div>
+          </div>
+          <div class="tab-pane" id="triage-artifact" role="tabpanel" aria-labelledby="triage-properties-tab">
+            <div class="modal-body">
+              <div class="row non-batch-elem">
+                <div class="col-12">
+                  {{ conversion_form.name|as_crispy_field }}
+                </div>
+              </div>
+              <div class="row non-batch-elem">
+                <div class="col-12">
+                  {{ conversion_form.source_url|as_crispy_field }}
+                </div>
+              </div>
+              <div class="row batch-elem">
+                <div class="col-12 alert alert-info">
+                  Converting multiple dropped files at once will assume artifact name set to dropped file filename.
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  {{ conversion_form.type|as_crispy_field }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  {{ conversion_form.tlp|as_crispy_field }}
+                </div>
+                <div class="col-6">
+                  {{ conversion_form.pap|as_crispy_field }}
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" role="previous">Previous</button>
+              <button type="button" class="btn btn-primary" role="next">Next</button>
+            </div>
+          </div>
+          <div class="tab-pane" id="triage-attributes" role="tabpanel" aria-labelledby="triage-details-tab">
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-12">
+                  {{ conversion_form.attributes|as_crispy_field }}
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" role="previous">Previous</button>
+              <button type="button" class="btn btn-primary" role="next">Next</button>
+            </div>
+          </div>
+          <div class="tab-pane" id="triage-details" role="tabpanel" aria-labelledby="triage-details-tab">
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-12">
+                  {{ conversion_form.description|as_crispy_field }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  {{ conversion_form.extracted_from|as_crispy_field }}
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <p class="text-secondary">
+                After conversion,
+                <span class="non-batch-elem">this dropped file entry</span>
+                <span class="batch-elem">these dropped files entries</span>
+                will be recycled and deleted.</p>
+              <button type="button" class="btn btn-secondary" role="previous">Previous</button>
+              <button type="button" class="btn btn-primary" role="convert">Convert</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock modal %}
+
+{% block content %}
+  <div class="mt-2">
+    <h2>{% translate "Dropped files waiting for triage" %}</h2>
+
+    {% if drops %}
+      <div id="triage-actions" class="input-group">
+        <button
+          type="button"
+          class="btn btn-primary"
+          role="review"
+          disabled>
+          Review
+          <span class="badge bg-secondary" style="display: none;">0</span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger text-white delete-entity-btn"
+          role="delete"
+          disabled>
+          Delete
+          <span class="badge bg-secondary" style="display: none;">0</span>
+        </button>
+      </div>
+      <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col" class="text-nowrap" style="width: 1px;">-</th>
+              <th scope="col" class="text-nowrap" style="width: 1px;">Dropped at</th>
+              <th scope="col" class="text-nowrap">Filename / Source</th>
+              <th scope="col" style="width: 1px;">Type</th>
+              <th scope="col" style="width: 1px;">Case</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for drop in drops %}
+              <tr>
+                <td class="text-nowrap">
+                  <div class="form-check">
+                    <input class='form-check-input dropped-file-selection-checkbox'
+                           id="dropped-file-checkbox-{{ drop.id }}"
+                           type="checkbox"
+                           value="{{ drop.id }}"/>
+                  </div>
+                </td>
+                <td class="text-nowrap"
+                    title="{{ drop.dropped_at }}">
+                  <label for="dropped-file-checkbox-{{ drop.id }}">
+                    {{ drop.dropped_at|date:'d/m/y H:i' }}
+                  </label>
+                </td>
+                <td class="overflow-hidden" style="max-width: 50px;">
+                  <label for="dropped-file-checkbox-{{ drop.id }}">
+                    <div title="{{ drop.filename }}"
+                         class="text-truncate text-primary">{{ drop.filename }}</div>
+                    {% if 'source_url' in drop.attributes %}
+                      <div title="{{ drop.attributes.source_url }}"
+                           class="text-truncate font-monospace">{{ drop.attributes.source_url }}</div>
+                    {% else %}
+                      <div class="no-wrap">-</div>
+                    {% endif %}
+                  </label>
+                </td>
+                <td>
+                  <label for="dropped-file-checkbox-{{ drop.id }}">
+                    {% if drop.mime_type %}
+                      <span class="text-nowrap">{{ drop.mime_type }}</span>
+                    {% else %}
+                      <span class="text-nowrap">-</span>
+                    {% endif %}
+                  </label>
+                </td>
+                <td class="text-nowrap">
+                  <label for="dropped-file-checkbox-{{ drop.id }}">
+                    {{ drop.case }}
+                  </label>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+      </table>
+    {% else %}
+      <div class="row">
+        <div class="col-md-12">
+          <p>You have no dropped files yet.</p>
+        </div>
+        <div class="col-md-12">
+          <p>
+            If you use Firefox browser, you may want to use <a href="https://pts-project.org/colander-companion/">Colander Companion</a> browser extension
+            to collect web content.
+            Simply follow the appropriate cookbook to set up
+            <a href="https://pts-project.org/cookbooks/colander-companion-setup/" title="Setup Colander Companion web extension ">Colander Companion on your desktop</a> or
+            <a href="https://pts-project.org/cookbooks/colander-companion-mobile-setup/" title="Setup Colander Companion on mobile/tablet">for mobile/tablet device</a>.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+  <script type="text/javascript">
+  $(() => {
+    var csrfInput = $('#triage-form input[name=csrfmiddlewaretoken]');
+    var suggestedArtifactTypesInformation = $("<span class='ms-1 text-secondary'></span>");
+    $('#hint_id_type').append(suggestedArtifactTypesInformation);
+
+    fetch('/rest/artifact_types/').then(async (response) => {
+      let ats_array = await response.json();
+      for(let at of ats_array) {
+        Colander.Cache.store('artifact_type', at.id, at);
+      }
+    }).catch((e) => {
+      console.error('', e);
+    });
+
+    async function drops_review() {
+      // 1. Get all selected drops
+      let df_ids = $('#div_id_dropped_files input[name=dropped_files]:checked').map((idx, el) => {
+        return $(el).val();
+      }).get();
+      for (let dfId of df_ids) {
+        if (!Colander.Cache.contains('dropped_file', dfId)) {
+          let dropResponse = await fetch(`/rest/drops/${dfId}/`);
+          if (!dropResponse.ok) {
+            console.error("Can not retrieve DroppedFile information");
+            throw new Error("Can not retrieve DroppedFile information");
+          }
+          let drop = await dropResponse.json();
+          let suggested_artifact_types = await suggest_artifact_type(drop);
+          drop.suggested_artifact_types = suggested_artifact_types;
+          Colander.Cache.store('dropped_file', drop.id, drop);
+        }
+      }
+
+      // 2. Set UI stuff against selected drops
+      $('#triage-modal').toggleClass('batch', df_ids.length > 1);
+
+      // 2.1. batch or not, fills case and suggestions
+      // 2.1.1. merge all suggested artifact types
+      let all_suggested_types = {};
+      for (let dfId of df_ids) {
+        let d = Colander.Cache.get('dropped_file', dfId);
+        for (let sat of d.suggested_artifact_types) {
+          all_suggested_types[sat.id] = all_suggested_types[sat.id] || {count: 0};
+          all_suggested_types[sat.id] = Object.assign(
+            all_suggested_types[sat.id],
+            sat
+          );
+          all_suggested_types[sat.id].count++;
+        }
+      }
+
+      // 2.1.2. Set suggestion string helper in UI
+      let ast_str = $.map(all_suggested_types, (e) => e.name).join(', ');
+      suggestedArtifactTypesInformation.text(ast_str ? `Suggested: ${ast_str}` : '');
+
+      // 2.1.3. Peak one and set it in UI
+      let suggested_artifact_type_id = '';
+      if (Object.keys(all_suggested_types).length > 0) {
+        suggested_artifact_type_id = Object.keys(all_suggested_types)[0]
+      }
+      $('#id_type').val(suggested_artifact_type_id).change();
+
+      // 2.2. Depending on batch state
+      if (df_ids.length > 1) {
+        // With multiple dropped_file triage
+        // we will let server fills name/source_url
+        $('#id_name').val('');
+        $('#id_source_url').val('');
+      } else {
+        let drop = Colander.Cache.get('dropped_file', df_ids[0]);
+        $('#id_name').val(drop.filename);
+        $('#id_source_url').attr('readonly', Boolean(drop.attributes['source_url']));
+        $('#id_source_url').val(drop.attributes['source_url'] || '');
+      }
+
+      // 3. Case suggestion
+      let all_suggested_cases = {};
+      for (let dfId of df_ids) {
+        let d = Colander.Cache.get('dropped_file', dfId);
+        if (!d.case) continue;
+        all_suggested_cases[d.case] = all_suggested_cases[d.case] || { count: 0 };
+        all_suggested_cases[d.case].count++;
+      }
+      let suggested_case_id = '';
+      if (Object.keys(all_suggested_cases).length > 0) {
+        suggested_case_id = Object.keys(all_suggested_cases)[0]
+      }
+      $('#id_case').val(suggested_case_id).change();
+
+      // 4. Show to user
+      $('#triage-case-tab').tab('show');
+      $('#triage-modal').modal('show');
+    }
+
+    async function suggest_artifact_type(droppedFile) {
+      let suggestResponse = null;
+
+      let suggest_method = 'suggest_by_mimetype';
+      let suggest_method_body_request = { mime_type: droppedFile.mime_type };
+
+      if (!droppedFile.mime_type) {
+        suggest_method = 'suggest_by_filename';
+        suggest_method_body_request = {
+          'filename': droppedFile.filename,
+        };
+      }
+
+      suggestResponse = await fetch(`/rest/artifact_types/${suggest_method}/`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfInput.val(),
+        },
+        body: JSON.stringify(suggest_method_body_request),
+      });
+
+      // Fail safe, since suggesting are QOL
+      if (!suggestResponse.ok) return [];
+
+      let artifactTypes = await suggestResponse.json();
+
+      return artifactTypes;
+    }
+
+    async function case_change() {
+      $('#triage-case button[role=next]').attr('disabled', true);
+      let caseId = $('#id_case').val();
+      if (!caseId) return;
+
+      let caseObj = null;
+      if (Colander.Cache.contains('case', caseId)) {
+        caseObj = Colander.Cache.get('case', caseId);
+      }
+      else {
+        let caseResponse = await fetch(`/rest/cases/${caseId}/`);
+        if (!caseResponse.ok) {
+          throw new Error("Can not retrieve Case information");
+        }
+        caseObj = await caseResponse.json();
+
+        // Populate case devices
+        let devicesResponse = await fetch(`/rest/cases/${caseId}/devices/`)
+        caseObj.devices = await devicesResponse.json();
+
+        Colander.Cache.store('case', caseId, caseObj);
+      }
+
+      // Set values depending on Case
+      $('#id_tlp').val(caseObj.tlp);
+      $('#id_pap').val(caseObj.pap);
+      // Generate device <select>
+      let jOptions = [];
+      jOptions.push($(`<option value=''>---------</option>`));
+      for( let devId in caseObj.devices ) {
+        jOptions.push($(`<option value='${devId}'>${caseObj.devices[devId].name}</option>`));
+      }
+      $('#id_extracted_from').empty().append(jOptions);
+
+      $('#triage-case button[role=next]').attr('disabled', false);
+    }
+
+    async function artifact_type_change() {
+      $('#triage-artifact button[role=next]').attr('disabled', true);
+
+      let artifact_type = $('#id_type').val();
+      if (!artifact_type) return;
+
+      let selected_at = Colander.Cache.get('artifact_type', artifact_type);
+      if (selected_at.default_attributes) {
+        $('#id_attributes').val(JSON.stringify(selected_at.default_attributes));
+        let editorVue = $('#colander-hstore-table-edit-1').data('vue');
+        editorVue.dataLoaded = false;
+        editorVue.attributes;
+      }
+
+      $('#triage-artifact button[role=next]').attr('disabled', false);
+    }
+
+    async function update_dropped_files_selection() {
+      let df_check_id = $(this).val();
+      let df_checked = $(this).prop('checked');
+
+      $(`input[name=dropped_files][value=${df_check_id}]`).prop(
+        'checked', df_checked);
+
+      let selected_dropped_files_count = $('input[name=dropped_files]:checked').length;
+      $('#triage-actions button').attr('disabled', selected_dropped_files_count<1);
+      $('#triage-actions .badge')
+        .text(`${selected_dropped_files_count}`)
+        .toggle(selected_dropped_files_count>1);
+    }
+
+    $('.dropped-file-selection-checkbox')
+      .change(update_dropped_files_selection)
+      .trigger('change'); // Force updating state if 'reloading' page
+
+    $('#triage-case button[role=next]').click(() => {
+      $('#triage-artifact-tab').tab('show');
+    });
+
+    $('#triage-artifact button[role=previous]').click(() => {
+      $('#triage-case-tab').tab('show');
+    });
+    $('#triage-artifact button[role=next]').click(() => {
+      $('#triage-attributes-tab').tab('show');
+    });
+
+    $('#triage-attributes button[role=previous]').click(() => {
+      $('#triage-artifact-tab').tab('show');
+    });
+    $('#triage-attributes button[role=next]').click(() => {
+      $('#triage-details-tab').tab('show');
+    });
+
+    $('#triage-details button[role=previous]').click(() => {
+      $('#triage-attributes-tab').tab('show');
+    });
+
+    $('#triage-details button[role=convert]').click(() => {
+      $('#triage-form').submit();
+    });
+
+    $('#triage-actions button[role=delete]').on('click',() => {
+      $('#id_delete_action').val('delete');
+      $('#triage-form').submit();
+    });
+
+    $('#id_type').change(artifact_type_change);
+    $('#id_case').change(case_change);
+    $('#triage-actions button[role=review]').click(drops_review);
+  });
+  </script>
+{% endblock %}

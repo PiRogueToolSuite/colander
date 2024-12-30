@@ -15,7 +15,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.db import models, IntegrityError
-from django.db.models import F, Q
+from django.db.models import F, Q, JSONField
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -172,6 +172,11 @@ class CommonModelType(models.Model):
     )
     default_attributes = HStoreField(
         verbose_name='Default attributes',
+        blank=True,
+        null=True
+    )
+    type_hints = JSONField(
+        verbose_name='Type hints',
         blank=True,
         null=True
     )
@@ -450,7 +455,8 @@ class Entity(models.Model):
         help_text=_('Specify the source of this object.'),
         verbose_name='Source URL',
         null=True,
-        blank=True
+        blank=True,
+        max_length=2048,
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -2255,6 +2261,92 @@ class DetectionRuleOutgoingFeed(OutgoingFeed):
             tlp__in=tlp_levels,
             pap__in=pap_levels)
         return rules.all()
+
+
+def _get_dropped_file_upload_dir(instance, filename):
+    user_id = instance.owner.id
+    return f'user/{user_id}/dropbox/{instance.id}'
+
+
+class DroppedFile(models.Model):
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='dropped_files',
+    )
+
+    dropped_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Drop date of this file.'),
+        editable=False
+    )
+
+    name = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True
+    )
+
+    filename = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True
+    )
+
+    file = models.FileField(
+        upload_to=_get_dropped_file_upload_dir,
+        max_length=512,
+        blank=True, null=True
+    )
+
+    mime_type = models.CharField(
+        max_length=512,
+        blank=True,
+        null=True)
+
+    case = models.ForeignKey(
+        Case,
+        help_text=_('Associated case of this dropped file.'),
+        on_delete=models.SET_NULL,
+        related_name='dropped_files',
+        null=True,
+        blank=True,
+    )
+
+    attributes = HStoreField(
+        help_text=_('Custom attributes related to this dropped file.'),
+        verbose_name='Custom attributes',
+        null=True,
+        blank=True
+    )
+
+    # Weak reference style
+    # Will be set only at DroppedFile conversion POST
+    target_artifact_id = models.CharField(
+        max_length=36,
+        blank=True,
+        null=True
+    )
+
+    @staticmethod
+    def all_drops_by_user(user):
+        return (DroppedFile.objects
+                .filter(owner=user)
+                .exclude(target_artifact_id__gt='')
+                .exclude(target_artifact_id__isnull=False))
+
+
+@receiver(pre_delete, sender=DroppedFile, dispatch_uid='delete_dropped_file')
+def delete_dropped_file_stored_file(sender, instance: DroppedFile, using, **kwargs):
+    instance.file.delete()
 
 
 colander_models = {

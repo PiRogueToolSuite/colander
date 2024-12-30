@@ -9,6 +9,7 @@ from colander.core.utils import hash_file
 
 logger = logging.getLogger(__name__)
 
+
 def clean_upload_request_orphans():
     logger.info("clean_upload_request_orphans : aborted UploadRequest (no target Artifact id)")
     # To clean:
@@ -26,6 +27,7 @@ def clean_upload_request_orphans():
             a = Artifact.objects.get(pk=str(upr.target_artifact_id))
         except Artifact.DoesNotExist:
             upr.delete()
+
 
 def compute_non_signed_artifacts(batch=1):
     logger.info("compute_non_signed_artifacts")

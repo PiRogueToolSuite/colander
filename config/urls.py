@@ -41,6 +41,7 @@ from colander.core.views.detection_rule_views import (
 )
 from colander.core.views.device_views import DeviceCreateView, DeviceDetailsView, DeviceUpdateView, delete_device_view
 from colander.core.views.documentation_views import write_documentation_view
+from colander.core.views.dropped_files_views import triage_view
 from colander.core.views.event_views import EventCreateView, EventDetailsView, EventUpdateView, delete_event_view
 from colander.core.views.experiment_views import (
     PiRogueExperimentAnalysisReportView,
@@ -210,6 +211,7 @@ urlpatterns = [
       path("case/<slug:pk>/graph", case_graph, name="case_graph"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+      path("drops/", triage_view, name="dropped_files_triage_base_view"),
       path("ws/<str:case_id>/", include(case_contextualized_url_patterns)),
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),

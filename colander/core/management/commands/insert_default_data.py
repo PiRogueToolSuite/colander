@@ -48,5 +48,6 @@ class Command(BaseCommand):
                         'stix2_value_field_name': obj_type.get('stix2_value_field_name', ''),
                         'stix2_pattern': obj_type.get('stix2_pattern', ''),
                         'stix2_pattern_type': obj_type.get('stix2_pattern_type', ''),
+                        'type_hints': obj_type.get('type_hints', {}),
                     }
                 )

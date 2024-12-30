@@ -29,4 +29,5 @@ fi
 
 python manage.py migrate --skip-checks
 python manage.py insert_default_data --skip-checks
-/usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app
+#/usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app
+exec gunicorn config.asgi_local:application --bind 0.0.0.0:5000 -k uvicorn.workers.UvicornWorker --chdir=/app

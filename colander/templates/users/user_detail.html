@@ -58,7 +58,14 @@
             <td></td>
           </tr>
           <tr>
-            <td><b>API key</b></td>
+            <td><b>API Url</b></td>
+            <td>
+              <code>{{ request.scheme }}://{{ request.get_host }}/api</code>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><b>API Key</b></td>
             <td>
               <code>{{ request.user.token }}</code>
             </td>
@@ -87,6 +94,33 @@
         <pre class="bg-dark text-white text-wrap p-3 rounded"><code>sudo apt update<br>
 sudo apt install -y pirogue-colander-connector<br>
 pirogue-colander config -u "{{ request.scheme }}://{{ request.META.HTTP_HOST }}" -k "{{ request.user.token }}"</code></pre>
+      </div>
+      <div class="col-md-12 mt-2">
+        <h3>Collect web content with Colander Companion</h3>
+        <div class="row">
+          <div class="col-md-12">
+            <p>
+              If you use Firefox browser, you may want to use <a href="https://pts-project.org/colander-companion/">Colander Companion</a> browser extension
+              to collect web content.
+              Simply follow the approriate cookbook to setup
+              <a href="https://pts-project.org/cookbooks/colander-companion-setup/" title="Setup Colander Companion web extension ">Colander Companion on your desktop</a> or
+              <a href="https://pts-project.org/cookbooks/colander-companion-mobile-setup/" title="Setup Colander Companion on mobile/tablet">for mobile/tablet device</a>.
+            </p>
+          </div>
+          {% comment %}
+          <div class="col-md-6">
+            <p>
+              When done, came back to this page with your Colander Companion extension installed,
+              then click on the `Auto-Configure` button.
+            </p>
+            <p>
+              <button class='btn btn-primary' role="push-colander-companion-configuration">
+                ⚡ Auto-Configure this server
+              </button>
+            </p>
+          </div>
+          {% endcomment %}
+        </div>
       </div>
     </div>
   {% endif %}

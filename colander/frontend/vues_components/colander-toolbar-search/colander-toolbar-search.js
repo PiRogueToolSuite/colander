@@ -29,6 +29,11 @@ new Vue({
             } catch(e) {
                 console.error("Unable to search", e);
             }
+        },
+        startDrag(evt, item) {
+            console.log('startDrag', evt, item);
+            evt.dataTransfer.dropEffect = "link";
+            evt.dataTransfer.setData("text/markdown", `[${item.name}](${item.url})`);
         }
     },
     watch: {

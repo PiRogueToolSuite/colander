@@ -45,6 +45,7 @@ class ConversionToArtifactForm(ModelForm):
         form = ConversionToArtifactForm(data)
         form.fields['case'].queryset = Case.get_user_cases(user)
         form.fields['dropped_files'].queryset = DroppedFile.objects.filter(owner=user)
+        form.fields['description'].widget.attrs['rows'] = 2
         if for_deletion:
             form.fields['case'].required = False
             form.fields['type'].required = False

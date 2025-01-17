@@ -434,6 +434,87 @@ class Case(models.Model):
         return user.all_my_cases
 
 
+def _get_subgraph_thumbnails_storage_dir(instance, filename):
+    # owner_id = instance.owner.id
+    case_id = instance.case.id
+    return f'cases/{case_id}/subgraph_thumbnails/{instance.id}'
+
+
+class SubGraph(models.Model):
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False,
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    name = models.CharField(
+        max_length=512,
+        verbose_name=_('name'),
+        help_text=_('Give a meaningful name to this SubGraph.'),
+        default=''
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this SubGraph.'),
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this object.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+
+    overrides = models.JSONField(blank=True, null=True)
+
+    thumbnail = models.FileField(
+        upload_to=_get_subgraph_thumbnails_storage_dir,
+        max_length=512,
+        blank=True, null=True
+    )
+
+    def pinned(self, *args, **kwargs):
+        print(f'PINNEEED {args} {kwargs}')
+        return True
+
+    @property
+    def path(self):
+        return f'/ws/{self.case.id}/graph/{self.id}'
+
+    @property
+    def thumbnail_url(self):
+        return f'/ws/{self.case.id}/graph/{self.id}/thumbnail.png'
+
+    @staticmethod
+    def get_pinned(user, case):
+        return SubGraph.objects.filter(owner=user, case=case)
+
+    @property
+    def entities(self):
+        return self.case.entities
+
+    @property
+    def relations(self):
+        return self.case.relations
+
+
 class Entity(models.Model):
 
     class Meta:
@@ -576,6 +657,7 @@ class Entity(models.Model):
         if obj is None:
             raise Exception(f"Concrete type not found for entity id: {self.id}")
         return obj
+
 
 class Comment(models.Model):
     class Meta:
@@ -1546,6 +1628,7 @@ class DataFragment(Entity):
             )
         return relations
 
+
 class Event(Entity):
     type = models.ForeignKey(
         EventType,
@@ -1711,6 +1794,7 @@ class Event(Entity):
                     )
                 )
         return relations
+
 
 class PiRogueExperiment(Entity):
     class Meta:
@@ -1929,6 +2013,7 @@ class PiRogueExperiment(Entity):
                     )
                 )
         return relations
+
 
 @receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')
 def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):

@@ -277,10 +277,18 @@ header .navbar-brand span {
 
   &.list-group-secondary {
     position: relative;
-    .list-group-item.active {
-      --bs-bg-opacity: 1;
-      background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important;
-      border-color: transparent;
+
+    .list-group-item {
+      border: solid var(--bs-secondary);
+      border-width: 0 0 0 3px;
+      &:not(.active) :is(.fa, .nf):before {
+        color: var(--bs-body-color);
+      }
+      &.active {
+        --bs-bg-opacity: 1;
+        background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important;
+        border-color: transparent;
+      }
     }
   }
 
@@ -310,6 +318,21 @@ header .navbar-brand span {
 
     &:hover .nf {
       color: var(--bs-purple) !important;
+    }
+  }
+
+  .pin-toggle {
+    .unpin {
+      display: none;
+    }
+
+    &:hover {
+      .pin {
+        display: none;
+      }
+      .unpin {
+        display: initial;
+      }
     }
   }
 }

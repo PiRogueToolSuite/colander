@@ -1,0 +1,36 @@
+{% load i18n %}
+
+
+<div class="btn-group" role="group">
+  {% if subgraph.pinned %}
+    <a href="{% url "subgraph_pin_toggle_view" case_id=subgraph.case.id pk=subgraph.id %}"
+       class="btn btn-secondary {{ btn_class }}"
+       title="Unpin from navigation sidebar">
+      <i class="nf nf-md-pin_off"></i>
+      Unpin
+    </a>
+  {% else %}
+    <a href="{% url "subgraph_pin_toggle_view" case_id=subgraph.case.id pk=subgraph.id %}"
+       class="btn btn-secondary {{ btn_class }}"
+       title="Pin to navigation sidebar">
+      <i class="nf nf-md-pin"></i>
+      Pin
+    </a>
+  {% endif %}
+  {% if "details" not in exclude %}
+    <a href="{% url "subgraph_editor_view" case_id=subgraph.case.id pk=subgraph.id %}" class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-md-hubspot" aria-hidden="true"></i>
+      {% translate "Edit graph" %}
+    </a>
+  {% endif %}
+  {% if "edit" not in exclude %}
+    <a href="{% url "subgraph_update_view" case_id=subgraph.case.id pk=subgraph.id %}" class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-edit"></i>
+      {% translate "Edit properties" %}
+    </a>
+  {% endif %}
+  <a href="{% url "subgraph_delete_view" case_id=subgraph.case.id pk=subgraph.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+    <i class="nf nf-fa-trash"></i>
+    Delete
+  </a>
+</div>

@@ -1,0 +1,36 @@
+{% extends "pages/graph/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+{% block inner-content %}
+  <div class="mt-2">
+    {% if is_editing %}
+      <h2>{% translate "Edit Sub Graph" %}</h2>
+    {% else %}
+      <h2>{% translate "New Sub Graph" %}</h2>
+    {% endif %}
+    <div class="card mb-2 bg-secondary-light">
+      <div class="card-body">
+        <form method="post" autocomplete="off">
+          {% csrf_token %}
+          {{ form.name | as_crispy_field }}
+          {{ form.description | as_crispy_field }}
+
+          {% if is_editing %}
+            <button class="btn btn-primary" type="submit" name="save_subgraph">{% translate "Update" %}</button>
+          {% else %}
+            <button class="btn btn-primary" type="submit" name="save_subgraph">{% translate "Create" %}</button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+    <h2>Sub Graphs</h2>
+    {% if subgraphs %}
+      {% for subgraph in subgraphs %}
+        {% include "subgraph/list_item.html" %}
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endblock %}

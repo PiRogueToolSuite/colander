@@ -2,6 +2,23 @@
 {% load static %}
 
 {% block graph-sidebar-items %}
+  {% url 'subgraph_create_view' case_id=contextual_case.id as subgraph_create_view_url %}
+  <a class="list-group-item list-group-item-action list-group-item-light{% if subgraph_create_view_url == request.path %} active {% endif %}"
+     href="{{ subgraph_create_view_url }}" title="Sub Graphs">
+    <i class="nf nf-oct-list_unordered" aria-hidden="true"></i>
+    <span class="list-group-item-label">Sub Graphs</span>
+  </a>
+  {% for psb in pinned_subgraphs %}
+    <a class="position-relative list-group-item list-group-item-action list-group-item-light{% if psb.path == request.path %} active {% endif %}"
+       href="{{ psb.path }}" title="Sub Graph">
+      <i class="nf nf-md-hubspot" aria-hidden="true"></i>
+      <span class="list-group-item-label">{{ psb.name }}</span>
+      <button class="pin-toggle position-absolute btn btn-outline-light py-0 px-1" style="right: 0.6em;" title="Unpin SubGraph">
+        <i class="pin nf nf-md-pin" aria-hidden="true"></i>
+        <i class="unpin nf nf-md-pin_off" aria-hidden="true"></i>
+      </button>
+    </a>
+  {% endfor %}
 {% endblock graph-sidebar-items %}
 
 {% block content %}

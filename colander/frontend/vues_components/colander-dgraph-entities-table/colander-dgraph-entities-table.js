@@ -3,6 +3,7 @@ new Vue({
   data: {
     entities:{},
     allStyles: {},
+    editableVisibility: false,
     currentSort: {
       attribute: 'name',
       direction: 'asc',

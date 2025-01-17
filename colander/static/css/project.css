@@ -11050,6 +11050,13 @@ header .navbar-brand span {
 #sidebar-wrapper .list-group.list-group-secondary {
   position: relative;
 }
+#sidebar-wrapper .list-group.list-group-secondary .list-group-item {
+  border: solid var(--bs-secondary);
+  border-width: 0 0 0 3px;
+}
+#sidebar-wrapper .list-group.list-group-secondary .list-group-item:not(.active) :is(.fa, .nf):before {
+  color: var(--bs-body-color);
+}
 #sidebar-wrapper .list-group.list-group-secondary .list-group-item.active {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important;
@@ -11080,6 +11087,15 @@ header .navbar-brand span {
 }
 #sidebar-wrapper .list-group #quick-add-entity:hover .nf {
   color: var(--bs-purple) !important;
+}
+#sidebar-wrapper .list-group .pin-toggle .unpin {
+  display: none;
+}
+#sidebar-wrapper .list-group .pin-toggle:hover .pin {
+  display: none;
+}
+#sidebar-wrapper .list-group .pin-toggle:hover .unpin {
+  display: initial;
 }
 
 /*

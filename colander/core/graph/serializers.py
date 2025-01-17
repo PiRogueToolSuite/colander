@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 
-from colander.core.models import Case, Entity, EntityRelation
+from colander.core.models import Case, Entity, EntityRelation, SubGraph
 from colander.core.rest.commons import KeyedListSerializer
 from colander.core.rest.serializers import DetailedEntitySerializer
 
@@ -50,3 +50,29 @@ class GraphCaseSerializer(serializers.ModelSerializer):
                     continue
                 response['relations'][str(er.id)] = GraphRelationSerializer().to_representation(instance=er)
         return response
+
+
+class SubGraphCaseSerializer(serializers.ModelSerializer):
+    # entities = GraphEntitySerializer(
+    #     many=True
+    # )
+    entities = DetailedEntitySerializer(
+        many=True
+    )
+    relations = GraphRelationSerializer(
+        many=True
+    )
+
+    class Meta:
+        model = SubGraph
+        fields = ['name', 'entities', 'relations', 'overrides']
+
+    def to_representation(self, data):
+        response = super().to_representation(data)
+        for ce in data.entities:
+            for er in ce.relations:
+                if str(er.id) in response['relations']:
+                    continue
+                response['relations'][str(er.id)] = GraphRelationSerializer().to_representation(instance=er)
+        return response
+

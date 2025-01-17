@@ -1,0 +1,45 @@
+{% load i18n %}
+
+<div class="card shadow-sm bg-secondary-light border-secondary mb-2">
+  <div class="card-body p-2">
+    <div class="row">
+      <div class="col-md-8 text-truncate border-end border-secondary">
+        <div class="border-bottom border-secondary">
+          <i class="nf nf-md-hubspot h4 text-primary" aria-hidden="true"></i>
+          <a class="h4" href="{% url "subgraph_editor_view" case_id=subgraph.case.id pk=subgraph.id %}">
+            <samp>{{ subgraph.name }}</samp>
+          </a>
+        </div>
+        <div>
+          <div class="text-tiny font-monospace text-muted mt-1">
+            {% include "icons/id_icon.html" %}{{ subgraph.id }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/date_icon.html" %}
+            {{ subgraph.created_at }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/case_icon.html" %}
+            {{ subgraph.case.name }}
+          </div>
+          <div class="text-tiny text-muted">
+            {% include "icons/user_icon.html" %}
+            {{ subgraph.owner }} {% if subgraph.owner == request.user %}(me){% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-truncate">
+        <div class="row">
+          <div class="col">
+            <img
+              src="{% url "subgraph_thumbnail_view" case_id=subgraph.case.id pk=subgraph.id %}"
+              class="img-thumbnail" alt="{{ subgraph.name }}" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
+    {% include "subgraph/controls.html" with exclude="" btn_class="btn-sm" %}
+  </div>
+</div>

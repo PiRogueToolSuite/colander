@@ -23,11 +23,11 @@
             </td>
             <td class='text-truncate' style="max-width: 0;">[[ entities[eid].name ]]</td>
             <td class='text-nowrap pe-3'>
+              <span v-show="editableVisibility">
+                <i class='fa fa-eye text-primary actionable' title='Click to hide this entity' v-show="true"></i>
+                <i class='fa fa-eye-slash text-primary actionable' title='Click to show this entity' v-show="false"></i>
+              </span>
               <i @click="focusEntity(eid)" class='fa fa-crosshairs text-primary actionable' title="Center graph on this entity"></i>
-              <!--
-              <i class='fa fa-eye text-primary' v-if="true"></i>
-              <i class='fa fa-eye-slash text-primary' v-if="false"></i>
-              -->
             </td>
           </tr>
         </tbody>

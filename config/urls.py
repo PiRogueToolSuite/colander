@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 from rest_framework.schemas import get_schema_view
 
-from colander.core.graph.views import case_graph
+from colander.core.graph.views import case_graph, case_subgraph
 from colander.core.views.actor_views import ActorCreateView, ActorDetailsView, ActorUpdateView, delete_actor_view
 from colander.core.views.artifact_views import (
     ArtifactCreateView,
@@ -74,6 +74,8 @@ from colander.core.views.outgoing_feeds_views import (
 )
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.status_views import colander_status_view
+from colander.core.views.subgraphs_views import SubGraphCreateView, delete_subgraph_view, \
+    SubGraphUpdateView, subgraph_editor_view, subgraph_thumbnail_view, subgraph_pin_toggle_view
 from colander.core.views.threat_views import ThreatCreateView, ThreatDetailsView, ThreatUpdateView, delete_threat_view
 from colander.core.views.upload_views import append_to_upload, initialize_upload
 from colander.core.views.views import (
@@ -158,6 +160,13 @@ case_contextualized_url_patterns = [
     path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
 
     path("graph", graph_base_view, name="graph_base_view"),
+    path("graph/subgraphs", SubGraphCreateView.as_view(), name="subgraph_create_view"),
+    path("graph/<slug:pk>", subgraph_editor_view, name="subgraph_editor_view"),
+    path("graph/<slug:pk>/datasource", case_subgraph, name="case_subgraph"),
+    path("graph/<slug:pk>/edit", SubGraphUpdateView.as_view(), name="subgraph_update_view"),
+    path("graph/<slug:pk>/delete", delete_subgraph_view, name="subgraph_delete_view"),
+    path("graph/<slug:pk>/thumbnail", subgraph_thumbnail_view, name="subgraph_thumbnail_view"),
+    path("graph/<slug:pk>/toggle-pin", subgraph_pin_toggle_view, name="subgraph_pin_toggle_view"),
 
     path("document", write_documentation_view, name="document_case_write_doc_view"),
     path("document/save", save_case_documentation_view, name="cases_save_doc_view"),

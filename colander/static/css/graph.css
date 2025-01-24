@@ -185,6 +185,10 @@
   top: 0;
   background-color: var(--sp-bg-color);
 }
+.colander-dgraph .sidepane .table-sticky-head tbody tr.hidden td:not(.actions) {
+  text-decoration: line-through;
+  color: var(--bs-secondary) !important;
+}
 .colander-dgraph .sidepane .actionable {
   cursor: pointer;
 }

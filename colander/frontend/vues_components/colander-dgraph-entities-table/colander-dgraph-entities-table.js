@@ -3,19 +3,35 @@ new Vue({
   data: {
     entities:{},
     allStyles: {},
+    overrides: {},
     editableVisibility: false,
     currentSort: {
-      attribute: 'name',
+      attributes: [], // defaults initial values set in created()
       direction: 'asc',
     },
     currentSearch: '',
   },
+  created: function() {
+    // Globally defines sort attributes importance
+    this.sortAttributesDefaults = [
+      'name', 'visibility', 'super_type', 'type',
+    ];
+    this.currentSort.attributes = [...this.sortAttributesDefaults];
+  },
   methods: {
     sort: function(attr) {
-      if (attr === this.currentSort.attribute) {
+      if (attr === this.currentSort.attributes[0]) { // Unsafe ?
         this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
       }
-      this.currentSort.attribute = attr;
+      let newSortAttrs = [attr];
+      for(let dfltAttr of this.sortAttributesDefaults) {
+        if (newSortAttrs.includes(dfltAttr)) continue;
+        newSortAttrs.push(dfltAttr);
+      }
+      this.currentSort.attributes = newSortAttrs;
+    },
+    isCurrentSort: function(attr) {
+      return false;
     },
     focusEntity: function(eid) {
       $(this.$el).trigger('focus-entity', [eid]);
@@ -35,6 +51,11 @@ new Vue({
     close: function () {
       $(this.$el).trigger('close-component');
     },
+    toggleEntityVisibility: function(eid) {
+      this.overrides[eid] = this.overrides[eid] || {};
+      this.overrides[eid].hidden = !(this.overrides[eid]?.hidden);
+      $(this.$el).trigger('entity-visibility-changed', [eid, this.overrides[eid].hidden]);
+    }
   },
   computed: {
     sortedEntities_keys: function() {
@@ -54,8 +75,16 @@ new Vue({
       });
       keys.sort((aid,bid) => {
         let modifier = this.currentSort.direction === 'desc' ? -1 : 1;
-        if (this.entities[aid][this.currentSort.attribute] < this.entities[bid][this.currentSort.attribute]) return -1 * modifier;
-        if (this.entities[aid][this.currentSort.attribute] > this.entities[bid][this.currentSort.attribute]) return  1 * modifier;
+        for(let currentAttr of this.currentSort.attributes) {
+          if (currentAttr === 'visibility') {
+            if (this.overrides[aid] === undefined || this.overrides[bid] === undefined) continue;
+            if (this.overrides[aid]['hidden'] < this.overrides[bid]['hidden']) return -1 * modifier;
+            if (this.overrides[aid]['hidden'] > this.overrides[bid]['hidden']) return 1 * modifier;
+          } else {
+            if (this.entities[aid][currentAttr] < this.entities[bid][currentAttr]) return -1 * modifier;
+            if (this.entities[aid][currentAttr] > this.entities[bid][currentAttr]) return 1 * modifier;
+          }
+        }
         return 0;
       });
       return keys;

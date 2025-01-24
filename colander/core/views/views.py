@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFoun
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, cache_control
 from django.views.generic import CreateView, DetailView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
@@ -407,9 +407,11 @@ def vues_view(request, component_name):
 
     if "part" in request.GET:
         if request.GET.get("part") == "js":
-            return render(request, f'{component_name}/{component_name}.js', context=ctx)
+            return render(request, f'{component_name}/{component_name}.js',
+                          content_type='text/javascript', context=ctx)
         if request.GET.get("part") == "css":
-            return render(request, f'{component_name}/{component_name}.css', context=ctx)
+            return render(request, f'{component_name}/{component_name}.css',
+                          content_type='text/css', context=ctx)
         return HttpResponseNotFound("Not found")
 
     return render(request, f'{component_name}/{component_name}.html', context=ctx)

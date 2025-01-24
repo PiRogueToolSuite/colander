@@ -7,6 +7,6 @@ from colander.core.models import SubGraph
 @login_required
 def graph_base_view(request):
     ctx = {
-        'pinned_subgraphs': SubGraph.get_pinned(user=request.user, case=request.contextual_case)
+        'pinned_subgraphs': SubGraph.get_pinned(user=request.user, case=request.contextual_case).order_by('created_at')
     }
     return render(request, 'pages/graph/base.html', context=ctx)

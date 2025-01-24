@@ -63,8 +63,10 @@ class SubGraphCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         #ctx['devices'] = Device.get_user_devices(self.request.user, self.active_case)
-        ctx['subgraphs'] = SubGraph.objects.filter(owner=self.request.user, case=self.active_case)
-        ctx['pinned_subgraphs'] = SubGraph.get_pinned(user=self.request.user, case=self.active_case)
+        ctx['subgraphs'] = (SubGraph.objects.filter(owner=self.request.user, case=self.active_case)
+                            .order_by('name'))
+        ctx['pinned_subgraphs'] = (SubGraph.get_pinned(user=self.request.user, case=self.active_case)
+                                   .order_by('created_at'))
         ctx['is_editing'] = False
         return ctx
 
@@ -93,7 +95,8 @@ def subgraph_editor_view(request, pk):
     obj = SubGraph.objects.get(id=pk)
     ctx = {
         'subgraph': obj,
-        'pinned_subgraphs': SubGraph.get_pinned(user=request.user, case=request.contextual_case)
+        'pinned_subgraphs': (SubGraph.get_pinned(user=request.user, case=request.contextual_case)
+                             .order_by('created_at')),
     }
     return render(request, 'pages/graph/subgraph.html', context=ctx)
 

@@ -582,6 +582,50 @@ class ColanderDGraph {
     this.sidepane(this._sidepane_entity_overview);
   }
 
+  _createSubGraph(selection) {
+    let overrides = {};
+    selection.forEach((ele) => {
+      overrides[ele.id()] = {
+        hidden: false,
+      };
+    });
+    let ctx = {
+      overrides: overrides,
+    };
+    this._createOrEditSubGraph(ctx);
+  }
+
+  _createOrEditSubGraph(ctx) {
+    this._sidepane_subgraph_create_or_edit.data('vue').entities = this.g.entities;
+    this._sidepane_subgraph_create_or_edit.data('vue').subgraph = ctx;
+    this.sidepane(this._sidepane_subgraph_create_or_edit);
+  }
+
+  async _do_createOrEditSubGraph(ctx) {
+    let post_data = Object.assign({
+      case: this._config.caseId
+    }, ctx);
+
+    const rawResponse = await fetch(
+        ctx.id?`/rest/subgraph/${ctx.id}/`:'/rest/subgraph/',
+        {
+          method: ctx.id ? 'PATCH' : 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this._config.csrfToken,
+          },
+          body: JSON.stringify(post_data),
+    });
+
+    if (!rawResponse.ok) {
+      throw new Error('Unexcpeted server error');
+    }
+
+    const content = await rawResponse.json();
+    return content;
+  }
+
   _toEdge(rid) {
     let r = Object.assign({}, this.g.relations[rid]);
     r.source = r.obj_from;
@@ -714,10 +758,12 @@ class ColanderDGraph {
 
 
     // Enhance ctxmenu
+    // - disable 'selected' entries depending on selection state
     this.cy.on('cxttap', 'node', (e) => {
       let node = e.target;
       let selection = this.cy.$(':selected');
       if (selection.empty()) {
+        this.contextMenu.disableMenuItem('subgraph-create');
         if (this._config.editableVisibility)
           this.contextMenu.disableMenuItem('hide-entity-selected');
       }
@@ -725,6 +771,7 @@ class ColanderDGraph {
         if (!selection.contains(node)) {
           node.select();
         }
+        this.contextMenu.enableMenuItem('subgraph-create');
         if (this._config.editableVisibility)
           this.contextMenu.enableMenuItem('hide-entity-selected');
       }
@@ -792,7 +839,6 @@ class ColanderDGraph {
         onClickFunction: (e) => {
           let node = e.target;
           this._quickEditEntity(node);
-          //window.location = node.data('absolute_url');
         }
       });
       if (this._config.editableVisibility) {
@@ -813,7 +859,6 @@ class ColanderDGraph {
               selector: 'node',
               image: {src: '/static/images/icons/eye-slash.svg', width: 12, height: 12, x: 4, y: 7},
               onClickFunction: (e) => {
-                //e.target.select();
                 let selection = this.cy.$(':selected');
                 this._hideEntities(selection, 0);
               },
@@ -859,10 +904,8 @@ class ColanderDGraph {
           onClickFunction: (e) => {
             let node = e.target;
             let linked = ColanderDGraph.cy_linked(node);
-            console.log('show-linked', linked);
             linked.filter('node').forEach((ele) => {
               if (ele.id() === node.id()) return;
-              console.log('show-linked', ele.id());
               this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
               this.g.overrides[ele.id()].hidden = false;
               delete this.fixedPosition[ele.id()];
@@ -985,14 +1028,14 @@ class ColanderDGraph {
         })),
       });
       contextMenuItems.push({
-        id: 'create-sub-graph',
+        id: 'subgraph-create',
         content: 'Create sub-graph',
-        tooltipText: 'Create sub-graph view of selected node',
+        tooltipText: 'Create sub-graph of selected entities',
         selector: 'node',
         image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
         onClickFunction: (e) => {
-          let linked = ColanderDGraph.cy_linked(e.target);
-
+          let selection = this.cy.$('node:selected');
+          this._createSubGraph(selection);
         }
       });
       if (this._config.sendToDocumentation) {
@@ -1020,7 +1063,8 @@ class ColanderDGraph {
         menuItems: contextMenuItems,
         submenuIndicator: {src: '/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y: 4},
       });
-    }
+    } /* end on contextMenu */
+
     // Full screen editor
     if (this._config.fullscreen && !this.jOverlayMenu_Fullscreen) {
       this.jOverlayMenu_Fullscreen = overlay_button('fa-arrows-alt', 'Fullscreen');
@@ -1029,6 +1073,7 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
     }
+
     // ReCenter and Fit graph
     if (this._config.recenter && !this.jOverlayMenu_Recenter) {
       this.jOverlayMenu_Recenter = overlay_button('fa-crosshairs', 'Re-Center');
@@ -1039,6 +1084,7 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Recenter);
     }
+
     // Snapshot
     if (this._config.snapshot && !this.jOverlayMenu_Snapshot) {
       this.jOverlayMenu_Snapshot = overlay_button('fa-picture-o', 'Export as PNG');
@@ -1059,6 +1105,7 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Snapshot);
     }
+
     // Sidebar toggle
     if (this._config.sidepane && !this.jOverlayMenu_Sidepane) {
       this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
@@ -1114,6 +1161,7 @@ class ColanderDGraph {
 
     setTimeout( this._init_vues.bind(this) );
   }
+
   static cy_linked(ele, degree) {
     degree = degree || Number.MAX_SAFE_INTEGER;
     let selection = ele;
@@ -1127,8 +1175,8 @@ class ColanderDGraph {
     } while( currentCount < selection.length && --degree > 0);
     return selection;
   }
-  _init_vues() {
 
+  _init_vues() {
     //
     // Entities list
     // ========================================================================
@@ -1150,7 +1198,6 @@ class ColanderDGraph {
       }
     });
     this._sidepane_entities_overview.on('entity-visibility-changed', (e, eid, hidden) => {
-
       let node = this.cy.$id(eid);
       // Hack:
       // 'selecting' then 'unselecting' node
@@ -1242,6 +1289,29 @@ class ColanderDGraph {
       this._sidepane_entity_create_or_edit.data('vue').edit_entity( tmp );
       this.sidepane(  this._sidepane_entity_create_or_edit );
     });
+
+    //
+    // SubGraph creation/edit form
+    // ========================================================================
+    this._sidepane_subgraph_create_or_edit = vueComponent('colander-dgraph-subgraph-form');
+    this.sidepane_add(this._sidepane_subgraph_create_or_edit);
+    this._sidepane_subgraph_create_or_edit.on('vue-ready',(e,jDom,vue) => {
+      vue.allStyles = this.allStyles;
+    });
+    this._sidepane_subgraph_create_or_edit.on('close-component', (e) => {
+      this.sidepane(false);
+    });
+    this._sidepane_subgraph_create_or_edit.on('save-subgraph', (e, subgraph, editNow) => {
+      console.log('save-subgraph', subgraph);
+      this._do_createOrEditSubGraph(subgraph)
+        .then((subgraphObj) => {
+          if (editNow && subgraphObj.absolute_url) {
+            window.location.assign(subgraphObj.absolute_url);
+          }
+        }).catch(console.error);
+      this.sidepane(false);
+    });
+
   }
   refreshGraph() {
 

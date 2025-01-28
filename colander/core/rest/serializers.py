@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from colander.core.models import Entity, EntityRelation, colander_models
+from colander.core.models import Entity, EntityRelation, colander_models, SubGraph
 from colander.core.rest.commons import CommonTypeSerializer, KeyedListSerializer
 
 
@@ -56,4 +56,10 @@ class DetailedEntitySerializer(serializers.ModelSerializer):
             validated_data['type'] = type
 
         return super().update(instance, validated_data)
+
+
+class SubGraphSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubGraph
+        fields = ['id', 'case', 'name', 'description', 'absolute_url', 'overrides']
 

@@ -490,13 +490,17 @@ class SubGraph(models.Model):
         blank=True, null=True
     )
 
-    def pinned(self, *args, **kwargs):
-        print(f'PINNEEED {args} {kwargs}')
+    def pinned(self):
         return True
 
     @property
     def path(self):
         return f'/ws/{self.case.id}/graph/{self.id}'
+
+    @property
+    def absolute_url(self):
+        from django.urls import reverse
+        return reverse('subgraph_editor_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def thumbnail_url(self):
@@ -513,6 +517,12 @@ class SubGraph(models.Model):
     @property
     def relations(self):
         return self.case.relations
+
+
+@receiver(pre_delete, sender=SubGraph, dispatch_uid='delete_subgraph_thumbnail')
+def delete_subgraph_stored_thumbnails(sender, instance: SubGraph, using, **kwargs):
+    if instance.thumbnail:
+        instance.thumbnail.delete()
 
 
 class Entity(models.Model):

@@ -3,7 +3,8 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from colander.core.rest.views import DatasetViewSet, EntityRelationViewSet, EntityViewSet, \
-    import_entity_from_threatr, DroppedFileViewSet, CaseViewSet, ArtifactTypeViewSet
+    import_entity_from_threatr, DroppedFileViewSet, CaseViewSet, ArtifactTypeViewSet, \
+    SubGraphViewSet
 from colander.core.views.views import entity_exists, overall_search
 
 if settings.DEBUG:
@@ -18,6 +19,7 @@ router.register("dataset", DatasetViewSet, basename="dataset")
 router.register("drops", DroppedFileViewSet, basename="drops")
 router.register("entity", EntityViewSet, basename="entity")
 router.register("entity_relation", EntityRelationViewSet, basename="entity_relation")
+router.register("subgraph", SubGraphViewSet, basename="subgraph")
 
 
 app_name = "rest"

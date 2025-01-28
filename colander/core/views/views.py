@@ -328,6 +328,7 @@ class CaseDetailsView(LoginRequiredMixin, DetailView):
             return viewed_case
         raise Case.DoesNotExist()
 
+
 @login_required
 def download_case_public_key(request, pk):
     case = Case.objects.get(id=pk)

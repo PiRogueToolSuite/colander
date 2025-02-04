@@ -969,7 +969,7 @@ class Artifact(Entity):
 
     @property
     def can_be_displayed(self):
-        return self.type.short_name in ['IMAGE', 'VIDEO']
+        return self.type.short_name in ['IMAGE', 'VIDEO', 'WEBPAGE']
 
     @property
     def icon(self):

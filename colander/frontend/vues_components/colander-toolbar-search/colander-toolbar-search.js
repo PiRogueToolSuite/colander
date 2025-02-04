@@ -1,9 +1,9 @@
-new Vue({
+Vue.createApp({
     delimiters: ['[[', ']]'],
-    data: {
+    data: () => ({
         currentSearch: '',
         results: [],
-    },
+    }),
     methods: {
         updateResult: async function() {
             const csrfDom = document.querySelector("#overall-search-form input[name=csrfmiddlewaretoken]");

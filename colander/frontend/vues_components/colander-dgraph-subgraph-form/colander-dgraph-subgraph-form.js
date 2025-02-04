@@ -1,10 +1,10 @@
-new Vue({
+Vue.createApp({
   delimiters: ['[[', ']]'],
-  data: {
+  data: () => ({
     allStyles: {},
     entities: {},
     subgraph: {},
-  },
+  }),
   methods: {
     cancel: function () {
       $(this.$el).trigger('close-component');

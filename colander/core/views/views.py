@@ -152,6 +152,7 @@ def quick_creation_view(request):
     if not active_case:
         return redirect('case_create_view')
 
+    search_query = None
     search_results = False
     entities_list = []
     model_data = datasets.creatable_entity_and_types
@@ -180,8 +181,8 @@ def quick_creation_view(request):
                 else:
                     messages.add_message(request, messages.WARNING, f"The {model_name.title()} named {name} of type {type} already exists.")
         else:
-            query = request.POST.get('q', '')
-            entities_list = do_search(query, [active_case])
+            search_query = request.POST.get('q', '')
+            entities_list = do_search(search_query, [active_case])
             search_results = True
 
     if not search_results:
@@ -191,7 +192,8 @@ def quick_creation_view(request):
         'active_case': active_case,
         'models': model_data,
         'entities': entities_list,
-        'search_results': search_results
+        'search_results': search_results,
+        'search_query': search_query,
     }
 
     return render(request, 'pages/quick_creation/base.html', context=ctx)
@@ -393,6 +395,7 @@ def cron_ish_view(request):
 
 @login_required
 def vues_view(request, component_name):
+
     if request.method != 'GET':
         return HttpResponseNotFound("Not found")
 

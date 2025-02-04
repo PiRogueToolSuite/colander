@@ -6,11 +6,15 @@ async function async_load_component(destJContainer, component_name) {
     destJContainer.append(dom);
     let jsResponse = await fetch( `/vues/${component_name}.vue?part=js`);
     let js = await jsResponse.text();
-    let vueInstance = eval(js);
-    vueInstance.$mount(destJContainer.find('.vue-container').get(0));
-    //let newJContainer = $(vueInstance.$el);
-    destJContainer.data('vue', vueInstance);
-    destJContainer.trigger('vue-ready', [destJContainer, vueInstance]);
+    let vueApp = eval(js);
+    vueApp.config.errorHandler = (err, instance, info) => {
+      console.warn(component_name, 'app error', err, instance, info);
+    };
+    //let mountPoint = destJContainer.find('.vue-container').get(0);
+    let mountPoint = destJContainer.get(0);
+    let vueVm = vueApp.mount(mountPoint);
+    destJContainer.data('vue', vueVm);
+    destJContainer.trigger('vue-ready', [destJContainer, vueVm]);
     return `Vue component ready: ${component_name}`;
 }
 export const vueComponent = (component_name) => {

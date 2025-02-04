@@ -1,9 +1,9 @@
-new Vue({
+Vue.createApp({
   delimiters: ['[[', ']]'],
-  data: {
+  data: () => ({
     entity: {},
     allStyles: {},
-  },
+  }),
   methods: {
     date_str: (dStr) => {
       if (!dStr) return '';

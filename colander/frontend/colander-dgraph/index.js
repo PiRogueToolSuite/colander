@@ -665,6 +665,7 @@ class ColanderDGraph {
       this.g.overrides[ele.id()].hidden = true;
     });
     eles.select().unselect().emit('free');
+    this._sidepane_entities_overview?.data('vue').refresh();
   }
 
   _showEntitiesAndRelax(orignalEles, degree) {
@@ -682,6 +683,7 @@ class ColanderDGraph {
       delete this.fixedPosition[ele.id()];
     });
     eles.select().unselect();
+    this._sidepane_entities_overview?.data('vue').refresh();
     this.refreshGraph();
   }
 

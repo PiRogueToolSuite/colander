@@ -83,6 +83,8 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         events = Event.get_user_events(self.request.user, self.active_case)
+
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in EventType.objects.all()}
         ctx['events'] = events
         ctx['is_editing'] = False
         return ctx

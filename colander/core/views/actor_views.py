@@ -52,6 +52,7 @@ class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in ActorType.objects.all()}
         ctx['actors'] = Actor.get_user_actors(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx

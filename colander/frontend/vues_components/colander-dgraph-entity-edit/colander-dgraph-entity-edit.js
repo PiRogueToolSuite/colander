@@ -1,9 +1,9 @@
-new Vue({
+Vue.createApp({
   delimiters: ['[[', ']]'],
-  data: {
+  data: () => ({
     entity: {},
     allStyles: {},
-  },
+  }),
   methods: {
     optionContent: (t) => {
       // Unfortunately, vuejs (at least in v2), strip out

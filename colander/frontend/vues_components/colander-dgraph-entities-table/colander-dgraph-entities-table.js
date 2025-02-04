@@ -1,6 +1,6 @@
-new Vue({
+Vue.createApp({
   delimiters: ['[[', ']]'],
-  data: {
+  data: () => ({
     entities:{},
     allStyles: {},
     overrides: {},
@@ -10,7 +10,7 @@ new Vue({
       direction: 'asc',
     },
     currentSearch: '',
-  },
+  }),
   created: function() {
     // Globally defines sort attributes importance
     this.sortAttributesDefaults = [
@@ -42,11 +42,22 @@ new Vue({
       this.currentSearch = lcFilter + " " + this.currentSearch;
     },
     track_new_entity: function(ctx) {
-      delete this.entities[ctx.id];
-      Vue.set(this.entities, ctx.id, ctx);
+      // Not needed anymore
+
+      // Despite Vue3's new Reactive architecture,
+      // added entities do not refresh the table.
+      // Even using $forceUpdate, settings initiale reactive(entities), etc)
+      // The only hack found (for now) is to force a sort of the table
+      this.sort(this.currentSort.attributes);
+      this.$nextTick().then(() => {
+        this.sort(this.currentSort.attributes);
+      })
     },
     refresh: function() {
-
+      // Used (at least) when an entity attributes is changed.
+      this.$nextTick().then(() => {
+        this.$forceUpdate();
+      });
     },
     close: function () {
       $(this.$el).trigger('close-component');

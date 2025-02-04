@@ -62,6 +62,7 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in DataFragmentType.objects.all()}
         ctx['data_fragments'] = DataFragment.get_user_data_fragments(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx

@@ -37,13 +37,13 @@ class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in ArtifactType.objects.all()}
         ctx['artifacts'] = Artifact.get_user_artifacts(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
     def clean(self):
         clean_data = super(ArtifactCreateView, self).clean()
-        print('!!! Clean !!!')
         return clean_data
 
     def form_invalid(self, form):
@@ -163,12 +163,14 @@ class ArtifactDetailsView(LoginRequiredMixin, CaseContextMixin, DetailView):
         ctx['comment_form'] = CommentForm()
         return ctx
 
+
 @login_required
 def download_artifact(request, pk):
     content = Artifact.objects.get(id=pk)
     response = StreamingHttpResponse(content.file, content_type=content.mime_type)
     response['Content-Disposition'] = 'attachment; filename=' + content.name
     return response
+
 
 @login_required
 def view_artifact(request, pk):
@@ -177,6 +179,7 @@ def view_artifact(request, pk):
     response['Content-Disposition'] = 'inline; filename=' + content.name
     return response
 
+
 @login_required
 def download_artifact_signature(request, pk):
     content = Artifact.objects.get(id=pk)
@@ -184,6 +187,7 @@ def download_artifact_signature(request, pk):
     response = HttpResponse(raw, content_type='application/octet-stream')
     response['Content-Disposition'] = f'attachment; filename={content.name}.sig'
     return response
+
 
 @login_required
 def delete_artifact_view(request, pk):

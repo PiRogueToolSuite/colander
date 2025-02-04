@@ -48,6 +48,7 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in DetectionRuleType.objects.all()}
         ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx

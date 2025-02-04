@@ -1,44 +1,69 @@
 <script>
   $(function () {
-    new Vue({
-      el: '#{{ dom_container }}',
+    let app = Vue.createApp({
       delimiters: ['[[', ']]'],
-      data: {
+      data: () => ({
         raw: JSON.parse(document.getElementById('{{ dom_data_container }}').textContent),
-        queryString: window.location.search,
+        initialModel: 'OBSERVABLE',
+        initialType: 'IPV4',
+        selectedModel: 'OBSERVABLE',
+        selectedType: 'IPV4',
         resetToModel: null,
+      }),
+      created: function() {
+        try {
+          let queryString = window.location.search;
+          let urlParams = new URLSearchParams(queryString);
+          let querySuperType = urlParams.get('super_type');
+          let queryType = urlParams.get('type');
+
+          if (querySuperType && queryType) {
+            // 'super_type' and 'type' are available in query string
+            let superTypes = this.raw.super_types;
+            if (superTypes.filter((st) => st.short_name === querySuperType).length > 0) {
+              let types = this.raw.types[querySuperType];
+              if (types.filter((t) => t.id === queryType).length > 0) {
+                // Both 'super_type' and 'type' exists in 'database'
+                // let initialize with that
+                this.initialModel = querySuperType;
+                this.initialType = queryType;
+              } else {
+                console.warn(`Can't find '${queryType}' type in '${querySuperType}' super type`);
+              }
+            } else {
+              console.warn(`Can't find '${querySuperType}' super type`);
+            }
+          }
+        } catch(err) {
+          console.error(`Can't parse query string`, err);
+        }
+        this.selectedModel = this.initialModel;
+        this.selectedType = this.initialType;
+      },
+      mounted: function() {
+      },
+      computed: {
         modelNames: function () {
           return this.raw.super_types;
         },
         modelTypes: function () {
-          return this.raw.types[this.selectedModel];
+          if (this.selectedModel in this.raw.types)
+            return this.raw.types[this.selectedModel];
+          else
+            return [];
         },
+      },
+      methods: {
         resetSelectedType: function (e) {
           this.resetToModel = e;
-        }
-      },
-      computed: {
-        selectedModel: function(){
-          if(this.resetToModel){
-            let m = this.resetToModel;
-            this.resetToModel = null;
-            return m;
-          }
-          if(this.queryString){
-            let urlParams = new URLSearchParams(this.queryString);
-            return urlParams.get('super_type');
-          }
-          return 'OBSERVABLE'
         },
-        selectedType: function(){
-          if(this.queryString){
-            let urlParams = new URLSearchParams(this.queryString);
-            return urlParams.get('type');
-          }
-          return 'IPV4';
-        }
       },
-      methods: {},
     });
+    app.config.errorHandler = (err) => {
+      /* handle error */
+      console.error('mount error', err);
+    };
+    app.mount('#{{ dom_container }}');
+    console.log(app);
   });
 </script>

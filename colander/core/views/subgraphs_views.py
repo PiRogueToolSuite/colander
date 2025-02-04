@@ -111,7 +111,6 @@ def subgraph_thumbnail_view(request, pk):
     content = SubGraph.objects.get(id=pk)
     if content.thumbnail:
         response = StreamingHttpResponse(content.thumbnail, content_type='image/png')
-        #response['Content-Disposition'] = 'attachment; filename=' + content.name
         return response
     else:
         image = finders.find('images/no-thumbnail-yet-256x144.png')

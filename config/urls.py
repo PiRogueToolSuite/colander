@@ -94,7 +94,7 @@ from colander.core.views.views import (
     quick_creation_view,
     quick_search,
     save_case_documentation_view,
-    vues_view,
+    vues_view, entity_thumbnail_view,
 )
 from colander.users.views import UserTwoFactorSetup
 
@@ -165,8 +165,10 @@ case_contextualized_url_patterns = [
     path("graph/<slug:pk>/datasource", case_subgraph, name="case_subgraph"),
     path("graph/<slug:pk>/edit", SubGraphUpdateView.as_view(), name="subgraph_update_view"),
     path("graph/<slug:pk>/delete", delete_subgraph_view, name="subgraph_delete_view"),
-    path("graph/<slug:pk>/thumbnail", subgraph_thumbnail_view, name="subgraph_thumbnail_view"),
+    path("graph/<slug:pk>/thumbnail.png", subgraph_thumbnail_view, name="subgraph_thumbnail_view"),
     path("graph/<slug:pk>/toggle-pin", subgraph_pin_toggle_view, name="subgraph_pin_toggle_view"),
+
+    path("entity/<slug:pk>/thumbnail.png", entity_thumbnail_view, name="entity_thumbnail_view"),
 
     path("document", write_documentation_view, name="document_case_write_doc_view"),
     path("document/save", save_case_documentation_view, name="cases_save_doc_view"),

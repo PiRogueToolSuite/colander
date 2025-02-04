@@ -419,7 +419,6 @@ class Case(models.Model):
     @property
     def entities(self):
         return self.quick_search('')
-        #return Entity.objects.filter(case=self)
 
     @property
     def events(self):
@@ -435,7 +434,6 @@ class Case(models.Model):
 
 
 def _get_subgraph_thumbnails_storage_dir(instance, filename):
-    # owner_id = instance.owner.id
     case_id = instance.case.id
     return f'cases/{case_id}/subgraph_thumbnails/{instance.id}'
 
@@ -494,17 +492,14 @@ class SubGraph(models.Model):
         return True
 
     @property
-    def path(self):
-        return f'/ws/{self.case.id}/graph/{self.id}'
-
-    @property
     def absolute_url(self):
         from django.urls import reverse
         return reverse('subgraph_editor_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @property
     def thumbnail_url(self):
-        return f'/ws/{self.case.id}/graph/{self.id}/thumbnail.png'
+        from django.urls import reverse
+        return reverse('subgraph_thumbnail_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
     @staticmethod
     def get_pinned(user, case):
@@ -523,6 +518,11 @@ class SubGraph(models.Model):
 def delete_subgraph_stored_thumbnails(sender, instance: SubGraph, using, **kwargs):
     if instance.thumbnail:
         instance.thumbnail.delete()
+
+
+def _get_entity_thumbnails_storage_dir(instance, filename):
+    case_id = instance.case.id
+    return f'cases/{case_id}/entity_thumbnails/{instance.id}'
 
 
 class Entity(models.Model):
@@ -584,6 +584,12 @@ class Entity(models.Model):
         help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
         verbose_name='PAP',
         default=Appendix.TlpPap.WHITE
+    )
+
+    thumbnail = models.FileField(
+        upload_to=_get_entity_thumbnails_storage_dir,
+        max_length=512,
+        blank=True, null=True
     )
 
     def get_relations(self):
@@ -667,6 +673,17 @@ class Entity(models.Model):
         if obj is None:
             raise Exception(f"Concrete type not found for entity id: {self.id}")
         return obj
+
+    @property
+    def thumbnail_url(self):
+        from django.urls import reverse
+        return reverse('entity_thumbnail_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+
+
+@receiver(pre_delete, sender=Entity, dispatch_uid='delete_entity_thumbnail')
+def delete_entity_stored_thumbnails(sender, instance: Entity, using, **kwargs):
+    if instance.thumbnail:
+        instance.thumbnail.delete()
 
 
 class Comment(models.Model):

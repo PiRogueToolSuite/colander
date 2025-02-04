@@ -32,7 +32,7 @@
         <div class="row">
           <div class="col">
             <img
-              src="{% url "subgraph_thumbnail_view" case_id=subgraph.case.id pk=subgraph.id %}"
+              src="{{ subgraph.thumbnail_url }}"
               class="img-thumbnail" alt="{{ subgraph.name }}" />
           </div>
         </div>

@@ -4,9 +4,11 @@ from urllib.parse import urlparse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
+from django.contrib.staticfiles import finders
 from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, \
+    StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -521,3 +523,16 @@ def overall_search(request):
         serializable_results.append(rr)
 
     return JsonResponse(serializable_results, safe=False)
+
+
+@login_required
+def entity_thumbnail_view(request, pk):
+    content = Entity.objects.get(id=pk)
+    if content.thumbnail:
+        response = StreamingHttpResponse(content.thumbnail, content_type='image/png')
+        return response
+    else:
+        image = finders.find('images/no-thumbnail-yet-256x144.png')
+        with open(image, "rb") as f:
+            response = HttpResponse(f.read(), content_type="image/png")
+            return response

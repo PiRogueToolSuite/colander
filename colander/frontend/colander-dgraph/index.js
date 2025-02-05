@@ -80,7 +80,7 @@ for(let iid in icons) {
 }
 
 styles.push({
-  selector: `node:selected`,
+  selector: `node[!on-thumbnail]:selected`,
   style: {
     'background-color': '#7122da',
     'border-color': '#7122da',
@@ -121,6 +121,14 @@ styles.push({
 styles.push({
   selector: `edge:selected`,
   style: {
+    'line-color': '#999',
+    'target-arrow-color': '#999',
+  }
+});
+
+styles.push({
+  selector: `edge[!on-thumbnail]:selected`,
+  style: {
     'line-color': '#7122da',
     'color': '#7122da',
     'target-arrow-color': '#7122da',
@@ -152,9 +160,7 @@ styles.push({
 styles.push({
   selector: 'edge.immutable',
   style: {
-    //'color': 'purple',
     'label': (ele) => { return `\uf023 ${ele.data('name')}`;}
-    //'text-outline-color': 'red',
   }
 });
 
@@ -263,6 +269,9 @@ class ColanderDGraph {
 
     // 2- Generate thumbnail
     if (this._config.generateThumbnail) {
+
+      this.cy.$(':selected').data('on-thumbnail', true);
+
       let thumbnailBlob = this.cy.png({
         output: 'blob',
         full: true,
@@ -270,6 +279,9 @@ class ColanderDGraph {
         maxWidth: 256,
         maxHeight: 144
       });
+
+      this.cy.$(':selected').data('on-thumbnail', false);
+
       let thumbnailImg = await createImageBitmap(thumbnailBlob);
 
       let offscreenCanvas = document.createElement('canvas');
@@ -476,22 +488,8 @@ class ColanderDGraph {
     };
     this._createOrEditEntity(ctx);
   }
-  _createOrEditEntity(ctx) {
 
-    /*
-    let view = entity_creation_view(ctx, this.allStyles);
-    view.find('button[role=save]').click(() => {
-      ctx.name = view.find('input[name=name]').val();
-      ctx.type = view.find('select[name=type]').val();
-      ctx.content = view.find('textarea[name=content]').val();
-      this._validate_createOrEditEntity(ctx)
-          .then(this._do_createOrEditEntity.bind(this))
-          .finally(this._cancelCreation.bind(this, ctx));
-    });
-    view.find('button[role=cancel]').click(this._cancelCreation.bind(this, ctx));
-    this.sidePaneContent( view );
-    view.find('input[name=name]').select();
-     */
+  _createOrEditEntity(ctx) {
     this._sidepane_entity_create_or_edit.data('vue').edit_entity(ctx);
     this.sidepane(  this._sidepane_entity_create_or_edit );
   }

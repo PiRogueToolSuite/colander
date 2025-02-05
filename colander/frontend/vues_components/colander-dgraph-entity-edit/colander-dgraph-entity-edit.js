@@ -35,7 +35,12 @@ Vue.createApp({
       if (!name) return true;
       if (this.entity.super_type === 'PiRogueExperiment') return false;
       let type = this.entity.type;
-      return !type;
+      if (!type) return true;
+      if (['DataFragment', 'DetectionRule'].includes(this.entity.super_type)) {
+        let content = this.entity.content?.trim();
+        if (!content) return true;
+      }
+      return false;
     }
   }
 });

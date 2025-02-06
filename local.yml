@@ -1,5 +1,3 @@
-version: '3'
-
 volumes:
   colander_local_postgres_data: { }
   colander_local_postgres_data_backups: { }
@@ -41,13 +39,14 @@ services:
       - redis
       - playwright
       - cyberchef
+      - mandolin
     volumes:
       - .:/app:z
     env_file:
       - ./.envs/.local/.django
       - ./.envs/.local/.postgres
     ports:
-      - "8000:8000"
+      - "8080:8000"
     command: /start
 
   worker:
@@ -65,6 +64,7 @@ services:
       - playwright
       - elasticsearch
       - redis
+      - mandolin
     volumes:
       - .:/app:z
     env_file:
@@ -75,6 +75,11 @@ services:
 
   redis:
     image: redis:6
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
 
   postgres:
     build:
@@ -85,6 +90,11 @@ services:
     volumes:
       - colander_local_postgres_data:/var/lib/postgresql/data:Z
       - colander_local_postgres_data_backups:/backups:z
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     env_file:
       - ./.envs/.local/.postgres
 
@@ -120,10 +130,33 @@ services:
       - 9300:9300
     volumes:
       - colander_local_es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -X GET http://localhost:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'" ]
+      interval: 10s
+      timeout: 10s
+      retries: 24
     environment:
       - discovery.type='single-node'
       - xpack.security.enabled='false'
-      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  tika:
+    image: apache/tika:3.0.0.0-full
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:9998/tika" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  mandolin:
+    image: ghcr.io/piroguetoolsuite/mandolin:main
+    restart: unless-stopped
+    depends_on:
+      tika:
+        condition: service_healthy
+    environment:
+      - TIKA_URL=http://tika:9998/
+      - MAX_FILE_SIZE=250000000  # 250MB
 
 #  keycloak-db:
 #    build:

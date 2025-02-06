@@ -21,7 +21,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, analyzer
 
 logger = logging.getLogger(__name__)
 
@@ -1009,6 +1009,22 @@ class Artifact(Entity):
         from django.urls import reverse
         return reverse('collect_artifact_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
 
+    @cached_property
+    def analysis(self):
+        from elasticsearch_dsl import connections
+        connections.create_connection(hosts=['elasticsearch'], timeout=20)
+        try:
+            search = ArtifactAnalysis.search(index=self.get_es_index())
+            search.sort('timestamp')
+            total = search.count()
+            search = search[0:total]
+            return search.sort('-timestamp').execute()
+        except Exception:
+            return None
+
+    def get_es_index(self):
+        return f'c.{self.case.es_prefix}.art.{self.analysis_index}'
+
     @property
     def to_mermaid(self):
         icon = ''
@@ -1056,6 +1072,15 @@ class Artifact(Entity):
 @receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
 def delete_upload_request_stored_files(sender, instance: Artifact, using, **kwargs):
     instance.file.delete()
+    from elasticsearch_dsl import connections
+    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    index_name = instance.get_es_index()
+    try:
+        index = Index(index_name)
+        if index.exists():
+            index.delete()
+    except Exception as e:
+        logger.error(e)
 
 
 class Threat(Entity):
@@ -2117,6 +2142,22 @@ class PiRogueExperimentAnalysis(Document):
     detections = Object()
     result = Object()
     tracker = Object()
+    timestamp = Date()
+
+    @property
+    def analysis_id(self):
+        return self.meta.id
+
+
+class ArtifactAnalysis(Document):
+    owner = Keyword(required=True)
+    case_id = Keyword(required=True)
+    artifact_id = Keyword(required=True)
+    error = Keyword()
+    error_short = Keyword()
+    success = Boolean()
+    content = Text()
+    processors = Object()
     timestamp = Date()
 
     @property

@@ -5,6 +5,7 @@ from django.core.files import File
 from django.dispatch import receiver
 
 from colander.core.models import Artifact, UploadRequest, DroppedFile
+from colander.core.tasks.artifact_tasks import analyze_artifact
 from colander.core.utils import hash_file
 
 # Signal handling for processing (potentially) long tasks on Artifact
@@ -19,6 +20,9 @@ execute_cron = django.dispatch.Signal()
 
 # Signal handling for Dropped File conversion (allow multiple)
 process_dropped_files_conversion = django.dispatch.Signal()
+
+# Signal handling the final save of an artifact as it's ready to be processed
+artifact_ready_for_analysis = django.dispatch.Signal()
 
 @receiver(process_hash_and_signing)
 def _signal_handling_process_hash_and_signing(sender, upload_request_id, **kwargs):
@@ -55,6 +59,10 @@ def __threaded_dropped_files_conversion(dropped_file_ids):
         artifact.sha1 = sha1
         artifact.md5 = md5
         artifact.save()
+        artifact_ready_for_analysis.send(
+            sender='signaling_hub.__threaded_dropped_files_conversion',
+            artifact_id=str(artifact.id)
+        )
         dropped_file.delete()
 
 
@@ -72,7 +80,17 @@ def __threaded_artifact_process_hash_and_signing(upload_request_id):
     artifact.md5 = md5
     print(f"process_hash_and_signing[{upload_request_id}]: saving ...")
     artifact.save()
+    artifact_ready_for_analysis.send(
+        sender='signaling_hub.__threaded_dropped_files_conversion',
+        artifact_id=str(artifact.id)
+    )
     print(f"process_hash_and_signing[{upload_request_id}]: saved.")
     print(f"process_hash_and_signing[{upload_request_id}]: cleaning...")
     upr.delete()
     print(f"process_hash_and_signing[{upload_request_id}]: cleaned.")
+
+
+@receiver(artifact_ready_for_analysis)
+def _signal_handler_trigger_artifact_analysis(sender, artifact_id, **kwargs):
+    print(f'[SIGNAL] About to analyze {artifact_id}')
+    analyze_artifact(artifact_id)

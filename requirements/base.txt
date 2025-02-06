@@ -44,3 +44,6 @@ django-bootstrap-datepicker-plus==5.0.5
 # Analysis
 communityid==1.5.0
 yara-python==4.5.0  # https://github.com/VirusTotal/yara-python
+
+# Mandolin
+mandolin-python-client

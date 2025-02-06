@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.views.generic import CreateView, DetailView, UpdateView
 from django_q.tasks import async_task
 
-from colander.core.experiment_tasks import apply_detection_rules, save_decrypted_traffic
+from colander.core.tasks.experiment_tasks import apply_detection_rules, save_decrypted_traffic
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
 from colander.core.views.views import CaseContextMixin

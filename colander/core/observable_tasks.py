@@ -1,18 +1,24 @@
+import logging
 from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
 
 import requests
+from django.conf import settings
 
 from colander.core.artifact_utils import import_file_as_artifact
 from colander.core.models import ArtifactType, EntityRelation, Observable
+logger = logging.getLogger(__name__)
 
 
 def capture_url(observable_id):
+    if not settings.USE_PLAYWRIGHT:
+        logger.info('Playwright is disabled')
+        return
     url_object = Observable.objects.get(id=observable_id)
     payload = {
         'url': url_object.name
     }
-    response = requests.post('http://playwright:80/capture', json=payload)
+    response = requests.post(f'{settings.PLAYWRIGHT_BASE_URL}/capture', json=payload)
     if response.status_code == 200:
         with NamedTemporaryFile() as out:
             out.write(response.content)

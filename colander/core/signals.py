@@ -3,6 +3,7 @@ from threading import Thread
 import django.dispatch
 from django.core.files import File
 from django.dispatch import receiver
+from django_q.tasks import async_task
 
 from colander.core.models import Artifact, UploadRequest, DroppedFile
 from colander.core.tasks.artifact_tasks import analyze_artifact
@@ -92,5 +93,4 @@ def __threaded_artifact_process_hash_and_signing(upload_request_id):
 
 @receiver(artifact_ready_for_analysis)
 def _signal_handler_trigger_artifact_analysis(sender, artifact_id, **kwargs):
-    print(f'[SIGNAL] About to analyze {artifact_id}')
-    analyze_artifact(artifact_id)
+    async_task(analyze_artifact, artifact_id)

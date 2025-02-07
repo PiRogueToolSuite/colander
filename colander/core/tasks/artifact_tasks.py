@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 import re
 
 import mandolin_python_client
+from django.conf import settings
 from django.utils import timezone
 from mandolin_python_client.rest import ApiException
 
@@ -14,13 +15,20 @@ logger = logging.getLogger(__name__)
 
 def remove_duplicates_regex(s):
     try:
-        return re.sub(r'\s{4,}', '\n', s)
+        tmp = re.sub(r' {2,}', ' ', s)
+        tmp = re.sub(r'\t', ' ', tmp)
+        tmp = re.sub(r'\n{2,}', '\n', tmp)
+        tmp = re.sub(r'( \n){2,}', '\n', tmp)
+        return re.sub(r'(\n ){2,}', '\n', tmp).strip()
     except TypeError:
-        print(s)
+        pass
     return s
 
 
 def analyze_artifact(artifact_id: str):
+    if not settings.USE_MANDOLIN:
+        logger.info('Mandolin is disabled')
+        return
     from elasticsearch_dsl import connections
     connections.create_connection(hosts=['elasticsearch'], timeout=20)
     artifact = Artifact.objects.get(id=artifact_id)
@@ -38,9 +46,8 @@ def analyze_artifact(artifact_id: str):
 
     # Call Mandolin to extract the artifact content
     configuration = mandolin_python_client.Configuration(
-        host='http://mandolin:8000'
+        host=settings.MANDOLIN_BASE_URL
     )
-    # Enter a context with an instance of the API client
     with NamedTemporaryFile() as artifact_file:
         for chunk in artifact.file.chunks():
             artifact_file.write(chunk)

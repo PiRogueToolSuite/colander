@@ -136,6 +136,7 @@ services:
       timeout: 10s
       retries: 24
     environment:
+      - logger.level=WARN
       - discovery.type='single-node'
       - xpack.security.enabled='false'
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -148,6 +149,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+
   mandolin:
     image: ghcr.io/piroguetoolsuite/mandolin:main
     restart: unless-stopped

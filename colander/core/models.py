@@ -1070,7 +1070,7 @@ class Artifact(Entity):
 
 
 @receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
-def delete_upload_request_stored_files(sender, instance: Artifact, using, **kwargs):
+def delete_artifact_stored_files(sender, instance: Artifact, using, **kwargs):
     instance.file.delete()
     from elasticsearch_dsl import connections
     connections.create_connection(hosts=['elasticsearch'], timeout=20)

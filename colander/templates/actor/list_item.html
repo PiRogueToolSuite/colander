@@ -7,7 +7,7 @@
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           {% include "icons/actor_icon.html" with c="h4 text-primary" %}
-          <a class="h4" href="{% url "collect_actor_details_view" case_id=actor.case.id pk=actor.id %}">
+          <a class="h4" href="{% url 'collect_actor_details_view' case_id=actor.case.id pk=actor.id %}">
             {{ actor.name }}
           </a>
           <div class="text-muted small">
@@ -38,6 +38,9 @@
             {% include "tlp/show_tlp_pap.html" with element=actor %}
             {% if actor.attributes.tags %}
               {% include "helpers/tags.html" with entity=actor %}
+            {% endif %}
+            {% if actor.thumbnail %}
+              <img class="img-thumbnail mx-auto d-block mt-1" src="{{actor.thumbnail_url}}" alt="{{actor.name}}" style="max-height: 144px" />
             {% endif %}
           </div>
         </div>

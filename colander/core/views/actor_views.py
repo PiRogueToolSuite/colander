@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Actor, ActorType
 from colander.core.views.views import CaseContextMixin
 
@@ -20,7 +21,8 @@ class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'description',
         'source_url',
         'tlp',
-        'pap'
+        'pap',
+        'thumbnail',
     ]
     case_required_message_action = "create actors"
 
@@ -33,6 +35,9 @@ class ActorCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         ]
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

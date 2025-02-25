@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Artifact, DataFragment, DataFragmentType
 from colander.core.views.views import CaseContextMixin
 
@@ -23,7 +24,8 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'tlp',
         'pap',
         'extracted_from',
-        'content'
+        'content',
+        'thumbnail',
     ]
     case_required_message_action = "create data fragments"
 
@@ -42,6 +44,9 @@ class DataFragmentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['content'].widget.attrs.update({'class': 'colander-text-editor'})
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

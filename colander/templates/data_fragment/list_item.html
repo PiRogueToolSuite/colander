@@ -39,6 +39,9 @@
             {% if data_fragment.attributes.tags %}
               {% include "helpers/tags.html" with entity=data_fragment %}
             {% endif %}
+            {% if data_fragment.thumbnail %}
+              <img class="img-thumbnail mx-auto d-block mt-1" src="{{data_fragment.thumbnail_url}}" alt="{{data_fragment.name}}" style="max-height: 144px" />
+            {% endif %}
           </div>
         </div>
       </div>

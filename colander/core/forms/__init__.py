@@ -1,4 +1,5 @@
 import yara
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -34,7 +35,8 @@ class DetectionRuleForm(forms.ModelForm):
             'source_url',
             'tlp',
             'pap',
-            'content'
+            'content',
+            'thumbnail'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 2, 'cols': 20}),

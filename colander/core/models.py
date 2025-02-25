@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
+from django.core.validators import FileExtensionValidator
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField
 from django.db.models.signals import pre_delete, pre_save
@@ -589,7 +590,8 @@ class Entity(models.Model):
     thumbnail = models.FileField(
         upload_to=_get_entity_thumbnails_storage_dir,
         max_length=512,
-        blank=True, null=True
+        blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg'])]
     )
 
     def get_relations(self):

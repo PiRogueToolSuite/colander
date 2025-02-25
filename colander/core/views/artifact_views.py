@@ -13,6 +13,7 @@ from django.views.generic import CreateView, DetailView, UpdateView
 from nacl.encoding import Base64Encoder
 
 from colander.core.forms import CommentForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Artifact, ArtifactType, Device, UploadRequest
 from colander.core.signals import process_hash_and_signing
 from colander.core.views.views import CaseContextMixin
@@ -32,6 +33,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'attributes',
         'tlp',
         'pap',
+        'thumbnail',
     ]
     case_required_message_action = "create artifacts"
 
@@ -111,6 +113,9 @@ class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['file'] = forms.FileField(required=False)
         form.initial['tlp'] = self.active_case.tlp
         form.initial['pap'] = self.active_case.pap
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         return form
 
@@ -129,6 +134,7 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseContextMixin, UpdateView):
         'source_url',
         'tlp',
         'pap',
+        'thumbnail'
     ]
     case_required_message_action = "edit artifact"
 
@@ -144,6 +150,9 @@ class ArtifactUpdateView(LoginRequiredMixin, CaseContextMixin, UpdateView):
         form.fields['original_name'] = forms.CharField(disabled=True)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['extracted_from'].queryset = devices_qset
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
         return form
 
     def get_context_data(self, **kwargs):

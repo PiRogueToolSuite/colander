@@ -14,7 +14,7 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <form method="post">
+          <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="row justify-content-center">
               <div class="col-md-4">
@@ -26,6 +26,7 @@
                 {{ form.pap|as_crispy_field }}
                 {{ form.source_url|as_crispy_field }}
                 {{ form.description|as_crispy_field }}
+                {{ form.thumbnail }}
             {% if is_editing %}
               <button class="btn btn-primary" type="submit" name="save_actor">{% translate "Update" %}</button>
             {% else %}

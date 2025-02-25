@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Artifact, DetectionRule, Device, Event, EventType, Observable
 from colander.core.views.views import CaseContextMixin
 
@@ -30,7 +31,8 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'involved_observables',
         'source_url',
         'tlp',
-        'pap'
+        'pap',
+        'thumbnail',
     ]
     case_required_message_action = "create events"
 
@@ -62,6 +64,9 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
                 "format": "DD/MM/YYYY HH:mm:ss"
             }
         )
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

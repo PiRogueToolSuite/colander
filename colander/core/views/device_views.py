@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Actor, Device, DeviceType
 from colander.core.views.views import CaseContextMixin
 
@@ -23,7 +24,8 @@ class DeviceCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'source_url',
         'attributes',
         'tlp',
-        'pap'
+        'pap',
+        'thumbnail',
     ]
     case_required_message_action = "create devices"
 
@@ -39,6 +41,9 @@ class DeviceCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         form.fields['operated_by'].queryset = actor_qset
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

@@ -7,7 +7,7 @@
       <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <i class="nf {{ threat.type.nf_icon }} h4 text-primary"></i>
-          <a class="h4" href="{% url "collect_threat_details_view" case_id=threat.case.id pk=threat.id %}">
+          <a class="h4" href="{% url 'collect_threat_details_view' case_id=threat.case.id pk=threat.id %}">
             {{ threat.name }}
           </a>
         </div>
@@ -35,6 +35,9 @@
             {% include "tlp/show_tlp_pap.html" with element=threat %}
             {% if threat.attributes.tags %}
               {% include "helpers/tags.html" with entity=threat %}
+            {% endif %}
+            {% if threat.thumbnail %}
+              <img class="img-thumbnail mx-auto d-block mt-1" src="{{threat.thumbnail_url}}" alt="{{threat.name}}" style="max-height: 144px" />
             {% endif %}
           </div>
         </div>

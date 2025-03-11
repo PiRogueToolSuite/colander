@@ -352,7 +352,7 @@ header .navbar-brand span {
   /*min-width: 100vw;*/
   width: 100%;
   background-color: rgba(238, 238, 238, 0.5);
-  overflow-y: auto;
+  overflow: hidden auto;
   padding-bottom: 3rem;
 }
 

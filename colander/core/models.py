@@ -32,6 +32,33 @@ class BusinessIntegrityError(IntegrityError):
     pass
 
 
+class OverwritableFileFieldAttrClass(models.fields.files.FieldFile):
+    """attr_class used by colander.core.models.OverwritableFileField.
+    This attr_class performs the actual task of supporting overwrites on existing files."""
+    def __init__(self, instance, field, name):
+        super().__init__(instance, field, name)
+
+    def save(self, name, content, save=True):
+
+        if self.field.overwrite_existing_file:
+            name = self.field.generate_filename(self.instance, name)
+            if self.storage.exists(name):
+                self.storage.delete(name)
+
+        super().save(name, content, save)
+
+
+class OverwritableFileField(models.FileField):
+    """A Django FileField that supports existing file overwrite.
+    Existing file with same name will be overwritten if 'overwrite_existing_file' is True.
+    """
+    attr_class = OverwritableFileFieldAttrClass
+
+    def __init__(self, overwrite_existing_file=False, **kwargs):
+        self.overwrite_existing_file = overwrite_existing_file
+        super().__init__(**kwargs)
+
+
 class Appendix:
     class TlpPap:
         RED = 'RED'
@@ -483,7 +510,8 @@ class SubGraph(models.Model):
 
     overrides = models.JSONField(blank=True, null=True)
 
-    thumbnail = models.FileField(
+    thumbnail = OverwritableFileField(
+        overwrite_existing_file=True,
         upload_to=_get_subgraph_thumbnails_storage_dir,
         max_length=512,
         blank=True, null=True
@@ -587,7 +615,8 @@ class Entity(models.Model):
         default=Appendix.TlpPap.WHITE
     )
 
-    thumbnail = models.FileField(
+    thumbnail = OverwritableFileField(
+        overwrite_existing_file=True,
         upload_to=_get_entity_thumbnails_storage_dir,
         max_length=512,
         blank=True, null=True,

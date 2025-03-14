@@ -30,6 +30,17 @@ jobs:
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
+      
+      # Compile frontend resources: scripts and styles
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Frontend compilation environment setup
+        run: npm ci
+      - name: Frontend compilation
+        run: npm run dist
+
       - name: Build the Stack
         run:  docker compose -f local.yml build
       - name: Run DB Migrations

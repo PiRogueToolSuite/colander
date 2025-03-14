@@ -1,9 +1,14 @@
 const CopyPlugin = require("copy-webpack-plugin");
+const { VueLoaderPlugin } = require("vue-loader");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const path = require('path');
 
 const jsDest = path.resolve(__dirname, './colander/static/js');
+const cssDest = path.resolve(__dirname, './colander/static/css');
 const jsLibDest = path.resolve(jsDest, 'externals');
+const cssLibDest = path.resolve(cssDest, 'externals');
+const componentsDest = path.resolve(jsDest, 'components');
 
 let webpackConfig = (isDev, isProd) => [
   {
@@ -24,17 +29,92 @@ let webpackConfig = (isDev, isProd) => [
       new CopyPlugin({
         patterns: [
           {
-            from: isProd ? 'node_modules/vue/dist/vue.global.prod.js' : 'node_modules/vue/dist/vue.global.js',
+            from: isProd ? 'node_modules/jquery/dist/jquery.min.js'
+                         : 'node_modules/jquery/dist/jquery.js',
+            to: path.resolve(jsLibDest, 'jquery.min.js'),
+          },
+          {
+            from: isProd ? 'node_modules/vue/dist/vue.global.prod.js'
+                         : 'node_modules/vue/dist/vue.global.js',
             to: path.resolve(jsLibDest, 'vue.min.js'),
           },
           {
-            from: isProd ? 'node_modules/jquery/dist/jquery.min.js' : 'node_modules/jquery/dist/jquery.js',
-            to: path.resolve(jsLibDest, 'jquery.min.js'),
+            from:  isProd ? 'node_modules/@popperjs/core/dist/umd/popper.min.js'
+                          : 'node_modules/@popperjs/core/dist/umd/popper.js',
+            to: path.resolve(jsLibDest, 'popper.min.js'),
+          },
+          {
+            from:  isProd ? 'node_modules/bootstrap/dist/js/bootstrap.min.js'
+                          : 'node_modules/bootstrap/dist/js/bootstrap.js',
+            to: path.resolve(jsLibDest, 'bootstrap.min.js'),
+          },
+          {
+            from: 'node_modules/simplemde/dist/simplemde.min.js',
+            to: path.resolve(jsLibDest, 'simplemde.min.js'),
+          },
+          {
+            from: 'node_modules/simplemde/dist/simplemde.min.css',
+            to: path.resolve(cssLibDest, 'simplemde.min.css'),
           },
         ],
-      })
-    ]
-  }
+      }),
+      new VueLoaderPlugin(),
+    ],
+    module: {
+      rules: [
+        {
+          test: /\.vue$/,
+          loader: 'vue-loader'
+        },
+        {
+          test: /\.scss$/,
+          use: [
+            'vue-style-loader',
+            'css-loader',
+            'sass-loader',
+          ],
+        },
+        {
+          test: /\.css$/i,
+          use: ["css-loader"],
+        },
+      ]
+    }
+  },
+  // Styles rules
+  {
+    devtool: 'source-map',
+    entry: {
+      'project': path.resolve(__dirname, 'colander/frontend/scss/project.scss'),
+      'graph': path.resolve(__dirname, 'colander/frontend/scss/graph.scss'),
+    },
+    output: {
+      filename: '.js-intermediate.[name].css-bundle.js',  // output bundle file name
+      path: cssDest,                                      // path to our Django static directory
+    },
+    plugins: [new MiniCssExtractPlugin({
+      filename: '[name].css',
+    })],
+    module: {
+      rules: [
+        {
+          test: /\.scss$/,
+          use: [
+            MiniCssExtractPlugin.loader,
+            'css-loader',
+            {
+              loader: "sass-loader",
+              options: {
+                sassOptions: {
+                  quietDeps: true,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 module.exports = (env, argv) => {

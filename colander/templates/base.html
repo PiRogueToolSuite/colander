@@ -20,7 +20,7 @@
       <link href="{% static 'css/flag-icons.min.css' %}" type="text/css" rel="stylesheet"/>
       <link href="{% static 'css/nf.min.css' %}" type="text/css" rel="stylesheet"/>
       <link href="{% static 'pts-assets/css/pts-assets.css' %}" type="text/css" media="all" rel="stylesheet"/>
-      <link href="{% static 'vendors/simplemde/css/simplemde.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'css/externals/simplemde.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
   {% endblock %}
   {% compress css %}
@@ -37,10 +37,10 @@
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/externals/vue.min.js' %}"></script>
-      <script src="{% static 'js/popper.min.js' %}"></script>
-      <script src="{% static 'js/bootstrap.min.js' %}"></script>
+      <script src="{% static 'js/externals/simplemde.min.js' %}"></script>
+      <script src="{% static 'js/externals/popper.min.js' %}"></script>
+      <script src="{% static 'js/externals/bootstrap.min.js' %}"></script>
       <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
-      <script src="{% static 'vendors/simplemde/js/simplemde.min.js' %}"></script>
       <script src="{% static 'js/colander-widgets.js' %}"></script>
       <script src="{% static 'js/colander-text-editor.js' %}"></script>
     {% endcompress %}

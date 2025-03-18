@@ -23,8 +23,9 @@ django-redis==5.4.0  # https://github.com/jazzband/django-redis
 django-markdownify==0.9.3  # https://django-markdownify.readthedocs.io/en/latest/install_and_usage.html
 django-ipware==7.0.1  # https://github.com/un33k/django-ipware
 # Django REST Framework
-djangorestframework==3.15.1  # https://github.com/encode/django-rest-framework
+djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3 # Included explicitly since it's defined optional by djangorestframework
+setuptools # As coreapi needs 'pkg_resources' to load and 'pkg_resources' as been migrated to 'setuptools' since python3.12
 django-cors-headers==4.3.1 # https://github.com/adamchainz/django-cors-headers
 # DRF-spectacular for api documentation
 drf-spectacular==0.27.2  # https://github.com/tfranzel/drf-spectacular

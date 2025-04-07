@@ -58,6 +58,16 @@ class OverwritableFileField(models.FileField):
         self.overwrite_existing_file = overwrite_existing_file
         super().__init__(**kwargs)
 
+    def clean(self, value, model_instance):
+        # Supports edge case when:
+        # - external storage API is used for FileField
+        # - 'upload_to' FileField use a generator function that does not include file extension
+        # - 'validators' are used on this FileField (eg: FileExtensionValidator)
+        # - Form is POSTED for 'update'
+        if value == self.generate_filename(model_instance, "dummy-file-name"):
+            return value
+        return super().clean(value, model_instance)
+
 
 class Appendix:
     class TlpPap:

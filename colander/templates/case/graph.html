@@ -12,9 +12,21 @@
 <script type="text/javascript">
   let cdg = new ColanderDGraph({
     containerId: 'a-colander-graph',
-    caseId: '{{ case.id }}',
-    datasourceUrl: `/case/{{ case.id }}/graph`,
     csrfToken: '{{ csrf_token }}',
+    sendToDocumentation: false,
+    {% if case %}
+      caseId: '{{ case.id }}',
+      datasourceUrl: `/case/{{ case.id }}/graph`,
+      generateThumbnail: false,
+      editableVisibility: false,
+    {% endif %}
+    {% if subgraph %}
+      caseId: '{{ subgraph.case.id }}',
+      subgraphId: '{{ subgraph.id }}',
+      datasourceUrl: `/ws/{{ subgraph.case.id }}/graph/{{ subgraph.id }}/datasource`,
+      generateThumbnail: true,
+      editableVisibility: true,
+    {% endif %}
     {% if lock %}
       lock: true,
     {% else %}

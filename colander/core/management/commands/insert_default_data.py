@@ -1,6 +1,6 @@
 import json
 
-import pkg_resources
+from importlib import resources
 from django.core.management.base import BaseCommand
 
 from colander.core.models import (
@@ -33,21 +33,22 @@ class Command(BaseCommand):
         resource_package = __name__
 
         for obj, data_file in definitions:
-            types_file = pkg_resources.resource_stream(resource_package, data_file)
-            obj_types = json.load(types_file)
-            for obj_type in obj_types:
-                obj.objects.update_or_create(
-                    short_name=obj_type.get('short_name'),
-                    defaults={
-                        'name': obj_type.get('name'),
-                        'description': obj_type.get('description'),
-                        'default_attributes': obj_type.get('default_attributes', {}),
-                        'svg_icon': obj_type.get('svg_icon'),
-                        'nf_icon': obj_type.get('nf_icon'),
-                        'stix2_type': obj_type.get('stix2_type', ''),
-                        'stix2_value_field_name': obj_type.get('stix2_value_field_name', ''),
-                        'stix2_pattern': obj_type.get('stix2_pattern', ''),
-                        'stix2_pattern_type': obj_type.get('stix2_pattern_type', ''),
-                        'type_hints': obj_type.get('type_hints', {}),
-                    }
-                )
+            types_filepath = resources.files(resource_package).joinpath(data_file)
+            with types_filepath.open() as types_file:
+                obj_types = json.load(types_file)
+                for obj_type in obj_types:
+                    obj.objects.update_or_create(
+                        short_name=obj_type.get('short_name'),
+                        defaults={
+                            'name': obj_type.get('name'),
+                            'description': obj_type.get('description'),
+                            'default_attributes': obj_type.get('default_attributes', {}),
+                            'svg_icon': obj_type.get('svg_icon'),
+                            'nf_icon': obj_type.get('nf_icon'),
+                            'stix2_type': obj_type.get('stix2_type', ''),
+                            'stix2_value_field_name': obj_type.get('stix2_value_field_name', ''),
+                            'stix2_pattern': obj_type.get('stix2_pattern', ''),
+                            'stix2_pattern_type': obj_type.get('stix2_pattern_type', ''),
+                            'type_hints': obj_type.get('type_hints', {}),
+                        }
+                    )

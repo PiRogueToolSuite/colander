@@ -1,6 +1,4 @@
-ARG PYTHON_VERSION=3.10-slim-bookworm
-
-
+ARG PYTHON_VERSION=3.12-slim-bookworm
 
 # define an alias for the specfic python version used in this file.
 FROM python:${PYTHON_VERSION} as python
@@ -50,8 +48,7 @@ RUN addgroup --system django \
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev \
-  # Translations dependencies
-  gettext libmagic1 tshark wireshark-common libssl-dev python3-dev \
+  gettext libmagic1 tshark wireshark-common libssl-dev python3-dev wget\
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*

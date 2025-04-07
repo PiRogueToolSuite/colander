@@ -4,10 +4,10 @@
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
   <div class="card-body p-2">
     <div class="row">
-      <div class="col-md-12 text-truncate">
+      <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           {% include "icons/detection_rule_icon.html" with c="h4 text-primary" %}
-          <a class="h4" href="{% url "collect_detection_rule_details_view" case_id=detection_rule.case.id pk=detection_rule.id %}">
+          <a class="h4" href="{% url 'collect_detection_rule_details_view' case_id=detection_rule.case.id pk=detection_rule.id %}">
             {{ detection_rule.name }}
           </a>
           <div class="text-muted small">
@@ -32,6 +32,15 @@
           </div>
         </div>
       </div>
+      {% if detection_rule.thumbnail %}
+      <div class="col-md-4 text-truncate ">
+        <div class="row">
+          <div class="col">
+            <img class="img-thumbnail mx-auto d-block mt-1" src="{{detection_rule.thumbnail_url}}" alt="{{detection_rule.name}}" style="max-height: 144px" />
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">

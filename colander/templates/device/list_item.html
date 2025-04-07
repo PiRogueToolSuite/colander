@@ -42,6 +42,9 @@
                 {{ device.operated_by.name }}
               </div>
             {% endif %}
+            {% if device.thumbnail %}
+              <img class="img-thumbnail mx-auto d-block mt-1" src="{{device.thumbnail_url}}" alt="{{device.name}}" style="max-height: 144px" />
+            {% endif %}
           </div>
         </div>
       </div>

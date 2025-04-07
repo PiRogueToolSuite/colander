@@ -1,9 +1,9 @@
-new Vue({
+Vue.createApp({
   delimiters: ['[[', ']]'],
-  data: {
+  data: () => ({
     entity: {},
     allStyles: {},
-  },
+  }),
   methods: {
     optionContent: (t) => {
       // Unfortunately, vuejs (at least in v2), strip out
@@ -35,7 +35,12 @@ new Vue({
       if (!name) return true;
       if (this.entity.super_type === 'PiRogueExperiment') return false;
       let type = this.entity.type;
-      return !type;
+      if (!type) return true;
+      if (['DataFragment', 'DetectionRule'].includes(this.entity.super_type)) {
+        let content = this.entity.content?.trim();
+        if (!content) return true;
+      }
+      return false;
     }
   }
 });

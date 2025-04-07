@@ -1,0 +1,13 @@
+{% extends "pages/graph/base.html" %}
+{% load static %}
+
+{% block inner-content %}
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2 class="my-2">{{ subgraph.name }}</h2>
+      {% include "case/graph.html" with subgraph=subgraph %}
+    </div>
+  </div>
+{% endblock inner-content %}
+
+

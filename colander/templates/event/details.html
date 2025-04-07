@@ -130,6 +130,15 @@
   </div>
 </div>
 
+{% if event.thumbnail %}
+  <div class="row justify-content-center">
+    <div class="col-md-12 mt-2">
+      <h3>{% translate "Thumbnail" %}</h3>
+      <img class="img-thumbnail mx-auto d-block" src="{{event.thumbnail_url}}" alt="{{event.name}}" style="max-height: 300px" />
+    </div>
+  </div>
+{% endif %}
+
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h3>{% translate "Involved observables" %}</h3>

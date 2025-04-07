@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm, DetectionRuleForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import DetectionRule, DetectionRuleType
 from colander.core.views.views import CaseContextMixin
 
@@ -27,13 +28,15 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         ]
         form.fields['content'].widget.attrs.update({'class': 'colander-text-editor'})
         form.fields['type'].widget = RadioSelect(choices=choices)
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp
             form.initial['pap'] = self.active_case.pap
 
         return form
-
 
     def form_valid(self, form):
         #active_case = get_active_case(self.request)
@@ -48,6 +51,7 @@ class DetectionRuleCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        ctx['entity_types'] = {str(t.id): {'type': t.short_name, 'attributes': t.default_attributes} for t in DetectionRuleType.objects.all()}
         ctx['detection_rules'] = DetectionRule.get_user_detection_rules(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx

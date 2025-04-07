@@ -6,12 +6,13 @@ import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
 import fcose from 'cytoscape-fcose';
 import layoutUtilities from 'cytoscape-layout-utilities';
-import {icons, icon_unicodes, color_scheme, shapes, base_styles} from './default-style';
+import {color_scheme, icon_unicodes, icons} from './default-style';
 import {overlay_button} from './graph-templates';
 import {vueComponent} from '../vues_components/vue-sub-component';
 
 // For sub-vue access
 import MarkdownIt from 'markdown-it';
+
 window.Markdown = new MarkdownIt({breaks:true});
 
 cytoscape.use( contextMenus );
@@ -60,6 +61,9 @@ styles.push({
     'text-halign': 'center',
     'text-valign': 'center',
     'text-wrap': 'wrap',
+    'display': (e) => {
+      return e.scratch('_overrides')?.hidden ? 'none' : 'element';
+    },
   }
 });
 
@@ -76,12 +80,21 @@ for(let iid in icons) {
 }
 
 styles.push({
-  selector: `node:selected`,
+  selector: `node[!on-thumbnail]:selected`,
   style: {
     'background-color': '#7122da',
     'border-color': '#7122da',
     'background-blacken': 0,
     'color': 'white',
+  }
+});
+
+styles.push({
+  selector: `node.highlighted`,
+  style: {
+    'underlay-color': '#7122da',
+    'underlay-padding': '10px',
+    'underlay-opacity': 0.5,
   }
 });
 
@@ -107,6 +120,14 @@ styles.push({
 
 styles.push({
   selector: `edge:selected`,
+  style: {
+    'line-color': '#999',
+    'target-arrow-color': '#999',
+  }
+});
+
+styles.push({
+  selector: `edge[!on-thumbnail]:selected`,
   style: {
     'line-color': '#7122da',
     'color': '#7122da',
@@ -139,9 +160,7 @@ styles.push({
 styles.push({
   selector: 'edge.immutable',
   style: {
-    //'color': 'purple',
     'label': (ele) => { return `\uf023 ${ele.data('name')}`;}
-    //'text-outline-color': 'red',
   }
 });
 
@@ -237,12 +256,56 @@ class ColanderDGraph {
     if (this.jStatusSaving) this.jStatusSaving.show();
 
     let post_data = {};
+
+    // 1- Gather entities positions
     for(let nid in this.fixedPosition) {
       post_data[nid] = {
-        position: this.fixedPosition[nid].position
+        position: this.fixedPosition[nid].position,
       };
+      if (this._config.editableVisibility) {
+        post_data[nid].hidden = (this.g.overrides[nid] && this.g.overrides[nid].hidden) || false;
+      }
     }
+
+    // 2- Generate thumbnail
+    if (this._config.generateThumbnail) {
+
+      this.cy.$(':selected').data('on-thumbnail', true);
+
+      let thumbnailBlob = this.cy.png({
+        output: 'blob',
+        full: true,
+        bg: 'white',
+        maxWidth: 256,
+        maxHeight: 144
+      });
+
+      this.cy.$(':selected').data('on-thumbnail', false);
+
+      let thumbnailImg = await createImageBitmap(thumbnailBlob);
+
+      let offscreenCanvas = document.createElement('canvas');
+      let ctx2D = offscreenCanvas.getContext("2d");
+      offscreenCanvas.width = 256;
+      offscreenCanvas.height = 144;
+      ctx2D.rect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      ctx2D.fillStyle = 'white';
+      ctx2D.fill();
+      ctx2D.drawImage(
+        thumbnailImg,
+        (offscreenCanvas.width - thumbnailImg.width) / 2,
+        (offscreenCanvas.height - thumbnailImg.height) / 2
+      );
+      post_data['thumbnail'] = offscreenCanvas.toDataURL().replace(/^.+,/, '');
+
+      ctx2D = null;
+      offscreenCanvas = null;
+      thumbnailImg = null;
+      thumbnailBlob = null;
+    }
+
     try {
+
       const rawResponse = await fetch(this._config.datasourceUrl, {
         method: 'PATCH',
         headers: {
@@ -277,22 +340,41 @@ class ColanderDGraph {
 
   _onGraphData(data) {
     this.g = data;
+
+    // Ensure we have defaults
+    let overridesAtFirst = true;
+    if (!this.g.overrides) {
+      this.g.overrides = {};
+      overridesAtFirst = false;
+    }
+
     for(let eid in this.g.entities) {
       let n = this._toNode(eid);
-      this.cy.add(n);
+      let node = this.cy.add(n);
+      this.g.overrides[node.id()] = this.g.overrides[node.id()] || {
+        // depending if graph or subgraph
+        // newly created 'entities' (outside this subgraph)
+        // are hidden by default
+        // unless if a subgraph have never been opened/intialized
+        hidden: this._config.editableVisibility && overridesAtFirst,
+      };
     }
     for(let rid in this.g.relations) {
       let e = this._toEdge(rid);
       this.cy.add(e);
     }
-    if (this.g.overrides) {
-      // This part is strongly dependent to the layout engine used
-      // In our case (for now), it's fcose
-      for(let nid in this.g.overrides) {
-        // Check if an override is still in current entities ecosystem.
-        // If not, cytoscape override system does not support unknown 'override'
-        // "delete"s any override no more relevant (by omitting it in referenced fixedPotitions).
-        if (nid in this.g.entities === false) continue;
+
+    // This part is strongly dependent to the layout engine used
+    // In our case (for now), it's fcose
+    for(let nid in this.g.overrides) {
+      // Check if an override is still in current entities ecosystem.
+      // If not, cytoscape override system does not support unknown 'override'
+      // "delete"s any override no more relevant (by omitting it in referenced fixedPotitions).
+      if (nid in this.g.entities === false) continue;
+
+      this.cy.$id(nid).scratch('_overrides', this.g.overrides[nid]);
+
+      if (this.g.overrides[nid].position) {
         this.fixedPosition[nid] = {
           nodeId: nid,
           position: this.g.overrides[nid].position,
@@ -303,7 +385,11 @@ class ColanderDGraph {
     if (this._sidepane_entities_overview) {
       let vue = this._sidepane_entities_overview.data('vue');
       // Workaround a race condition between graph data coming and sub-vue-component inited.
-      if (vue) vue.entities = this.g.entities;
+      if (vue) {
+        // graph data comes late
+        vue.overrides = this.g.overrides;
+        vue.entities = this.g.entities;
+      }
     }
 
     this.refreshGraph();
@@ -402,22 +488,8 @@ class ColanderDGraph {
     };
     this._createOrEditEntity(ctx);
   }
-  _createOrEditEntity(ctx) {
 
-    /*
-    let view = entity_creation_view(ctx, this.allStyles);
-    view.find('button[role=save]').click(() => {
-      ctx.name = view.find('input[name=name]').val();
-      ctx.type = view.find('select[name=type]').val();
-      ctx.content = view.find('textarea[name=content]').val();
-      this._validate_createOrEditEntity(ctx)
-          .then(this._do_createOrEditEntity.bind(this))
-          .finally(this._cancelCreation.bind(this, ctx));
-    });
-    view.find('button[role=cancel]').click(this._cancelCreation.bind(this, ctx));
-    this.sidePaneContent( view );
-    view.find('input[name=name]').select();
-     */
+  _createOrEditEntity(ctx) {
     this._sidepane_entity_create_or_edit.data('vue').edit_entity(ctx);
     this.sidepane(  this._sidepane_entity_create_or_edit );
   }
@@ -472,7 +544,10 @@ class ColanderDGraph {
     else {
       // Create
       let newNode = this._toNode(content['id']);
-      this.cy.add(newNode).position(ctx.position).emit('free');
+      let nodeElem = this.cy.add(newNode);
+      nodeElem.position(ctx.position).emit('free');
+      this.g.overrides[nodeElem.id()] = { hidden: false };
+      nodeElem.scratch('_overrides', this.g.overrides[nodeElem.id()]);
 
       if (this._sidepane_entities_overview) {
         this._sidepane_entities_overview.data('vue').track_new_entity(content);
@@ -505,6 +580,50 @@ class ColanderDGraph {
     this.sidepane(this._sidepane_entity_overview);
   }
 
+  _createSubGraph(selection) {
+    let overrides = {};
+    selection.forEach((ele) => {
+      overrides[ele.id()] = {
+        hidden: false,
+      };
+    });
+    let ctx = {
+      overrides: overrides,
+    };
+    this._createOrEditSubGraph(ctx);
+  }
+
+  _createOrEditSubGraph(ctx) {
+    this._sidepane_subgraph_create_or_edit.data('vue').entities = this.g.entities;
+    this._sidepane_subgraph_create_or_edit.data('vue').subgraph = ctx;
+    this.sidepane(this._sidepane_subgraph_create_or_edit);
+  }
+
+  async _do_createOrEditSubGraph(ctx) {
+    let post_data = Object.assign({
+      case: this._config.caseId
+    }, ctx);
+
+    const rawResponse = await fetch(
+        ctx.id?`/rest/subgraph/${ctx.id}/`:'/rest/subgraph/',
+        {
+          method: ctx.id ? 'PATCH' : 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this._config.csrfToken,
+          },
+          body: JSON.stringify(post_data),
+    });
+
+    if (!rawResponse.ok) {
+      throw new Error('Unexcpeted server error');
+    }
+
+    const content = await rawResponse.json();
+    return content;
+  }
+
   _toEdge(rid) {
     let r = Object.assign({}, this.g.relations[rid]);
     r.source = r.obj_from;
@@ -530,6 +649,40 @@ class ColanderDGraph {
 
     if (!this._config.containerId) throw new Error('ColanderDGraph; Missing containerId in config');
     if (!this._config.datasourceUrl) throw new Error('ColanderDGraph; Missing datasourceUrl in config');
+  }
+
+  _hideEntities(eles, degree) {
+    if (degree === undefined) {
+      degree = Number.MAX_SAFE_INTEGER;
+    }
+    if (degree > 0) {
+      eles = ColanderDGraph.cy_linked(eles, degree);
+    }
+    eles.filter('node').forEach((ele) => {
+      this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
+      this.g.overrides[ele.id()].hidden = true;
+    });
+    eles.select().unselect().emit('free');
+    this._sidepane_entities_overview?.data('vue').refresh();
+  }
+
+  _showEntitiesAndRelax(orignalEles, degree) {
+    if (degree === undefined) {
+      degree = Number.MAX_SAFE_INTEGER;
+    }
+    let eles = orignalEles;
+    if (degree > 0) {
+      eles = ColanderDGraph.cy_linked(orignalEles, degree);
+    }
+    eles.filter('node').forEach((ele) => {
+      if (orignalEles.contains(ele)) return;
+      this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
+      this.g.overrides[ele.id()].hidden = false;
+      delete this.fixedPosition[ele.id()];
+    });
+    eles.select().unselect();
+    this._sidepane_entities_overview?.data('vue').refresh();
+    this.refreshGraph();
   }
 
   _applyInternalConfig() {
@@ -603,136 +756,315 @@ class ColanderDGraph {
       }
     });
 
+
+    // Enhance ctxmenu
+    // - disable 'selected' entries depending on selection state
+    this.cy.on('cxttap', 'node', (e) => {
+      let node = e.target;
+      let selection = this.cy.$(':selected');
+      if (selection.empty()) {
+        this.contextMenu.disableMenuItem('subgraph-create');
+        if (this._config.editableVisibility)
+          this.contextMenu.disableMenuItem('hide-entity-selected');
+      }
+      else {
+        if (!selection.contains(node)) {
+          node.select();
+        }
+        this.contextMenu.enableMenuItem('subgraph-create');
+        if (this._config.editableVisibility)
+          this.contextMenu.enableMenuItem('hide-entity-selected');
+      }
+    });
+
+
     //
     // -- Context menu (right-click) plugin
     if (!this.contextMenu) {
-      this.contextMenu = this.cy.contextMenus({
-        menuItems: [
-          {
-            id: 'relation-create',
-            content: 'Create relation',
-            tooltipText: 'Add relation between two entities',
-            selector: 'node',
-            image: {src: '/static/images/icons/link.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let node = e.target;
-              this.edgeHandler.start(node);
-            }
+      let contextMenuItems = [];
+      contextMenuItems.push({
+        id: 'relation-create',
+        content: 'Create relation',
+        tooltipText: 'Add relation between two entities',
+        selector: 'node',
+        image: {src: '/static/images/icons/link.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let node = e.target;
+          this.edgeHandler.start(node);
+        }
+      });
+      contextMenuItems.push({
+        id: 'relation-rename',
+        content: 'Rename relation',
+        tooltipText: 'Add relation between two entities',
+        selector: 'edge.mutable',
+        image: {src: '/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let edge = e.target;
+          this._renameRelation(edge);
+        }
+      });
+      contextMenuItems.push({
+        id: 'relation-delete',
+        content: 'Delete relation',
+        tooltipText: 'Delete relation between two entities',
+        selector: 'edge.mutable',
+        image: {src: '/static/images/icons/trash.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let edge = e.target;
+          this._deleteRelation(edge)
+              .then(console.log)
+              .catch(console.error);
+        }
+      });
+      contextMenuItems.push({
+        id: 'entity-details',
+        content: 'Entity overview',
+        tooltipText: 'View entity details',
+        selector: 'node',
+        image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let node = e.target;
+          this._viewDetail(node)
+            .then(console.log)
+            .catch(console.error);
+        }
+      });
+      contextMenuItems.push({
+        id: 'entity-edit',
+        content: 'Quick edit entity',
+        tooltipText: 'Quick edit',
+        selector: 'node',
+        image: {src: '/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let node = e.target;
+          this._quickEditEntity(node);
+        }
+      });
+      if (this._config.editableVisibility) {
+        contextMenuItems.push({
+          id: 'hide-entity',
+          content: 'Hide entity',
+          tooltipText: 'Hide selected entities',
+          selector: 'node',
+          image: {src: '/static/images/icons/eye-slash.svg', width: 12, height: 12, x: 4, y: 7},
+          onClickFunction: (e) => {
+            this._hideEntities(e.target, 0);
           },
-          {
-            id: 'relation-rename',
-            content: 'Rename relation',
-            tooltipText: 'Add relation between two entities',
-            selector: 'edge.mutable',
-            image: {src: '/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let edge = e.target;
-              this._renameRelation(edge);
-            }
+          submenu: [
+            {
+              id: 'hide-entity-selected',
+              content: 'Selected',
+              tooltipText: 'Hide selected entities',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye-slash.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                let selection = this.cy.$(':selected');
+                this._hideEntities(selection, 0);
+              },
+            },
+            {
+              id: 'hide-entity-1',
+              content: '+1 degree',
+              tooltipText: 'Hide entity and 1 degree neighbors',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye-slash.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                this._hideEntities(e.target, 1);
+              },
+            },
+            {
+              id: 'hide-entity-2',
+              content: '+2 degree',
+              tooltipText: 'Hide entity and 2 degrees neighbors',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye-slash.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                this._hideEntities(e.target, 2);
+              },
+            },
+            {
+              id: 'hide-entity-all',
+              content: 'All linked',
+              tooltipText: 'Hide entity and all neighbors tree',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye-slash.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                this._hideEntities(e.target);
+              },
+            },
+          ]
+        });
+        contextMenuItems.push({
+          id: 'show-entity',
+          content: 'Show entity',
+          tooltipText: 'Show all linked entities',
+          selector: 'node',
+          image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
+          onClickFunction: (e) => {
+            let node = e.target;
+            let linked = ColanderDGraph.cy_linked(node);
+            linked.filter('node').forEach((ele) => {
+              if (ele.id() === node.id()) return;
+              this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
+              this.g.overrides[ele.id()].hidden = false;
+              delete this.fixedPosition[ele.id()];
+            });
+            linked.select().unselect();
+            //linked.select();
+            this.refreshGraph();
           },
+          submenu: [
+            {
+              id: 'show-entity-1',
+              content: '+1 degree',
+              tooltipText: 'Show 1 degree neighbors entities',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                this._showEntitiesAndRelax(e.target, 1);
+              },
+            },
+            {
+              id: 'show-entity-2',
+              content: '+2 degree',
+              tooltipText: 'Show 2 degree neighbors entities',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                this._showEntitiesAndRelax(e.target, 2);
+              },
+            },
+            {
+              id: 'show-entity-all',
+              content: 'All linked',
+              tooltipText: 'Show all tree neighbors entities',
+              selector: 'node',
+              image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
+              onClickFunction: (e) => {
+                this._showEntitiesAndRelax(e.target);
+              },
+            },
+          ],
+        });
+      }
+      contextMenuItems.push({
+        id: 'select-entity',
+        content: 'Select entity',
+        tooltipText: 'Select entity',
+        selector: 'node,edge',
+        image: {src: '/static/images/icons/selection-add.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          //let linked = ColanderDGraph.cy_linked(e.target);
+          //linked.select();
+          e.target.select();
+        },
+        submenu: [
           {
-            id: 'relation-delete',
-            content: 'Delete relation',
-            tooltipText: 'Delete relation between two entities',
-            selector: 'edge.mutable',
-            image: {src: '/static/images/icons/trash.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let edge = e.target;
-              this._deleteRelation(edge)
-                  .then(console.log)
-                  .catch(console.error);
-            }
-          },
-          {
-            id: 'entity-details',
-            content: 'Entity overview',
-            tooltipText: 'View entity details',
-            selector: 'node',
-            image: {src: '/static/images/icons/eye.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let node = e.target;
-              this._viewDetail(node)
-                .then(console.log)
-                .catch(console.error);
-            }
-          },
-          {
-            id: 'entity-edit',
-            content: 'Quick edit entity',
-            tooltipText: 'Quick edit',
-            selector: 'node',
-            image: {src: '/static/images/icons/pencil-square-o.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let node = e.target;
-              this._quickEditEntity(node);
-              //window.location = node.data('absolute_url');
-            }
-          },
-          {
-            id: 'select-linked',
-            content: 'Select linked',
-            tooltipText: 'Select all linked entities',
+            id: 'select-entity-1',
+            content: '+1 degree',
+            tooltipText: 'Select entity and 1 degree neighbors',
             selector: 'node,edge',
-            image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+            image: {src: '/static/images/icons/selection-add.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let linked = ColanderDGraph.cy_linked(e.target, 1);
+              linked.select();
+            },
+          },
+          {
+            id: 'select-entity-2',
+            content: '+2 degree',
+            tooltipText: 'Select entity and 2 degree neighbors',
+            selector: 'node,edge',
+            image: {src: '/static/images/icons/selection-add.svg', width: 12, height: 12, x: 4, y: 7},
+            onClickFunction: (e) => {
+              let linked = ColanderDGraph.cy_linked(e.target, 2);
+              linked.select();
+            },
+          },
+          {
+            id: 'select-entity-all',
+            content: 'All tree',
+            tooltipText: 'Select entity and all neighbors tree',
+            selector: 'node,edge',
+            image: {src: '/static/images/icons/selection-add.svg', width: 12, height: 12, x: 4, y: 7},
             onClickFunction: (e) => {
               let linked = ColanderDGraph.cy_linked(e.target);
               linked.select();
-            }
-          },
-          {
-            id: 'relax-linked',
-            content: 'Relax linked',
-            tooltipText: 'Relax all linked entities',
-            selector: 'node',
-            image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let linked = ColanderDGraph.cy_linked(e.target);
-
-              for(let ele of linked) {
-                delete this.fixedPosition[ele.id()];
-              }
-
-              this.refreshGraph();
-            }
-          },
-          {
-            id: 'entity-create',
-            content: 'New entity',
-            tooltipText: 'Create a new entity',
-            image: {src: '/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y: 7},
-            coreAsWell: true,
-            submenu: ['Actor', 'Device', 'Threat', 'Observable', 'DataFragment'].map((t) => ({
-              id: `create-${t}`,
-              content: `${t}`,
-              tooltipText: `Create a new ${t} entity`,
-              image: {src: `/static/images/icons/${t}.svg`, width: 12, height: 12, x: 4, y: 7},
-              onClickFunction: (e) => {
-                this._createEntity(t, e.position);
-              }
-            })),
-          },
-          {
-            id: 'add-linked-to-doc',
-            content: 'Add to documentation',
-            tooltipText: 'Add linked tree to documentation',
-            selector: 'node',
-            image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
-            onClickFunction: (e) => {
-              let linked = ColanderDGraph.cy_linked(e.target);
-              let complement = linked.absoluteComplement();
-              complement.addClass('hidden');
-              let png64 = this.cy.png({full:true, bg: 'white', scale: 2});
-
-              complement.removeClass('hidden');
-
-              Colander.Bus.emit('documentation-add-image', `![Sub Graph](${png64})`);
-            }
+            },
           },
         ],
+      });
+      contextMenuItems.push({
+        id: 'relax-linked',
+        content: 'Relax linked',
+        tooltipText: 'Relax all linked entities',
+        selector: 'node',
+        image: {src: '/static/images/icons/magic.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let linked = ColanderDGraph.cy_linked(e.target);
 
+          for(let ele of linked) {
+            delete this.fixedPosition[ele.id()];
+          }
+
+          this.refreshGraph();
+        }
+      });
+      contextMenuItems.push({
+        id: 'entity-create',
+        content: 'New entity',
+        tooltipText: 'Create a new entity',
+        image: {src: '/static/images/icons/plus-circle.svg', width: 12, height: 12, x: 4, y: 7},
+        coreAsWell: true,
+        submenu: ['Actor', 'Device', 'Threat', 'Observable', 'DataFragment'].map((t) => ({
+          id: `create-${t}`,
+          content: `${t}`,
+          tooltipText: `Create a new ${t} entity`,
+          image: {src: `/static/images/icons/${t}.svg`, width: 12, height: 12, x: 4, y: 7},
+          onClickFunction: (e) => {
+            this._createEntity(t, e.position);
+          }
+        })),
+      });
+      contextMenuItems.push({
+        id: 'subgraph-create',
+        content: 'Create sub-graph',
+        tooltipText: 'Create sub-graph of selected entities',
+        selector: 'node',
+        image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+        onClickFunction: (e) => {
+          let selection = this.cy.$('node:selected');
+          this._createSubGraph(selection);
+        }
+      });
+      if (this._config.sendToDocumentation) {
+        contextMenuItems.push({
+          id: 'add-linked-to-doc',
+          content: 'Add to documentation',
+          tooltipText: 'Add linked tree to documentation',
+          selector: 'node',
+          image: {src: '/static/images/icons/hubzilla.svg', width: 12, height: 12, x: 4, y: 7},
+          onClickFunction: (e) => {
+            let linked = ColanderDGraph.cy_linked(e.target);
+            console.log('linked', linked);
+            let complement = linked.absoluteComplement();
+            complement.addClass('hidden');
+            let png64 = this.cy.png({full: true, bg: 'white', scale: 2});
+
+            complement.removeClass('hidden');
+
+            Colander.Bus.emit('documentation-add-image', `![Sub Graph](${png64})`);
+          }
+        });
+      }
+
+      this.contextMenu = this.cy.contextMenus({
+        menuItems: contextMenuItems,
         submenuIndicator: {src: '/static/images/icons/caret-right.svg', width: 12, height: 12, x: 4, y: 4},
       });
-    }
+    } /* end on contextMenu */
+
     // Full screen editor
     if (this._config.fullscreen && !this.jOverlayMenu_Fullscreen) {
       this.jOverlayMenu_Fullscreen = overlay_button('fa-arrows-alt', 'Fullscreen');
@@ -741,6 +1073,7 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Fullscreen);
     }
+
     // ReCenter and Fit graph
     if (this._config.recenter && !this.jOverlayMenu_Recenter) {
       this.jOverlayMenu_Recenter = overlay_button('fa-crosshairs', 'Re-Center');
@@ -751,6 +1084,7 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Recenter);
     }
+
     // Snapshot
     if (this._config.snapshot && !this.jOverlayMenu_Snapshot) {
       this.jOverlayMenu_Snapshot = overlay_button('fa-picture-o', 'Export as PNG');
@@ -771,6 +1105,7 @@ class ColanderDGraph {
       });
       this.jOverlayMenu.append(this.jOverlayMenu_Snapshot);
     }
+
     // Sidebar toggle
     if (this._config.sidepane && !this.jOverlayMenu_Sidepane) {
       this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
@@ -780,11 +1115,11 @@ class ColanderDGraph {
       // Resize stuff sidepane
       let resizing = false;
       let previous_screen_x = 0;
-      let sidepane_width = 0;
+      this.sidepane_width = this.jOverlayMenu_Sidepane.outerWidth();
       this.jRootElement.mousedown((e) => {
         resizing = e.offsetX < 5;
         if (resizing) {
-          sidepane_width = this.jOverlayMenu_Sidepane.outerWidth();
+          this.sidepane_width = this.jOverlayMenu_Sidepane.outerWidth();
           previous_screen_x = e.screenX;
           e.preventDefault();
           e.stopPropagation();
@@ -793,9 +1128,11 @@ class ColanderDGraph {
         if (!resizing) return;
         let delta = previous_screen_x - e.screenX;
         previous_screen_x = e.screenX;
-        sidepane_width = Math.max(40, (sidepane_width + delta));
-        this.jOverlayMenu_Sidepane.get(0).style.setProperty('--sidepane-width', `${sidepane_width}px`);
+        this.sidepane_width = Math.max(40, (this.sidepane_width + delta));
+        this.jOverlayMenu_Sidepane.get(0).style.setProperty('--sidepane-width', `${this.sidepane_width}px`);
       }).mouseup((e) => {
+        resizing = false;
+      }).mouseleave((e) => {
         resizing = false;
       });
       // End: Resize stuff sidepane
@@ -824,7 +1161,9 @@ class ColanderDGraph {
 
     setTimeout( this._init_vues.bind(this) );
   }
-  static cy_linked(ele) {
+
+  static cy_linked(ele, degree) {
+    degree = degree || Number.MAX_SAFE_INTEGER;
     let selection = ele;
     if (selection.isEdge()) {
       selection = selection.connectedNodes()
@@ -833,11 +1172,11 @@ class ColanderDGraph {
     do {
       currentCount = selection.length
       selection = selection.closedNeighborhood();
-    } while( currentCount < selection.length );
+    } while( currentCount < selection.length && --degree > 0);
     return selection;
   }
-  _init_vues() {
 
+  _init_vues() {
     //
     // Entities list
     // ========================================================================
@@ -848,17 +1187,47 @@ class ColanderDGraph {
       this.sidepane(false);
     });
     this._sidepane_entities_overview.on('vue-ready', (e, jDom, vue) => {
+      vue.editableVisibility = this._config.editableVisibility || false;
       vue.allStyles = this.allStyles;
       if (this.g) {
+        // Carefull: this.g (aka graph data) comes very late
+        // Usually this.g is not available at this state.
+        // @see _onGraphData() to handle this
+        vue.overrides = this.g.overrides;
         vue.entities = this.g.entities;
       }
     });
+    this._sidepane_entities_overview.on('entity-visibility-changed', (e, eid, hidden) => {
+      let node = this.cy.$id(eid);
+      // Hack:
+      // 'selecting' then 'unselecting' node
+      // force node:style:display:cb() to be recomputed
+      // Without that, the callback is never triggered after hiding a node.
+      // ... then we emit a 'free' event
+      node.select().unselect();
+      if (hidden) {
+        node.emit('free');
+      }
+      else {
+        this._sidepane_entities_overview.trigger('focus-entity', [eid]);
+        setTimeout(()=> {
+          delete this.fixedPosition[eid];
+          // refreshGraph will emit 'free' like events
+          this.refreshGraph();
+        }, 1500);
+      }
+    });
     this._sidepane_entities_overview.on('focus-entity', (e, eid) => {
-      let pos = this.cy.$(`#${eid}`).position();
+      let pos = this.cy.$id(eid).renderedPosition();
+      let pan = this.cy.pan();
+      let viewport = { x: this.cy.width(), y:this.cy.height() };
+
+      this.cy.$id(eid).flashClass('highlighted', 2000);
 
       this.cy.animate({
-        center: { eles: this.cy.$(`#${eid}`) },
-        zoom: 2,
+        //center: { eles: this.cy.$id(eid) },
+        //zoom: 2,
+        pan: { x:pan.x-pos.x+(viewport.x-this.sidepane_width)/2, y:pan.y-pos.y+viewport.y/2 },
         easing: 'ease-in-out',
         duration: 1500,
       });
@@ -920,6 +1289,29 @@ class ColanderDGraph {
       this._sidepane_entity_create_or_edit.data('vue').edit_entity( tmp );
       this.sidepane(  this._sidepane_entity_create_or_edit );
     });
+
+    //
+    // SubGraph creation/edit form
+    // ========================================================================
+    this._sidepane_subgraph_create_or_edit = vueComponent('colander-dgraph-subgraph-form');
+    this.sidepane_add(this._sidepane_subgraph_create_or_edit);
+    this._sidepane_subgraph_create_or_edit.on('vue-ready',(e,jDom,vue) => {
+      vue.allStyles = this.allStyles;
+    });
+    this._sidepane_subgraph_create_or_edit.on('close-component', (e) => {
+      this.sidepane(false);
+    });
+    this._sidepane_subgraph_create_or_edit.on('save-subgraph', (e, subgraph, editNow) => {
+      console.log('save-subgraph', subgraph);
+      this._do_createOrEditSubGraph(subgraph)
+        .then((subgraphObj) => {
+          if (editNow && subgraphObj.absolute_url) {
+            window.location.assign(subgraphObj.absolute_url);
+          }
+        }).catch(console.error);
+      this.sidepane(false);
+    });
+
   }
   refreshGraph() {
 
@@ -931,7 +1323,7 @@ class ColanderDGraph {
       randomize: this.firstLayout,
       fit: this.firstLayout,
       animate: !this.firstLayout,
-      animationDuration: 200,
+      animationDuration: 500,
       padding: 0,
       nodeDimensionsIncludeLabels: true,
       packComponents: true,

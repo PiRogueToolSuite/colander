@@ -10,7 +10,8 @@ from django.http import JsonResponse
 from rest_framework import mixins, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
-from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
+from rest_framework.mixins import RetrieveModelMixin, ListModelMixin, CreateModelMixin, \
+    UpdateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ViewSet
@@ -28,9 +29,9 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType,
+    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph,
 )
-from colander.core.rest.serializers import DetailedEntitySerializer
+from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer
 
 
 class DatasetViewSet(ViewSet):
@@ -46,9 +47,9 @@ class DatasetViewSet(ViewSet):
         return Response(datasets.all_styles)
 
 
-class EntityRelationViewSet(mixins.CreateModelMixin,
-                            mixins.UpdateModelMixin,
-                            mixins.DestroyModelMixin,
+class EntityRelationViewSet(CreateModelMixin,
+                            UpdateModelMixin,
+                            DestroyModelMixin,
                             GenericViewSet):
     authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -77,8 +78,8 @@ class EntityRelationViewSet(mixins.CreateModelMixin,
         )
 
 
-class EntityViewSet(mixins.CreateModelMixin,
-                    mixins.UpdateModelMixin,
+class EntityViewSet(CreateModelMixin,
+                    UpdateModelMixin,
                     RetrieveModelMixin,
                     GenericViewSet):
     authentication_classes = [SessionAuthentication]
@@ -180,6 +181,28 @@ class ArtifactTypeViewSet(ListModelMixin,
             return Response("Missing mime_type field", status.HTTP_400_BAD_REQUEST)
         serialized_artifact_types = self._get_artifact_types_from_mime_type(request.data['mime_type'])
         return JsonResponse(serialized_artifact_types, safe=False)
+
+
+class SubGraphViewSet(ListModelMixin,
+                      RetrieveModelMixin,
+                      CreateModelMixin,
+                      UpdateModelMixin,
+                      GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = SubGraphSerializer
+
+    def get_queryset(self):
+        cases = self.request.user.all_my_cases
+        return SubGraph.objects.filter(case__in=cases)
+
+    def perform_create(self, serializer):
+        case_id = self.request.data.pop("case")
+        case = Case.objects.get(pk=case_id)
+        return serializer.save(
+            owner=self.request.user,
+            case=case,
+        )
 
 
 def get_threatr_entity_type(entity):

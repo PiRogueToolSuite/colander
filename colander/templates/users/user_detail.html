@@ -4,7 +4,7 @@
 {% block title %}User: {{ object.username }}{% endblock %}
 
 {% block content %}
-  <div class="row">
+  <div class="row mt-2">
     <div class="col-sm-12">
 
       <h2>{{ object.username }}</h2>
@@ -28,7 +28,7 @@
                 {% endfor %}
               </ul>
             </td>
-            <td>
+            <td width="15%">
               <a class="btn btn-sm btn-primary" href="{% url 'account_email' %}" role="button">Manage</a>
             </td>
           </tr>
@@ -69,7 +69,14 @@
             <td>
               <code>{{ request.user.token }}</code>
             </td>
-            <td></td>
+            <td>
+              <a class="btn btn-sm btn-warning text-nowrap delete-entity-btn"
+                 role='button'
+                 href="{% url 'users:regenerate_token' request.user.username %}"
+                 title="Invalidate current token then generate a new one">
+                {% translate "Re-Generate" %}
+              </a>
+            </td>
           </tr>
           <tr>
             <td></td>

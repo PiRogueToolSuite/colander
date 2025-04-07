@@ -14,14 +14,13 @@
   {% block css %}
     <!-- This file stores project-specific CSS -->
     {% compress css %}
-      <link href="{% static 'css/project.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'css/bootstrap-vue.min.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'css/fork-awesome.min.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'css/tempus-dominus.min.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'css/flag-icons.min.css' %}" type="text/css" rel="stylesheet">
-      <link href="{% static 'css/nf.min.css' %}" type="text/css" rel="stylesheet">
+      <link href="{% static 'css/project.css' %}" type="text/css" rel="stylesheet"/>
+      <link href="{% static 'css/fork-awesome.min.css' %}" type="text/css" rel="stylesheet"/>
+      <link href="{% static 'css/tempus-dominus.min.css' %}" type="text/css" rel="stylesheet"/>
+      <link href="{% static 'css/flag-icons.min.css' %}" type="text/css" rel="stylesheet"/>
+      <link href="{% static 'css/nf.min.css' %}" type="text/css" rel="stylesheet"/>
       <link href="{% static 'pts-assets/css/pts-assets.css' %}" type="text/css" media="all" rel="stylesheet"/>
-      <link href="{% static 'vendors/simplemde/css/simplemde.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
+      <link href="{% static 'css/externals/simplemde.min.css' %}" type="text/css" media="all" rel="stylesheet"/>
     {% endcompress %}
   {% endblock %}
   {% compress css %}
@@ -31,19 +30,17 @@
   ================================================== -->
   {# Placed at the top of the document so pages load faster with defer #}
   {% block javascript %}
-    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/externals/jquery.min.js' %}"></script>
     <script src="{% static 'js/project.js' %}"></script>
     <script src="{% static 'js/file_upload.js' %}"></script>
     <!-- place project specific Javascript in this file -->
     {% compress js %}
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
-      <script src="{% static 'js/vue.min.js' %}"></script>
-      <script src="{% static 'js/popper.min.js' %}"></script>
-      <script src="{% static 'js/bootstrap.min.js' %}"></script>
-      <script src="{% static 'js/bootstrap-vue.min.js' %}"></script>
-      <script src="{% static 'js/bootstrap-vue-icons.min.js' %}"></script>
+      <script src="{% static 'js/externals/vue.min.js' %}"></script>
+      <script src="{% static 'js/externals/simplemde.min.js' %}"></script>
+      <script src="{% static 'js/externals/popper.min.js' %}"></script>
+      <script src="{% static 'js/externals/bootstrap.min.js' %}"></script>
       <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
-      <script src="{% static 'vendors/simplemde/js/simplemde.min.js' %}"></script>
       <script src="{% static 'js/colander-widgets.js' %}"></script>
       <script src="{% static 'js/colander-text-editor.js' %}"></script>
     {% endcompress %}

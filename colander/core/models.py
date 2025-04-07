@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
+from django.core.validators import FileExtensionValidator
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField
 from django.db.models.signals import pre_delete, pre_save
@@ -21,7 +22,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, analyzer
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,43 @@ logger = logging.getLogger(__name__)
 class BusinessIntegrityError(IntegrityError):
     """Generic Error class to raise and describe business logic violation"""
     pass
+
+
+class OverwritableFileFieldAttrClass(models.fields.files.FieldFile):
+    """attr_class used by colander.core.models.OverwritableFileField.
+    This attr_class performs the actual task of supporting overwrites on existing files."""
+    def __init__(self, instance, field, name):
+        super().__init__(instance, field, name)
+
+    def save(self, name, content, save=True):
+
+        if self.field.overwrite_existing_file:
+            name = self.field.generate_filename(self.instance, name)
+            if self.storage.exists(name):
+                self.storage.delete(name)
+
+        super().save(name, content, save)
+
+
+class OverwritableFileField(models.FileField):
+    """A Django FileField that supports existing file overwrite.
+    Existing file with same name will be overwritten if 'overwrite_existing_file' is True.
+    """
+    attr_class = OverwritableFileFieldAttrClass
+
+    def __init__(self, overwrite_existing_file=False, **kwargs):
+        self.overwrite_existing_file = overwrite_existing_file
+        super().__init__(**kwargs)
+
+    def clean(self, value, model_instance):
+        # Supports edge case when:
+        # - external storage API is used for FileField
+        # - 'upload_to' FileField use a generator function that does not include file extension
+        # - 'validators' are used on this FileField (eg: FileExtensionValidator)
+        # - Form is POSTED for 'update'
+        if value == self.generate_filename(model_instance, "dummy-file-name"):
+            return value
+        return super().clean(value, model_instance)
 
 
 class Appendix:
@@ -419,7 +457,6 @@ class Case(models.Model):
     @property
     def entities(self):
         return self.quick_search('')
-        #return Entity.objects.filter(case=self)
 
     @property
     def events(self):
@@ -432,6 +469,99 @@ class Case(models.Model):
     @staticmethod
     def get_user_cases(user):
         return user.all_my_cases
+
+
+def _get_subgraph_thumbnails_storage_dir(instance, filename):
+    case_id = instance.case.id
+    return f'cases/{case_id}/subgraph_thumbnails/{instance.id}'
+
+
+class SubGraph(models.Model):
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False,
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    name = models.CharField(
+        max_length=512,
+        verbose_name=_('name'),
+        help_text=_('Give a meaningful name to this SubGraph.'),
+        default=''
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this SubGraph.'),
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this object.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+
+    overrides = models.JSONField(blank=True, null=True)
+
+    thumbnail = OverwritableFileField(
+        overwrite_existing_file=True,
+        upload_to=_get_subgraph_thumbnails_storage_dir,
+        max_length=512,
+        blank=True, null=True
+    )
+
+    def pinned(self):
+        return True
+
+    @property
+    def absolute_url(self):
+        from django.urls import reverse
+        return reverse('subgraph_editor_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+
+    @property
+    def thumbnail_url(self):
+        from django.urls import reverse
+        return reverse('subgraph_thumbnail_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+
+    @staticmethod
+    def get_pinned(user, case):
+        return SubGraph.objects.filter(owner=user, case=case)
+
+    @property
+    def entities(self):
+        return self.case.entities
+
+    @property
+    def relations(self):
+        return self.case.relations
+
+
+@receiver(pre_delete, sender=SubGraph, dispatch_uid='delete_subgraph_thumbnail')
+def delete_subgraph_stored_thumbnails(sender, instance: SubGraph, using, **kwargs):
+    if instance.thumbnail:
+        instance.thumbnail.delete()
+
+
+def _get_entity_thumbnails_storage_dir(instance, filename):
+    case_id = instance.case.id
+    return f'cases/{case_id}/entity_thumbnails/{instance.id}'
 
 
 class Entity(models.Model):
@@ -493,6 +623,14 @@ class Entity(models.Model):
         help_text=_('Permissible Actions Protocol, designed to indicate how the received information can be used.'),
         verbose_name='PAP',
         default=Appendix.TlpPap.WHITE
+    )
+
+    thumbnail = OverwritableFileField(
+        overwrite_existing_file=True,
+        upload_to=_get_entity_thumbnails_storage_dir,
+        max_length=512,
+        blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg'])]
     )
 
     def get_relations(self):
@@ -576,6 +714,18 @@ class Entity(models.Model):
         if obj is None:
             raise Exception(f"Concrete type not found for entity id: {self.id}")
         return obj
+
+    @property
+    def thumbnail_url(self):
+        from django.urls import reverse
+        return reverse('entity_thumbnail_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+
+
+@receiver(pre_delete, sender=Entity, dispatch_uid='delete_entity_thumbnail')
+def delete_entity_stored_thumbnails(sender, instance: Entity, using, **kwargs):
+    if instance.thumbnail:
+        instance.thumbnail.delete()
+
 
 class Comment(models.Model):
     class Meta:
@@ -877,7 +1027,7 @@ class Artifact(Entity):
 
     @property
     def can_be_displayed(self):
-        return self.type.short_name in ['IMAGE', 'VIDEO']
+        return self.type.short_name in ['IMAGE', 'VIDEO', 'WEBPAGE']
 
     @property
     def icon(self):
@@ -899,6 +1049,22 @@ class Artifact(Entity):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('collect_artifact_details_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+
+    @cached_property
+    def analysis(self):
+        from elasticsearch_dsl import connections
+        connections.create_connection(hosts=['elasticsearch'], timeout=20)
+        try:
+            search = ArtifactAnalysis.search(index=self.get_es_index())
+            search.sort('timestamp')
+            total = search.count()
+            search = search[0:total]
+            return search.sort('-timestamp').execute()
+        except Exception:
+            return None
+
+    def get_es_index(self):
+        return f'c.{self.case.es_prefix}.art.{self.analysis_index}'
 
     @property
     def to_mermaid(self):
@@ -945,8 +1111,17 @@ class Artifact(Entity):
 
 
 @receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
-def delete_upload_request_stored_files(sender, instance: Artifact, using, **kwargs):
+def delete_artifact_stored_files(sender, instance: Artifact, using, **kwargs):
     instance.file.delete()
+    from elasticsearch_dsl import connections
+    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    index_name = instance.get_es_index()
+    try:
+        index = Index(index_name)
+        if index.exists():
+            index.delete()
+    except Exception as e:
+        logger.error(e)
 
 
 class Threat(Entity):
@@ -1546,6 +1721,7 @@ class DataFragment(Entity):
             )
         return relations
 
+
 class Event(Entity):
     type = models.ForeignKey(
         EventType,
@@ -1711,6 +1887,7 @@ class Event(Entity):
                     )
                 )
         return relations
+
 
 class PiRogueExperiment(Entity):
     class Meta:
@@ -1930,6 +2107,7 @@ class PiRogueExperiment(Entity):
                 )
         return relations
 
+
 @receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')
 def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
     print(f'Delete the PiRogue experiment [{instance.name}] {instance.id}')
@@ -2005,6 +2183,22 @@ class PiRogueExperimentAnalysis(Document):
     detections = Object()
     result = Object()
     tracker = Object()
+    timestamp = Date()
+
+    @property
+    def analysis_id(self):
+        return self.meta.id
+
+
+class ArtifactAnalysis(Document):
+    owner = Keyword(required=True)
+    case_id = Keyword(required=True)
+    artifact_id = Keyword(required=True)
+    error = Keyword()
+    error_short = Keyword()
+    success = Boolean()
+    content = Text()
+    processors = Object()
     timestamp = Date()
 
     @property

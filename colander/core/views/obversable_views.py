@@ -8,6 +8,7 @@ from django.views.generic import CreateView, DetailView, UpdateView
 from django_q.tasks import async_task
 
 from colander.core.forms import CommentForm
+from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Actor, Artifact, Observable, ObservableRelation, ObservableType, Threat
 from colander.core.observable_tasks import capture_url
 from colander.core.views.views import CaseContextMixin
@@ -30,6 +31,7 @@ class ObservableCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'tlp',
         'pap',
         'source_url',
+        'thumbnail',
     ]
     case_required_message_action = "create observables"
 
@@ -57,6 +59,9 @@ class ObservableCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['associated_threat'].queryset = threat_qset
         form.fields['operated_by'].queryset = actor_qset
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

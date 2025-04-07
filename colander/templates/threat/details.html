@@ -92,6 +92,13 @@
 
   {% include "helpers/extra_attributes.html" with attributes=threat.attributes %}
 
+  {% if threat.thumbnail %}
+    <div class="col-md-12 mt-2">
+      <h3>{% translate "Thumbnail" %}</h3>
+      <img class="img-thumbnail mx-auto d-block" src="{{threat.thumbnail_url}}" alt="{{threat.name}}" style="max-height: 300px" />
+    </div>
+  {% endif %}
+
   {% include "entity_relation/related_entities.html" with entity=threat %}
 
   <div class="col-md-12 mt-2">

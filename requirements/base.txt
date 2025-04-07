@@ -12,7 +12,7 @@ channels_redis
 
 # Django
 # ------------------------------------------------------------------------------
-django==4.2.8  # LTS https://www.djangoproject.com/
+django==4.2.20  # LTS https://www.djangoproject.com/
 django-environ==0.11.2  # https://github.com/joke2k/django-environ
 django-model-utils==4.5.0  # https://github.com/jazzband/django-model-utils
 django-allauth==0.61.1  # https://github.com/pennersr/django-allauth
@@ -21,9 +21,11 @@ crispy-bootstrap5==0.7  # https://github.com/django-crispy-forms/crispy-bootstra
 django-compressor==4.4  # https://github.com/django-compressor/django-compressor
 django-redis==5.4.0  # https://github.com/jazzband/django-redis
 django-markdownify==0.9.3  # https://django-markdownify.readthedocs.io/en/latest/install_and_usage.html
+django-ipware==7.0.1  # https://github.com/un33k/django-ipware
 # Django REST Framework
-djangorestframework==3.15.1  # https://github.com/encode/django-rest-framework
+djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3 # Included explicitly since it's defined optional by djangorestframework
+setuptools # As coreapi needs 'pkg_resources' to load and 'pkg_resources' as been migrated to 'setuptools' since python3.12
 django-cors-headers==4.3.1 # https://github.com/adamchainz/django-cors-headers
 # DRF-spectacular for api documentation
 drf-spectacular==0.27.2  # https://github.com/tfranzel/drf-spectacular
@@ -43,3 +45,6 @@ django-bootstrap-datepicker-plus==5.0.5
 # Analysis
 communityid==1.5.0
 yara-python==4.5.0  # https://github.com/VirusTotal/yara-python
+
+# Mandolin
+mandolin-python-client

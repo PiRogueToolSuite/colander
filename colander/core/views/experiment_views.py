@@ -7,7 +7,8 @@ from django.shortcuts import redirect
 from django.views.generic import CreateView, DetailView, UpdateView
 from django_q.tasks import async_task
 
-from colander.core.experiment_tasks import apply_detection_rules, save_decrypted_traffic
+from colander.core.forms.widgets import ThumbnailFileInput
+from colander.core.tasks.experiment_tasks import apply_detection_rules, save_decrypted_traffic
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
 from colander.core.views.views import CaseContextMixin
@@ -27,7 +28,8 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseContextMixin, CreateVi
         'screencast',
         'target_artifact',
         'tlp',
-        'pap'
+        'pap',
+        'thumbnail',
     ]
     case_required_message_action = "create PiRogue experiments"
 
@@ -41,6 +43,9 @@ class PiRogueExperimentCreateView(LoginRequiredMixin, CaseContextMixin, CreateVi
         form.fields['sslkeylog'].queryset = artifacts_qset.filter(type__short_name='SSLKEYLOG', sha256__isnull=False)
         form.fields['screencast'].queryset = artifacts_qset.filter(type__short_name='VIDEO', sha256__isnull=False)
         form.fields['target_artifact'].queryset = artifacts_qset
+        form.fields['thumbnail'].widget = ThumbnailFileInput()
+        if self.object and self.object.thumbnail:
+            form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url
 
         if not edit:
             form.initial['tlp'] = self.active_case.tlp

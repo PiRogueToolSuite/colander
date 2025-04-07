@@ -4,30 +4,51 @@
     <div class="table-sticky-head">
       <table class="table table-sm table-striped table-hover">
         <thead>
-          <tr>
-            <th @click="sort('super_type')" scope="col" title="Entity type" width="1%">E</th>
-            <th @click="sort('type')" scope="col" title="Type" width="1%">T</th>
-            <th @click="sort('name')" scope="col">Name</th>
-            <th @click="sort('visible')" scope="col" width="1%">
+          <tr v-bind:class="[ 'sort-direction', currentSort.direction ]">
+            <th @click="sort('super_type')"
+                v-bind:class="{ 'sort-attribute': true, 'sort-active': isCurrentSort('super_type') }"
+                scope="col" title="Entity type" width="1%">E</th>
+            <th @click="sort('type')"
+                v-bind:class="{ 'sort-attribute': true, 'sort-active': isCurrentSort('type') }"
+                scope="col" title="Type" width="1%">T</th>
+            <th @click="sort('name')"
+                v-bind:class="{ 'sort-attribute': true, 'sort-active': isCurrentSort('name') }"
+                scope="col">Name</th>
+            <th @click="sort('visibility')"
+                v-bind:class="{ 'sort-attribute': true, 'sort-active': isCurrentSort('visibility') }"
+                scope="col" width="1%">
               <i class='fa fa-filter'></i>
             </th>
           </tr>
         </thead>
         <tbody v-if="sortedEntities_keys.length > 0">
-          <tr v-for="eid in sortedEntities_keys">
+          <tr v-for="eid in sortedEntities_keys" v-bind:class="{ hidden: overrides[eid]?.hidden }">
             <td>
-              <i @click="filterBy(entities[eid].super_type)" v-bind:class="['fa', 'text-primary', 'actionable', allStyles[entities[eid].super_type]['icon-font-classname']]" v-bind:title="entities[eid].super_type"></i>
+              <i @click="filterBy(entities[eid].super_type)"
+                 v-bind:class="['fa', 'text-primary', 'actionable', allStyles[entities[eid].super_type]['icon-font-classname']]"
+                 v-bind:title="entities[eid].super_type"></i>
             </td>
             <td>
-              <i @click="filterBy(entities[eid].type)" v-bind:class="['nf', 'text-primary', 'actionable', allStyles[entities[eid].super_type]['types'][entities[eid].type]?.['icon-font-classname']]" v-bind:title="entities[eid].type"></i>
+              <i @click="filterBy(entities[eid].type)"
+                 v-bind:class="['nf', 'text-primary', 'actionable', allStyles[entities[eid].super_type]['types'][entities[eid].type]?.['icon-font-classname']]"
+                 v-bind:title="entities[eid].type"></i>
             </td>
-            <td class='text-truncate' style="max-width: 0;">[[ entities[eid].name ]]</td>
-            <td class='text-nowrap pe-3'>
-              <i @click="focusEntity(eid)" class='fa fa-crosshairs text-primary actionable' title="Center graph on this entity"></i>
-              <!--
-              <i class='fa fa-eye text-primary' v-if="true"></i>
-              <i class='fa fa-eye-slash text-primary' v-if="false"></i>
-              -->
+            <td class='text-truncate'
+                style="max-width: 0;"
+                v-bind:title="entities[eid].name">[[ entities[eid].name ]]</td>
+            <td class='text-nowrap pe-3 actions'>
+              <span v-show="editableVisibility">
+                <i class='fa fa-eye text-primary actionable'
+                   title='Click to hide this entity'
+                   v-show="!overrides[eid]?.hidden" @click="toggleEntityVisibility(eid)"></i>
+                <i class='fa fa-eye-slash text-primary actionable'
+                   title='Click to show this entity'
+                   v-show="overrides[eid]?.hidden" @click="toggleEntityVisibility(eid)"></i>
+              </span>
+              <i @click="focusEntity(eid)"
+                 v-show="!overrides[eid]?.hidden"
+                 class='fa fa-crosshairs text-primary actionable ms-1'
+                 title="Center graph on this entity"></i>
             </td>
           </tr>
         </tbody>
@@ -40,6 +61,8 @@
     </div>
   </div>
   <div class="footer">
-      <button @click="close()" type="button" class="btn btn-outline-secondary" role="close">Close</button>
+      <button @click="close()" type="button"
+              class="btn btn-outline-secondary"
+              role="close">Close</button>
   </div>
 </div>

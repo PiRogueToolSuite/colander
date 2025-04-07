@@ -4,13 +4,15 @@ from urllib.parse import urlparse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import AccessMixin, LoginRequiredMixin
+from django.contrib.staticfiles import finders
 from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, \
+    StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, cache_control
 from django.views.generic import CreateView, DetailView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
@@ -152,6 +154,7 @@ def quick_creation_view(request):
     if not active_case:
         return redirect('case_create_view')
 
+    search_query = None
     search_results = False
     entities_list = []
     model_data = datasets.creatable_entity_and_types
@@ -180,8 +183,8 @@ def quick_creation_view(request):
                 else:
                     messages.add_message(request, messages.WARNING, f"The {model_name.title()} named {name} of type {type} already exists.")
         else:
-            query = request.POST.get('q', '')
-            entities_list = do_search(query, [active_case])
+            search_query = request.POST.get('q', '')
+            entities_list = do_search(search_query, [active_case])
             search_results = True
 
     if not search_results:
@@ -191,7 +194,8 @@ def quick_creation_view(request):
         'active_case': active_case,
         'models': model_data,
         'entities': entities_list,
-        'search_results': search_results
+        'search_results': search_results,
+        'search_query': search_query,
     }
 
     return render(request, 'pages/quick_creation/base.html', context=ctx)
@@ -328,6 +332,7 @@ class CaseDetailsView(LoginRequiredMixin, DetailView):
             return viewed_case
         raise Case.DoesNotExist()
 
+
 @login_required
 def download_case_public_key(request, pk):
     case = Case.objects.get(id=pk)
@@ -392,6 +397,7 @@ def cron_ish_view(request):
 
 @login_required
 def vues_view(request, component_name):
+
     if request.method != 'GET':
         return HttpResponseNotFound("Not found")
 
@@ -407,9 +413,11 @@ def vues_view(request, component_name):
 
     if "part" in request.GET:
         if request.GET.get("part") == "js":
-            return render(request, f'{component_name}/{component_name}.js', context=ctx)
+            return render(request, f'{component_name}/{component_name}.js',
+                          content_type='text/javascript', context=ctx)
         if request.GET.get("part") == "css":
-            return render(request, f'{component_name}/{component_name}.css', context=ctx)
+            return render(request, f'{component_name}/{component_name}.css',
+                          content_type='text/css', context=ctx)
         return HttpResponseNotFound("Not found")
 
     return render(request, f'{component_name}/{component_name}.html', context=ctx)
@@ -515,3 +523,16 @@ def overall_search(request):
         serializable_results.append(rr)
 
     return JsonResponse(serializable_results, safe=False)
+
+
+@login_required
+def entity_thumbnail_view(request, pk):
+    content = Entity.objects.get(id=pk)
+    if content.thumbnail:
+        response = StreamingHttpResponse(content.thumbnail, content_type='image/png')
+        return response
+    else:
+        image = finders.find('images/no-thumbnail-yet-256x144.png')
+        with open(image, "rb") as f:
+            response = HttpResponse(f.read(), content_type="image/png")
+            return response

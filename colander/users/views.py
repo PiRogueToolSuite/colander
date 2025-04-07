@@ -2,8 +2,10 @@ from urllib.parse import quote, urlencode
 
 from allauth_2fa.views import TwoFactorSetup
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView
@@ -67,3 +69,11 @@ class UserTwoFactorSetup(TwoFactorSetup):
         context = super().get_context_data(**kwargs)
         context["totp_url"] = self.generate_totp_url(context.get('secret'))
         return context
+
+
+@login_required
+def regenerate_token_api(request, username):
+    if username == request.user.username:
+        request.user.get_auth_token(True)
+        request.user.save()
+    return redirect('users:detail', username=username)

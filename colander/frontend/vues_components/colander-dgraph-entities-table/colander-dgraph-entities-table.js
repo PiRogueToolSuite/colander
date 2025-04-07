@@ -1,20 +1,37 @@
-new Vue({
+Vue.createApp({
   delimiters: ['[[', ']]'],
-  data: {
+  data: () => ({
     entities:{},
     allStyles: {},
+    overrides: {},
+    editableVisibility: false,
     currentSort: {
-      attribute: 'name',
+      attributes: [], // defaults initial values set in created()
       direction: 'asc',
     },
     currentSearch: '',
+  }),
+  created: function() {
+    // Globally defines sort attributes importance
+    this.sortAttributesDefaults = [
+      'name', 'visibility', 'super_type', 'type',
+    ];
+    this.currentSort.attributes = [...this.sortAttributesDefaults];
   },
   methods: {
     sort: function(attr) {
-      if (attr === this.currentSort.attribute) {
+      if (attr === this.currentSort.attributes[0]) { // Unsafe ?
         this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
       }
-      this.currentSort.attribute = attr;
+      let newSortAttrs = [attr];
+      for(let dfltAttr of this.sortAttributesDefaults) {
+        if (newSortAttrs.includes(dfltAttr)) continue;
+        newSortAttrs.push(dfltAttr);
+      }
+      this.currentSort.attributes = newSortAttrs;
+    },
+    isCurrentSort: function(attr) {
+      return false;
     },
     focusEntity: function(eid) {
       $(this.$el).trigger('focus-entity', [eid]);
@@ -25,15 +42,31 @@ new Vue({
       this.currentSearch = lcFilter + " " + this.currentSearch;
     },
     track_new_entity: function(ctx) {
-      delete this.entities[ctx.id];
-      Vue.set(this.entities, ctx.id, ctx);
+      // Not needed anymore
+
+      // Despite Vue3's new Reactive architecture,
+      // added entities do not refresh the table.
+      // Even using $forceUpdate, settings initiale reactive(entities), etc)
+      // The only hack found (for now) is to force a sort of the table
+      this.sort(this.currentSort.attributes);
+      this.$nextTick().then(() => {
+        this.sort(this.currentSort.attributes);
+      })
     },
     refresh: function() {
-
+      // Used (at least) when an entity attributes is changed.
+      this.$nextTick().then(() => {
+        this.$forceUpdate();
+      });
     },
     close: function () {
       $(this.$el).trigger('close-component');
     },
+    toggleEntityVisibility: function(eid) {
+      this.overrides[eid] = this.overrides[eid] || {};
+      this.overrides[eid].hidden = !(this.overrides[eid]?.hidden);
+      $(this.$el).trigger('entity-visibility-changed', [eid, this.overrides[eid].hidden]);
+    }
   },
   computed: {
     sortedEntities_keys: function() {
@@ -53,8 +86,16 @@ new Vue({
       });
       keys.sort((aid,bid) => {
         let modifier = this.currentSort.direction === 'desc' ? -1 : 1;
-        if (this.entities[aid][this.currentSort.attribute] < this.entities[bid][this.currentSort.attribute]) return -1 * modifier;
-        if (this.entities[aid][this.currentSort.attribute] > this.entities[bid][this.currentSort.attribute]) return  1 * modifier;
+        for(let currentAttr of this.currentSort.attributes) {
+          if (currentAttr === 'visibility') {
+            if (this.overrides[aid] === undefined || this.overrides[bid] === undefined) continue;
+            if (this.overrides[aid]['hidden'] < this.overrides[bid]['hidden']) return -1 * modifier;
+            if (this.overrides[aid]['hidden'] > this.overrides[bid]['hidden']) return 1 * modifier;
+          } else {
+            if (this.entities[aid][currentAttr] < this.entities[bid][currentAttr]) return -1 * modifier;
+            if (this.entities[aid][currentAttr] > this.entities[bid][currentAttr]) return 1 * modifier;
+          }
+        }
         return 0;
       });
       return keys;

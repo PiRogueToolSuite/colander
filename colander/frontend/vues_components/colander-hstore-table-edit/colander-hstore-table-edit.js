@@ -1,40 +1,41 @@
-new Vue({
+Vue.createApp({
     delimiters: ['[[', ']]'],
-    data: {
+    data: () => ({
         textArea: $('textarea#id_attributes'),
         entityTypesContainer: $('script#entity_types'),
         storedAttributes: [],
         dataLoaded: false,
-    },
+    }),
     methods: {
         update_key: function (index, event) {
             const newKey = event.target.value;
             if (newKey.length > 0) {
-                this.$set(this.storedAttributes, index, {key: newKey, value: this.storedAttributes[index].value});
+                this.storedAttributes[index] = {key: newKey, value: this.storedAttributes[index].value};
             }
             this.update_json();
         },
         update_value: function (index, event) {
             const newValue = event.target.value;
             if (newValue.length > 0) {
-                this.$set(this.storedAttributes, index, {key: this.storedAttributes[index].key, value: newValue});
+              this.storedAttributes[index] = {key: this.storedAttributes[index].key, value: newValue};
             }
             this.update_json();
         },
         delete_attribute: function(index, event){
-            this.$delete(this.storedAttributes, index);
+            this.storedAttributes.splice(index, 1);
             this.update_json();
         },
         add_attribute: function(){
-            this.$set(this.storedAttributes, this.storedAttributes.length, {key: 'new_key', value: ''});
+            this.storedAttributes.push({key: 'new_key', value: ''});
         },
         on_type_selection_changed: function (e) {
             const default_attributes = this.entity_types[e.target.value].attributes;
             this.dataLoaded = false; // Reload from textarea
-            this.attributes;
+            this.attributes; // Accessing computed attributes, force refresh ?
+                             // while $forceUpdate does not do its job ... o_Ô
             for (let k in default_attributes) {
                 if (!this._is_key_stored(k)) {
-                    this.$set(this.storedAttributes, this.storedAttributes.length, {key: k, value: default_attributes[k]});
+                    this.storedAttributes.push({key: k, value: default_attributes[k]});
                 }
             }
         },
@@ -77,7 +78,7 @@ new Vue({
                         const attrs = JSON.parse(attr_from_textarea);
                         let i = 0;
                         for (let k in attrs) {
-                            this.$set(this.storedAttributes, i++, {key: k, value: attrs[k]});
+                            this.storedAttributes.push({key: k, value: attrs[k]});
                         }
                     } catch (SyntaxError) {}
                 }

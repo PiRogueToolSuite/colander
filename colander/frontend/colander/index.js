@@ -4,7 +4,8 @@ import PrimeVue from "primevue/config";
 import aura from '@primevue/themes/aura';
 
 import CachePlugin from './plugins/Cache';
-import HarAnalyzerApp from '/home/sancho/Projects/PTS/har-analyzer-vuejs/dist/harweb.es.js';
+// Not yet published
+//import HarAnalyzerApp from '/home/sancho/Projects/PTS/har-analyzer-vuejs/dist/harweb.es.js';
 
 import Legacy from './legacy/project';
 import ColanderTextEditor from './legacy/colander-text-editor';
@@ -50,7 +51,7 @@ export default () => {
       'all_styles': '/rest/dataset/all_styles/',
     },
   });
-  colander_application.use(HarAnalyzerApp);
+  //colander_application.use(HarAnalyzerApp);
   colander_application.use(PrimeVue);
 
   // --

@@ -2,8 +2,6 @@ import {basicSetup, EditorView} from "codemirror";
 import {EditorState} from "@codemirror/state";
 import {ayuLight, amy} from 'thememirror';
 
-console.log('Colander text editor ready');
-
 function editorFromTextArea(textarea, extensions) {
     let view = new EditorView({
         doc: textarea.value,
@@ -22,7 +20,7 @@ function editorFromTextArea(textarea, extensions) {
 }
 
 
-window.addEventListener('DOMContentLoaded', () => {
+export default () => {
     // Replace textarea with a text editor
     $('textarea.colander-text-editor').each(function (index, elt) {
         const extensions = [
@@ -59,4 +57,4 @@ window.addEventListener('DOMContentLoaded', () => {
         $(this).removeClass();
         $(this).parent().remove();
     })
-})
+};

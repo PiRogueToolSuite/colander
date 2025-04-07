@@ -23,12 +23,3 @@
   </div>
   {%  include 'case/list.html' %}
 {% endblock content %}
-
-{% block inline_javascript %}
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=name]");
-      suggest_entity(input, 'Case', '{{ csrf_token }}');
-    });
-  </script>
-{% endblock inline_javascript %}

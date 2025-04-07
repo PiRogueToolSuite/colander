@@ -34,7 +34,12 @@
                 </div>
               </div>
               <div class="col-8">
-                {{ form.name|as_crispy_field }}
+                <div is="vue:Suggester"
+                     data-type="DataFragment"
+                     data-csrf-token="{{ csrf_token }}"
+                     data-case-id="{{ contextual_case.id }}">
+                  {{ form.name|as_crispy_field }}
+                </div>
                 {{ form.content|as_crispy_field }}
           </form>
         </div>
@@ -52,12 +57,3 @@
       </div>
   </div>
 {% endblock inner-content %}
-
-{% block inline_javascript %}
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=name]");
-      suggest_entity(input, 'DataFragment', '{{ csrf_token }}', '{{ contextual_case.id }}');
-    });
-  </script>
-{% endblock inline_javascript %}

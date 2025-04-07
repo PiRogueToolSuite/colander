@@ -12,10 +12,9 @@ const componentsDest = path.resolve(jsDest, 'components');
 
 let webpackConfig = (isDev, isProd) => [
   {
+    devtool: 'source-map',
     entry: {
-      'colander-dgraph': path.resolve(__dirname, 'colander/frontend/colander-dgraph/index.js'),
       'colander-widgets': path.resolve(__dirname, 'colander/frontend/colander-widgets/index.js'),
-      'colander-text-editor': path.resolve(__dirname, 'colander/frontend/colander-text-editor/index.js'),
     },
     output: {
       filename: '[name].js',  // output bundle file name
@@ -49,22 +48,39 @@ let webpackConfig = (isDev, isProd) => [
             to: path.resolve(jsLibDest, 'bootstrap.min.js'),
           },
           {
-            from: 'node_modules/simplemde/dist/simplemde.min.js',
+            from:  isProd ? 'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js'
+                          : 'node_modules/bootstrap/dist/js/bootstrap.bundle.js',
+            to: path.resolve(jsLibDest, 'bootstrap.bundle.min.js'),
+          },
+          {
+            from:  isProd ? 'node_modules/masonry-layout/dist/masonry.pkgd.min.js'
+                          : 'node_modules/masonry-layout/dist/masonry.pkgd.js',
+            to: path.resolve(jsLibDest, 'masonry.pkgd.min.js'),
+          },
+          {
+            from: isProd ? 'node_modules/simplemde/dist/simplemde.min.js'
+                         : 'node_modules/simplemde/debug/simplemde.js',
             to: path.resolve(jsLibDest, 'simplemde.min.js'),
           },
           {
-            from: 'node_modules/simplemde/dist/simplemde.min.css',
+            from: isProd ? 'node_modules/simplemde/dist/simplemde.min.css'
+                         : 'node_modules/simplemde/debug/simplemde.css',
             to: path.resolve(cssLibDest, 'simplemde.min.css'),
           },
         ],
       }),
       new VueLoaderPlugin(),
+      /*
+      new MiniCssExtractPlugin({
+        filename: '[name].css',
+      }),
+       */
     ],
     module: {
       rules: [
         {
           test: /\.vue$/,
-          loader: 'vue-loader'
+          loader: 'vue-loader',
         },
         {
           test: /\.scss$/,
@@ -76,10 +92,10 @@ let webpackConfig = (isDev, isProd) => [
         },
         {
           test: /\.css$/i,
-          use: ["css-loader"],
+          use: [/*MiniCssExtractPlugin.loader,*/ "css-loader"],
         },
       ]
-    }
+    },
   },
   // Styles rules
   {
@@ -92,9 +108,11 @@ let webpackConfig = (isDev, isProd) => [
       filename: '.js-intermediate.[name].css-bundle.js',  // output bundle file name
       path: cssDest,                                      // path to our Django static directory
     },
-    plugins: [new MiniCssExtractPlugin({
-      filename: '[name].css',
-    })],
+    plugins: [
+      new MiniCssExtractPlugin({
+        filename: '[name].css',
+      }),
+    ],
     module: {
       rules: [
         {

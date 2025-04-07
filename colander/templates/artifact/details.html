@@ -247,6 +247,9 @@
         Your browser does not support the video tag.
       </video>
     </div>
+  {% elif artifact.type.short_name == "HAR" %}
+    {# <div id="har-viz" class='har-analyzer' data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div> #}
+    <div is="vue:har-analyzer" data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div>
   {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" %}
     {% if artifact.size_in_bytes < 500000 %}
       <div class="col-md-12 mt-4 mb-2">

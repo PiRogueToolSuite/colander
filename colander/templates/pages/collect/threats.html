@@ -20,7 +20,12 @@
                 {{ form.type|as_crispy_field }}
               </div>
               <div class="col">
-                {{ form.name|as_crispy_field }}
+                <div is="vue:Suggester"
+                     data-type="Threat"
+                     data-csrf-token="{{ csrf_token }}"
+                     data-case-id="{{ contextual_case.id }}">
+                  {{ form.name|as_crispy_field }}
+                </div>
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}
                 {{ form.source_url|as_crispy_field }}
@@ -49,12 +54,3 @@
     </div>
   </div>
 {% endblock inner-content %}
-
-{% block inline_javascript %}
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=name]");
-      suggest_entity(input, 'Threat', '{{ csrf_token }}', '{{ contextual_case.id }}');
-    });
-  </script>
-{% endblock inline_javascript %}

@@ -18,7 +18,7 @@
               <form method="post" autocomplete="off">
                 {% csrf_token %}
                 <div class="row">
-                  {% include "helpers/dynamic_type_selector.html" %}
+                  <div is="vue:DynamicTypeSelector"></div>
                 </div>
                 <div class="row justify-content-center">
                   <div class="col-md-9 mt-3 text-center">
@@ -44,9 +44,4 @@
       </div>
     </div>
   {% endblock inner-content %}
-  {{ models|json_script:"models-data" }}
 {% endblock content %}
-
-{% block vue_javascript %}
-  {% include "helpers/dynamic_type_selector_js.html" with dom_container="quick-create-entities" dom_data_container="models-data" %}
-{% endblock vue_javascript %}

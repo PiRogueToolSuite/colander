@@ -17,7 +17,12 @@
             {% csrf_token %}
             <div class="row justify-content-center">
               <div class="col-md-8">
-                {{ form.name|as_crispy_field }}
+                <div is="vue:Suggester"
+                     data-type="PiRogueExperiment"
+                     data-csrf-token="{{ csrf_token }}"
+                     data-case-id="{{ contextual_case.id }}">
+                  {{ form.name|as_crispy_field }}
+                </div>
                 {{ form.pcap|as_crispy_field }}
                 {{ form.socket_trace|as_crispy_field }}
                 {{ form.sslkeylog|as_crispy_field }}
@@ -38,7 +43,7 @@
               </div>
             </div>
             <div class="row justify-content-center">
-              <div class="col"
+              <div class="col">
                 {% if not is_editing %}
                   <hr>
                   <p class="mt-2">
@@ -68,12 +73,3 @@
     </div>
   </div>
 {% endblock inner-content %}
-
-{% block inline_javascript %}
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=name]");
-      suggest_entity(input, 'PiRogueExperiment', '{{ csrf_token }}', '{{ contextual_case.id }}');
-    });
-  </script>
-{% endblock inline_javascript %}

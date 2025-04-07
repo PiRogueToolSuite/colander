@@ -240,7 +240,10 @@
       </div>
     {% endif %}
   </div>
-  <script type="text/javascript">
+{% endblock %}
+
+{% block inline_javascript %}
+    <script type="text/javascript">
   $(() => {
     var csrfInput = $('#triage-form input[name=csrfmiddlewaretoken]');
     var suggestedArtifactTypesInformation = $("<span class='ms-1 text-secondary'></span>");

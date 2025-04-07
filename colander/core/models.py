@@ -719,8 +719,11 @@ class Entity(models.Model):
 
     @property
     def thumbnail_url(self):
-        from django.urls import reverse
-        return reverse('entity_thumbnail_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+        if bool(self.thumbnail):
+            from django.urls import reverse
+            return reverse('entity_thumbnail_view', kwargs={'case_id': self.case.id, 'pk': self.id})
+        else:
+            return None
 
 
 @receiver(pre_delete, sender=Entity, dispatch_uid='delete_entity_thumbnail')

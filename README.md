@@ -73,6 +73,10 @@ The development environment relies on Docker Compose (or Podman). The file `loca
 ```
 git clone https://github.com/PiRogueToolSuite/colander.git
 cd colander
+# Compile frontend files
+npm ci
+npm run dist
+# Compile'n run backend stack
 docker compose -f local.yml build 
 docker compose -f local.yml up -d
 docker compose -f local.yml run --rm django python manage.py insert_default_data
@@ -100,6 +104,21 @@ python manage.py createsuperuser
 For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
 
 By default, registration is disabled on Colander. To create new regular users, you have to do it using the administration panel at http://localhost:8000/admin/  
+
+### Modifying frontend sources (scripts, styles, etc...)
+
+The frontend stack is managed by webpack build system.
+If your development session is about to modify or update frontend parts,
+run and keep up the following build command:
+```shell
+npm run dev
+```
+
+Once you've wrapped up your frontend changes, you can generate a 'minified'
+version locally with the comment:
+```shell
+npm run dist
+```
 
 ### Building Docker images
 The frontend service named `django` will automatically reload when files are modified. But, the `worker` service will not. So, if you modify or add an asynchronous task that will be executed by a worker, you have to restart the corresponding service. 

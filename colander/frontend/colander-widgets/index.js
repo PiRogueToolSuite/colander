@@ -34,14 +34,29 @@ Event_System.on('chat', (msg) => {
    ws.send(JSON.stringify(msg));
 });
 
+import ColanderBoot from '../colander';
+import CTIF from '../vues_components/colander-thumbnail-input-field/colander-thumbnail-input-field.vue';
+import { createApp } from 'vue';
+
+function install_legacies($) {
+  // Thumbnailer
+  $('#div_id_thumbnail').each((idx, el) => {
+    let app = createApp(CTIF);
+    //console.log('app', app);
+    const replacedJDom = $(el).clone(); // clone cause vue3 mount will 'replace' dom element content
+    const instance = app.mount(el);
+    instance.replacedDom?.(replacedJDom);
+  });
+}
+
+function install_colander($) {
+  ColanderBoot();
+}
 
 jQuery(function ($) {
-    //  Search toolbar
-    let tbs = vueComponent('colander-toolbar-search');
-    $('#toolbar-search').empty().append(tbs);
-    //  Key-value pair table
-    if ($('textarea#id_attributes').length > 0) {
-        let hst = vueComponent('colander-hstore-table-edit');
-        $('textarea#id_attributes').after(hst);
-    }
+  // --
+  install_colander($);
+  // --
+  install_legacies($);
+  //install_har($);
 });

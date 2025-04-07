@@ -1,39 +1,17 @@
 {% load static %}
 
-{% block context_css %}
-  <link href="{% static 'css/graph.css' %}" type="text/css" rel="stylesheet" />
-{% endblock %}
-{% block context_javascript %}
-  <script type="text/javascript" src="{% static 'js/colander-dgraph.js' %}"></script>
-{% endblock %}
-
-<div id="a-colander-graph"></div>
-
-<script type="text/javascript">
-  let cdg = new ColanderDGraph({
-    containerId: 'a-colander-graph',
-    csrfToken: '{{ csrf_token }}',
-    sendToDocumentation: false,
-    {% if case %}
-      caseId: '{{ case.id }}',
-      datasourceUrl: `/case/{{ case.id }}/graph`,
-      generateThumbnail: false,
-      editableVisibility: false,
-    {% endif %}
+<div id="a-colander-graph">
+  
     {% if subgraph %}
-      caseId: '{{ subgraph.case.id }}',
-      subgraphId: '{{ subgraph.id }}',
-      datasourceUrl: `/ws/{{ subgraph.case.id }}/graph/{{ subgraph.id }}/datasource`,
-      generateThumbnail: true,
-      editableVisibility: true,
-    {% endif %}
-    {% if lock %}
-      lock: true,
+      <div is="vue:GraphEditor"
+           data-csrf-token="{{ csrf_token }}"
+           data-case-id="{{ subgraph.case.id }}"
+           data-src="/ws/{{ subgraph.case.id }}/graph/{{ subgraph.id }}/datasource"
+           data-subgraph-id="{{ subgraph.id }}"></div>
     {% else %}
-      recenter: true,
-      snapshot: true,
-      fullscreen: true,
-      sidepane: true,
+      <div is="vue:GraphEditor"
+           data-csrf-token="{{ csrf_token }}"
+           data-case-id="{{ contextual_case.id }}"
+           data-src="/case/{{ contextual_case.id }}/graph"></div>
     {% endif %}
-  });
-</script>
+</div>

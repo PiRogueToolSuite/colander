@@ -1,5 +1,4 @@
-
-class FileUpload {
+export default class FileUpload {
     static DEFAULT_CONFIG = {
         file_input_elem: null,
         upload_uri: '/upload',
@@ -190,4 +189,4 @@ class FileUpload {
             }
         });
     };
-}
+};

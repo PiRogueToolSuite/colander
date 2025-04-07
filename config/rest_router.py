@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter, SimpleRouter
 from colander.core.rest.views import DatasetViewSet, EntityRelationViewSet, EntityViewSet, \
     import_entity_from_threatr, DroppedFileViewSet, CaseViewSet, ArtifactTypeViewSet, \
     SubGraphViewSet
-from colander.core.views.views import entity_exists, overall_search
+from colander.core.views.views import entity_exists, overall_search, entity_types
 
 if settings.DEBUG:
     router = DefaultRouter()
@@ -27,6 +27,7 @@ urlpatterns = router.urls
 
 urlpatterns += [
     path("entity/suggest", entity_exists, name="entity_exists_view"),
+    path("entity/types", entity_types, name="entity_types_view"),
     path("search", overall_search, name="overall_search"),
     path("threatr_entity", import_entity_from_threatr, name="import_entity_from_threatr_view"),
 ]

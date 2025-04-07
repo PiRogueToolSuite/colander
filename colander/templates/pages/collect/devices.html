@@ -20,7 +20,12 @@
                 {{ form.type|as_crispy_field }}
               </div>
               <div class="col">
-                {{ form.name|as_crispy_field }}
+                <div is="vue:Suggester"
+                     data-type="Device"
+                     data-csrf-token="{{ csrf_token }}"
+                     data-case-id="{{ contextual_case.id }}">
+                  {{ form.name|as_crispy_field }}
+                </div>
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}
                 {{ form.operated_by|as_crispy_field }}
@@ -33,7 +38,9 @@
                 {% endif %}
               </div>
               <div class="col">
-                {{ form.attributes|as_crispy_field }}
+                <div is="vue:HStoreTable" data-type="Device">
+                  {{ form.attributes|as_crispy_field }}
+                </div>
                 {{ form.thumbnail }}
               </div>
             </div>
@@ -53,12 +60,3 @@
     </div>
   </div>
 {% endblock inner-content %}
-
-{% block inline_javascript %}
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=name]");
-      suggest_entity(input, 'Device', '{{ csrf_token }}', '{{ contextual_case.id }}');
-    });
-  </script>
-{% endblock inline_javascript %}

@@ -1,14 +1,16 @@
 import '@ungap/custom-elements';
 
 import cytoscape from 'cytoscape';
-import _ from 'lodash';
+import Color from 'color';
 import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
 import fcose from 'cytoscape-fcose';
 import layoutUtilities from 'cytoscape-layout-utilities';
-import {color_scheme, icon_unicodes, icons} from './default-style';
+import Layers from 'cytoscape-layers';
+import {color_scheme, icons} from './default-style';
 import {overlay_button} from './graph-templates';
 import {vueComponent} from '../vues_components/vue-sub-component';
+import {nodeBody} from './functional-styles.js';
 
 // For sub-vue access
 import MarkdownIt from 'markdown-it';
@@ -19,48 +21,25 @@ cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
 cytoscape.use( layoutUtilities ); // Optional but used by fcose in our case
 cytoscape.use( fcose );
+cytoscape.use( Layers );
 
 let styles = [];
-
-let node_label = _.memoize(function(e, iid) {
-  let svgTxt = `${icon_unicodes[iid]} ${e.data('name')}`;
-
-  const ctx = document.createElement('canvas').getContext("2d");
-  const fStyle = e.style('font-style').strValue;
-  const size = e.style('font-size').pfValue + 'px';
-  const family = e.style('font-family').strValue;
-  const weight = e.style('font-weight').strValue;
-  ctx.font = fStyle + ' ' + weight + ' ' + size + ' ' + family;
-  let measures = ctx.measureText(svgTxt);
-  let maxWidth = measures.width + 8;
-
-  if (e.data('type')) {
-    let typeTxt = e.cy().data('all-styles')[e.data('super_type')].types[e.data('type')].name;
-    measures = ctx.measureText(`${typeTxt}    `); // UGLY ? Fake multiple space (4) to have same padding
-    maxWidth = Math.max(maxWidth, measures.width);
-    svgTxt += `\n${typeTxt}`;
-  }
-
-  // A bit of margin:
-  //maxWidth += 5;
-
-  let r = { svgTxt: svgTxt, width: maxWidth };
-  return r;
-},(e) => {
-  return `${e.id()}-${e.data('name')}-${e.data('type')}`;
-});
 
 styles.push({
   selector: 'node',
   style: {
-    'background-blacken': -0.5,
+    //'background-blacken': -0.5,
     'shape': 'round-rectangle',
-    'border-width': 3,
+    'border-width': 2,
     'font-family': 'sans-serif, ForkAwesome',
     'font-size': '10px',
+    'line-height': 1.25,
     'text-halign': 'center',
     'text-valign': 'center',
     'text-wrap': 'wrap',
+    'text-outline-color': 'white',
+    'text-outline-opacity': 1,
+    'text-outline-width': 2,
     'display': (e) => {
       return e.scratch('_overrides')?.hidden ? 'none' : 'element';
     },
@@ -71,10 +50,19 @@ for(let iid in icons) {
   styles.push({
     selector: `node.${iid}`,
     style: {
-      'background-color': color_scheme[iid],
+      'background-color': Color(color_scheme[iid]).mix(Color.rgb(255,255,255), 0.5).hsl().string(),
       'border-color': color_scheme[iid],
-      'label': (e)=> { return node_label(e, iid).svgTxt; },
-      'width': (e) => { return node_label(e, iid).width; },
+      'text-outline-color': Color(color_scheme[iid]).mix(Color.rgb(255,255,255), 0.5).hsl().string(),
+      'label': (e)=> { return nodeBody(e, iid).svgTxt; },
+      'text-halign': (e)=> { return nodeBody(e, iid).labelHAlign; },
+      'text-justification': (e)=> { return nodeBody(e, iid).labelJustification; },
+      'width': (e) => { return nodeBody(e, iid).width; },
+      'height': (e) => { return nodeBody(e, iid).height; },
+      'background-image': (e) => { return nodeBody(e, iid).bgImage; },
+      'background-clip': 'node',
+      'background-fit': 'contain',
+      'text-margin-x': (e) => { return nodeBody(e, iid).labelMarginX; },
+      'background-position-x': '0px', // if on the left
     }
   });
 }
@@ -84,6 +72,7 @@ styles.push({
   style: {
     'background-color': '#7122da',
     'border-color': '#7122da',
+    'text-outline-color': '#7122da',
     'background-blacken': 0,
     'color': 'white',
   }
@@ -112,9 +101,15 @@ styles.push({
     'font-family': 'sans-serif, ForkAwesome',
     'font-size': '10px',
     'curve-style': 'bezier',
+  }
+});
+
+styles.push({
+  selector: 'edge:loop',
+  style: {
+    'curve-style': 'bezier',
     'loop-direction': '0deg',
     'loop-sweep': '-45deg',
-    //'line-style': 'dashed',
   }
 });
 
@@ -232,6 +227,33 @@ class ColanderDGraph {
       this.jLoading.hide();
     });
 
+    const pipDimension = { w: 40, h: 40 };
+    const pipOffset = { w: 18, h: 0 };
+
+    /*
+    const layers = this.cy.layers();
+    layers.renderPerNode(layers.append('canvas'), (ctx, node, bb) => {
+      ctx.strokeStyle = 'red';
+      //ctx.lineWidth /= node.cy().zoom();
+      ctx.lineWidth = 2;
+      let st = node.data('super_type');
+      if (st in color_scheme) {
+        ctx.strokeStyle = color_scheme[st];
+        ctx.fillStyle = Color(color_scheme[st]).mix(Color.rgb(255,255,255), 0.5).hsl().string();
+      }
+      //console.log('CXT', ctx, 'NODE', node, 'BB', bb, 'data', node.data());
+      ctx.beginPath();
+      ctx.roundRect(
+        -pipDimension.w + pipOffset.w,
+        bb.h/2 - pipDimension.h/2 + pipOffset.h,
+        pipDimension.w, pipDimension.h,
+        [8]
+      );
+      ctx.fill();
+      ctx.stroke();
+    });
+     */
+
     this._applyInternalConfig();
   }
 
@@ -282,8 +304,6 @@ class ColanderDGraph {
 
       this.cy.$(':selected').data('on-thumbnail', false);
 
-      let thumbnailImg = await createImageBitmap(thumbnailBlob);
-
       let offscreenCanvas = document.createElement('canvas');
       let ctx2D = offscreenCanvas.getContext("2d");
       offscreenCanvas.width = 256;
@@ -291,16 +311,20 @@ class ColanderDGraph {
       ctx2D.rect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       ctx2D.fillStyle = 'white';
       ctx2D.fill();
-      ctx2D.drawImage(
-        thumbnailImg,
-        (offscreenCanvas.width - thumbnailImg.width) / 2,
-        (offscreenCanvas.height - thumbnailImg.height) / 2
-      );
+
+      if (thumbnailBlob.size > 0) {
+        let thumbnailImg = await createImageBitmap(thumbnailBlob);
+        ctx2D.drawImage(
+          thumbnailImg,
+          (offscreenCanvas.width - thumbnailImg.width) / 2,
+          (offscreenCanvas.height - thumbnailImg.height) / 2
+        );
+        thumbnailImg = null;
+      }
       post_data['thumbnail'] = offscreenCanvas.toDataURL().replace(/^.+,/, '');
 
       ctx2D = null;
       offscreenCanvas = null;
-      thumbnailImg = null;
       thumbnailBlob = null;
     }
 

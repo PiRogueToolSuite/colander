@@ -1,133 +1,26 @@
 {% load crispy_forms_tags %}
 {% if documentation_form %}
-  <form class="form" method="post" id="case_documentation_form"
-        action="{% url "cases_save_doc_view" case_id=request.contextual_case.id %}">
-    {% csrf_token %}
-    <div class="form-group">
-      {{ documentation_form | crispy }}
-    </div>
-    <div id='documentation-save-hidden-in-offcanvas' class="form-group text-end">
-      <a id='documentation-export-as-markdown' class="btn btn-primary text-white" role="button" href="{% url "cases_doc_export_as_markdown_view" case_id=request.contextual_case.id %}" target="_blank">
-        <i class="nf fa fa-file-text-o"></i> Export as Markdown
-      </a>
-      <button id='documentation-revert' class="btn btn-primary text-white" role="button" title="Revert to original version and lose changes" disabled>
-        <i class="nf nf-fa-undo"></i> Revert
-      </button>
-      <button id='documentation-save' class="btn btn-primary text-white" type="submit" role="button" disabled>
-        <i class="nf nf-fa-save"></i> Save documentation
-      </button>
-    </div>
-  </form>
-  <div class="position-fixed bottom-0 end-0 m-3" style="z-index: 5000">
-    <div id="unsaved-doc-changes-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header">
-        <strong class="me-auto text-primary">Unsaved documentation changes</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+  <div is="vue:documentation-pane"
+       data-src="{% url "cases_save_doc_view" case_id=request.contextual_case.id %}"
+       data-case-id="{{ request.contextual_case.id }}"
+       {{ off_canvas|yesno:"data-off-canvas,," }}>
+    <form class="form" method="post" id="case_documentation_form"
+          action="{% url "cases_save_doc_view" case_id=request.contextual_case.id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        {{ documentation_form | crispy }}
       </div>
-      <div class="toast-body">
-        <p>You have unsaved documentation changes on this device.</p>
+      <div id='documentation-save-hidden-in-offcanvas' class="form-group text-end">
+        <a id='documentation-export-as-markdown' class="btn btn-primary text-white" role="button" href="{% url "cases_doc_export_as_markdown_view" case_id=request.contextual_case.id %}" target="_blank">
+          <i class="nf fa fa-file-text-o"></i> Export as Markdown
+        </a>
+        <button id='documentation-revert' class="btn btn-primary text-white" role="button" title="Revert to original version and lose changes" disabled>
+          <i class="nf nf-fa-undo"></i> Revert
+        </button>
+        <button id='documentation-save' class="btn btn-primary text-white" type="submit" role="button" disabled>
+          <i class="nf nf-fa-save"></i> Save documentation
+        </button>
       </div>
-    </div>
+    </form>
   </div>
-  <script type="text/javascript">
-    $(() => {
-      const caseId = '{{ request.contextual_case.id }}';
-      const itemKey = `case-doc-${caseId}`;
-      const doc_content_server = $("#id_documentation").val();
-      var autosave_on = false;
-
-      function set_dirty(dirty) {
-        $('#documentation-save').attr('disabled', !dirty);
-        autosave_on = dirty;
-      }
-
-      function set_revertable(revertable) {
-        $('#documentation-revert').attr('disabled', !revertable);
-      }
-
-      function clear_autosave() {
-        autosave_on = false;
-        try {
-          localStorage.removeItem(itemKey);
-        } catch(err) {
-          console.log('Unavailable local storage');
-        }
-      }
-
-      function revert_to_server_version() {
-        // Thanks to 'simplemde' var hoisting
-        simplemde.codemirror.setValue(doc_content_server);
-        set_dirty(false);
-        set_revertable(false);
-        clear_autosave();
-      }
-
-      // Check autosave state
-      try {
-        let unsaved_case_doc = localStorage.getItem(itemKey);
-        if (unsaved_case_doc !== null && unsaved_case_doc !== '') {
-          $("#id_documentation").val(unsaved_case_doc);
-          set_dirty(true);
-          set_revertable(true);
-          $('#unsaved-case-documentation-modal').modal('show');
-        }
-      } catch(err) {
-        console.log('Unavailable local storage');
-      }
-
-      // Creates markdown editor view
-      var simplemde = new SimpleMDE(
-        {
-          autoDownloadFontAwesome: false,
-          spellChecker: false,
-          element: $("#id_documentation")[0],
-          status: false,
-        }
-      );
-
-      // Register documentation changes event to:
-      // - enable autosave feature
-      // - register a 'page exit' event to force autosave
-      simplemde.codemirror.on("change", () => {
-        set_dirty(true);
-        set_revertable(true);
-      });
-
-      function autosave() {
-        if (autosave_on) {
-          try {
-            localStorage.setItem(itemKey, simplemde.value());
-          } catch(err) {
-            console.warn('Local storage not available');
-            return false;
-          }
-        }
-        return true;
-      }
-
-      $('#case_documentation_form').on('submit', () => {
-        clear_autosave();
-      });
-
-      window.addEventListener('beforeunload', (evt) => {
-        if (!autosave()) {
-          // Current device could not use localstorage
-          // We need to warn user about losing unsaved documentation.
-          evt.preventDefault();
-          evt.stopPropagation();
-          $('#documentationOffCanvas').offcanvas("show");
-          $('#unsaved-doc-changes-toast').toast('show');
-          return false;
-        }
-      });
-
-      $('#documentation-save').click(() => {
-        $('#case_documentation_form').submit();
-      });
-
-      $('#documentation-revert').click(() => {
-        revert_to_server_version();
-      });
-    });
-  </script>
 {% endif %}

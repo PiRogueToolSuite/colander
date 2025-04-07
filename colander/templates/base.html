@@ -11,8 +11,8 @@
 
   <link rel="shortcut icon" type="image/png" href="{% static 'images/favicons/favicon-16x16.png' %}" />
 
+  {# Stylesheets ================================================== #}
   {% block css %}
-    <!-- This file stores project-specific CSS -->
     {% compress css %}
       <link href="{% static 'css/project.css' %}" type="text/css" rel="stylesheet"/>
       <link href="{% static 'css/fork-awesome.min.css' %}" type="text/css" rel="stylesheet"/>
@@ -26,28 +26,19 @@
   {% compress css %}
     {% block context_css %}{% endblock %}
   {% endcompress %}
-  <!-- Le javascript
-  ================================================== -->
-  {# Placed at the top of the document so pages load faster with defer #}
+  {# Javscripts ================================================== #}
   {% block javascript %}
-    <script src="{% static 'js/externals/jquery.min.js' %}"></script>
-    <script src="{% static 'js/project.js' %}"></script>
-    <script src="{% static 'js/file_upload.js' %}"></script>
-    <!-- place project specific Javascript in this file -->
     {% compress js %}
+      <script src="{% static 'js/externals/jquery.min.js' %}"></script>
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/externals/vue.min.js' %}"></script>
       <script src="{% static 'js/externals/simplemde.min.js' %}"></script>
-      <script src="{% static 'js/externals/popper.min.js' %}"></script>
-      <script src="{% static 'js/externals/bootstrap.min.js' %}"></script>
-      <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
+      <script src="{% static 'js/externals/bootstrap.bundle.min.js' %}"></script>
+      <script src="{% static 'js/externals/masonry.pkgd.min.js' %}"></script>
       <script src="{% static 'js/colander-widgets.js' %}"></script>
-      <script src="{% static 'js/colander-text-editor.js' %}"></script>
     {% endcompress %}
   {% endblock javascript %}
-  {% compress js %}
-    {% block context_javascript %}{% endblock %}
-  {% endcompress %}
+  {% block context_javascript %}{% endblock %}
 
 </head>
 
@@ -110,7 +101,18 @@
             </div>
           </div>
       </div>
-      <div id="toolbar-search" class="w-50" style="overflow: hidden;">
+      {% url 'collect_quick_creation_view' case_id=contextual_case.id as collect_quick_creation_view_url %}
+      {% url 'home' as home_view_url %}
+      {% if contextual_case %}
+        {% define collect_quick_creation_view_url as action_url %}
+      {% else %}
+        {% define home_view_url as action_url %}
+      {% endif %}
+      <div id="toolbar-search" class="w-50" style="overflow: hidden;"
+           is="vue:ToolbarSearch"
+           data-action-url="{{ action_url }}"
+           data-case-id="{{ contextual_case.id }}"
+           data-csrf-token="{{ csrf_token }}">
         <form id="overall-search-form" method="post" action="{% url "quick_search_view" %}" class="w-50">
           {% csrf_token %}
           <input id="overall-search" class="form-control form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search" autocomplete="off"/>
@@ -359,16 +361,14 @@
       </div>
     </div>
   {% endblock modal %}
-  {% block inline_javascript %}
-    {% comment %}
-      Script tags with only code, no src (defer by default). To run
-      with a "defer" so that you run inline code:
-      <script>
-        window.addEventListener('DOMContentLoaded', () => {/* Run whatever you want */});
-      </script>
-      {% endcomment %}
-  {% endblock inline_javascript %}
+  {% block inline_javascript %}{% endblock inline_javascript %}
   {% block vue_javascript %}{% endblock vue_javascript %}
   <img alt='Cron Job triggering' width="1" height="1" src="{{cron_url}}" style="display: none;" />
+  {# Extra scripts #}
+  {% comment %}
+  <script src="{% static 'js/externals/popper.min.js' %}"></script>
+  <script src="{% static 'js/externals/bootstrap.min.js' %}"></script>
+  <script src="{% static 'js/externals/bootstrap.bundle.min.js' %}"></script>
+  {% endcomment %}
 </body>
 </html>

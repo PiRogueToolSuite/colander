@@ -33,7 +33,12 @@
                 </div>
               </div>
               <div class="col-8">
-                {{ form.name|as_crispy_field }}
+                <div is="vue:Suggester"
+                     data-type="DetectionRule"
+                     data-csrf-token="{{ csrf_token }}"
+                     data-case-id="{{ contextual_case.id }}">
+                  {{ form.name|as_crispy_field }}
+                </div>
                 {{ form.content|as_crispy_field }}
               </div>
           </form>
@@ -52,12 +57,3 @@
       </div>
   </div>
 {% endblock inner-content %}
-
-{% block inline_javascript %}
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      let input = $("input[name=name]");
-      suggest_entity(input, 'DetectionRule', '{{ csrf_token }}', '{{ contextual_case.id }}');
-    });
-  </script>
-{% endblock inline_javascript %}

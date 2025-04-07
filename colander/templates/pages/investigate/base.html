@@ -9,12 +9,14 @@
   {% block inner-content %}
     {% if form %}
       <div class="row justify-content-center mt-2" {% if wait %}style="display: none"{% endif %}>
+        <h2>{% translate "Investigate" %}</h2>
         <div class="col-md-12">
           <div class="card mb-4 bg-secondary-light">
             <div class="card-body">
               <form method="get" autocomplete="off" id="investigate_form">
+                {% csrf_token %}
                 <div class="row justify-content-center" id="type-selector">
-                  {% include "helpers/dynamic_type_selector.html" %}
+                  <div is="vue:DynamicTypeSelector"></div>
                 </div>
                 <div class="row justify-content-center">
                   <div class="col-md-8 mt-3">
@@ -37,7 +39,7 @@
         </div>
       </div>
     {% endif %}
-    <div class="row justify-content-center">
+    <div class="row justify-content-center mt-4">
 {#    Wait for the threatr request to complete  #}
       {% if wait %}
         <div class="col-md-6">
@@ -190,15 +192,10 @@
       {% endif %}
     </div>
   {% endblock inner-content %}
-  {{ models|json_script:"models-data" }}
-  {{ results|json_script:"results-data" }}
 {% endblock content %}
 
-{% block vue_javascript %}
-  {% include "helpers/dynamic_type_selector_js.html" with dom_container="type-selector" dom_data_container="models-data" %}
-{% endblock vue_javascript %}
-
 {% block inline_javascript %}
+  {{ results|json_script:"results-data" }}
   <script type="module">
     {% if wait %}
       setTimeout(function () {

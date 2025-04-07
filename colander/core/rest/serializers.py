@@ -19,15 +19,20 @@ class DetailedEntitySerializer(serializers.ModelSerializer):
     content = serializers.CharField(allow_null=True, required=False)
     mime_type = serializers.CharField(allow_null=True, read_only=True)
     thumbnail_url = serializers.CharField(allow_null=True, read_only=True)
+    thumbnail = serializers.CharField(allow_null=True, write_only=True, required=False)
 
     class Meta:
         model = Entity
         fields = [
             'id', 'tlp', 'pap', 'created_at', 'updated_at', 'source_url', 'description',
-            'absolute_url', 'content', 'mime_type', 'name', 'super_type', 'type', 'thumbnail_url',
+            'absolute_url', 'content', 'mime_type', 'name', 'super_type', 'type',
+            'thumbnail', 'thumbnail_url',
         ]
         read_only_fields = [
-            'absolute_url', 'created_at', 'mime_type', 'updated_at', 'thumbnail_url',
+            'absolute_url', 'created_at', 'mime_type', 'updated_at', 'thumbnail', 'thumbnail_url',
+        ]
+        write_only_fields = [
+            'thumbnail',
         ]
         list_serializer_class = KeyedListSerializer
         keyed_list_serializer_field = 'id'

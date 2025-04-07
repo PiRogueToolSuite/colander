@@ -67,24 +67,6 @@
 {% endblock content %}
 
 {% block modal %}
-  <div class="modal fade" id="unsaved-case-documentation-modal" tabindex="-1" role="dialog" aria-labelledby="unsaved-case-documentation-modal-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title text-primary" id="unsaved-case-documentation-modal-title"><i class="nf nf-fa-warning text-warning"></i> Unsaved documentation</h5>
-        </div>
-        <div class="modal-body">
-          <p>You have unsaved documentation changes on this device.</p>
-          <p>These changes have been saved temporarily on this device but not submitted to the server.</p>
-          <p>Note: Changes will be lost if you use revert action.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Remind me later</button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" role="review-documentation">Review now</button>
-        </div>
-      </div>
-    </div>
-  </div>
 {% endblock modal %}
 
 {% block offcanvas %}
@@ -104,15 +86,8 @@
         </button>
       </div>
       <div class="offcanvas-body mt-0 p-0">
-        {% include "case/documentation_form.html" with documentation_form=request.documentation_form %}
+        {% include "case/documentation_form.html" with documentation_form=request.documentation_form off_canvas=True %}
       </div>
-      <script type="text/javascript">
-        $(() => {
-          $('#unsaved-case-documentation-modal button[role=review-documentation]').click(() => {
-            $('#documentationOffCanvas').offcanvas("show");
-          });
-        });
-      </script>
     </div>
   {% endif %}
 {% endblock offcanvas %}

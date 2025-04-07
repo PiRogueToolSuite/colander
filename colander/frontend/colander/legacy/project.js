@@ -83,7 +83,7 @@ function handle_entity_delete_control() {
     });
 }
 
-$(function () {
+export default () => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
@@ -105,4 +105,4 @@ $(function () {
 
     handle_comment_controls();
     handle_entity_delete_control();
-})
+};

@@ -26,7 +26,8 @@ from colander.core.models import (
     EntityOutgoingFeed,
     colander_models,
     color_scheme,
-    icons,
+    icons, Observable, Actor, Artifact, DataFragment, DetectionRule, Device, Event,
+    Threat,
 )
 from colander.core.templatetags.colander_tags import model_name
 
@@ -349,6 +350,20 @@ def entity_exists(request):
         value = request.POST.get('value', None)
 
         if not case_id:
+            # Special handling of search type 'Case'
+            if entity_type == 'Case':
+                results = request.user.all_my_cases.filter(name__icontains=value)
+                data = []
+                for obj in results:
+                    data.append({
+                        'id': str(obj.id),
+                        'type': entity_type,
+                        'value': obj.value,
+                        'text': str(obj),
+                        'url': obj.get_absolute_url()
+                    })
+                    # Only first, return immediately
+                    return JsonResponse(data, safe=False)
             return JsonResponse([], safe=False)
 
         active_case = Case.objects.get(pk=case_id)
@@ -369,8 +384,34 @@ def entity_exists(request):
                 'text': str(obj),
                 'url': obj.get_absolute_url()
             })
+            # Only first, return immediately
             return JsonResponse(data, safe=False)
         return JsonResponse([], safe=False)
+
+
+@login_required
+def entity_types(request):
+    models = [
+        Actor,
+        Artifact,
+        DataFragment,
+        DetectionRule,
+        Device,
+        Event,
+        Observable,
+        Threat,
+    ]
+    result = {}
+    for model in models:
+        type_model = model._meta.get_field('type').related_model
+        result[model.__name__] = {
+            str(t.id): {
+                'name': t.name,
+                'type': t.short_name,
+                'default_attributes': t.default_attributes
+            } for t in type_model.objects.all()
+        }
+    return JsonResponse(result, safe=False)
 
 
 @login_required
@@ -519,7 +560,13 @@ def overall_search(request):
         if hasattr(r, 'attributes'):
             if r.attributes:
                 if 'is_malicious' in r.attributes:
-                    rr['is_malicious'] = r.attributes['is_malicious'] == "1" or r.attributes['is_malicious'] == "True"
+                    mal_str = str(r.attributes['is_malicious'] or '').lower()
+                    rr['is_malicious'] = mal_str == "1" or mal_str == "true"
+                if 'malicious' in r.attributes:
+                    mal_str = str(r.attributes['malicious'] or '').lower()
+                    rr['malicious'] = mal_str == "1" or mal_str == "true"
+        if rr['model_name'].lower() == 'threat':
+            rr['is_malicious'] = True
         serializable_results.append(rr)
 
     return JsonResponse(serializable_results, safe=False)

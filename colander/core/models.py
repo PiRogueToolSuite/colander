@@ -64,7 +64,9 @@ class OverwritableFileField(models.FileField):
         # - 'upload_to' FileField use a generator function that does not include file extension
         # - 'validators' are used on this FileField (eg: FileExtensionValidator)
         # - Form is POSTED for 'update'
-        if value == self.generate_filename(model_instance, "dummy-file-name"):
+        # Fix: 'case' is only present @update. It's not present @create lifecycle.
+        if (hasattr(model_instance, 'case') and
+            value == self.generate_filename(model_instance, "dummy-file-name")):
             return value
         return super().clean(value, model_instance)
 

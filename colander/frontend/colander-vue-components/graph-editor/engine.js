@@ -7,10 +7,10 @@ import edgehandles from 'cytoscape-edgehandles';
 import fcose from 'cytoscape-fcose';
 import layoutUtilities from 'cytoscape-layout-utilities';
 import Layers from 'cytoscape-layers';
-import {color_scheme, icons} from './lib/default-style';
-import {overlay_button} from './lib/graph-templates';
+import {color_scheme, icons} from './refs/default-style';
+import {overlay_button} from './refs/graph-templates';
 //import {vueComponent} from '../vues_components/vue-sub-component';
-import {nodeBody} from './lib/functional-styles.js';
+import {nodeBody} from './refs/functional-styles.js';
 
 // For sub-vue access
 import MarkdownIt from 'markdown-it';

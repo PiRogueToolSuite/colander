@@ -27,14 +27,12 @@
   {# Placed at the top of the document so pages load faster with defer #}
   {% block javascript %}
     <!-- place project specific Javascript in this file -->
-    <script src="{% static 'js/externals/jquery.min.js' %}"></script>
     {% compress js %}
+      <script src="{% static 'js/externals/jquery.min.js' %}"></script>
       <script src="{% static 'js/webcomponents-bundle.js' %}"></script>
       <script src="{% static 'js/externals/vue.min.js' %}"></script>
       <script src="{% static 'js/externals/simplemde.min.js' %}"></script>
-      <script src="{% static 'js/externals/popper.min.js' %}"></script>
-      <script src="{% static 'js/externals/bootstrap.min.js' %}"></script>
-      <script src="{% static 'js/masonry.pkgd.min.js' %}"></script>
+      <script src="{% static 'js/externals/bootstrap.bundle.min.js' %}"></script>
     {% endcompress %}
   {% endblock javascript %}
 

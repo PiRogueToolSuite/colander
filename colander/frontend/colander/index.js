@@ -14,6 +14,7 @@ export const ColanderApp = {
   components: {
     ArtifactUploader: defineAsyncComponent(() => import('../colander-vue-components/ArtifactUploader.vue')),
     DocumentationPane: defineAsyncComponent(() => import('../colander-vue-components/DocumentationPane.vue')),
+    DropfileTriage: defineAsyncComponent(() => import('../colander-vue-components/DropfileTriage.vue')),
     DynamicTypeSelector: defineAsyncComponent(() => import('../colander-vue-components/DynamicTypeSelector.vue')),
     GraphEditor: defineAsyncComponent(() => import('../colander-vue-components/GraphEditor.vue')),
     HStoreTable: defineAsyncComponent(() => import('../colander-vue-components/HStoreTable.vue')),

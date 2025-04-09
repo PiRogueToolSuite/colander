@@ -4,6 +4,10 @@ import PrimeVue from "primevue/config";
 import aura from '@primevue/themes/aura';
 
 import CachePlugin from './plugins/Cache';
+import i18nPlugin from './plugins/i18n';
+import LoggerPlugin, {LogLevel} from './plugins/Logger';
+import EventBusPlugin from './plugins/EventBus';
+
 // Not yet published
 //import HarAnalyzerApp from '/home/sancho/Projects/PTS/har-analyzer-vuejs/dist/harweb.es.js';
 
@@ -22,9 +26,10 @@ export const ColanderApp = {
     ToolbarSearch: defineAsyncComponent(() => import('../colander-vue-components/ToolbarSearch.vue')),
   },
   created() {
+    this.$logger(this, 'ColanderApp');
   },
   mounted() {
-    console.log('Colander Wide Application', 'mounted');
+    this.$info('Colander Wide Application', 'mounted');
     /*
     import("bootstrap/dist/js/bootstrap.bundle.js").then((module) => {
       console.log('Boostrap module loaded', module);
@@ -44,6 +49,11 @@ export default () => {
   colander_application.config.errorHandler = (err, instance, info) => {
     console.error('Colander Hydration', err, instance, info);
   };
+  colander_application.use(LoggerPlugin, {
+    logLevel: LogLevel.INFO,
+  });
+  colander_application.use(EventBusPlugin);
+  colander_application.use(i18nPlugin);
   colander_application.use(CachePlugin, {
     dataSources: {
       'entity_types': '/rest/entity/types',

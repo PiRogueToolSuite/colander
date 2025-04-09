@@ -1,6 +1,6 @@
 <script>
-function legacy_bind(csrfToken) {
-  var suggestedArtifactTypesInformation = $("<span class='ms-1 text-secondary'></span>");
+function legacy_bind($vue) {
+  let suggestedArtifactTypesInformation = $("<span class='ms-1 text-secondary'></span>");
   $('#hint_id_type').append(suggestedArtifactTypesInformation);
 
   fetch('/rest/artifact_types/').then(async (response) => {
@@ -110,7 +110,7 @@ function legacy_bind(csrfToken) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken,
+        'X-CSRFToken': $vue.dataCsrfToken,
       },
       body: JSON.stringify(suggest_method_body_request),
     });
@@ -165,6 +165,8 @@ function legacy_bind(csrfToken) {
 
     let artifact_type = $('#id_type').val();
     if (!artifact_type) return;
+
+    $vue.notifyEntityTypeChanged(artifact_type);
 
     let selected_at = Colander.Cache.get('artifact_type', artifact_type);
     if (selected_at.default_attributes) {
@@ -235,8 +237,15 @@ export default {
     dataCsrfToken: String,
   },
   mounted() {
-    console.log('DropfileTriage', 'mounted');
-    legacy_bind( this.dataCsrfToken );
+    this.$logger(this, 'DropfileTriage');
+    this.$debug('mounted');
+    legacy_bind( this );
+  },
+  methods: {
+    notifyEntityTypeChanged(entityType) {
+      this.$debug('notifyEntityTypeChanged', entityType);
+      this.$bus.emit('entity-type-changed', entityType);
+    },
   }
 }
 </script>
@@ -246,7 +255,7 @@ export default {
     <slot name="modal" />
   </Teleport>
 </template>
-<style lang="scss" scoped>
+<style lang="scss">
   #triage-modal .batch-elem {
     display: none;
   }

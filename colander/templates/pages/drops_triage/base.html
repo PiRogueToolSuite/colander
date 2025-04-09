@@ -171,7 +171,9 @@
                     <div class="modal-body">
                       <div class="row">
                         <div class="col-12">
-                          {{ conversion_form.attributes|as_crispy_field }}
+                          <div is="vue:HStoreTable" data-type="Artifact">
+                            {{ conversion_form.attributes|as_crispy_field }}
+                          </div>
                         </div>
                       </div>
                     </div>

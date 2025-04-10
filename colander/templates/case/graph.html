@@ -1,17 +1,14 @@
 {% load static %}
 
-<div id="a-colander-graph">
-  
-    {% if subgraph %}
-      <div is="vue:GraphEditor"
-           data-csrf-token="{{ csrf_token }}"
-           data-case-id="{{ subgraph.case.id }}"
-           data-src="/ws/{{ subgraph.case.id }}/graph/{{ subgraph.id }}/datasource"
-           data-subgraph-id="{{ subgraph.id }}"></div>
-    {% else %}
-      <div is="vue:GraphEditor"
-           data-csrf-token="{{ csrf_token }}"
-           data-case-id="{{ contextual_case.id }}"
-           data-src="/case/{{ contextual_case.id }}/graph"></div>
-    {% endif %}
-</div>
+{% if subgraph %}
+  <div is="vue:GraphEditor"
+       data-csrf-token="{{ csrf_token }}"
+       data-case-id="{{ subgraph.case.id }}"
+       data-src="/ws/{{ subgraph.case.id }}/graph/{{ subgraph.id }}/datasource"
+       data-subgraph-id="{{ subgraph.id }}"></div>
+{% else %}
+  <div is="vue:GraphEditor"
+       data-csrf-token="{{ csrf_token }}"
+       data-case-id="{{ contextual_case.id }}"
+       data-src="/case/{{ contextual_case.id }}/graph"></div>
+{% endif %}

@@ -14,27 +14,67 @@ import EventBusPlugin from './plugins/EventBus';
 import Legacy from './legacy/project';
 import ColanderTextEditor from './legacy/colander-text-editor';
 
+/**
+ * Important: Not reactive content.
+ * @param $vue - the Vue context
+ */
+function init_websocket($vue) {
+  let loc = window.location;
+  let ws_protocol = 'ws:';
+  if (loc.protocol.startsWith('https')) {
+      ws_protocol = 'wss:';
+  }
+  let ws_url_base = `ws://${loc.host}/ws-channel`;
+  let ws_url_case = `${ws_url_base}/global/`;
+  // let ws = new WebSocket(ws_url_case);
+  let ws = new WebSocket(`${ws_protocol}//${loc.host}${loc.pathname}`);
+  ws.addEventListener('message', function(evt) {
+     let data = JSON.parse(evt.data)
+     $vue.$debug('Channel message data', data);
+  });
+  ws.addEventListener('close', function(evt) {
+     $vue.$info('Channel disconnected', arguments);
+  });
+  ws.addEventListener('open', function(evt) {
+     $vue.$info('Channel connected', arguments);
+  });
+  ws.addEventListener('error', function(evt) {
+     $vue.$error('Channel error', arguments);
+  });
+  $vue.$bus.on('msg.example.to.server', (msg) => {
+    ws.send(JSON.stringify(msg));
+  });
+}
+
+
 export const ColanderApp = {
   components: {
-    ArtifactUploader: defineAsyncComponent(() => import('../colander-vue-components/ArtifactUploader.vue')),
-    DocumentationPane: defineAsyncComponent(() => import('../colander-vue-components/DocumentationPane.vue')),
-    DropfileTriage: defineAsyncComponent(() => import('../colander-vue-components/DropfileTriage.vue')),
-    DynamicTypeSelector: defineAsyncComponent(() => import('../colander-vue-components/DynamicTypeSelector.vue')),
-    GraphEditor: defineAsyncComponent(() => import('../colander-vue-components/GraphEditor.vue')),
-    HStoreTable: defineAsyncComponent(() => import('../colander-vue-components/HStoreTable.vue')),
-    Suggester: defineAsyncComponent(() => import('../colander-vue-components/Suggester.vue')),
-    ToolbarSearch: defineAsyncComponent(() => import('../colander-vue-components/ToolbarSearch.vue')),
+    ArtifactUploader: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
+    DocumentationPane: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "DocumentationPane" */ '../colander-vue-components/DocumentationPane.vue')),
+    DropfileTriage: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "DropfileTriage" */ '../colander-vue-components/DropfileTriage.vue')),
+    DynamicTypeSelector: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "DynamicTypeSelector" */ '../colander-vue-components/DynamicTypeSelector.vue')),
+    GraphEditor: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GraphEditor" */ '../colander-vue-components/GraphEditor.vue')),
+    HStoreTable: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "HStoreTable" */ '../colander-vue-components/HStoreTable.vue')),
+    Suggester: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "Suggester" */ '../colander-vue-components/Suggester.vue')),
+    ThumbnailInputField: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "ThumbnailInputField" */ '../colander-vue-components/ThumbnailInputField.vue')),
+    ToolbarSearch: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "ToolbarSearch" */ '../colander-vue-components/ToolbarSearch.vue')),
   },
   created() {
     this.$logger(this, 'ColanderApp');
+
+    init_websocket(this);
   },
   mounted() {
     this.$info('Colander Wide Application', 'mounted');
-    /*
-    import("bootstrap/dist/js/bootstrap.bundle.js").then((module) => {
-      console.log('Boostrap module loaded', module);
-    });
-    */
     Legacy();
     ColanderTextEditor();
   },
@@ -42,15 +82,21 @@ export const ColanderApp = {
 
 export default () => {
   const colander_application = createApp(ColanderApp);
+
+  // -- Main application configuration
   colander_application.config.compilerOptions.whitespace = "preserve";
+
+  // -- Main warning/error handling
   colander_application.config.warnHandler  = (msg, instance, trace) => {
     console.warn('Colander Hydration', msg, instance, trace);
   };
   colander_application.config.errorHandler = (err, instance, info) => {
     console.error('Colander Hydration', err, instance, info);
   };
+
+  // -- Plugin registration
   colander_application.use(LoggerPlugin, {
-    logLevel: LogLevel.INFO,
+    logLevel: LogLevel.DEBUG,
   });
   colander_application.use(EventBusPlugin);
   colander_application.use(i18nPlugin);
@@ -65,6 +111,6 @@ export default () => {
   //colander_application.use(HarAnalyzerApp);
   colander_application.use(PrimeVue);
 
-  // --
+  // -- Mount and start
   colander_application.mount(document.querySelector('body'));
 };

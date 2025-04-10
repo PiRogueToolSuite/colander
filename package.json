@@ -54,7 +54,6 @@
     "cytoscape-context-menus": "^4.2.1",
     "cytoscape-edgehandles": "^4.0.1",
     "cytoscape-fcose": "^2.2.0",
-    "cytoscape-layers": "^3.0.0",
     "cytoscape-layout-utilities": "^1.1.1",
     "i": "^0.3.7",
     "jquery": "^3.7.1",

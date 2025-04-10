@@ -38,19 +38,19 @@ export default {
 };
 </script>
 <template>
-  <div class='vue-container container py-2'>
-    <div class="body">
-      <h5>Entity relation</h5>
-      <div class="form-group mb-2">
-          <label>Relation name</label>
-          <input class="form-control" type="text" placeholder="Relation name" v-model="ctx.name" name="name"/>
+  <div class="vue-component">
+    <div class='vue-container container py-2'>
+      <div class="body">
+        <h5>Entity relation</h5>
+        <div class="form-group mb-2">
+            <label>Relation name</label>
+            <input class="form-control" type="text" placeholder="Relation name" v-model="ctx.name" name="name"/>
+        </div>
       </div>
-    </div>
-    <div class="footer">
-        <button @click="cancel()" type="button" class="btn btn-outline-secondary me-1" role="cancel">Cancel</button>
-        <button @click="save()" v-bind:disabled="invalidForm" type="button" class="btn btn-primary" role="save">Save</button>
+      <div class="footer">
+          <button @click="cancel()" type="button" class="btn btn-outline-secondary me-1" role="cancel">Cancel</button>
+          <button @click="save()" v-bind:disabled="invalidForm" type="button" class="btn btn-primary" role="save">Save</button>
+      </div>
     </div>
   </div>
 </template>
-<style scoped>
-</style>

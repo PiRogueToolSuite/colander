@@ -18,6 +18,7 @@ let webpackConfig = (isDev, isProd) => [
     },
     output: {
       filename: '[name].js',  // output bundle file name
+      chunkFilename: 'async-[name].js',
       path: jsDest,  // path to our Django static directory
     },
     externals: {

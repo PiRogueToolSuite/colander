@@ -27,6 +27,10 @@ function getMimeType(file, fallback = null) {
 export default {
   name: 'ColanderThumbnailInputField',
   components: {Cropper},
+  props: {
+    id: String,
+    class: String,
+  },
   data() {
     return {
       currentImage: {
@@ -75,7 +79,8 @@ export default {
       return this.currentImage.src !== this.thumbnailImage.src;
     },
   },
-  beforeCreate() {
+  created() {
+    this.$logger(this, 'ThumbnailInputField');
   },
   mounted() {
     $(this.$refs.adjustThumbnailModal).on('hidden.bs.modal', () => {
@@ -84,17 +89,26 @@ export default {
     $(this.$refs.adjustThumbnailModal).on('shown.bs.modal', () => {
       this.croppingFeaturesReset();
     });
-    this.$nextTick(() => {
-    });
-    console.log('mounted');
+    this.$fileUploader = this.$refs.slotContent.querySelector('#id_thumbnail');
+    this.$checkboxClear = this.$refs.slotContent.querySelector('#thumbnail-clear_id');
+    this.$debug('$fileUploader', this.$fileUploader);
+    this.$debug('$checboxClear', this.$checkboxClear);
+    if (this.$checkboxClear) {
+      this.$info('No previous thumbnail mode');
+    }
+    this.findInitialImage(this.$refs.slotContent);
+    this.$debug('mounted');
   },
   methods: {
-    replacedDom(jDomTree) {
-      const jImg = jDomTree.find('img');
+    findInitialImage(domTree) {
+      const jImg = $(domTree).find('img');
       if (jImg.length) {
-        this.currentImage.src = jImg.attr('src');
-        this.thumbnailImage.src = this.currentImage.src;
+        this.setInitialImageSrc(jImg.attr('src'));
       }
+    },
+    setInitialImageSrc(imgSrc) {
+      this.currentImage.src = imgSrc;
+      this.thumbnailImage.src = imgSrc;
     },
     loadImage(event) {
       // Reference to the DOM input element
@@ -143,8 +157,10 @@ export default {
           let file = new File([blob], this.croppedImage.name, { type:this.croppedImage.type, lastModified:new Date().getTime()});
           let container = new DataTransfer();
           container.items.add(file);
-          this.$refs.checkboxClear.checked = false;
-          this.$refs.fileUploader.files = container.files;
+          if (this.$checkboxClear) {
+            this.$checkboxClear.checked = false;
+          }
+          this.$fileUploader.files = container.files;
           this.thumbnailImage.src = URL.createObjectURL(blob);
         }, 'image/png');
       }
@@ -164,24 +180,26 @@ export default {
       event.preventDefault();
       event.stopPropagation();
       this.thumbnailImage.src = null;
-      this.$refs.checkboxClear.checked = true;
+      if (this.$checkboxClear) {
+        this.$checkboxClear.checked = true;
+      }
     },
     resetThumbnail(event) {
       event.preventDefault();
       event.stopPropagation();
       this.thumbnailImage.src = this.currentImage.src;
       let emptyContainer = new DataTransfer();
-      this.$refs.fileUploader.files = emptyContainer.files;
+      this.$fileUploader.files = emptyContainer.files;
       this.$refs.fileChooser.files = emptyContainer.files;
-      console.log(this.$refs.fileUploader);
-      //this.$refs.fileUploader.reset();
+      this.$debug(this.$fileUploader);
+      //this.$fileUploader.reset();
     },
     dragover(event) {
       event.preventDefault();
       event.stopPropagation();
       let dt = event.dataTransfer;
       for(let item of dt.items) {
-        console.log('item', item);
+        this.$debug('item', item);
         if (item.kind === 'file' && item.type in this.supportedMimeType) {
           this.$refs.dropzone.classList.add('drop-accepted');
           event.dataTransfer.dropEffect = 'copy';
@@ -215,27 +233,28 @@ export default {
   }
 };
 </script>
-
 <template>
-  <label class="form-label">Thumbnail</label>
-  <input class="visually-hidden" type='file' ref='fileChooser' accept='image/png, image/jpeg, image/jpg' @change="loadImage($event)"/>
-  <input class="visually-hidden" type="file" ref='fileUploader' name="thumbnail" accept="image/png, image/jpeg, image/jpg" id="id_thumbnail"/>
-  <input class="visually-hidden" type="checkbox" ref='checkboxClear' name="thumbnail-clear" id="thumbnail-clear_id" />
-  <div class='drop-zone' ref='dropzone' @dragleave="dragleave" @dragover="dragover" @drop="drop">
-    <div class='row'>
-      <div class='col-8'>
-        <div class='d-flex justify-content-center p-1'>
-          <button class='btn btn-sm btn-secondary text-white' @click="manualLoad">Browse</button>
+  <div :id :class>
+    <div class='slot-content' ref="slotContent">
+      <slot/>
+    </div>
+    <input class="visually-hidden" type='file' ref='fileChooser' accept='image/png, image/jpeg, image/jpg' @change="loadImage($event)"/>
+    <div class='drop-zone' ref='dropzone' @dragleave="dragleave" @dragover="dragover" @drop="drop">
+      <div class='row'>
+        <div class='col-8'>
+          <div class='d-flex justify-content-center p-1'>
+            <button class='btn btn-sm btn-secondary text-white' @click="manualLoad">Browse</button>
+          </div>
+          <div class='hint d-flex justify-content-center p-1'>Or drap'n drop one here</div>
         </div>
-        <div class='hint d-flex justify-content-center p-1'>Or drap'n drop one here</div>
-      </div>
-      <div class='col-4'>
-        <div v-if="thumbnailImage.src">
-          <img class='img-thumbnail' v-if="thumbnailImage.src" v-bind:src="thumbnailImage.src" alt="Current thumbnail" />
-          <button v-if="removable" class='btn btn-sm btn-secondary text-white' @click="removeThumbnail">Remove</button>
-          <button v-if="resetable" class='btn btn-sm btn-secondary text-white' @click="resetThumbnail">Reset</button>
+        <div class='col-4'>
+          <div v-if="thumbnailImage.src">
+            <img class='img-thumbnail me-2' v-if="thumbnailImage.src" v-bind:src="thumbnailImage.src" alt="Current thumbnail" />
+            <button v-if="removable" class='btn btn-sm btn-secondary text-white' @click="removeThumbnail">Remove</button>
+            <button v-if="resetable" class='btn btn-sm btn-secondary text-white' @click="resetThumbnail">Reset</button>
+          </div>
+          <div v-else>No thumbnail</div>
         </div>
-        <div v-else>No thumbnail</div>
       </div>
     </div>
   </div>
@@ -272,8 +291,16 @@ export default {
   </Teleport>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~vue-advanced-cropper/dist/style.css';
+
+.slot-content
+{
+  & > div
+  {
+    display: none;
+  }
+}
 
 .drop-zone
 {
@@ -292,7 +319,7 @@ export default {
 }
 .img-thumbnail
 {
-  max-height: 144px;
+  max-height: 72px;
 }
 .cropper-actions
 {
@@ -318,5 +345,4 @@ export default {
     background: rgba(0, 0, 0, 0.8);
   }
 }
-
 </style>

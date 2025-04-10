@@ -1,12 +1,22 @@
 <script setup>
 </script>
 <script>
+import {defineAsyncComponent} from "vue";
+
 export default {
-  delimiters: ['[[', ']]'],
-  data: () => ({
-    entity: {},
-    allStyles: {},
-  }),
+  components: {
+    ThumbnailInputField: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "ThumbnailInputField" */ '../ThumbnailInputField.vue')),
+  },
+  data() {
+    return {
+      entity: {},
+      allStyles: {},
+    };
+  },
+  created() {
+    this.$logger(this, 'EntityEditPane');
+  },
   methods: {
     optionContent: (t) => {
       // Unfortunately, vuejs (at least in v2), strip out
@@ -23,7 +33,9 @@ export default {
       $(this.$el).trigger('save-entity', [tmp]);
     },
     edit_entity: function(ctx) {
+      this.$debug('edit_entity ctx:', ctx);
       this.entity = ctx;
+      this.$refs.thumbnailEditor.setInitialImageSrc(this.entity.thumbnail_url);
       $(this.$el).find('input[name=name]').select();
     }
   },
@@ -49,40 +61,48 @@ export default {
 };
 </script>
 <template>
-  <div class='vue-container container py-2'>
-    <div class="body">
-      <h5>
-        <i v-bind:class="['fa', 'text-primary', allStyles[entity.super_type]?.['icon-font-classname']]" v-bind:title="entity.super_type"></i>
-        [[entity.super_type]] entity
-      </h5>
-      <div class="form-group mb-2">
-          <label>Entity name*</label>
-          <input class="form-control" type="text" placeholder="Entity name" v-model="entity.name" name="name"/>
-      </div>
-      <div v-if="types">
+  <div class="vue-component">
+    <div class='vue-container container py-2'>
+      <div class="body">
+        <h5>
+          <i v-bind:class="['fa', 'text-primary', allStyles[entity.super_type]?.['icon-font-classname']]" v-bind:title="entity.super_type"></i>
+          {{entity.super_type}} entity
+        </h5>
         <div class="form-group mb-2">
-          <label>[[entity.super_type]] type*</label>
-          <select class='form-control' name="type" size="6" v-model="entity.type">
-            <option v-for="(type, tid) in types" v-bind:value="tid" v-html="optionContent(type)"/>
-          </select>
+            <label>Entity name*</label>
+            <input class="form-control" type="text" placeholder="Entity name" v-model="entity.name" name="name"/>
+        </div>
+        <div v-if="types">
+          <div class="form-group mb-2">
+            <label>{{entity.super_type}} type*</label>
+            <select class='form-control' name="type" size="6" v-model="entity.type">
+              <option v-for="(type, tid) in types" v-bind:value="tid" v-html="optionContent(type)"/>
+            </select>
+          </div>
+        </div>
+        <div v-if="entity.super_type == 'DataFragment'">
+          <div class="form-group mb-2">
+            <label>Content*</label>
+            <textarea name='content' class="form-control" row="5" v-model="entity.content"></textarea>
+          </div>
+        </div>
+        <div v-else-if="entity.super_type == 'DetectionRule'">
+          <h4>Content</h4>
+          <pre>{{entity.content}}</pre>
+        </div>
+        <div class="form-group mb-2">
+          <label class="form-label" for="id_thumbnail">Thumbnail</label>
+          <div is="vue:ThumbnailInputField" ref="thumbnailEditor">
+            <div>
+              <input id="id_thumbnail" type="file" accept='image/png, image/jpeg, image/jpg'/>
+            </div>
+          </div>
         </div>
       </div>
-      <div v-if="entity.super_type == 'DataFragment'">
-        <div class="form-group mb-2">
-          <label>Content*</label>
-          <textarea name='content' class="form-control" row="5" v-model="entity.content"></textarea>
-        </div>
+      <div class="footer">
+          <button @click="cancel()" type="button" class="btn btn-outline-secondary me-1" role="cancel">Cancel</button>
+          <button @click="save()" v-bind:disabled="invalidForm" type="button" class="btn btn-primary" role="save">Save</button>
       </div>
-      <div v-else-if="entity.super_type == 'DetectionRule'">
-        <h4>Content</h4>
-        <pre>[[entity.content]]</pre>
-      </div>
-    </div>
-    <div class="footer">
-        <button @click="cancel()" type="button" class="btn btn-outline-secondary me-1" role="cancel">Cancel</button>
-        <button @click="save()" v-bind:disabled="invalidForm" type="button" class="btn btn-primary" role="save">Save</button>
     </div>
   </div>
 </template>
-<style scoped>
-</style>

@@ -6,10 +6,8 @@ import contextMenus from 'cytoscape-context-menus';
 import edgehandles from 'cytoscape-edgehandles';
 import fcose from 'cytoscape-fcose';
 import layoutUtilities from 'cytoscape-layout-utilities';
-import Layers from 'cytoscape-layers';
 import {color_scheme, icons} from './refs/default-style';
 import {overlay_button} from './refs/graph-templates';
-//import {vueComponent} from '../vues_components/vue-sub-component';
 import {nodeBody} from './refs/functional-styles.js';
 
 // For sub-vue access
@@ -21,7 +19,6 @@ cytoscape.use( contextMenus );
 cytoscape.use( edgehandles );
 cytoscape.use( layoutUtilities ); // Optional but used by fcose in our case
 cytoscape.use( fcose );
-cytoscape.use( Layers );
 
 let styles = [];
 
@@ -168,12 +165,15 @@ styles.push({
 
 class ColanderDGraph {
   // Attributes
+  $vue;
   jRootElement;
   cy;
   g;
   jOverlayMenu;
   _config;
-  constructor(config) {
+
+  constructor(vueCtx, config) {
+    this.$vue = vueCtx;
 
     this.config( config || {} );
 
@@ -186,8 +186,8 @@ class ColanderDGraph {
   }
 
   _domSetup() {
-    this.jRootElement = $(`#${this._config.containerId}`);
-    this.jRootElement.addClass('colander-dgraph');
+    this.jRootElement = $(this.$vue.$el);
+    //this.jRootElement.addClass('colander-dgraph');
 
     // Encapsulate a sub-container to prevent buttons and sidepane event chaos
     // when childing stuff to cytoscape root element
@@ -239,483 +239,7 @@ class ColanderDGraph {
     const pipDimension = { w: 40, h: 40 };
     const pipOffset = { w: 18, h: 0 };
 
-    /*
-    const layers = this.cy.layers();
-    layers.renderPerNode(layers.append('canvas'), (ctx, node, bb) => {
-      ctx.strokeStyle = 'red';
-      //ctx.lineWidth /= node.cy().zoom();
-      ctx.lineWidth = 2;
-      let st = node.data('super_type');
-      if (st in color_scheme) {
-        ctx.strokeStyle = color_scheme[st];
-        ctx.fillStyle = Color(color_scheme[st]).mix(Color.rgb(255,255,255), 0.5).hsl().string();
-      }
-      //console.log('CXT', ctx, 'NODE', node, 'BB', bb, 'data', node.data());
-      ctx.beginPath();
-      ctx.roundRect(
-        -pipDimension.w + pipOffset.w,
-        bb.h/2 - pipDimension.h/2 + pipOffset.h,
-        pipDimension.w, pipDimension.h,
-        [8]
-      );
-      ctx.fill();
-      ctx.stroke();
-    });
-     */
-
     this._applyInternalConfig();
-  }
-
-  _scheduleOverridesSave() {
-    if (this._HANDLER_OVERRIDE_SAVE) {
-      clearTimeout( this._HANDLER_OVERRIDE_SAVE );
-    }
-    this._HANDLER_OVERRIDE_SAVE = setTimeout( this._overrideSave.bind(this), 1000 );
-  }
-
-  async _overrideSave() {
-
-    if (this._HANDLING_SAVE_IN_PROGRESS) {
-      // We already are in saving process
-      // But it seems to take some time
-      // memoize to do it again
-      this._SCHEDULE_SAVE_AGAIN = true;
-      return;
-    }
-
-    this._HANDLING_SAVE_IN_PROGRESS = true;
-    if (this.jStatusSaving) this.jStatusSaving.show();
-
-    let post_data = {};
-
-    // 1- Gather entities positions
-    for(let nid in this.fixedPosition) {
-      post_data[nid] = {
-        position: this.fixedPosition[nid].position,
-      };
-      if (this._config.editableVisibility) {
-        post_data[nid].hidden = (this.g.overrides[nid] && this.g.overrides[nid].hidden) || false;
-      }
-    }
-
-    // 2- Generate thumbnail
-    if (this._config.generateThumbnail) {
-
-      this.cy.$(':selected').data('on-thumbnail', true);
-
-      let thumbnailBlob = this.cy.png({
-        output: 'blob',
-        full: true,
-        bg: 'white',
-        maxWidth: 256,
-        maxHeight: 144
-      });
-
-      this.cy.$(':selected').data('on-thumbnail', false);
-
-      let offscreenCanvas = document.createElement('canvas');
-      let ctx2D = offscreenCanvas.getContext("2d");
-      offscreenCanvas.width = 256;
-      offscreenCanvas.height = 144;
-      ctx2D.rect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      ctx2D.fillStyle = 'white';
-      ctx2D.fill();
-
-      if (thumbnailBlob.size > 0) {
-        let thumbnailImg = await createImageBitmap(thumbnailBlob);
-        ctx2D.drawImage(
-          thumbnailImg,
-          (offscreenCanvas.width - thumbnailImg.width) / 2,
-          (offscreenCanvas.height - thumbnailImg.height) / 2
-        );
-        thumbnailImg = null;
-      }
-      post_data['thumbnail'] = offscreenCanvas.toDataURL().replace(/^.+,/, '');
-
-      ctx2D = null;
-      offscreenCanvas = null;
-      thumbnailBlob = null;
-    }
-
-    try {
-
-      const rawResponse = await fetch(this._config.datasourceUrl, {
-        method: 'PATCH',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this._config.csrfToken,
-        },
-        body: JSON.stringify(post_data),
-      });
-    } catch(e) {
-      console.error("Unable to save overrides", e);
-    }
-
-    if (this._SCHEDULE_SAVE_AGAIN) {
-      this._scheduleOverridesSave();
-      delete this._SCHEDULE_SAVE_AGAIN;
-    }
-
-    if (this.jStatusSaving) this.jStatusSaving.hide();
-    delete this._HANDLING_SAVE_IN_PROGRESS;
-  }
-
-  _onCyReady() {
-    console.log('Fetching ...');
-    fetch(this._config.datasourceUrl)
-      .then((r) => r.json())
-      .then(this._onGraphData.bind(this))
-      .catch((e) => {
-        console.error('Fetch error', e);
-      });
-  }
-
-  _onGraphData(data) {
-    this.g = data;
-
-    // Ensure we have defaults
-    let overridesAtFirst = true;
-    if (!this.g.overrides) {
-      this.g.overrides = {};
-      overridesAtFirst = false;
-    }
-
-    for(let eid in this.g.entities) {
-      let n = this._toNode(eid);
-      let node = this.cy.add(n);
-      this.g.overrides[node.id()] = this.g.overrides[node.id()] || {
-        // depending if graph or subgraph
-        // newly created 'entities' (outside this subgraph)
-        // are hidden by default
-        // unless if a subgraph have never been opened/intialized
-        hidden: this._config.editableVisibility && overridesAtFirst,
-      };
-    }
-    for(let rid in this.g.relations) {
-      let e = this._toEdge(rid);
-      this.cy.add(e);
-    }
-
-    // This part is strongly dependent to the layout engine used
-    // In our case (for now), it's fcose
-    for(let nid in this.g.overrides) {
-      // Check if an override is still in current entities ecosystem.
-      // If not, cytoscape override system does not support unknown 'override'
-      // "delete"s any override no more relevant (by omitting it in referenced fixedPotitions).
-      if (nid in this.g.entities === false) continue;
-
-      this.cy.$id(nid).scratch('_overrides', this.g.overrides[nid]);
-
-      if (this.g.overrides[nid].position) {
-        this.fixedPosition[nid] = {
-          nodeId: nid,
-          position: this.g.overrides[nid].position,
-        }
-      }
-    }
-
-    if (this._sidepane_entities_overview) {
-      let vue = this._sidepane_entities_overview.data('vue');
-      // Workaround a race condition between graph data coming and sub-vue-component inited.
-      if (vue) {
-        // graph data comes late
-        vue.overrides = this.g.overrides;
-        vue.entities = this.g.entities;
-      }
-    }
-
-    this.refreshGraph();
-  }
-
-  _createRelation(event, sourceNode, targetNode, addedEdge) {
-    let ctx = {
-      name: addedEdge.data('name'),
-      obj_from: sourceNode.id(),
-      obj_to: targetNode.id(),
-      pending_edge: addedEdge,
-    };
-    this._create_or_rename_relation(ctx);
-  }
-
-  _renameRelation(renamedEdge) {
-    let ctx = {
-      id: renamedEdge.id(),
-      name: renamedEdge.data('name'),
-      pending_edge: renamedEdge,
-    };
-    this._create_or_rename_relation(ctx);
-  }
-
-  _create_or_rename_relation(ctx) {
-    this._sidepane_relation_create_or_edit.data('vue').edit_relation(ctx);
-    this.sidepane( this._sidepane_relation_create_or_edit );
-  }
-
-  async _do_createOrRenameRelation(ctx) {
-
-    ctx.name = ctx.name?.trim();
-
-    if (!ctx.name) {
-      throw new Error('Empty relation name');
-    }
-
-    let post_data = Object.assign({
-      case_id: this._config.caseId
-    }, ctx);
-    delete post_data.pending_edge;
-
-    const rawResponse = await fetch(
-      ctx.id ? `/rest/entity_relation/${ctx.id}/` : '/rest/entity_relation/', {
-      method: ctx.id ? 'PATCH':'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this._config.csrfToken,
-      },
-      body: JSON.stringify(post_data),
-    });
-
-    if (!rawResponse.ok) {
-      throw new Error('Unexcpeted server error');
-    }
-
-
-    if (ctx.id) {
-      // It's a rename
-      ctx.pending_edge.data('name', ctx.name);
-    }
-    else {
-      // It's a creation
-      const content = await rawResponse.json();
-      this.g.relations[content['id']] = content;
-      let newEdge = this._toEdge(content['id']);
-      this.cy.add(newEdge);
-    }
-  }
-
-  async _deleteRelation(edge) {
-    const rawResponse = await fetch(`/rest/entity_relation/${edge.id()}/`, {
-      method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this._config.csrfToken,
-      },
-      body: JSON.stringify({})
-    });
-
-    if (!rawResponse.ok) {
-      alert('Unexcpeted server error');
-      return;
-    }
-
-    this.cy.remove(edge);
-  }
-
-  _createEntity(type, position) {
-    let ctx = {
-      super_type: type,
-      name: null,
-      position: position,
-    };
-    this._createOrEditEntity(ctx);
-  }
-
-  _createOrEditEntity(ctx) {
-    this._sidepane_entity_create_or_edit.data('vue').edit_entity(ctx);
-    this.sidepane(  this._sidepane_entity_create_or_edit );
-  }
-
-  _quickEditEntity(node) {
-    let ctx = {
-      //edited_node: node, // due to internal structure of a cy node,
-                           // passing this kind of value to vue makes vue
-                           // hangs forever in instrumenting 'edited_node' attribute
-      id: node.id(),
-      type: node.data('type'),
-      name: node.data('name'),
-      super_type: node.data('super_type'),
-      content: node.data('content'),
-    };
-    this._createOrEditEntity(ctx);
-  }
-
-  async _do_createOrEditEntity(ctx) {
-    let post_data = Object.assign({
-      case_id: this._config.caseId
-    }, ctx);
-    delete post_data.position;
-
-    const rawResponse = await fetch(
-        ctx.id?`/rest/entity/${ctx.id}/`:'/rest/entity/',
-        {
-          method: ctx.id ? 'PATCH' : 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRFToken': this._config.csrfToken,
-          },
-          body: JSON.stringify(post_data),
-    });
-
-    if (!rawResponse.ok) {
-      throw new Error('Unexcpeted server error');
-    }
-
-    const content = await rawResponse.json();
-
-    this.g.entities[content['id']] = content;
-
-    if (ctx.id) {
-      // Edit
-      let edited_node = this.cy.$(`#${ctx.id}`);
-      edited_node.data('name', content.name);
-      edited_node.data('content', content.content);
-      edited_node.data('type', content.type);
-    }
-    else {
-      // Create
-      let newNode = this._toNode(content['id']);
-      let nodeElem = this.cy.add(newNode);
-      nodeElem.position(ctx.position).emit('free');
-      this.g.overrides[nodeElem.id()] = { hidden: false };
-      nodeElem.scratch('_overrides', this.g.overrides[nodeElem.id()]);
-
-      if (this._sidepane_entities_overview) {
-        this._sidepane_entities_overview.data('vue').track_new_entity(content);
-      }
-    }
-
-    if (this._sidepane_entities_overview) {
-      this._sidepane_entities_overview.data('vue').refresh();
-    }
-
-  }
-
-  async _viewDetail(node) {
-    const rawResponse = await fetch(`/rest/entity/${node.id()}/`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this._config.csrfToken,
-      }
-    });
-
-    if (!rawResponse.ok) {
-      alert('Unexpected server error');
-      return;
-    }
-
-    const content = await rawResponse.json();
-    this._sidepane_entity_overview.data('vue').entity = content;
-    this.sidepane(this._sidepane_entity_overview);
-  }
-
-  _createSubGraph(selection) {
-    let overrides = {};
-    selection.forEach((ele) => {
-      overrides[ele.id()] = {
-        hidden: false,
-      };
-    });
-    let ctx = {
-      overrides: overrides,
-    };
-    this._createOrEditSubGraph(ctx);
-  }
-
-  _createOrEditSubGraph(ctx) {
-    this._sidepane_subgraph_create_or_edit.data('vue').entities = this.g.entities;
-    this._sidepane_subgraph_create_or_edit.data('vue').subgraph = ctx;
-    this.sidepane(this._sidepane_subgraph_create_or_edit);
-  }
-
-  async _do_createOrEditSubGraph(ctx) {
-    let post_data = Object.assign({
-      case: this._config.caseId
-    }, ctx);
-
-    const rawResponse = await fetch(
-        ctx.id?`/rest/subgraph/${ctx.id}/`:'/rest/subgraph/',
-        {
-          method: ctx.id ? 'PATCH' : 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRFToken': this._config.csrfToken,
-          },
-          body: JSON.stringify(post_data),
-    });
-
-    if (!rawResponse.ok) {
-      throw new Error('Unexcpeted server error');
-    }
-
-    const content = await rawResponse.json();
-    return content;
-  }
-
-  _toEdge(rid) {
-    let r = Object.assign({}, this.g.relations[rid]);
-    r.source = r.obj_from;
-    r.target = r.obj_to;
-    return {
-      group: 'edges',
-      data: r,
-      classes: r['immutable'] ? ['immutable'] : ['mutable'],
-    };
-  }
-
-  _toNode(eid) {
-    let e = Object.assign({}, this.g.entities[eid]);
-    return {
-      group: 'nodes',
-      data: e,
-      classes: [ `${e.super_type}`, `${e.tlp}`, `${e.pap}` ]
-    };
-  }
-
-  config(options) {
-    this._config = Object.assign(this._config || {}, options);
-
-    if (!this._config.containerId) throw new Error('ColanderDGraph; Missing containerId in config');
-    if (!this._config.datasourceUrl) throw new Error('ColanderDGraph; Missing datasourceUrl in config');
-  }
-
-  _hideEntities(eles, degree) {
-    if (degree === undefined) {
-      degree = Number.MAX_SAFE_INTEGER;
-    }
-    if (degree > 0) {
-      eles = ColanderDGraph.cy_linked(eles, degree);
-    }
-    eles.filter('node').forEach((ele) => {
-      this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
-      this.g.overrides[ele.id()].hidden = true;
-    });
-    eles.select().unselect().emit('free');
-    this._sidepane_entities_overview?.data('vue').refresh();
-  }
-
-  _showEntitiesAndRelax(orignalEles, degree) {
-    if (degree === undefined) {
-      degree = Number.MAX_SAFE_INTEGER;
-    }
-    let eles = orignalEles;
-    if (degree > 0) {
-      eles = ColanderDGraph.cy_linked(orignalEles, degree);
-    }
-    eles.filter('node').forEach((ele) => {
-      if (orignalEles.contains(ele)) return;
-      this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
-      this.g.overrides[ele.id()].hidden = false;
-      delete this.fixedPosition[ele.id()];
-    });
-    eles.select().unselect();
-    this._sidepane_entities_overview?.data('vue').refresh();
-    this.refreshGraph();
   }
 
   _applyInternalConfig() {
@@ -1087,7 +611,7 @@ class ColanderDGraph {
 
             complement.removeClass('hidden');
 
-            Colander.Bus.emit('documentation-add-image', `![Sub Graph](${png64})`);
+            this.$bus.emit('documentation-add-image', `![Sub Graph](${png64})`);
           }
         });
       }
@@ -1141,8 +665,11 @@ class ColanderDGraph {
 
     // Sidebar toggle
     if (this._config.sidepane && !this.jOverlayMenu_Sidepane) {
-      this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
-      this.jRootElement.append(this.jOverlayMenu_Sidepane);
+      //this.jOverlayMenu_Sidepane = $(`<div class='sidepane'></div>`);
+      //this.jRootElement.append(this.jOverlayMenu_Sidepane);
+      this.jOverlayMenu_Sidepane = this.jRootElement.find('.sidepane');
+      this.$vue.$debug('jOverlayMenu_Sidepane', this.jOverlayMenu_Sidepane);
+
 
       //
       // Resize stuff sidepane
@@ -1171,23 +698,21 @@ class ColanderDGraph {
       // End: Resize stuff sidepane
       //
 
-      this.sidepane = (t) => {
+      this.sidepane = (falseOrPaneRef) => {
         // Current active (if one)
-        if (typeof(t) === 'boolean') {
-          this.jRootElement.toggleClass('sidepane-active', t);
+        if (typeof(falseOrPaneRef) === 'boolean') {
+          //this.jRootElement.toggleClass('sidepane-active', t);
+          this.$vue.setSidepane(falseOrPaneRef);
         }
-        if (typeof(t) === 'object') {
-          this.jOverlayMenu_Sidepane.find('.vue-component').removeClass('active');
-          t.addClass('active');
-          this.jRootElement.toggleClass('sidepane-active', true);
+        if (typeof(falseOrPaneRef) === 'object') {
+          //this.jOverlayMenu_Sidepane.find('.vue-component').removeClass('active');
+          //t.addClass('active');
+          //this.jRootElement.toggleClass('sidepane-active', true);
+          this.$vue.setSidepane(falseOrPaneRef);
         }
       };
-      this.sidepane_add = (pane) => {
+      this.sidepane_add = (paneRef) => {
         this.jOverlayMenu_Sidepane.append(pane);
-      };
-      this.sidePaneContent = (c) => {
-        this.jOverlayMenu_Sidepane.empty().append(c);
-        this.sidepane(true);
       };
       // this.jOverlayMenu.append(this.jOverlayMenu_SidepaneButton);
     }
@@ -1195,43 +720,28 @@ class ColanderDGraph {
     setTimeout( this._init_vues.bind(this) );
   }
 
-  static cy_linked(ele, degree) {
-    degree = degree || Number.MAX_SAFE_INTEGER;
-    let selection = ele;
-    if (selection.isEdge()) {
-      selection = selection.connectedNodes()
-    }
-    let currentCount = selection.length;
-    do {
-      currentCount = selection.length
-      selection = selection.closedNeighborhood();
-    } while( currentCount < selection.length && --degree > 0);
-    return selection;
-  }
-
   _init_vues() {
-    return;
     //
     // Entities list
     // ========================================================================
-    this._sidepane_entities_overview = vueComponent('colander-dgraph-entities-table');
-    this.sidepane_add(this._sidepane_entities_overview);
-    //this.jOverlayMenu_Sidepane.append(this._sidepane_entities_overview);
-    this._sidepane_entities_overview.on('close-component', (e) => {
+    this._sidepane_entities_overview = this.$vue.$refs.entityTablePane;
+    $(this._sidepane_entities_overview.$el).on('close-component', (e) => {
+      this.$vue.$debug('on close-component');
       this.sidepane(false);
     });
-    this._sidepane_entities_overview.on('vue-ready', (e, jDom, vue) => {
-      vue.editableVisibility = this._config.editableVisibility || false;
-      vue.allStyles = this.allStyles;
-      if (this.g) {
-        // Carefull: this.g (aka graph data) comes very late
-        // Usually this.g is not available at this state.
-        // @see _onGraphData() to handle this
-        vue.overrides = this.g.overrides;
-        vue.entities = this.g.entities;
-      }
-    });
-    this._sidepane_entities_overview.on('entity-visibility-changed', (e, eid, hidden) => {
+
+    this.$vue.$debug('on vue-ready');
+    this.$vue.$refs.entityTablePane.editableVisibility = this._config.editableVisibility || false;
+    this.$vue.$refs.entityTablePane.allStyles = this.allStyles;
+    if (this.g) {
+      // Carefull: this.g (aka graph data) comes very late
+      // Usually this.g is not available at this state.
+      // @see _onGraphData() to handle this
+      this.$vue.$refs.entityTablePane.overrides = this.g.overrides;
+      this.$vue.$refs.entityTablePane.entities = this.g.entities;
+    }
+
+    $(this._sidepane_entities_overview.$el).on('entity-visibility-changed', (e, eid, hidden) => {
       let node = this.cy.$id(eid);
       // Hack:
       // 'selecting' then 'unselecting' node
@@ -1243,15 +753,17 @@ class ColanderDGraph {
         node.emit('free');
       }
       else {
-        this._sidepane_entities_overview.trigger('focus-entity', [eid]);
-        setTimeout(()=> {
-          delete this.fixedPosition[eid];
-          // refreshGraph will emit 'free' like events
-          this.refreshGraph();
-        }, 1500);
+        $(this._sidepane_entities_overview.$el).trigger('focus-entity', [eid]);
+        if (this._config.layoutAfterNodeBecomeVisible) {
+          setTimeout(() => {
+            delete this.fixedPosition[eid];
+            // refreshGraph will emit 'free' like events
+            this.refreshGraph();
+          }, 1500);
+        }
       }
     });
-    this._sidepane_entities_overview.on('focus-entity', (e, eid) => {
+    $(this._sidepane_entities_overview.$el).on('focus-entity', (e, eid) => {
       let pos = this.cy.$id(eid).renderedPosition();
       let pan = this.cy.pan();
       let viewport = { x: this.cy.width(), y:this.cy.height() };
@@ -1270,19 +782,20 @@ class ColanderDGraph {
     //
     // Entity edit form
     // ========================================================================
-    this._sidepane_entity_create_or_edit = vueComponent('colander-dgraph-entity-edit');
-    this.sidepane_add(this._sidepane_entity_create_or_edit);
-    this._sidepane_entity_create_or_edit.on('vue-ready', (e, jDom, vue) => {
-      vue.allStyles = this.allStyles;
-    });
-    this._sidepane_entity_create_or_edit.on('close-component', (e) => {
+    this._sidepane_entity_create_or_edit = this.$vue.$refs.entityEditPane;
+
+    this.$vue.$refs.entityEditPane.allStyles = this.allStyles;
+
+    $(this._sidepane_entity_create_or_edit.$el).on('close-component', (e) => {
       this.sidepane(false);
     });
-    this._sidepane_entity_create_or_edit.on('save-entity', (e, entity) => {
+    $(this._sidepane_entity_create_or_edit.$el).on('save-entity', (e, entity) => {
       this._do_createOrEditEntity(entity)
         .then(console.log).catch(console.error);
       this.sidepane(false);
     });
+
+    return;
 
     //
     // Relation edit form
@@ -1320,7 +833,7 @@ class ColanderDGraph {
     });
     this._sidepane_entity_overview.on('quick-edit-entity', (e, eid) => {
       let tmp = JSON.parse(JSON.stringify(this.g.entities[eid]));
-      this._sidepane_entity_create_or_edit.data('vue').edit_entity( tmp );
+      this._sidepane_entity_create_or_edit.edit_entity( tmp );
       this.sidepane(  this._sidepane_entity_create_or_edit );
     });
 
@@ -1347,6 +860,476 @@ class ColanderDGraph {
     });
 
   }
+
+  _scheduleOverridesSave() {
+    if (this._HANDLER_OVERRIDE_SAVE) {
+      clearTimeout( this._HANDLER_OVERRIDE_SAVE );
+    }
+    this._HANDLER_OVERRIDE_SAVE = setTimeout( this._overrideSave.bind(this), 1000 );
+  }
+
+  async _overrideSave() {
+
+    if (this._HANDLING_SAVE_IN_PROGRESS) {
+      // We already are in saving process
+      // But it seems to take some time
+      // memoize to do it again
+      this._SCHEDULE_SAVE_AGAIN = true;
+      return;
+    }
+
+    this._HANDLING_SAVE_IN_PROGRESS = true;
+    if (this.jStatusSaving) this.jStatusSaving.show();
+
+    let post_data = {};
+
+    // 1- Gather entities positions
+    for(let nid in this.fixedPosition) {
+      post_data[nid] = {
+        position: this.fixedPosition[nid].position,
+      };
+      if (this._config.editableVisibility) {
+        post_data[nid].hidden = (this.g.overrides[nid] && this.g.overrides[nid].hidden) || false;
+      }
+    }
+
+    // 2- Generate thumbnail
+    if (this._config.generateThumbnail) {
+
+      this.cy.$(':selected').data('on-thumbnail', true);
+
+      let thumbnailBlob = this.cy.png({
+        output: 'blob',
+        full: true,
+        bg: 'white',
+        maxWidth: 256,
+        maxHeight: 144
+      });
+
+      this.cy.$(':selected').data('on-thumbnail', false);
+
+      let offscreenCanvas = document.createElement('canvas');
+      let ctx2D = offscreenCanvas.getContext("2d");
+      offscreenCanvas.width = 256;
+      offscreenCanvas.height = 144;
+      ctx2D.rect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      ctx2D.fillStyle = 'white';
+      ctx2D.fill();
+
+      if (thumbnailBlob.size > 0) {
+        let thumbnailImg = await createImageBitmap(thumbnailBlob);
+        ctx2D.drawImage(
+          thumbnailImg,
+          (offscreenCanvas.width - thumbnailImg.width) / 2,
+          (offscreenCanvas.height - thumbnailImg.height) / 2
+        );
+        thumbnailImg = null;
+      }
+      post_data['thumbnail'] = offscreenCanvas.toDataURL().replace(/^.+,/, '');
+
+      ctx2D = null;
+      offscreenCanvas = null;
+      thumbnailBlob = null;
+    }
+
+    try {
+
+      const rawResponse = await fetch(this._config.datasourceUrl, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRFToken': this._config.csrfToken,
+        },
+        body: JSON.stringify(post_data),
+      });
+    } catch(e) {
+      console.error("Unable to save overrides", e);
+    }
+
+    if (this._SCHEDULE_SAVE_AGAIN) {
+      this._scheduleOverridesSave();
+      delete this._SCHEDULE_SAVE_AGAIN;
+    }
+
+    if (this.jStatusSaving) this.jStatusSaving.hide();
+    delete this._HANDLING_SAVE_IN_PROGRESS;
+  }
+
+  _onCyReady() {
+    console.log('Fetching ...');
+    fetch(this._config.datasourceUrl)
+      .then((r) => r.json())
+      .then(this._onGraphData.bind(this))
+      .catch((e) => {
+        console.error('Fetch error', e);
+      });
+  }
+
+  _onGraphData(data) {
+    this.g = data;
+
+    // Ensure we have defaults
+    let overridesAtFirst = true;
+    if (!this.g.overrides) {
+      this.g.overrides = {};
+      overridesAtFirst = false;
+    }
+
+    for(let eid in this.g.entities) {
+      let n = this._toNode(eid);
+      let node = this.cy.add(n);
+      this.g.overrides[node.id()] = this.g.overrides[node.id()] || {
+        // depending if graph or subgraph
+        // newly created 'entities' (outside this subgraph)
+        // are hidden by default
+        // unless if a subgraph have never been opened/intialized
+        hidden: this._config.editableVisibility && overridesAtFirst,
+      };
+    }
+    for(let rid in this.g.relations) {
+      let e = this._toEdge(rid);
+      this.cy.add(e);
+    }
+
+    // This part is strongly dependent to the layout engine used
+    // In our case (for now), it's fcose
+    for(let nid in this.g.overrides) {
+      // Check if an override is still in current entities ecosystem.
+      // If not, cytoscape override system does not support unknown 'override'
+      // "delete"s any override no more relevant (by omitting it in referenced fixedPotitions).
+      if (nid in this.g.entities === false) continue;
+
+      this.cy.$id(nid).scratch('_overrides', this.g.overrides[nid]);
+
+      if (this.g.overrides[nid].position) {
+        this.fixedPosition[nid] = {
+          nodeId: nid,
+          position: this.g.overrides[nid].position,
+        }
+      }
+    }
+
+    if (this._sidepane_entities_overview) {
+      //let vue = this._sidepane_entities_overview.data('vue');
+      let vue = this._sidepane_entities_overview;
+      // Workaround a race condition between graph data coming and sub-vue-component inited.
+      if (vue) {
+        // graph data comes late
+        vue.overrides = this.g.overrides;
+        vue.entities = this.g.entities;
+      }
+    }
+
+    this.refreshGraph();
+  }
+
+  _createRelation(event, sourceNode, targetNode, addedEdge) {
+    let ctx = {
+      name: addedEdge.data('name'),
+      obj_from: sourceNode.id(),
+      obj_to: targetNode.id(),
+      pending_edge: addedEdge,
+    };
+    this._create_or_rename_relation(ctx);
+  }
+
+  _renameRelation(renamedEdge) {
+    let ctx = {
+      id: renamedEdge.id(),
+      name: renamedEdge.data('name'),
+      pending_edge: renamedEdge,
+    };
+    this._create_or_rename_relation(ctx);
+  }
+
+  _create_or_rename_relation(ctx) {
+    this._sidepane_relation_create_or_edit.data('vue').edit_relation(ctx);
+    this.sidepane( this._sidepane_relation_create_or_edit );
+  }
+
+  async _do_createOrRenameRelation(ctx) {
+
+    ctx.name = ctx.name?.trim();
+
+    if (!ctx.name) {
+      throw new Error('Empty relation name');
+    }
+
+    let post_data = Object.assign({
+      case_id: this._config.caseId
+    }, ctx);
+    delete post_data.pending_edge;
+
+    const rawResponse = await fetch(
+      ctx.id ? `/rest/entity_relation/${ctx.id}/` : '/rest/entity_relation/', {
+      method: ctx.id ? 'PATCH':'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this._config.csrfToken,
+      },
+      body: JSON.stringify(post_data),
+    });
+
+    if (!rawResponse.ok) {
+      throw new Error('Unexcpeted server error');
+    }
+
+
+    if (ctx.id) {
+      // It's a rename
+      ctx.pending_edge.data('name', ctx.name);
+    }
+    else {
+      // It's a creation
+      const content = await rawResponse.json();
+      this.g.relations[content['id']] = content;
+      let newEdge = this._toEdge(content['id']);
+      this.cy.add(newEdge);
+    }
+  }
+
+  async _deleteRelation(edge) {
+    const rawResponse = await fetch(`/rest/entity_relation/${edge.id()}/`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this._config.csrfToken,
+      },
+      body: JSON.stringify({})
+    });
+
+    if (!rawResponse.ok) {
+      alert('Unexcpeted server error');
+      return;
+    }
+
+    this.cy.remove(edge);
+  }
+
+  _createEntity(type, position) {
+    let ctx = {
+      super_type: type,
+      name: null,
+      position: position,
+    };
+    this._createOrEditEntity(ctx);
+  }
+
+  _createOrEditEntity(ctx) {
+    this._sidepane_entity_create_or_edit.edit_entity(ctx);
+    this.sidepane(  this._sidepane_entity_create_or_edit );
+  }
+
+  _quickEditEntity(node) {
+    this.$vue.$debug('_quickEditEntity node:', node);
+    let ctx = {
+      //edited_node: node, // due to internal structure of a cy node,
+                           // passing this kind of value to vue makes vue
+                           // hangs forever in instrumenting 'edited_node' attribute
+      id: node.id(),
+      type: node.data('type'),
+      name: node.data('name'),
+      super_type: node.data('super_type'),
+      content: node.data('content'),
+      thumbnail_url: node.data('thumbnail_url'),
+    };
+    this._createOrEditEntity(ctx);
+  }
+
+  async _do_createOrEditEntity(ctx) {
+    let post_data = Object.assign({
+      case_id: this._config.caseId
+    }, ctx);
+    delete post_data.position;
+
+    const rawResponse = await fetch(
+        ctx.id?`/rest/entity/${ctx.id}/`:'/rest/entity/',
+        {
+          method: ctx.id ? 'PATCH' : 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this._config.csrfToken,
+          },
+          body: JSON.stringify(post_data),
+    });
+
+    if (!rawResponse.ok) {
+      throw new Error('Unexcpeted server error');
+    }
+
+    const content = await rawResponse.json();
+
+    this.g.entities[content['id']] = content;
+
+    if (ctx.id) {
+      // Edit
+      let edited_node = this.cy.$(`#${ctx.id}`);
+      edited_node.data('name', content.name);
+      edited_node.data('content', content.content);
+      edited_node.data('type', content.type);
+    }
+    else {
+      // Create
+      let newNode = this._toNode(content['id']);
+      let nodeElem = this.cy.add(newNode);
+      nodeElem.position(ctx.position).emit('free');
+      this.g.overrides[nodeElem.id()] = { hidden: false };
+      nodeElem.scratch('_overrides', this.g.overrides[nodeElem.id()]);
+
+      if (this._sidepane_entities_overview) {
+        this._sidepane_entities_overview.track_new_entity(content);
+      }
+    }
+
+    if (this._sidepane_entities_overview) {
+      this._sidepane_entities_overview.refresh();
+    }
+
+  }
+
+  async _viewDetail(node) {
+    const rawResponse = await fetch(`/rest/entity/${node.id()}/`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': this._config.csrfToken,
+      }
+    });
+
+    if (!rawResponse.ok) {
+      alert('Unexpected server error');
+      return;
+    }
+
+    const content = await rawResponse.json();
+    this._sidepane_entity_overview.data('vue').entity = content;
+    this.sidepane(this._sidepane_entity_overview);
+  }
+
+  _createSubGraph(selection) {
+    let overrides = {};
+    selection.forEach((ele) => {
+      overrides[ele.id()] = {
+        hidden: false,
+      };
+    });
+    let ctx = {
+      overrides: overrides,
+    };
+    this._createOrEditSubGraph(ctx);
+  }
+
+  _createOrEditSubGraph(ctx) {
+    this._sidepane_subgraph_create_or_edit.data('vue').entities = this.g.entities;
+    this._sidepane_subgraph_create_or_edit.data('vue').subgraph = ctx;
+    this.sidepane(this._sidepane_subgraph_create_or_edit);
+  }
+
+  async _do_createOrEditSubGraph(ctx) {
+    let post_data = Object.assign({
+      case: this._config.caseId
+    }, ctx);
+
+    const rawResponse = await fetch(
+        ctx.id?`/rest/subgraph/${ctx.id}/`:'/rest/subgraph/',
+        {
+          method: ctx.id ? 'PATCH' : 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this._config.csrfToken,
+          },
+          body: JSON.stringify(post_data),
+    });
+
+    if (!rawResponse.ok) {
+      throw new Error('Unexcpeted server error');
+    }
+
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  _toEdge(rid) {
+    let r = Object.assign({}, this.g.relations[rid]);
+    r.source = r.obj_from;
+    r.target = r.obj_to;
+    return {
+      group: 'edges',
+      data: r,
+      classes: r['immutable'] ? ['immutable'] : ['mutable'],
+    };
+  }
+
+  _toNode(eid) {
+    let e = Object.assign({}, this.g.entities[eid]);
+    return {
+      group: 'nodes',
+      data: e,
+      classes: [ `${e.super_type}`, `${e.tlp}`, `${e.pap}` ]
+    };
+  }
+
+  config(options) {
+    this._config = Object.assign(this._config || {}, options);
+
+    if (!this._config.containerId) throw new Error('ColanderDGraph; Missing containerId in config');
+    if (!this._config.datasourceUrl) throw new Error('ColanderDGraph; Missing datasourceUrl in config');
+  }
+
+  _hideEntities(eles, degree) {
+    if (degree === undefined) {
+      degree = Number.MAX_SAFE_INTEGER;
+    }
+    if (degree > 0) {
+      eles = ColanderDGraph.cy_linked(eles, degree);
+    }
+    eles.filter('node').forEach((ele) => {
+      this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
+      this.g.overrides[ele.id()].hidden = true;
+    });
+    eles.select().unselect().emit('free');
+    this._sidepane_entities_overview?.refresh();
+  }
+
+  _showEntitiesAndRelax(orignalEles, degree) {
+    if (degree === undefined) {
+      degree = Number.MAX_SAFE_INTEGER;
+    }
+    let eles = orignalEles;
+    if (degree > 0) {
+      eles = ColanderDGraph.cy_linked(orignalEles, degree);
+    }
+    eles.filter('node').forEach((ele) => {
+      if (orignalEles.contains(ele)) return;
+      this.g.overrides[ele.id()] = this.g.overrides[ele.id()] || {};
+      this.g.overrides[ele.id()].hidden = false;
+      delete this.fixedPosition[ele.id()];
+    });
+    eles.select().unselect();
+    this._sidepane_entities_overview?.refresh();
+    this.refreshGraph();
+  }
+
+  static cy_linked(ele, degree) {
+    degree = degree || Number.MAX_SAFE_INTEGER;
+    let selection = ele;
+    if (selection.isEdge()) {
+      selection = selection.connectedNodes()
+    }
+    let currentCount = selection.length;
+    do {
+      currentCount = selection.length
+      selection = selection.closedNeighborhood();
+    } while( currentCount < selection.length && --degree > 0);
+    return selection;
+  }
+
   refreshGraph() {
 
     this.firstLayout = this.firstLayout === undefined;

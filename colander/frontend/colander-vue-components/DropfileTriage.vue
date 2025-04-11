@@ -223,10 +223,16 @@ function legacy_bind($vue) {
     $('#triage-form').submit();
   });
 
-  $('#triage-actions button[role=delete]').on('click',() => {
-    $('#id_delete_action').val('delete');
-    $('#triage-form').submit();
-  });
+  // Need to be hooked later
+  // Vue sub-sequence instancing will overwrite all 'click' existing click events.
+  // Moreover, there is a case where the dom itself will not be there during Vue mounting lifecycle.
+  setTimeout(()=>{
+    $vue.$fixme("Migrate this component to a proper'n complete Vue to avoid this workaround");
+    $('#triage-actions button[role=delete]').on('click',() => {
+      $('#id_delete_action').val('delete');
+      $('#triage-form').submit();
+    });
+  }, 1000);
 
   $('#id_type').change(artifact_type_change);
   $('#id_case').change(case_change);
@@ -238,8 +244,8 @@ export default {
   },
   mounted() {
     this.$logger(this, 'DropfileTriage');
-    this.$debug('mounted');
     legacy_bind( this );
+    this.$debug('mounted');
   },
   methods: {
     notifyEntityTypeChanged(entityType) {

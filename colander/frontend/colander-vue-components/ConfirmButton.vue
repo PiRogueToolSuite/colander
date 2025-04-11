@@ -10,11 +10,15 @@ export default {
   },
   data() {
     return {
+      itsAButtonTag: false, // Can't be a computed var, this.$el will be null at rendering
+                            // using computed value for the first time
       askingConfirmation: false,
     }
   },
   created() {
     this.$logger(this, 'ConfirmButton');
+    this.$debug('itsAButtonTag', this.type);
+    this.itsAButtonTag = this.type?.toLowerCase() === 'button';
     this.$debug('created', this.$el);
   },
   mounted() {
@@ -41,7 +45,16 @@ export default {
 };
 </script>
 <template>
-  <a :class :href :title :type :role :disabled @click="askOrDoAction($event)" @blur="restore($event)">
+  <button v-if="itsAButtonTag" :disabled
+          :class :href :title :type :role @click="askOrDoAction($event)" @blur="restore($event)">
+    <span v-if="askingConfirmation">
+      <strong>Sure ?</strong>
+    </span>
+    <span v-else>
+      <slot/>
+    </span>
+  </button>
+  <a v-else :class :href :title :type :role @click="askOrDoAction($event)" @blur="restore($event)">
     <span v-if="askingConfirmation">
       <strong>Sure ?</strong>
     </span>

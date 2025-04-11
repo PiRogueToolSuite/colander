@@ -96,9 +96,19 @@ export default () => {
     console.error('Colander Hydration', err, instance, info);
   };
 
+  // -- Local Preferences
+  let localLogLevel = LogLevel.WARN;
+  try {
+    let storedLogLevel = localStorage.getItem('logLevel');
+    if (storedLogLevel in LogLevel) {
+      localLogLevel = LogLevel[storedLogLevel];
+      console.debug('New logLevel set to', storedLogLevel);
+    }
+  } catch(err) {}
+
   // -- Plugin registration
   colander_application.use(LoggerPlugin, {
-    logLevel: LogLevel.DEBUG,
+    logLevel: localLogLevel,
   });
   colander_application.use(EventBusPlugin);
   colander_application.use(i18nPlugin);

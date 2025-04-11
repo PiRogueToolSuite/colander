@@ -8,7 +8,8 @@
     {% translate "Edit" %}
   </a>
   <a href="{% url "feeds_detection_rule_out_feed_delete_view" case_id=feed.case.id pk=feed.id %}"
-     class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}">
+     class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}"
+     is="vue:ConfirmButton">
     <i class="nf nf-fa-trash"></i>
     Delete
   </a>

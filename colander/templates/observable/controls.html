@@ -34,7 +34,8 @@
   {% endif %}
   {% if "delete" not in exclude %}
     <a href="{% url "collect_observable_delete_view" case_id=observable.case.id pk=observable.id %}"
-       class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+       class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
+       is="vue:ConfirmButton">
       <i class="nf nf-fa-trash"></i>
       Delete
     </a>

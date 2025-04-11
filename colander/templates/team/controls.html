@@ -14,7 +14,9 @@
       {% translate "Edit" %}
     </a>
   {% endif %}
-  <a href="{% url "collaborate_team_delete_view" pk=team.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+  <a href="{% url "collaborate_team_delete_view" pk=team.id %}"
+     class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
+     is="vue:ConfirmButton">
     <i class="nf nf-fa-trash"></i>
     Delete
   </a>

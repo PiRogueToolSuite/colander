@@ -14,7 +14,9 @@
       {% if not no_text %}{% translate "Edit" %}{% endif %}
     </a>
   {% endif %}
-  <a href="{% url "collect_event_delete_view" case_id=event.case.id pk=event.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+  <a href="{% url "collect_event_delete_view" case_id=event.case.id pk=event.id %}"
+     class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
+     is="vue:ConfirmButton">
     <i class="nf nf-fa-trash"></i>
     {% if not no_text %}{% translate "Delete" %}{% endif %}
   </a>

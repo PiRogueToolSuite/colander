@@ -51,6 +51,8 @@ export const ColanderApp = {
   components: {
     ArtifactUploader: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
+    ConfirmButton: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "ConfirmButton" */ '../colander-vue-components/ConfirmButton.vue')),
     DocumentationPane: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DocumentationPane" */ '../colander-vue-components/DocumentationPane.vue')),
     DropfileTriage: defineAsyncComponent(() =>

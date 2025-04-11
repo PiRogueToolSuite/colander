@@ -25,7 +25,9 @@
     {% translate "Download" %}
   </a>
   {% if artifact.has_been_processed and "delete" not in exclude %}
-      <a href="{% url "collect_artifact_delete_view" case_id=artifact.case.id pk=artifact.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+      <a href="{% url "collect_artifact_delete_view" case_id=artifact.case.id pk=artifact.id %}"
+         class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
+         is="vue:ConfirmButton">
         <i class="nf nf-fa-trash"></i>
         Delete
       </a>

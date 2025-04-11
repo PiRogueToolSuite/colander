@@ -29,7 +29,9 @@
       {% translate "Edit properties" %}
     </a>
   {% endif %}
-  <a href="{% url "subgraph_delete_view" case_id=subgraph.case.id pk=subgraph.id %}" class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+  <a href="{% url "subgraph_delete_view" case_id=subgraph.case.id pk=subgraph.id %}"
+     class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
+     is="vue:ConfirmButton">
     <i class="nf nf-fa-trash"></i>
     Delete
   </a>

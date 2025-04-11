@@ -18,7 +18,8 @@
   {% endif %}
   {% if "delete" not in exclude %}
     <a href="{% url "collect_data_fragment_delete_view" case_id=data_fragment.case.id pk=data_fragment.id %}"
-       class="delete-entity-btn btn btn-danger text-white {{ btn_class }}">
+       class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
+       is="vue:ConfirmButton">
       <i class="nf nf-fa-trash"></i>
       Delete
     </a>

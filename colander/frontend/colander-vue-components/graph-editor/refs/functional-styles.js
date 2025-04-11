@@ -78,7 +78,7 @@ let nodeBody = _memoize(function(e, iid) {
     bgImage: bgImageUrl,
     labelHAlign: labelAlign, labelJustification: labelJustification, labelMarginX: labelMarginX };
 },(e) => {
-  return `${e.id()}-${e.data('name')}-${e.data('type')}`;
+  return `${e.id()}-${e.data('name')}-${e.data('type')}-${e.data('thumbnail_url')}`;
 });
 
 export { nodeLabel, nodeBody };

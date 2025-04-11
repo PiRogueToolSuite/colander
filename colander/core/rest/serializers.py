@@ -19,7 +19,7 @@ class DetailedEntitySerializer(serializers.ModelSerializer):
     content = serializers.CharField(allow_null=True, required=False)
     mime_type = serializers.CharField(allow_null=True, read_only=True)
     thumbnail_url = serializers.CharField(allow_null=True, read_only=True)
-    thumbnail = serializers.CharField(allow_null=True, write_only=True, required=False)
+    thumbnail = serializers.FileField(allow_null=True, write_only=True, required=False)
 
     class Meta:
         model = Entity
@@ -29,7 +29,7 @@ class DetailedEntitySerializer(serializers.ModelSerializer):
             'thumbnail', 'thumbnail_url',
         ]
         read_only_fields = [
-            'absolute_url', 'created_at', 'mime_type', 'updated_at', 'thumbnail', 'thumbnail_url',
+            'absolute_url', 'created_at', 'mime_type', 'updated_at', 'thumbnail_url',
         ]
         write_only_fields = [
             'thumbnail',

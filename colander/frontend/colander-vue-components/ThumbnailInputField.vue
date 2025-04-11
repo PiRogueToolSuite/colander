@@ -71,6 +71,9 @@ export default {
       }
     };
   },
+  created() {
+    this.$logger(this, 'ThumbnailInputField');
+  },
   computed: {
     removable() {
       return this.currentImage.src !== null && this.currentImage.src === this.thumbnailImage.src;
@@ -78,9 +81,6 @@ export default {
     resetable() {
       return this.currentImage.src !== this.thumbnailImage.src;
     },
-  },
-  created() {
-    this.$logger(this, 'ThumbnailInputField');
   },
   mounted() {
     $(this.$refs.adjustThumbnailModal).on('hidden.bs.modal', () => {
@@ -93,6 +93,9 @@ export default {
     this.$checkboxClear = this.$refs.slotContent.querySelector('#thumbnail-clear_id');
     this.$debug('$fileUploader', this.$fileUploader);
     this.$debug('$checboxClear', this.$checkboxClear);
+    if (!this.$fileUploader) {
+      throw new Error("ThumbnailInputField need a slot containing an <input type='file' id='id_thumbnail'/>");
+    }
     if (this.$checkboxClear) {
       this.$info('No previous thumbnail mode');
     }
@@ -153,7 +156,7 @@ export default {
 
       if (cropResult.canvas) {
         cropResult.canvas.toBlob((blob) => {
-          console.log('cropped blob', blob);
+          this.$debug('cropped blob', blob);
           let file = new File([blob], this.croppedImage.name, { type:this.croppedImage.type, lastModified:new Date().getTime()});
           let container = new DataTransfer();
           container.items.add(file);
@@ -185,14 +188,12 @@ export default {
       }
     },
     resetThumbnail(event) {
-      event.preventDefault();
-      event.stopPropagation();
+      event?.preventDefault();
+      event?.stopPropagation();
       this.thumbnailImage.src = this.currentImage.src;
       let emptyContainer = new DataTransfer();
       this.$fileUploader.files = emptyContainer.files;
       this.$refs.fileChooser.files = emptyContainer.files;
-      this.$debug(this.$fileUploader);
-      //this.$fileUploader.reset();
     },
     dragover(event) {
       event.preventDefault();

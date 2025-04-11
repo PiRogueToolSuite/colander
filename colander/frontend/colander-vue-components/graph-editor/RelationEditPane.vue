@@ -2,7 +2,6 @@
 </script>
 <script>
 export default {
-  delimiters: ['[[', ']]'],
   data: () => ({
     ctx: {},
     pending_edge: null,

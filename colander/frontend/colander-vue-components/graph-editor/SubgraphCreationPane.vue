@@ -2,7 +2,6 @@
 </script>
 <script>
 export default {
-  delimiters: ['[[', ']]'],
   data: () => ({
     allStyles: {},
     entities: {},
@@ -69,7 +68,7 @@ export default {
                 </td>
                 <td class='text-truncate'
                     style="max-width: 0;"
-                    v-bind:title="entities[eid].name">[[ entities[eid].name ]]</td>
+                    v-bind:title="entities[eid].name">{{ entities[eid].name }}</td>
               </tr>
             </tbody>
           </table>

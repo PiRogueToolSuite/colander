@@ -30,12 +30,35 @@ export default {
     },
     save: function() {
       let tmp = JSON.parse(JSON.stringify(this.entity));
-      $(this.$el).trigger('save-entity', [tmp]);
+
+      if (this.$refs.thumbnailFileUploader.files.length > 0) {
+        let fileToUpload = this.$refs.thumbnailFileUploader.files[0];
+        this.$debug('Adding file to upload', fileToUpload);
+        const reader = new FileReader();
+        reader.onload = () => {
+          tmp['thumbnail'] = {
+            content: reader.result,
+            name: fileToUpload.name,
+            size: fileToUpload.size,
+            lastModified: fileToUpload.lastModified,
+            type: fileToUpload.type,
+          };
+          $(this.$el).trigger('save-entity', [tmp]);
+        };
+        reader.onerror = (err) => {
+          this.$error('fileToUpload reader error', err);
+        };
+        reader.readAsDataURL(fileToUpload);
+      }
+      else {
+        $(this.$el).trigger('save-entity', [tmp]);
+      }
     },
     edit_entity: function(ctx) {
       this.$debug('edit_entity ctx:', ctx);
       this.entity = ctx;
       this.$refs.thumbnailEditor.setInitialImageSrc(this.entity.thumbnail_url);
+      this.$refs.thumbnailEditor.resetThumbnail();
       $(this.$el).find('input[name=name]').select();
     }
   },
@@ -92,11 +115,11 @@ export default {
         </div>
         <div class="form-group mb-2">
           <label class="form-label" for="id_thumbnail">Thumbnail</label>
-          <div is="vue:ThumbnailInputField" ref="thumbnailEditor">
+          <ThumbnailInputField ref="thumbnailEditor">
             <div>
-              <input id="id_thumbnail" type="file" accept='image/png, image/jpeg, image/jpg'/>
+              <input id="id_thumbnail" ref="thumbnailFileUploader" type="file" accept='image/png, image/jpeg, image/jpg'/>
             </div>
-          </div>
+          </ThumbnailInputField>
         </div>
       </div>
       <div class="footer">

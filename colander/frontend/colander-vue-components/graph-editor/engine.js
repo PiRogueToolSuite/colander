@@ -790,28 +790,24 @@ class ColanderDGraph {
       this.sidepane(false);
     });
     $(this._sidepane_entity_create_or_edit.$el).on('save-entity', (e, entity) => {
-      this._do_createOrEditEntity(entity)
-        .then(console.log).catch(console.error);
+      this._do_createOrEditEntity(entity).catch(this.$vue.$error);
       this.sidepane(false);
     });
-
-    return;
 
     //
     // Relation edit form
     // ========================================================================
-    this._sidepane_relation_create_or_edit = vueComponent('colander-dgraph-relation-edit');
-    this.sidepane_add(this._sidepane_relation_create_or_edit);
-    this._sidepane_relation_create_or_edit.on('vue-ready', (e, jDom, vue) => {
-      vue.allStyles = this.allStyles;
-    });
-    this._sidepane_relation_create_or_edit.on('close-component', (e, ctx) => {
+    this._sidepane_relation_create_or_edit = this.$vue.$refs.relationEditPane;
+
+    this.$vue.$refs.relationEditPane.allStyles = this.allStyles;
+
+    $(this._sidepane_relation_create_or_edit.$el).on('close-component', (e, ctx) => {
       this.sidepane(false);
       if (!ctx.id) {
         this.cy.remove(ctx.pending_edge);
       }
     });
-    this._sidepane_relation_create_or_edit.on('save-relation', (e, ctx) => {
+    $(this._sidepane_relation_create_or_edit.$el).on('save-relation', (e, ctx) => {
       this._do_createOrRenameRelation(ctx)
         .then(console.log).catch(console.error);
       this.sidepane(false);
@@ -823,15 +819,14 @@ class ColanderDGraph {
     //
     // Entity overview / detail view
     // ========================================================================
-    this._sidepane_entity_overview = vueComponent('colander-dgraph-entity-overview');
-    this.sidepane_add(this._sidepane_entity_overview);
-    this._sidepane_entity_overview.on('vue-ready',(e,jDom,vue) => {
-      vue.allStyles = this.allStyles;
-    });
-    this._sidepane_entity_overview.on('close-component', (e) => {
+    this._sidepane_entity_overview = this.$vue.$refs.entityOverviewPane;
+
+    this.$vue.$refs.entityOverviewPane.allStyles = this.allStyles;
+
+    $(this._sidepane_entity_overview.$el).on('close-component', (e) => {
       this.sidepane(false);
     });
-    this._sidepane_entity_overview.on('quick-edit-entity', (e, eid) => {
+    $(this._sidepane_entity_overview.$el).on('quick-edit-entity', (e, eid) => {
       let tmp = JSON.parse(JSON.stringify(this.g.entities[eid]));
       this._sidepane_entity_create_or_edit.edit_entity( tmp );
       this.sidepane(  this._sidepane_entity_create_or_edit );
@@ -840,15 +835,14 @@ class ColanderDGraph {
     //
     // SubGraph creation/edit form
     // ========================================================================
-    this._sidepane_subgraph_create_or_edit = vueComponent('colander-dgraph-subgraph-form');
-    this.sidepane_add(this._sidepane_subgraph_create_or_edit);
-    this._sidepane_subgraph_create_or_edit.on('vue-ready',(e,jDom,vue) => {
-      vue.allStyles = this.allStyles;
-    });
-    this._sidepane_subgraph_create_or_edit.on('close-component', (e) => {
+    this._sidepane_subgraph_create_or_edit = this.$vue.$refs.subgraphCreationPane;
+
+    this.$vue.$refs.subgraphCreationPane.allStyles = this.allStyles;
+
+    $(this._sidepane_subgraph_create_or_edit.$el).on('close-component', (e) => {
       this.sidepane(false);
     });
-    this._sidepane_subgraph_create_or_edit.on('save-subgraph', (e, subgraph, editNow) => {
+    $(this._sidepane_subgraph_create_or_edit.$el).on('save-subgraph', (e, subgraph, editNow) => {
       console.log('save-subgraph', subgraph);
       this._do_createOrEditSubGraph(subgraph)
         .then((subgraphObj) => {
@@ -858,7 +852,6 @@ class ColanderDGraph {
         }).catch(console.error);
       this.sidepane(false);
     });
-
   }
 
   _scheduleOverridesSave() {
@@ -1044,7 +1037,7 @@ class ColanderDGraph {
   }
 
   _create_or_rename_relation(ctx) {
-    this._sidepane_relation_create_or_edit.data('vue').edit_relation(ctx);
+    this._sidepane_relation_create_or_edit.edit_relation(ctx);
     this.sidepane( this._sidepane_relation_create_or_edit );
   }
 
@@ -1145,6 +1138,8 @@ class ColanderDGraph {
     }, ctx);
     delete post_data.position;
 
+    this.$vue.$debug('_do_createOrEditEntity', post_data);
+
     const rawResponse = await fetch(
         ctx.id?`/rest/entity/${ctx.id}/`:'/rest/entity/',
         {
@@ -1163,6 +1158,8 @@ class ColanderDGraph {
 
     const content = await rawResponse.json();
 
+    this.$vue.$debug('_do_createOrEditEntity result', content);
+
     this.g.entities[content['id']] = content;
 
     if (ctx.id) {
@@ -1171,6 +1168,12 @@ class ColanderDGraph {
       edited_node.data('name', content.name);
       edited_node.data('content', content.content);
       edited_node.data('type', content.type);
+      // thumbnail_url is independent of original file name
+      // We need to use the `?_anticache=<rnd_value>` to force the browser to reload this resource.
+      edited_node.data(
+        'thumbnail_url',
+        `${content.thumbnail_url}?_anticache=${(new Date()).getTime()}`
+      );
     }
     else {
       // Create
@@ -1207,7 +1210,7 @@ class ColanderDGraph {
     }
 
     const content = await rawResponse.json();
-    this._sidepane_entity_overview.data('vue').entity = content;
+    this._sidepane_entity_overview.entity = content;
     this.sidepane(this._sidepane_entity_overview);
   }
 
@@ -1225,8 +1228,8 @@ class ColanderDGraph {
   }
 
   _createOrEditSubGraph(ctx) {
-    this._sidepane_subgraph_create_or_edit.data('vue').entities = this.g.entities;
-    this._sidepane_subgraph_create_or_edit.data('vue').subgraph = ctx;
+    this._sidepane_subgraph_create_or_edit.entities = this.g.entities;
+    this._sidepane_subgraph_create_or_edit.subgraph = ctx;
     this.sidepane(this._sidepane_subgraph_create_or_edit);
   }
 

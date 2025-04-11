@@ -1,13 +1,13 @@
+import base64
 import fnmatch
 import mimetypes
 
 import json
-import magic
 
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
-from rest_framework import mixins, status
+from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin, CreateModelMixin, \
@@ -95,10 +95,27 @@ class EntityViewSet(CreateModelMixin,
         obj = obj.concrete()
         return obj
 
+    def _process_thumbnail_upload(self, request):
+        if 'thumbnail' in request.data:
+            uploaded_thumbnail = request.data['thumbnail']
+            format, imgstr = uploaded_thumbnail['content'].split(';base64,')
+            request.data['thumbnail'] = ContentFile(base64.b64decode(imgstr), name=uploaded_thumbnail['name'])
+
+    def update(self, request, *args, **kwargs):
+        self._process_thumbnail_upload(request)
+        return super().update(request, *args, **kwargs)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def create(self, request, *args, **kwargs):
+        self._process_thumbnail_upload(request)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         case_id = self.request.data.pop("case_id")
         case = Case.objects.get(pk=case_id) #get_active_case(self.request)
-        return serializer.save(
+        serializer.save(
             owner=self.request.user,
             case=case,
             tlp=case.tlp,

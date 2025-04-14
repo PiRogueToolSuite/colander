@@ -41,7 +41,9 @@
               </div>
               <div class="col">
                 {{ form.classification|as_crispy_field }}
-                {{ form.attributes|as_crispy_field }}
+                <div is="vue:HStoreTable" data-type="Observable">
+                  {{ form.attributes|as_crispy_field }}
+                </div>
                 {{ form.thumbnail }}
               </div>
             </div>

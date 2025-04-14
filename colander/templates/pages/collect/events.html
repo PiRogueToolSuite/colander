@@ -57,7 +57,9 @@
               </div>
               <div class="col">
                 {{ form.involved_observables|as_crispy_field }}
-                {{ form.attributes|as_crispy_field }}
+                <div is="vue:HStoreTable" data-type="Event">
+                  {{ form.attributes|as_crispy_field }}
+                </div>
                 {{ form.thumbnail }}
               </div>
             </div>

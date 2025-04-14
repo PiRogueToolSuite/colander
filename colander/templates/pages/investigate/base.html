@@ -71,53 +71,57 @@
           </div>
           <div class="row justify-content-center">
 {#          Tabs #}
-            <div class="col-md-12 mb-5 mt-3">
+            <div class="col-md-12 mb-3 mt-3">
               <ul id="tabs-menu" class="nav nav-pills h5 justify-content-center">
+                {% comment %}
                 <li class="nav-item">
-                  <a data-toggle="pill" role="tab" aria-controls="graph" aria-selected="false"
-                     class="nav-link" aria-current="page" href="#graph" id="graph-tab">
+                  <button data-bs-toggle="tab" role="tab" aria-controls="graph" aria-selected="false"
+                     class="nav-link" aria-current="page" data-bs-target="#graph" id="graph-tab">
                     Graph
                   </a>
                 </li>
+                {% endcomment %}
                 {% for st, object in ordering.types.items %}
                   {% if object %}
                     <li class="nav-item">
-                      <a data-toggle="pill" role="tab" aria-controls="{{ object.super_type.short_name }}"
+                      <button data-bs-toggle="tab" role="tab" aria-controls="{{ object.super_type.short_name }}"
                          class="nav-link {% if forloop.first %}active{% endif %}"
-                         href="#{{ object.super_type.short_name }}" aria-selected="true"
+                         data-bs-target="#{{ object.super_type.short_name }}" aria-selected="true"
                          id="{{ object.super_type.short_name }}-tab">
                           {{ object.super_type.name }} ({{ object.count }})
-                      </a>
+                      </button>
                     </li>
                   {% endif %}
                 {% endfor %}
                 {% if ordering.global.events > 0 %}
                 <li class="nav-item">
-                  <a data-toggle="pill" role="tab" aria-controls="events" aria-selected="false"
-                     class="nav-link" href="#events" id="events-tab">
+                  <button data-bs-toggle="tab" role="tab" aria-controls="events" aria-selected="false"
+                     class="nav-link" data-bs-target="#events" id="events-tab">
                     Events ({{ ordering.global.events }})
-                  </a>
+                  </button>
                 </li>
                 {% endif %}
                 {% if ordering.global.external_doc > 0 %}
                 <li class="nav-item">
-                  <a data-toggle="pill" role="tab" aria-controls="" aria-selected="false"
-                     class="nav-link" href="#reports" id="reports-tab">
+                  <button data-bs-toggle="tab" role="tab" aria-controls="" aria-selected="false"
+                     class="nav-link" data-bs-target="#reports" id="reports-tab">
                     Reports ({{ ordering.global.external_doc }})
-                  </a>
+                  </button>
                 </li>
                 {% endif %}
               </ul>
             </div>
           </div>
           <div class="row justify-content-center tab-content">
-{#        Graph tab #}
-          <div id="graph" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="graph-tab">
-              <pre class="mermaid text-center" id="mermaid-code" style="display: none">
-                  {{ results.graph }}
-              </pre>
-              <div id="mermaid-output" class="text-center"></div>
-          </div>
+{#          Graph tab #}
+            {% comment %}
+            <div id="graph" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="graph-tab">
+                <pre class="mermaid text-center" id="mermaid-code" {# style="display: none"  #}>
+                    {{ results.graph }}
+                </pre>
+                <div id="mermaid-output" class="text-center"></div>
+            </div>
+            {% endcomment %}
 {#          Entities #}
             {% for type, object in ordering.types.items %}
               <div id="{{ type }}" class="col-md-12 tab-pane {% if forloop.first %}active{% endif %}" role="tabpanel" aria-labelledby="{{ type }}-tab">
@@ -134,9 +138,9 @@
                     </tbody>
                   </table>
                 {% else %}
-                  <div class="row" data-masonry='{"percentPosition": true }'>
+                  <div class="row masonry-row">
                     {% for entity in object.entities %}
-                      <div class="col-md-6 text-wrap mb-2">
+                      <div class="col-md-6 text-wrap mb-2 pb-2 masonry-card">
                         <div class="card card-body bg-secondary-light">
                           {% include "pages/investigate/generic_entity_details_list.html" with entity=entity importable_types=ordering.importable_types %}
                         </div>
@@ -147,147 +151,53 @@
                 </div>
               </div>
             {% endfor %}
-          {% if results.events %}
 {#          Events #}
-            <div id="events" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="events-tab">
-              <div class="px-2">
-              <table class="table table-hover table-responsive table-sm">
-                <thead class="bg-secondary-light">
-                <tr>
-                  <th>Type</th>
-                  <th><i class="nf nf-fa-bolt"></i> Event</th>
-                  <th class="text-left"><i class="nf nf-fa-clock_o"></i> Last seen</th>
-                  <th class="text-center"><i class="nf nf-fa-calendar"></i> Time period</th>
-                  <th class="text-end">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for event in results.events %}
-                  {% include 'pages/investigate/generic_event_row.html' %}
-                {% endfor %}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          {% endif %}
-          {% if results.reports %}
-{#          Reports #}
-            <div id="reports" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="reports-tab">
+            {% if results.events %}
+              <div id="events" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="events-tab">
                 <div class="px-2">
-                  <div class="row masonry-row" data-masonry='{"percentPosition": true }'>
-                    {% for entity in results.reports %}
-                      <div class="col-md-6 text-wrap mb-2">
-                        <div class="card card-body bg-secondary-light">
-                          {% include "pages/investigate/generic_entity_details_list.html" with entity=entity importable_types=ordering.importable_types %}
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
+                <table class="table table-hover table-responsive table-sm">
+                  <thead class="bg-secondary-light">
+                  <tr>
+                    <th>Type</th>
+                    <th><i class="nf nf-fa-bolt"></i> Event</th>
+                    <th class="text-left"><i class="nf nf-fa-clock_o"></i> Last seen</th>
+                    <th class="text-center"><i class="nf nf-fa-calendar"></i> Time period</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for event in results.events %}
+                    {% include 'pages/investigate/generic_event_row.html' %}
+                  {% endfor %}
+                  </tbody>
+                </table>
                 </div>
-            </div>
-          {%  endif %}
+              </div>
+            {% endif %}
+{#          Reports #}
+            {% if results.reports %}
+              <div id="reports" class="col-md-12 tab-pane" role="tabpanel" aria-labelledby="reports-tab">
+                  <div class="px-2">
+                    <div class="row masonry-row">
+                      {% for entity in results.reports %}
+                        <div class="col-md-6 text-wrap mb-2 pb-2 masonry-card">
+                          <div class="card card-body bg-secondary-light">
+                            {% include "pages/investigate/generic_entity_details_list.html" with entity=entity importable_types=ordering.importable_types %}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+              </div>
+            {%  endif %}
         {% endwith %}
       {% elif not wait %}
         <h2>No results found.</h2>
       {% endif %}
     </div>
+    <div is="vue:InvestigateView" data-csrf-token="{{ csrf_token }}" data-case-id="{{ contextual_case.id }}" {% if wait %}data-wait{% endif %}></div>
   {% endblock inner-content %}
 {% endblock content %}
-
-{% block inline_javascript %}
+{% block context_javascript %}
   {{ results|json_script:"results-data" }}
-  <script type="module">
-    {% if wait %}
-      setTimeout(function () {
-        $('#id_force_update').prop('checked', false);
-        $('#investigate_form').submit();
-      }, 5000);
-    {% endif %}
-
-    // Mermaid graph of the results from Threatr
-    import mermaid from "{% static 'js/mermaid.esm.min.mjs' %}";
-    mermaid.initialize({
-      theme: 'base',
-      startOnLoad: false,
-      securityLevel: 'antiscript',
-      flowchart: {
-        curve: 'basis'
-      },
-      themeVariables: {
-        fontSize: '1em',
-        fontFamily: 'Open Sans, sans-serif',
-        edgeLabelBackground: '#ffffff',
-        primaryBorderColor: '#333333',
-        lineColor: '#999999'
-      }
-    });
-    $(async function () {
-      const insertSvg = function (svgCode, bindFunctions) {
-        document.getElementById('mermaid-output').innerHTML = svgCode
-      };
-      const graphCodeContainer = document.getElementById('mermaid-code');
-      if(graphCodeContainer) {
-        const graphDefinition = document.getElementById('mermaid-code').innerText;
-        mermaid.mermaidAPI.render('_', graphDefinition, insertSvg);
-      }
-    });
-
-    // Masonry - necessary to make it work with Bootstrap tabs
-    $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
-      $('.masonry-row').masonry({ itemSelector: '.card', percentPosition: true });
-    });
-
-    // Listen on the "Add to current case buttons" to import a result into the current case.
-    $('.investigate-add-entity-btn').click(async function () {
-      const data = JSON.parse($('#results-data').text());
-      const id = $(this).attr('data-obj-id');
-      const root = data['root_entity'];
-      let relation = undefined;
-      let entity = undefined;
-      let event = undefined;
-      data['events'].forEach(function (e) {
-        if (e.id === id) {
-          event = e;
-          event.super_type = {name: 'Event', short_name: 'EVENT'}
-        }
-        return
-      })
-      if (id !== root['id']) {
-        entity = data['entities'][id];
-        if (entity !== undefined) {
-          data['relations'].forEach(function (r) {
-            if ((r.obj_from == root.id && r.obj_to == entity.id) || (r.obj_to == root.id && r.obj_from == entity.id)) {
-              relation = r;
-              return
-            }
-          })
-        }
-      }
-
-      const response = await fetch(`/rest/threatr_entity`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}',
-        },
-        body: JSON.stringify({
-          'case_id': "{{ contextual_case.id }}",
-          'root': root,
-          'entity': entity,
-          'event': event,
-          'relation': relation
-        })
-      });
-
-      const json_response = await response.json()
-      $(this).removeClass('bg-primary');
-      $(this).unbind('click');
-      if (json_response.status == 0) {
-        $(this).addClass('bg-success');
-      } else {
-        $(this).addClass('bg-danger');
-      }
-    })
-  </script>
-{% endblock inline_javascript %}
+{% endblock context_javascript %}

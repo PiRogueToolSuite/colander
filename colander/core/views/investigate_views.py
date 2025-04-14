@@ -29,7 +29,6 @@ def investigate_search_view(request):
     threatr_client = ThreatrClient()
     threatr_results = {}
     wait = False
-    mermaid = ''
     types = {}
     ordering = {}
     request_data = {}
@@ -45,7 +44,6 @@ def investigate_search_view(request):
                 'form': None,
                 'request_data': request_data,
                 'results': threatr_results,
-                'mermaid': mermaid,
                 'types': types,
                 'wait': wait,
             }
@@ -135,7 +133,6 @@ def investigate_search_view(request):
             'request_data': request_data,  # parameters of the request
             'results': threatr_results,  # the results returned by Threatr
             'ordering': ordering,  # in which order the results should be shown
-            'mermaid': mermaid,  # the mermaid graph
             'models': types,  # the different types of entities to list
             'wait': wait,  # True if we are waiting for the completion of the request sent to Threatr
         }

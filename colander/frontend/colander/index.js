@@ -63,6 +63,8 @@ export const ColanderApp = {
       import(/* webpackChunkName: "GraphEditor" */ '../colander-vue-components/GraphEditor.vue')),
     HStoreTable: defineAsyncComponent(() =>
       import(/* webpackChunkName: "HStoreTable" */ '../colander-vue-components/HStoreTable.vue')),
+    InvestigateView: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "InvestigateView" */ '../colander-vue-components/InvestigateView.vue')),
     Suggester: defineAsyncComponent(() =>
       import(/* webpackChunkName: "Suggester" */ '../colander-vue-components/Suggester.vue')),
     ThumbnailInputField: defineAsyncComponent(() =>

@@ -54,11 +54,6 @@ let webpackConfig = (isDev, isProd) => [
             to: path.resolve(jsLibDest, 'bootstrap.bundle.min.js'),
           },
           {
-            from:  isProd ? 'node_modules/masonry-layout/dist/masonry.pkgd.min.js'
-                          : 'node_modules/masonry-layout/dist/masonry.pkgd.js',
-            to: path.resolve(jsLibDest, 'masonry.pkgd.min.js'),
-          },
-          {
             from: isProd ? 'node_modules/simplemde/dist/simplemde.min.js'
                          : 'node_modules/simplemde/debug/simplemde.js',
             to: path.resolve(jsLibDest, 'simplemde.min.js'),

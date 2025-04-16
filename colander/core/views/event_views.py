@@ -1,4 +1,3 @@
-from bootstrap_datepicker_plus.widgets import DateTimePickerInput
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.forms.widgets import RadioSelect, Textarea
@@ -55,15 +54,15 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['detected_by'].queryset = rules_qset
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
-        form.fields['first_seen'].widget = DateTimePickerInput(options={
-            "format": "DD/MM/YYYY HH:mm:ss"
-        })
-        form.fields['last_seen'].widget = DateTimePickerInput(
-            range_from="first_seen",
-            options={
-                "format": "DD/MM/YYYY HH:mm:ss"
-            }
-        )
+        #form.fields['first_seen'].widget = DateTimePickerInput(options={
+        #    "format": "DD/MM/YYYY HH:mm:ss"
+        #})
+        #form.fields['last_seen'].widget = DateTimePickerInput(
+        #    range_from="first_seen",
+        #    options={
+        #        "format": "DD/MM/YYYY HH:mm:ss"
+        #    }
+        #)
         form.fields['thumbnail'].widget = ThumbnailFileInput()
         if self.object and self.object.thumbnail:
             form.fields['thumbnail'].widget.thumbnail_url = self.object.thumbnail_url

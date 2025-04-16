@@ -1,7 +1,7 @@
 import {createApp, defineAsyncComponent} from "vue";
 import "primeicons/primeicons.css";
 import PrimeVue from "primevue/config";
-import aura from '@primevue/themes/aura';
+import ColanderTheme from './theme-preset';
 
 import CachePlugin from './plugins/Cache';
 import i18nPlugin from './plugins/i18n';
@@ -71,6 +71,9 @@ export const ColanderApp = {
       import(/* webpackChunkName: "ThumbnailInputField" */ '../colander-vue-components/ThumbnailInputField.vue')),
     ToolbarSearch: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ToolbarSearch" */ '../colander-vue-components/ToolbarSearch.vue')),
+    /* PRIMEVUE COMPONENTS */
+    DatePicker: defineAsyncComponent(() =>
+      import('primevue/datepicker')),
   },
   created() {
     this.$logger(this, 'ColanderApp');
@@ -123,7 +126,11 @@ export default () => {
     },
   });
   //colander_application.use(HarAnalyzerApp);
-  colander_application.use(PrimeVue);
+  colander_application.use(PrimeVue, {
+    theme: {
+      preset: ColanderTheme,
+    }
+  });
 
   // -- Mount and start
   colander_application.mount(document.querySelector('body'));

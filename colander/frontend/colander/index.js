@@ -8,8 +8,9 @@ import i18nPlugin from './plugins/i18n';
 import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import EventBusPlugin from './plugins/EventBus';
 
-// Not yet published
-//import HarAnalyzerApp from '/home/sancho/Projects/PTS/har-analyzer-vuejs/dist/harweb.es.js';
+import HarAnalyzerPlugin, {
+       DesignSystemConfig as HarPrimeVueConfig
+       } from 'har-analyzer-vue';
 
 import Legacy from './legacy/project';
 import ColanderTextEditor from './legacy/colander-text-editor';
@@ -73,7 +74,7 @@ export const ColanderApp = {
       import(/* webpackChunkName: "ToolbarSearch" */ '../colander-vue-components/ToolbarSearch.vue')),
     /* PRIMEVUE COMPONENTS */
     DatePicker: defineAsyncComponent(() =>
-      import('primevue/datepicker')),
+      /* webpackChunkName: "pv-datepicker" */ import('primevue/datepicker')),
   },
   created() {
     this.$logger(this, 'ColanderApp');
@@ -125,12 +126,17 @@ export default () => {
       'all_styles': '/rest/dataset/all_styles/',
     },
   });
-  //colander_application.use(HarAnalyzerApp);
   colander_application.use(PrimeVue, {
     theme: {
       preset: ColanderTheme,
     }
   });
+  colander_application.use( HarPrimeVueConfig, {
+    theme: {
+      preset: ColanderTheme,
+    }
+  });
+  colander_application.use(HarAnalyzerPlugin);
 
   // -- Mount and start
   colander_application.mount(document.querySelector('body'));

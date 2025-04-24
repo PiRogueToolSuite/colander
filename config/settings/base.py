@@ -91,7 +91,6 @@ THIRD_PARTY_APPS = [
     "allauth_2fa",
     # 'cron'ish stuff
     "django_serverless_cron",
-    "bootstrap_datepicker_plus",
 ]
 
 LOCAL_APPS = [

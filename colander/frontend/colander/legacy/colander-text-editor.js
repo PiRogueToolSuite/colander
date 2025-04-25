@@ -2,7 +2,6 @@ async function resolve_codemirror() {
   const codemirror_concerns = $('textarea.colander-text-editor, pre.colander-text-editor > code');
   if (codemirror_concerns.length > 0) {
     const {
-      amy,
       ayuLight,
       basicSetup,
       EditorState,
@@ -51,7 +50,7 @@ async function resolve_codemirror() {
           doc: elt.innerHTML,
           extensions: [
             EditorView.contentAttributes.of({contenteditable: false}),
-            amy,
+            ayuLight,
             basicSetup,
             EditorView.lineWrapping,
           ],

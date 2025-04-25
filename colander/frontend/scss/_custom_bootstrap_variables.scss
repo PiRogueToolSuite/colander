@@ -32,7 +32,20 @@ $dropdown-link-color: $gray-700;
 $dropdown-link-hover-color: $white;
 $dropdown-link-hover-bg: $primary;
 $navbar-dark-hover-color: rgba($white, .9);
-$font-size-base: 0.8rem;
+
+$font-size-root: 13px;
+$font-size-base: 1rem;
+
+$font-weight-lighter:         300;
+$font-weight-light:           300;
+$font-weight-normal:          400;
+$font-weight-medium:          400;
+$font-weight-semibold:        500;
+$font-weight-bold:            600;
+$font-weight-bolder:          600;
+
+$font-family-sans-serif: "Open Sans", sans-serif;
+$font-family-monospace: "JetBrains Mono", monospace;
 
 $link-decoration: none;
 $link-hover-decoration: underline;

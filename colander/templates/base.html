@@ -85,18 +85,18 @@
           <i id="overall-case-list-toggle-icon" class="nf nf-fa-toggle_down" aria-hidden="true"></i>
         </div>
         <div id="overall-case-list">
-            <div class="list-group">
-              {% for case in request.user_cases %}
-                <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
-                  <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">{{ case.name }}</h5>
-                    <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
-                  </div>
-                  <p class="mb-1 text-muted">{{ case.description }}</p>
+          <div class="list-group">
+            {% for case in request.user_cases %}
+              <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 class="mb-1">{{ case.name }}</h5>
+                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
+                </div>
+                <p class="mb-1 text-muted">{{ case.description }}</p>
 {#                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>#}
-                </a>
-              {% endfor %}
-            </div>
+              </a>
+            {% endfor %}
+          </div>
           </div>
       </div>
       {% url 'collect_quick_creation_view' case_id=contextual_case.id as collect_quick_creation_view_url %}
@@ -132,23 +132,21 @@
         </form>
       </div>
     </div>
-    <div class="navbar-nav">
-      <div class="nav-item">
-        {% if request.user.is_authenticated %}
-         {# URL provided by django-allauth/account/urls.py #}
-          <a class="nav-link px-3 text-nowrap" href="{% url 'users:detail' request.user.username %}">
-            <i class="nf nf-fa-user list-group-item-icon nav-link-label" aria-hidden="true"></i>
-            <span class="nav-link-label d-none d-md-inline">{{ request.user }}</span>
-          </a>
-        {% else %}
-          {% if ACCOUNT_ALLOW_REGISTRATION %}
-            {# URL provided by django-allauth/account/urls.py #}
-            <a id="sign-up-link" class="nav-link px-3" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
-          {% endif %}
+    <div class="text-light">
+      {% if request.user.is_authenticated %}
+       {# URL provided by django-allauth/account/urls.py #}
+        <a class="nav-link px-3 text-nowrap" href="{% url 'users:detail' request.user.username %}">
+          <i class="nf nf-fa-user list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="nav-link-label d-none d-md-inline">{{ request.user }}</span>
+        </a>
+      {% else %}
+        {% if ACCOUNT_ALLOW_REGISTRATION %}
           {# URL provided by django-allauth/account/urls.py #}
-          <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Log In" %}</a>
+          <a id="sign-up-link" class="nav-link px-3" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
         {% endif %}
-      </div>
+        {# URL provided by django-allauth/account/urls.py #}
+        <a id="log-in-link" class="nav-link px-3" href="{% url 'account_login' %}">{% translate "Log In" %}</a>
+      {% endif %}
     </div>
   </header>
   {% endblock %}

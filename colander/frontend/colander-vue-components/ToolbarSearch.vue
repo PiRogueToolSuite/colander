@@ -62,7 +62,7 @@ export default {
   <form id="overall-search-form" method="POST" :action="dataActionUrl">
     <input type='hidden' name="csrfmiddlewaretoken" :value="dataCsrfToken" />
     <input type='hidden' name='case_id' :value='dataCaseId'/>
-    <input id="overall-search" v-model="currentSearch" class="form-control font-monospace form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search" autocomplete="off" />
+    <input id="overall-search" v-model="currentSearch" class="form-control font-monospace fst-italic form-control-dark w-100" name="q" type="text" placeholder="Search" aria-label="Search" autocomplete="off" />
     <i id="overall-search-icon" class="nf nf-md-magnify" aria-hidden="true"></i>
     <div id="overall-search-result" v-if="results.length > 0">
       <div class="list-group">

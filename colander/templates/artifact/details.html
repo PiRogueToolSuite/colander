@@ -232,9 +232,6 @@
 </div>
 
 <div class="row justify-content-center">
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Preview" %}</h3>
-  </div>
   {% if artifact.type.short_name == "IMAGE" %}
     <div class="col-md-4 mt-2">
       <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
@@ -250,7 +247,7 @@
   {% elif artifact.type.short_name == "HAR" %}
     {# <div id="har-viz" class='har-analyzer' data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div> #}
     <div is="vue:har-analyzer" data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div>
-  {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" %}
+  {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" or artifact.mime_type == "text/csv" %}
     {% if artifact.size_in_bytes < 500000 %}
       <div class="col-md-12 mt-4 mb-2">
         <h3>Content</h3>

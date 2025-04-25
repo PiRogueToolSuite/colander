@@ -42,6 +42,8 @@
     "simplemde": "version 1.11.2 to have a moderate vuln. Kept for now since colander will migrate to another editor."
   },
   "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.2.5",
+    "@fontsource/open-sans": "^5.2.5",
     "@popperjs/core": "^2.11.8",
     "@primeuix/themes": "^1.0.0",
     "@primevue/themes": "^4.3.2",
@@ -63,8 +65,9 @@
     "markdown-it": "^13.0.1",
     "masonry-layout": "^4.2.2",
     "npm": "^10.9.2",
+    "papaparse": "^5.5.2",
     "primeicons": "^7.0.0",
-    "primevue": "^4.3.2",
+    "primevue": "^4.3.3",
     "punycode": "^2.3.1",
     "simplemde": "^1.11.2",
     "thememirror": "^2.0.1",

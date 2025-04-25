@@ -1,6 +1,24 @@
 @import "custom_bootstrap_variables";
 @import "bootstrap/scss/bootstrap";
 
+@import "primevue/primevue_variables";
+@import "primeicons/primeicons.css";
+@import "@fontsource/open-sans/300-italic.css";
+@import "@fontsource/open-sans/300.css";
+@import "@fontsource/open-sans/400-italic.css";
+@import "@fontsource/open-sans/400.css";
+@import "@fontsource/open-sans/500-italic.css";
+@import "@fontsource/open-sans/500.css";
+@import "@fontsource/open-sans/600-italic.css";
+@import "@fontsource/open-sans/600.css";
+@import "@fontsource/open-sans/700-italic.css";
+@import "@fontsource/open-sans/700.css";
+@import "@fontsource/open-sans/800-italic.css";
+@import "@fontsource/open-sans/800.css";
+@import "@fontsource/jetbrains-mono/300.css";
+@import "@fontsource/jetbrains-mono/300-italic.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/600-italic.css";
 
 html, body {
   height: 100%;
@@ -16,8 +34,6 @@ body
 {
   position: relative;
   min-height: 100%;
-  font-family: "Open Sans", sans-serif !important;
-  font-size: 13px;
 }
 
 
@@ -37,6 +53,13 @@ samp {
   color: var(--bs-alert-border-color);
   vertical-align: middle;
   margin-right: 0.5em;
+}
+
+/*
+ * Code Mirror
+ */
+.cm-editor .cm-content {
+  font-family: $font-family-monospace;
 }
 
 /*
@@ -570,7 +593,7 @@ header .navbar-nav {
     border-width: 0 2px 0 0;
 
     .case-title {
-      padding: 1rem 1rem;
+      padding: 0.8rem 1rem;
       box-sizing: border-box;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -606,7 +629,7 @@ header .navbar-nav {
       color: white;
       position: absolute;
       top: 0;
-      margin: 1rem 0.75rem;
+      margin: 0.9rem 0.75rem;
       font-size: 1.3rem;
     }
 
@@ -615,8 +638,7 @@ header .navbar-nav {
         color: white;
       }
 
-      padding: 1rem 1rem;
-      padding-left: 2.5rem;
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
 
       &:focus {
         border: none;

@@ -1,0 +1,16 @@
+{% extends "pages/workspace/base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load colander_tags %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12 mt-2">
+        <div is="vue:Csv"></div>
+      </div>
+    </div>
+  {% endblock %}
+{% endblock %}

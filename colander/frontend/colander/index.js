@@ -1,6 +1,7 @@
 import {createApp, defineAsyncComponent} from "vue";
 import "primeicons/primeicons.css";
 import PrimeVue from "primevue/config";
+import ToastService from 'primevue/toastservice';
 import ColanderTheme from './theme-preset';
 
 import CachePlugin from './plugins/Cache';
@@ -54,6 +55,8 @@ export const ColanderApp = {
       import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
     ConfirmButton: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ConfirmButton" */ '../colander-vue-components/ConfirmButton.vue')),
+    Csv: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "Csv" */ '../colander-vue-components/importers/Csv.vue')),
     DocumentationPane: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DocumentationPane" */ '../colander-vue-components/DocumentationPane.vue')),
     DropfileTriage: defineAsyncComponent(() =>
@@ -129,13 +132,20 @@ export default () => {
   colander_application.use(PrimeVue, {
     theme: {
       preset: ColanderTheme,
+      options: {
+        darkModeSelector: 'none',
+      }
     }
   });
   colander_application.use( HarPrimeVueConfig, {
     theme: {
       preset: ColanderTheme,
+      options: {
+        darkModeSelector: 'none',
+      }
     }
   });
+  colander_application.use(ToastService);
   colander_application.use(HarAnalyzerPlugin);
 
   // -- Mount and start

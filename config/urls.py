@@ -185,6 +185,8 @@ case_contextualized_url_patterns = [
     path("feeds/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="feeds_entity_out_feed_delete_view"),
 
     path("investigate/", investigate_search_view, name="investigate_base_view"),
+
+    path("import/csv", TemplateView.as_view(template_name="import/csv.html"), name="csv"),
 ]
 
 urlpatterns = [

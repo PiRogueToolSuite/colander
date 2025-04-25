@@ -39,12 +39,29 @@ def __all_styles():
 def __creatable_entity_and_types():
     models = []
     types = {}
+    common_fields = [
+            {'label': 'Value or name', 'name': 'value', 'required': True, 'multiple': False},
+            {'label': 'TLP', 'name': 'tlp', 'required': False, 'multiple': False},
+            {'label': 'PAP', 'name': 'pap', 'required': False, 'multiple': False},
+            {'label': 'Description', 'name': 'description', 'required': False, 'multiple': False},
+            {'label': 'Source URL', 'name': 'source_url', 'required': False, 'multiple': False},
+            {'label': 'Ignore', 'name': 'ignored_field', 'required': False, 'multiple': True},
+    ]
+    extra_fields =  [{'label': 'Other attribute', 'name': 'extra_attributes', 'required': False, 'multiple': True}]
+    fields = {
+        'ACTOR': common_fields,
+        'DEVICE': common_fields + extra_fields,
+        'OBSERVABLE': common_fields + extra_fields,
+        'THREAT': common_fields,
+        'DATAFRAGMENT': common_fields + [{'label': 'Content', 'name': 'content', 'required': True, 'multiple': False}],
+    }
     exclude = ['Artifact', 'Case', 'DetectionRule', 'EntityRelation', 'Event']
     for name, model in colander_models.items():
         if hasattr(model, 'type') and name not in exclude:
             models.append({
                  'name': name,
-                 'short_name': name.upper()
+                 'short_name': name.upper(),
+                 'fields': fields.get(name.upper(), []),
             })
             types[name.upper()] = [
                 {

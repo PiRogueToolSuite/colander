@@ -53,10 +53,6 @@ export default {
 
 <template>
   <div ref="slotContent" class="suggester">
-    <div class="suggester-hint" title="This field will suggest you existing entities with the same name">
-      <div v-if="loading" class="suggester-loading">⏳</div>
-      <div v-else class="hint">🔎</div>
-    </div>
     <slot/>
     <div class="text-muted mb-0 suggested-entity" v-for="d in result.data">
       Do you mean <a :href="d.url" class="">{{d.text}}</a> ?

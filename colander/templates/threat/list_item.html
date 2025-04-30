@@ -36,11 +36,13 @@
             {% if threat.attributes.tags %}
               {% include "helpers/tags.html" with entity=threat %}
             {% endif %}
-            {% if threat.thumbnail %}
-              <img class="img-thumbnail mx-auto d-block mt-1" src="{{threat.thumbnail_url}}" alt="{{threat.name}}" style="max-height: 144px" />
-            {% endif %}
           </div>
         </div>
+        {% if threat.thumbnail %}
+          <div class="col-md-2">
+            <img class="img-thumbnail mx-auto d-block" src="{{threat.thumbnail_url}}" alt="{{threat.name}}" style="max-height: 90px" />
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

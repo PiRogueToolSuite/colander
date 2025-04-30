@@ -32,15 +32,21 @@
           </div>
         </div>
       </div>
-      {% if detection_rule.thumbnail %}
       <div class="col-md-4 text-truncate ">
         <div class="row">
           <div class="col">
-            <img class="img-thumbnail mx-auto d-block mt-1" src="{{detection_rule.thumbnail_url}}" alt="{{detection_rule.name}}" style="max-height: 144px" />
+            {% include "tlp/show_tlp_pap.html" with element=detection_rule %}
+            {% if detection_rule.attributes.tags %}
+              {% include "helpers/tags.html" with entity=detection_rule %}
+            {% endif %}
           </div>
+          {% if detection_rule.thumbnail %}
+            <div class="col-md-2">
+              <img class="img-thumbnail mx-auto d-block" src="{{detection_rule.thumbnail_url}}" alt="{{detection_rule.name}}" style="max-height: 90px" />
+            </div>
+          {% endif %}
         </div>
       </div>
-      {% endif %}
     </div>
   </div>
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">

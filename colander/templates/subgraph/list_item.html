@@ -3,7 +3,7 @@
 <div class="card shadow-sm bg-secondary-light border-secondary mb-2">
   <div class="card-body p-2">
     <div class="row">
-      <div class="col-md-8 text-truncate border-end border-secondary">
+      <div class="col-md-10 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <i class="nf nf-md-hubspot h4 text-primary" aria-hidden="true"></i>
           <a class="h4" href="{% url "subgraph_editor_view" case_id=subgraph.case.id pk=subgraph.id %}">
@@ -28,14 +28,11 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4 text-truncate">
-        <div class="row">
-          <div class="col">
-            <img
-              src="{{ subgraph.thumbnail_url }}"
-              class="img-thumbnail" alt="{{ subgraph.name }}" />
-          </div>
-        </div>
+      <div class="col-md-2 text-truncate">
+        <img
+          src="{{ subgraph.thumbnail_url }}"
+          style="max-height: 140px"
+          class="img-thumbnail" alt="{{ subgraph.name }}" />
       </div>
     </div>
   </div>

@@ -61,10 +61,12 @@
                 {{ observable.classification }}
               </div>
             {% endif %}
-            {% if observable.thumbnail %}
-              <img class="img-thumbnail mx-auto d-block mt-1" src="{{observable.thumbnail_url}}" alt="{{observable.name}}" style="max-height: 144px" />
-            {% endif %}
           </div>
+          {% if observable.thumbnail %}
+            <div class="col-md-2">
+              <img class="img-thumbnail mx-auto d-block" src="{{observable.thumbnail_url}}" alt="{{observable.name}}" style="max-height: 90px" />
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -39,10 +39,12 @@
             {% if actor.attributes.tags %}
               {% include "helpers/tags.html" with entity=actor %}
             {% endif %}
-            {% if actor.thumbnail %}
-              <img class="img-thumbnail mx-auto d-block mt-1" src="{{actor.thumbnail_url}}" alt="{{actor.name}}" style="max-height: 144px" />
-            {% endif %}
           </div>
+          {% if actor.thumbnail %}
+            <div class="col-md-2">
+              <img class="img-thumbnail mx-auto d-block" src="{{actor.thumbnail_url}}" alt="{{actor.name}}" style="max-height: 90px" />
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 {% load i18n %}
 {% load markdownify %}
 
-<div class="row justify-content-center">
-  <div class="col-md-12 mt-2">
+<div class="row justify-content-center my-2">
+  <div class="col">
     <h2>{% include "icons/pills.html" with elt=event %} {{ event.name }}</h2>
     {% if event.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=event %}</div>
@@ -16,6 +16,11 @@
     </div>
     {% include "event/controls.html" with exclude="details" btn_class="" %}
   </div>
+  {% if event.thumbnail %}
+    <div class="col-md-2 position-relative">
+      <img class="img-thumbnail position-absolute top-0 end-0 me-2" src="{{event.thumbnail_url}}" alt="{{event.name}}" style="max-height: 100px" />
+    </div>
+  {% endif %}
 </div>
 
 <div class="row justify-content-center">
@@ -129,15 +134,6 @@
     {% include "helpers/extra_attributes_light.html" with attributes=event.attributes %}
   </div>
 </div>
-
-{% if event.thumbnail %}
-  <div class="row justify-content-center">
-    <div class="col-md-12 mt-2">
-      <h3>{% translate "Thumbnail" %}</h3>
-      <img class="img-thumbnail mx-auto d-block" src="{{event.thumbnail_url}}" alt="{{event.name}}" style="max-height: 300px" />
-    </div>
-  </div>
-{% endif %}
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">

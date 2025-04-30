@@ -2,8 +2,8 @@
 {% load colander_tags %}
 {% load markdownify %}
 
-<div class="row justify-content-center">
-  <div class="col-md-12 mt-2">
+<div class="row justify-content-center my-2">
+  <div class="col">
     <h2>{% include "icons/pills.html" with elt=artifact %} {{ artifact.name }}</h2>
     {% if artifact.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=artifact %}</div>
@@ -17,6 +17,11 @@
     </div>
     {% include "artifact/controls.html" with exclude="" btn_class="" %}
   </div>
+  {% if artifact.thumbnail %}
+    <div class="col-md-2 position-relative">
+      <img class="img-thumbnail position-absolute top-0 end-0 me-2" src="{{artifact.thumbnail_url}}" alt="{{artifact.name}}" style="max-height: 100px" />
+    </div>
+  {% endif %}
 </div>
 
 <div class="row justify-content-center">
@@ -220,14 +225,6 @@
 
 <div class="row justify-content-center">
   {% include "helpers/extra_attributes.html" with attributes=artifact.attributes %}
-
-  {% if artifact.thumbnail %}
-    <div class="col-md-12 mt-2">
-      <h3>{% translate "Thumbnail" %}</h3>
-      <img class="img-thumbnail mx-auto d-block" src="{{artifact.thumbnail_url}}" alt="{{artifact.name}}" style="max-height: 300px" />
-    </div>
-  {% endif %}
-
   {% include "entity_relation/related_entities.html" with entity=artifact %}
 </div>
 
@@ -250,7 +247,6 @@
   {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" or artifact.mime_type == "text/csv" %}
     {% if artifact.size_in_bytes < 500000 %}
       <div class="col-md-12 mt-4 mb-2">
-        <h3>Content</h3>
         <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
       </div>
     {% endif %}

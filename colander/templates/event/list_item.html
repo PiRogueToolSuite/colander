@@ -53,6 +53,11 @@
               </span>
             </div>
           </div>
+          {% if event.thumbnail %}
+            <div class="col-md-2">
+              <img class="img-thumbnail mx-auto d-block" src="{{event.thumbnail_url}}" alt="{{event.name}}" style="max-height: 90px" />
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

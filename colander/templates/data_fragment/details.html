@@ -1,8 +1,8 @@
 {% load i18n %}
 {% load markdownify %}
 
-<div class="row justify-content-center">
-  <div class="col-md-12 mt-2">
+<div class="row justify-content-center my-2">
+  <div class="col">
     <h2>{% include "icons/pills.html" with elt=data_fragment %} {{ data_fragment.name }}</h2>
     {% if data_fragment.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=data_fragment %}</div>
@@ -16,6 +16,13 @@
     </div>
     {% include "data_fragment/controls.html" with exclude="details" %}
   </div>
+  {% if data_fragment.thumbnail %}
+    <div class="col-md-2 position-relative">
+      <img class="img-thumbnail position-absolute top-0 end-0 me-2" src="{{data_fragment.thumbnail_url}}" alt="{{data_fragment.name}}" style="max-height: 100px" />
+    </div>
+  {% endif %}
+</div>
+<div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>
     <table class="table table-sm">
@@ -110,13 +117,6 @@
   </div>
 
   {% include "helpers/extra_attributes.html" with attributes=data_fragment.attributes %}
-
-  {% if data_fragment.thumbnail %}
-    <div class="col-md-12 mt-2">
-      <h3>{% translate "Thumbnail" %}</h3>
-      <img class="img-thumbnail mx-auto d-block" src="{{data_fragment.thumbnail_url}}" alt="{{data_fragment.name}}" style="max-height: 300px" />
-    </div>
-  {% endif %}
 
   {% with targets=data_fragment.out_relations origins=data_fragment.in_relations %}
     {% if origins or targets %}

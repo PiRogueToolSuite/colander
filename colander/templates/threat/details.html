@@ -1,8 +1,8 @@
 {% load i18n %}
 {% load markdownify %}
 
-<div class="row justify-content-center">
-  <div class="col-md-12 mt-2">
+<div class="row justify-content-center my-2">
+  <div class="col">
     <h2>{% include "icons/pills.html" with elt=threat %} {{ threat.name }}</h2>
     {% if threat.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=threat %}</div>
@@ -16,6 +16,13 @@
     </div>
     {% include "threat/controls.html" with exclude="details" btn_class="" %}
   </div>
+  {% if threat.thumbnail %}
+    <div class="col-md-2 position-relative">
+      <img class="img-thumbnail position-absolute top-0 end-0 me-2" src="{{threat.thumbnail_url}}" alt="{{threat.name}}" style="max-height: 100px" />
+    </div>
+  {% endif %}
+</div>
+<div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h3>{% translate "Details" %}</h3>
     <table class="table table-sm">
@@ -91,13 +98,6 @@
   </div>
 
   {% include "helpers/extra_attributes.html" with attributes=threat.attributes %}
-
-  {% if threat.thumbnail %}
-    <div class="col-md-12 mt-2">
-      <h3>{% translate "Thumbnail" %}</h3>
-      <img class="img-thumbnail mx-auto d-block" src="{{threat.thumbnail_url}}" alt="{{threat.name}}" style="max-height: 300px" />
-    </div>
-  {% endif %}
 
   {% include "entity_relation/related_entities.html" with entity=threat %}
 

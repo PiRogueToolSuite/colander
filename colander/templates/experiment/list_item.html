@@ -28,14 +28,20 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4  text-truncate">
+      <div class="col-md-4 text-truncate ">
         <div class="row">
           <div class="col">
-            {% if experiment.thumbnail %}
-              <img class="img-thumbnail mx-auto d-block mt-1" src="{{experiment.thumbnail_url}}" alt="{{experiment.name}}" style="max-height: 144px" />
+            {% include "tlp/show_tlp_pap.html" with element=experiment %}
+            {% if experiment.attributes.tags %}
+              {% include "helpers/tags.html" with entity=experiment %}
             {% endif %}
           </div>
         </div>
+        {% if experiment.thumbnail %}
+          <div class="col-md-2">
+            <img class="img-thumbnail mx-auto d-block" src="{{experiment.thumbnail_url}}" alt="{{experiment.name}}" style="max-height: 90px" />
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

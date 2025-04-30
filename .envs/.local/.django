@@ -1,6 +1,7 @@
 # General
 # ------------------------------------------------------------------------------
 USE_DOCKER=yes
+USE_MANDOLIN=yes
 IPYTHONDIR=/app/.ipython
 
 REDIS_URL=redis://redis:6379/0

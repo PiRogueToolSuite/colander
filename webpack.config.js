@@ -4,11 +4,12 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const path = require('path');
 
-const jsDest = path.resolve(__dirname, './colander/static/js');
+const jsDest  = path.resolve(__dirname, './colander/static/js');
 const cssDest = path.resolve(__dirname, './colander/static/css');
-const jsLibDest = path.resolve(jsDest, 'externals');
+const jsDist  = path.resolve(jsDest, 'dist');
+const cssDist = path.resolve(cssDest, 'dist');
+const jsLibDest  = path.resolve(jsDest, 'externals');
 const cssLibDest = path.resolve(cssDest, 'externals');
-const componentsDest = path.resolve(jsDest, 'components');
 
 let webpackConfig = (isDev, isProd) => [
   {
@@ -19,7 +20,7 @@ let webpackConfig = (isDev, isProd) => [
     output: {
       filename: '[name].js',  // output bundle file name
       chunkFilename: 'async-[name].js',
-      path: jsDest,  // path to our Django static directory
+      path: jsDist,  // path to our Django static directory
     },
     externals: {
       vue: 'Vue',
@@ -102,7 +103,7 @@ let webpackConfig = (isDev, isProd) => [
     },
     output: {
       filename: '.js-intermediate.[name].css-bundle.js',  // output bundle file name
-      path: cssDest,                                      // path to our Django static directory
+      path: cssDist,                                      // path to our Django static directory
     },
     plugins: [
       new MiniCssExtractPlugin({

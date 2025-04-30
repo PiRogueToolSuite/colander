@@ -22,7 +22,7 @@
 {% endblock graph-sidebar-items %}
 
 {% block context_css %}
-  <link href="{% static 'css/graph.css' %}" type="text/css" rel="stylesheet" />
+  <link href="{% static 'css/dist/graph.css' %}" type="text/css" rel="stylesheet" />
 {% endblock %}
 {% comment %}
 {% block context_javascript %}
@@ -40,35 +40,3 @@
     </div>
   {% endblock inner-content %}
 {% endblock content %}
-
-{% comment %}
-{% block inline_javascript %}
-<script type="text/javascript">
-  let cdg = new ColanderDGraph({
-    containerId: 'a-colander-graph',
-    csrfToken: '{{ csrf_token }}',
-    sendToDocumentation: false,
-    {% if subgraph %}
-      caseId: '{{ subgraph.case.id }}',
-      subgraphId: '{{ subgraph.id }}',
-      datasourceUrl: `/ws/{{ subgraph.case.id }}/graph/{{ subgraph.id }}/datasource`,
-      generateThumbnail: true,
-      editableVisibility: true,
-    {% else %}
-      caseId: '{{ contextual_case.id }}',
-      datasourceUrl: `/case/{{ contextual_case.id }}/graph`,
-      generateThumbnail: false,
-      editableVisibility: false,
-    {% endif %}
-    {% if lock %}
-      lock: true,
-    {% else %}
-      recenter: true,
-      snapshot: true,
-      fullscreen: true,
-      sidepane: true,
-    {% endif %}
-  });
-</script>
-{% endblock %}
-{% endcomment %}

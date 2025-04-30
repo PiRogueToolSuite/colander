@@ -346,12 +346,7 @@ coverage.lcov
 # FIXME: As long as not all static files are compiled during the build process,
 #        here are the ignore list of files already handled.
 colander/static/css/externals
-colander/static/css/graph.css
-colander/static/css/graph.css.map
-colander/static/css/project.css
-colander/static/css/project.css.map
+colander/static/css/dist
 
 colander/static/js/externals
-colander/static/js/colander-dgraph.js
-colander/static/js/colander-text-editor.js
-colander/static/js/colander-widgets.js
+colander/static/js/dist

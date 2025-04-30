@@ -58,7 +58,7 @@
     "cytoscape-edgehandles": "^4.0.1",
     "cytoscape-fcose": "^2.2.0",
     "cytoscape-layout-utilities": "^1.1.1",
-    "har-analyzer-vue": "^0.1.2",
+    "har-analyzer-vue": "^0.1.3",
     "i": "^0.3.7",
     "jquery": "^3.7.1",
     "lodash": "^4.17.21",

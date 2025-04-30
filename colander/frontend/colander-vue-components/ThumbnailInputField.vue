@@ -112,6 +112,9 @@ export default {
     setInitialImageSrc(imgSrc) {
       this.currentImage.src = imgSrc;
       this.thumbnailImage.src = imgSrc;
+      if (this.$checkboxClear) {
+        this.$checkboxClear.checked = false;
+      }
     },
     loadImage(event) {
       // Reference to the DOM input element

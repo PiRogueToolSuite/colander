@@ -1170,10 +1170,15 @@ class ColanderDGraph {
       edited_node.data('type', content.type);
       // thumbnail_url is independent of original file name
       // We need to use the `?_anticache=<rnd_value>` to force the browser to reload this resource.
-      edited_node.data(
-        'thumbnail_url',
-        `${content.thumbnail_url}?_anticache=${(new Date()).getTime()}`
-      );
+      if (content.thumbnail_url) {
+        edited_node.data(
+          'thumbnail_url',
+          `${content.thumbnail_url}?_anticache=${(new Date()).getTime()}`
+        );
+      }
+      else {
+        edited_node.data('thumbnail_url', null);
+      }
     }
     else {
       // Create

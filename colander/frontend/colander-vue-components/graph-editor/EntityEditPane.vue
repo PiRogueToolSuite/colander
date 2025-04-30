@@ -31,7 +31,12 @@ export default {
     save: function() {
       let tmp = JSON.parse(JSON.stringify(this.entity));
 
-      if (this.$refs.thumbnailFileUploader.files.length > 0) {
+      if (this.$refs.thumbnailDelete.checked) {
+        this.$debug('Deleting existing thumbnail');
+        tmp['thumbnail_delete'] = true;
+        $(this.$el).trigger('save-entity', [tmp]);
+      }
+      else if (this.$refs.thumbnailFileUploader.files.length > 0) {
         let fileToUpload = this.$refs.thumbnailFileUploader.files[0];
         this.$debug('Adding file to upload', fileToUpload);
         const reader = new FileReader();
@@ -118,6 +123,7 @@ export default {
           <ThumbnailInputField ref="thumbnailEditor">
             <div>
               <input id="id_thumbnail" ref="thumbnailFileUploader" type="file" accept='image/png, image/jpeg, image/jpg'/>
+              <input id="thumbnail-clear_id" ref="thumbnailDelete" type="checkbox" />
             </div>
           </ThumbnailInputField>
         </div>

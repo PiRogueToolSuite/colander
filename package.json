@@ -65,6 +65,7 @@
     "markdown-it": "^13.0.1",
     "masonry-layout": "^4.2.2",
     "npm": "^10.9.2",
+    "ol": "^10.5.0",
     "papaparse": "^5.5.2",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.3",

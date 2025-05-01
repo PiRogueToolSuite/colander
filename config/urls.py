@@ -186,7 +186,7 @@ case_contextualized_url_patterns = [
 
     path("investigate/", investigate_search_view, name="investigate_base_view"),
 
-    path("import/csv", TemplateView.as_view(template_name="import/csv.html"), name="csv"),
+    path("import/csv", TemplateView.as_view(template_name="import/csv.html"), name="import_csv_view"),
 ]
 
 urlpatterns = [

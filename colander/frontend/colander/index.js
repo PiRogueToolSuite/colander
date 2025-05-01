@@ -55,14 +55,16 @@ export const ColanderApp = {
       import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
     ConfirmButton: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ConfirmButton" */ '../colander-vue-components/ConfirmButton.vue')),
-    Csv: defineAsyncComponent(() =>
-      import(/* webpackChunkName: "Csv" */ '../colander-vue-components/importers/Csv.vue')),
+    CsvImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "Csv" */ '../colander-vue-components/importers/CsvImporter.vue')),
     DocumentationPane: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DocumentationPane" */ '../colander-vue-components/DocumentationPane.vue')),
     DropfileTriage: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DropfileTriage" */ '../colander-vue-components/DropfileTriage.vue')),
     DynamicTypeSelector: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DynamicTypeSelector" */ '../colander-vue-components/DynamicTypeSelector.vue')),
+    GeoMap: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GeoMap" */ '../colander-vue-components/GeoMap.vue')),
     GraphEditor: defineAsyncComponent(() =>
       import(/* webpackChunkName: "GraphEditor" */ '../colander-vue-components/GraphEditor.vue')),
     HStoreTable: defineAsyncComponent(() =>

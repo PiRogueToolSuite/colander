@@ -21,9 +21,10 @@
               :options="this.availableSuperTypes"
               :loading
               filter
+              @change="this.sanityCheck"
               optionLabel="name"
               placeholder="Select entity type"
-              class="mx-2" />
+              class="mx-2"/>
           </template>
 
           <template #center>
@@ -42,16 +43,25 @@
           </template>
 
           <template #end>
-            <Button
-              label="Reload"
-              severity="secondary"
-              :disabled="!this.inputFile"
-              icon="pi pi-refresh"
-              @click="this.parseFile"/>
-            <Button
-              label="Dump"
-              :disabled="!this.inputFile"
-              @click="this.dump"/>
+            <ButtonGroup>
+              <Button
+                label="Reload"
+                severity="primary"
+                :disabled="!this.inputFile"
+                icon="pi pi-refresh"
+                @click="this.parseFile"/>
+              <Button
+                label="Import"
+                severity="primary"
+                :disabled="this.inError"
+                icon="pi pi-cloud-upload"
+                />
+              <Button
+                label="Dump"
+                severity="primary"
+                :disabled="this.inError"
+                @click="this.dump"/>
+            </ButtonGroup>
           </template>
         </Toolbar>
       </div>
@@ -59,98 +69,123 @@
 
     <div class="row mt-2">
       <div class="col-12">
-        <Panel header="Mapping">
-           <div v-if="error" class="p-error p-mt-2">
+        <Panel header="Map your CSV">
+          <div v-if="error" class="p-error p-mt-2">
             {{ this.error }}
           </div>
-          <div v-if="this.tableData.length === 0 && !this.loading" class="p-text-center p-mt-4">
-            <p>No data loaded. Please select a CSV file to view.</p>
+          <div v-if="this.tableData.length === 0 && !this.loading" class="p-text-center p-mt-4 fw-bold text-warning">
+            <p>Please select a CSV file, the first row of your file must contains the column names.</p>
           </div>
           <DataTable
-          :value="this.tableData"
-          :loading
-          scrollable
-          removableSort
-          resizableColumns
-          columnResizeMode="fit"
-          size="small"
-          v-if="this.tableData.length > 0"
-        >
-          <template #header>
-            <div class="mt-1">
-              Type: <Select
-                v-model="this.defaultType"
-                :options="this.availableTypes"
-                :loading
-                filter
-                optionLabel="name"
-                placeholder="Default type"
-                @change="this.applyDefaultType"
-                class="me-2" />
-              Show/hide columns: <MultiSelect :modelValue="this.selectedColumns" :options="this.columns" optionLabel="header" :loading
-                           @update:modelValue="this.onToggleColumn" display="chip" placeholder="Select Columns" />
-            </div>
-            <div class="mt-3 text-muted">
-              <i class="pi pi-info-circle text-info"></i> You are about to create {{ this.tableData.length }} entities
-              of type {{ this.selectedSuperType.name }}.
-              Map the entity properties to the columns of your CSV. Available properties:
-              <ul>
-                <li v-for="field of this.availableFields">
-                  <i class="pi pi-check" style="color: var(--p-lime-500)" v-if="field.mappingSuccess"></i>
-                  <i class="pi pi-times" style="color: var(--p-red-500)" v-if="field.mappingError"></i>
-                  {{ field.label }}
-                  (<span class="font-monospace fst-italic">{{ field.name }}</span>):
-                  <span v-if="field.required" class="fw-bold">required, </span>
-                  <span v-else class="fw-bold">optional, </span>
-                  <span v-if="!field.multiple"> can be used only once</span>
-                  <span v-else> can be used multiple times</span>
-                  <span v-if="field.name==='ignore_field'"> to flag a column as ignored</span>
-                </li>
-              </ul>
-            </div>
-          </template>
-          <Column header="" frozen>
-            <template #body="slotProps">
-              <Select
-                v-model="slotProps.data.targetType"
-                :default-value="this.defaultType"
-                :options="this.availableTypes"
-                filter
-                size="small"
-                optionLabel="name"
-                placeholder="Select a type"
-                class="" />
-            </template>
-          </Column>
-          <Column
-            v-for="(col, index) of this.selectedColumns"
-            sortable
-            :field="col.field"
-            :key="col.field + '_' + index"
+            :value="this.tableData"
+            :loading
+            scrollable
+            removableSort
+            resizableColumns
+            columnResizeMode="fit"
+            size="small"
+            v-if="this.tableData.length > 0"
           >
-            <template #header>
-              <IftaLabel class="w-100">
-                <Select
-                  v-model="col.targetField"
-                  :options="this.availableFields"
+            <template #header v-if="this.tableData.length > 0">
+              <div>Assign an entity property to the columns of your CSV.</div>
+              <div class="row mt-2">
+                <div class="col-md-6">
+                  You are about to create {{ this.tableData.length }}
+                  <i>{{ this.selectedSuperType.name }}</i> entities.
+                   Available properties:
+                  <ul>
+                    <li v-for="field of this.availableFields">
+                      <i class="pi pi-times me-1" style="color: var(--p-red-500)" v-if="field.mappingError"></i>
+                      <i class="pi pi-check me-1" style="color: var(--p-lime-500)" v-else></i>
+                      <span class="text-primary">{{ field.label }}</span>
+                      (<span class="font-monospace fst-italic">{{ field.name }}</span>):
+                      <span v-if="field.required" class="fw-bold">required, </span>
+                      <span v-else class="fw-bold">optional, </span>
+                      <span v-if="!field.multiple"> can be used only once</span>
+                      <span v-else> can be used multiple times</span>
+                      <span v-if="field.name==='ignored_field'"> to flag a column as ignored</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  How your CSV will be imported:
+                  <ul class="">
+                    <li v-for="col of this.columns">
+                      the column <span class="font-monospace text-primary">{{ col.header }}</span>
+                      <span v-if="col.targetField && col.targetField.name!=='ignored_field'">
+                        will set the property <span class="text-primary">{{ col.targetField.label }}</span>.
+                      </span>
+                      <span v-else>
+                        will be ignored.
+                      </span>
+                    </li>
+                  </ul>
+              </div>
+              </div>
+              <div class="row mt-1">
+                <div class="col-md-6">
+                  Apply <i>{{ this.selectedSuperType.name }}</i> type to all rows: <Select
+                  v-model="this.defaultType"
+                  :options="this.availableTypes"
+                  :loading
                   filter
-                  :input-id="col.field"
-                  size="small"
-                  optionLabel="label"
-                  placeholder="Select field mapping"
-                  @valueChange="this.sanityCheck()"/>
-                <label :for="col.field" class="font-monospace">{{ col.header }}</label>
-              </IftaLabel>
+                  optionLabel="name"
+                  placeholder="Default type"
+                  @valueChange="this.applyDefaultType"
+                  class="me-2"/>
+                </div>
+
+                <div class="col-md-6">
+                  Hide CSV columns:
+                  <MultiSelect :modelValue="this.selectedColumns" :options="this.columns" optionLabel="header" :loading
+                               @update:modelValue="this.onToggleColumn" display="chip" placeholder="Select Columns"/>
+                </div>
+              </div>
             </template>
-          </Column>
-        </DataTable>
+            <Column header="" frozen>
+              <template #body="slotProps">
+                <Select
+                  v-model="slotProps.data.targetType"
+                  :default-value="this.defaultType"
+                  :options="this.availableTypes"
+                  filter
+                  size="small"
+                  optionLabel="name"
+                  placeholder="Select row type"
+                  class=""/>
+              </template>
+            </Column>
+            <Column
+              v-for="(col, index) of this.selectedColumns"
+              :sortable="true"
+              :field="col.field"
+              :key="col.field + '_' + index"
+            >
+              <template #header>
+                <IftaLabel class="w-100">
+                  <Select
+                    v-model="col.targetField"
+                    :options="this.availableFields"
+                    filter
+                    :input-id="col.field"
+                    class="w-full" variant="filled"
+                    size="small"
+                    optionLabel="label"
+                    placeholder="Select column type"
+                    @valueChange="this.sanityCheck"/>
+                  <label :for="col.field" class="font-monospace text-primary fw-bold">{{ col.header }}</label>
+                </IftaLabel>
+              </template>
+            </Column>
+          </DataTable>
         </Panel>
-        </div>
+      </div>
     </div>
   </div>
 </template>
 <script>
 import Button from "primevue/button";
+import ButtonGroup from "primevue/buttongroup";
 import Checkbox from "primevue/checkbox";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
@@ -171,6 +206,7 @@ export default {
   props: {},
   components: {
     Button,
+    ButtonGroup,
     Checkbox,
     Column,
     DataTable,
@@ -203,6 +239,7 @@ export default {
       loading: false,
       inputFile: null,
       error: null,
+      inError: true,
       tableData: [],
       models: [],
       defaultType: null,
@@ -221,39 +258,27 @@ export default {
       console.dir(this.tableData);
     },
     sanityCheck() {
-      let valid = true
+      let valid = this.tableData.length > 0;
       this.availableFields.forEach((f) => {
-        f.mappingError = false;
-        f.mappingSuccess = false;
+        f.mappingError = f.required;
         f.mappingCount = 0;
         this.columns.forEach((column) => {
           if (column.targetField && column.targetField.name === f.name) {
             f.mappingCount += 1;
-            f.mappingSuccess = true;
+            f.mappingError = false;
             if (f.mappingCount > 1 && !column.targetField.multiple) {
-              f.mappingSuccess = false;
               f.mappingError = true;
               valid = false;
             }
           }
         });
-        if (f.required && f.mappingCount===0) {
-          f.mappingSuccess = false;
+        if (f.required && f.mappingCount === 0) {
           f.mappingError = true;
           valid = false
         }
       });
+      this.inError = !valid;
       return valid;
-    },
-    fieldDisabled(opt) {
-      console.log("-----------")
-      console.dir(opt)
-      this.columns.forEach((column) => {
-          if (column.targetField && !column.targetField.multiple && column.targetField.name === opt.name) {
-            return true
-          }
-        });
-      return false;
     },
     applyDefaultType() {
       if (this.defaultType) {
@@ -293,6 +318,7 @@ export default {
       this.tableData = [];
       this.columns = [];
       this.headers = [];
+      this.sanityCheck();
 
       Papa.parse(this.inputFile, {
         header: true,
@@ -329,7 +355,6 @@ export default {
       this.parseFile();
     },
     onToggleColumn(val) {
-      console.dir(val)
       this.selectedColumns = this.columns.filter(col => val.includes(col));
     },
     processParsedData(results, file) {
@@ -370,4 +395,7 @@ export default {
 </script>
 
 <style scoped>
+.p-select {
+  min-width: 140px;
+}
 </style>

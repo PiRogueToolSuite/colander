@@ -12,7 +12,12 @@
     {% else %}
       <div class="row justify-content-center">
         <div class="col-md-12" id="quick-create-entities">
-          <h2 class="my-2">Quickly create new entities</h2>
+          <h2 class="m-4 text-center">
+            Create new entities <i>or</i>
+            <a href="{% url "import_csv_view" contextual_case.id %}">
+              import a CSV
+            </a>
+          </h2>
           <div class="card mb-4 bg-secondary-light">
             <div class="card-body">
               <form method="post" autocomplete="off">
@@ -22,14 +27,21 @@
                 </div>
                 <div class="row justify-content-center">
                   <div class="col-md-9 mt-3 text-center">
-                    <h4>Entity name(s)</h4>
+                    <h4>
+                      Entity name(s)
+                    </h4>
                     <textarea class="form-control"
                       name="name"
                       rows="4"
                       required
                       placeholder="Enter the name(s) of the entities to be created, one per line."
                     ></textarea>
-                    <button class="btn btn-primary mt-3" type="submit" name="create_entity">Submit</button>
+                    <div class="mt-3">
+                      <button class="btn btn-primary" type="submit" name="create_entity">
+                        <i class="nf nf-fa-save"></i>
+                        Create
+                      </button>
+                    </div>
                   </div>
                 </div>
               </form>

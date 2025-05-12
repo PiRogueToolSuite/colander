@@ -1,5 +1,5 @@
 <template>
-  <div ref="map-root" style="width: 300px; height: 300px">
+  <div ref="map-root" class="w-100" style="height: 200px">
   </div>
 </template>
 
@@ -15,12 +15,12 @@
     name: 'GeoMap',
     components: {},
     props: {
-      latitude: String,
-      longitude: String
+      dataLatitude: String,
+      dataLongitude: String
     },
     mounted() {
       useGeographic();
-      const place = [Number(this.latitude), Number(this.longitude)];
+      const place = [Number(this.dataLongitude), Number(this.dataLatitude)];
       const point = new Point(place);
       new Map({
         target: this.$refs['map-root'],

@@ -22,7 +22,9 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, analyzer
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, analyzer, Search
+from elasticsearch_dsl.response import Response
+from requests.structures import CaseInsensitiveDict
 
 logger = logging.getLogger(__name__)
 
@@ -1060,11 +1062,15 @@ class Artifact(Entity):
         from elasticsearch_dsl import connections
         connections.create_connection(hosts=['elasticsearch'], timeout=20)
         try:
-            search = ArtifactAnalysis.search(index=self.get_es_index())
-            search.sort('timestamp')
+            search: Search = ArtifactAnalysis.search(index=self.get_es_index())
+            search.sort('-timestamp')
             total = search.count()
-            search = search[0:total]
-            return search.sort('-timestamp').execute()
+            search = search[0]
+            response: Response = search.execute()
+            if len(response.hits) > 0:
+                hit = response.hits[0]
+                return hit
+            return None
         except Exception:
             return None
 
@@ -2548,7 +2554,7 @@ def delete_dropped_file_stored_file(sender, instance: DroppedFile, using, **kwar
     instance.file.delete()
 
 
-colander_models = {
+colander_models = CaseInsensitiveDict({
     'Case': Case,
     'Actor': Actor,
     'Artifact': Artifact,
@@ -2560,7 +2566,7 @@ colander_models = {
     'PiRogueExperiment': PiRogueExperiment,
     'Threat': Threat,
     'DataFragment': DataFragment,
-}
+})
 
 icons = {
     Actor: 'fa-users',

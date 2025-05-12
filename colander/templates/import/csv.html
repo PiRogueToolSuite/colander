@@ -9,7 +9,7 @@
   {% block inner-content %}
     <div class="row justify-content-center">
       <div class="col-md-12 mt-2">
-        <div is="vue:CsvImporter"></div>
+        <div is="vue:CsvImporter" data-case-id="{{ contextual_case.id }}" data-csrf-token="{{ csrf_token }}"></div>
       </div>
     </div>
   {% endblock %}

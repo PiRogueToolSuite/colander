@@ -105,22 +105,38 @@ class EntityViewSet(CreateModelMixin,
         self._process_thumbnail_upload(request)
         return super().update(request, *args, **kwargs)
 
-    def perform_update(self, serializer):
+    def perform_update(self, serializer):  # ToDo: why calling .save()?
         serializer.save()
 
     def create(self, request, *args, **kwargs):
         self._process_thumbnail_upload(request)
         return super().create(request, *args, **kwargs)
 
-    def perform_create(self, serializer):
-        case_id = self.request.data.pop("case_id")
-        case = Case.objects.get(pk=case_id) #get_active_case(self.request)
-        serializer.save(
+    def perform_create(self, serializer: DetailedEntitySerializer):
+        case_id = self.request.data.get("case_id")
+        case = Case.objects.get(pk=case_id)
+        extra_attributes = {}
+        if 'attributes' in serializer.validated_data:
+            extra_attributes = serializer.validated_data.pop('attributes')
+        obj, created = serializer.entity_model.objects.update_or_create(
             owner=self.request.user,
             case=case,
-            tlp=case.tlp,
-            pap=case.pap,
+            type=serializer.validated_data.pop('type'),
+            name=serializer.validated_data.pop('name'),
+            defaults={
+                **serializer.validated_data,
+                'tlp': case.tlp,
+                'pap': case.pap,
+             }
         )
+        if hasattr(obj, 'attributes'):
+            obj_attributes = obj.attributes
+            if obj_attributes:
+                obj.attributes.update(extra_attributes)
+                obj.save()
+            elif extra_attributes:
+                obj.attributes = extra_attributes
+                obj.save()
 
 
 class DroppedFileViewSet(RetrieveModelMixin,
@@ -356,6 +372,7 @@ def update_or_create_entity_relation(obj_from, obj_to, relation, case: Case, own
         obj.attributes = relation.get('attributes')
         obj.save()
     return obj, created
+
 
 @login_required
 def import_entity_from_threatr(request):

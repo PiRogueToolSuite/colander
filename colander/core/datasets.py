@@ -40,14 +40,14 @@ def __creatable_entity_and_types():
     models = []
     types = {}
     common_fields = [
-            {'label': 'Value or name', 'name': 'value', 'required': True, 'multiple': False},
-            {'label': 'TLP', 'name': 'tlp', 'required': False, 'multiple': False},
-            {'label': 'PAP', 'name': 'pap', 'required': False, 'multiple': False},
+            {'label': 'Value or name', 'name': 'name', 'required': True, 'multiple': False},
+            # {'label': 'TLP', 'name': 'tlp', 'required': False, 'multiple': False},
+            # {'label': 'PAP', 'name': 'pap', 'required': False, 'multiple': False},
             {'label': 'Description', 'name': 'description', 'required': False, 'multiple': False},
             {'label': 'Source URL', 'name': 'source_url', 'required': False, 'multiple': False},
             {'label': 'Ignore', 'name': 'ignored_field', 'required': False, 'multiple': True},
     ]
-    extra_fields =  [{'label': 'Other attribute', 'name': 'extra_attributes', 'required': False, 'multiple': True}]
+    extra_fields =  [{'label': 'Extra attribute', 'name': 'attributes', 'required': False, 'multiple': True}]
     fields = {
         'ACTOR': common_fields,
         'DEVICE': common_fields + extra_fields,

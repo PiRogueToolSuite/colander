@@ -55,7 +55,8 @@
                 severity="primary"
                 :disabled="this.inError"
                 icon="pi pi-cloud-upload"
-                />
+                @click="this.import_data"
+              />
               <Button
                 label="Dump"
                 severity="primary"
@@ -79,6 +80,7 @@
           <DataTable
             :value="this.tableData"
             :loading
+            :rowClass="this.row_status"
             scrollable
             removableSort
             resizableColumns
@@ -92,7 +94,7 @@
                 <div class="col-md-6">
                   You are about to create {{ this.tableData.length }}
                   <i>{{ this.selectedSuperType.name }}</i> entities.
-                   Available properties:
+                  Available properties:
                   <ul>
                     <li v-for="field of this.availableFields">
                       <i class="pi pi-times me-1" style="color: var(--p-red-500)" v-if="field.mappingError"></i>
@@ -120,7 +122,7 @@
                       </span>
                     </li>
                   </ul>
-              </div>
+                </div>
               </div>
               <div class="row mt-1">
                 <div class="col-md-6">
@@ -203,7 +205,10 @@ import Toast from "primevue/toast";
 import Toolbar from "primevue/toolbar";
 
 export default {
-  props: {},
+  props: {
+    dataCaseId: String,
+    dataCsrfToken: String,
+  },
   components: {
     Button,
     ButtonGroup,
@@ -257,7 +262,59 @@ export default {
       console.dir(this.columns);
       console.dir(this.tableData);
     },
+    row_status(data) {
+      if (data.imported)
+        return 'text-success';
+      if (data.importFailed)
+        return 'text-danger';
+      return '';
+    },
+    import_data() {
+      this.tableData.forEach((row) => {
+        if (row.targetType !== null) {
+          let entity = {
+            case_id: this.dataCaseId || null,
+            super_type: this.selectedSuperType.short_name,
+            type: row.targetType.id,
+            attributes: {},
+          };
+          this.columns.forEach((column) => {
+            if (column.targetField != null && column.targetField.name !== "ignored_field") {
+              const targetFieldName = column.targetField.name;
+              const fieldName = column.field;
+              const cellValue = row[fieldName];
+              if (targetFieldName === "attributes" && cellValue) {
+                entity.attributes[fieldName] = cellValue;
+              } else if (cellValue) {
+                entity[targetFieldName] = cellValue;
+              }
+            }
+          });
+
+          $.ajax({
+            type: 'POST',
+            url: '/rest/entity/',
+            dataType: 'json',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(entity),
+            headers: {
+              'X-CSRFToken': this.dataCsrfToken,
+            },
+            success: () => {
+              row.imported = true;
+            },
+            error: () => {
+              row.imported = false;
+              row.importFailed = true;
+            }
+          });
+        }
+      });
+    },
     sanityCheck() {
+      if (this.dataCaseId === null) {
+        return false;
+      }
       let valid = this.tableData.length > 0;
       this.availableFields.forEach((f) => {
         f.mappingError = f.required;
@@ -361,6 +418,9 @@ export default {
       this.tableData = results.data.map(row => ({
         ...row,
         targetType: null,
+        exists: false,
+        imported: false,
+        importFailed: false,
       }));
       this.columns = results.meta.fields.map(field => ({
         field: field,

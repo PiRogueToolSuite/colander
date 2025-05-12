@@ -129,29 +129,29 @@ class EntityViewSet(CreateModelMixin,
                 type=_type,
                 name=_name,
             )
+            attributes = {}
+            # Pop the extra attributes before the update to make sure we don't overwrite existing ones
+            if 'attributes' in serializer.validated_data:
+                attributes = serializer.validated_data.pop('attributes')
             # In case of multiple entities already exist with the same properties, only update the most recent one
             if q_set.exists():
-                extra_attributes = {}
-                # Pop the extra attributes before the update to make sure we don't overwrite existing ones
-                if 'extra_attributes' in serializer.validated_data:
-                    extra_attributes = serializer.validated_data.pop('extra_attributes')
                 obj = serializer.update(q_set.first(), serializer.validated_data)
-                # Merge extra attributes if needed
-                if hasattr(obj, 'attributes'):
-                    obj_attributes = obj.attributes
-                    if obj_attributes:
-                        obj.attributes.update(extra_attributes)
-                        obj.save()
-                    elif extra_attributes:
-                        obj.attributes = extra_attributes
-                        obj.save()
                 updated = True
             # No entity found to be updated, create a new one
             else:
-                serializer.save(
+                obj = serializer.save(
                     owner=self.request.user,
                     case=case,
                 )
+            # Merge extra attributes if needed
+            if hasattr(obj, 'attributes'):
+                obj_attributes = obj.attributes
+                if obj_attributes:
+                    obj.attributes.update(attributes)
+                    obj.save()
+                elif attributes:
+                    obj.attributes = attributes
+                    obj.save()
             return JsonResponse({'success': True, 'updated': updated}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return JsonResponse({'error': str(e), 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

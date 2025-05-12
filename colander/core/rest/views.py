@@ -6,6 +6,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
+from django.db.models import QuerySet
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
@@ -112,31 +113,55 @@ class EntityViewSet(CreateModelMixin,
         self._process_thumbnail_upload(request)
         return super().create(request, *args, **kwargs)
 
+    @action(detail=False, methods=['POST'])
+    # Used by the CSV importer
+    def import_entity(self, request):
+        case_id = self.request.data.pop('case_id')
+        case = Case.objects.get(pk=case_id)
+        serializer = DetailedEntitySerializer(data=request.data)
+        updated = False
+        try:
+            serializer.is_valid(raise_exception=True)
+            _name = serializer.validated_data['name']
+            _type = serializer.validated_data['type']
+            q_set: QuerySet = serializer.entity_model.objects.filter(
+                case=case,
+                type=_type,
+                name=_name,
+            )
+            # In case of multiple entities already exist with the same properties, only update the most recent one
+            if q_set.exists():
+                extra_attributes = {}
+                # Pop the extra attributes before the update to make sure we don't overwrite existing ones
+                if 'extra_attributes' in serializer.validated_data:
+                    extra_attributes = serializer.validated_data.pop('extra_attributes')
+                obj = serializer.update(q_set.first(), serializer.validated_data)
+                # Merge extra attributes if needed
+                if hasattr(obj, 'attributes'):
+                    obj_attributes = obj.attributes
+                    if obj_attributes:
+                        obj.attributes.update(extra_attributes)
+                        obj.save()
+                    elif extra_attributes:
+                        obj.attributes = extra_attributes
+                        obj.save()
+                updated = True
+            # No entity found to be updated, create a new one
+            else:
+                serializer.save(
+                    owner=self.request.user,
+                    case=case,
+                )
+            return JsonResponse({'success': True, 'updated': updated}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
     def perform_create(self, serializer: DetailedEntitySerializer):
         case_id = self.request.data.get("case_id")
         case = Case.objects.get(pk=case_id)
-        extra_attributes = {}
-        if 'attributes' in serializer.validated_data:
-            extra_attributes = serializer.validated_data.pop('attributes')
-        obj, created = serializer.entity_model.objects.update_or_create(
+        serializer.save(
             owner=self.request.user,
-            case=case,
-            type=serializer.validated_data.pop('type'),
-            name=serializer.validated_data.pop('name'),
-            defaults={
-                **serializer.validated_data,
-                'tlp': case.tlp,
-                'pap': case.pap,
-             }
-        )
-        if hasattr(obj, 'attributes'):
-            obj_attributes = obj.attributes
-            if obj_attributes:
-                obj.attributes.update(extra_attributes)
-                obj.save()
-            elif extra_attributes:
-                obj.attributes = extra_attributes
-                obj.save()
+            case=case, )
 
 
 class DroppedFileViewSet(RetrieveModelMixin,

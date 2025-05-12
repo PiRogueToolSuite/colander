@@ -65,9 +65,6 @@ class DetailedEntitySerializer(serializers.ModelSerializer):
                 validated_data.pop('thumbnail')
             instance.thumbnail.delete()
 
-        model = colander_models.get(validated_data['super_type'])
-        validated_data.pop('super_type')
-
         if hasattr( instance, 'type'):
             validated_data['type'] = self.entity_type
         return super().update(instance, validated_data)

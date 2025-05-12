@@ -293,7 +293,7 @@ export default {
 
           $.ajax({
             type: 'POST',
-            url: '/rest/entity/',
+            url: '/rest/entity/import_entity/',
             dataType: 'json',
             contentType: "application/json; charset=utf-8",
             data: JSON.stringify(entity),

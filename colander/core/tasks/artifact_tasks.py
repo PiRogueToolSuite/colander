@@ -55,7 +55,7 @@ def analyze_artifact(artifact_id: str):
             api_instance = mandolin_python_client.AnalyzersApi(api_client)
             file = artifact_file.name
             try:
-                api_response = api_instance.analyze_with_tika_analyzer_tika_post(file)
+                api_response = api_instance.analyze_with_tika_analyzer_tika_post(file, _request_timeout=5*50)
                 analysis = ArtifactAnalysis()
                 analysis.owner = str(artifact.owner_id)
                 analysis.case_id = str(artifact.case_id)

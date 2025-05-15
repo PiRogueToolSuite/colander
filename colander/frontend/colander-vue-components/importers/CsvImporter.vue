@@ -57,11 +57,6 @@
                 icon="pi pi-cloud-upload"
                 @click="this.import_data"
               />
-              <Button
-                label="Dump"
-                severity="primary"
-                :disabled="this.inError"
-                @click="this.dump"/>
             </ButtonGroup>
           </template>
         </Toolbar>

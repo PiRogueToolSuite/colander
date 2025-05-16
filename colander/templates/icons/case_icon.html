@@ -1,5 +1,29 @@
 {% if open %}
-<i class="fa fa-folder-open {{ c }}"></i>
+  {% if subcase %}
+  <span class="icon-stack {{ c }}">
+    <i class="fa fa-folder"></i>
+    <i class="fa fa-folder-open"></i>
+  </span>
+  {% elif parentcase %}
+  <span class="icon-stack {{ c }}">
+    <i class="fa fa-folder-open"></i>
+    <i class="fa fa-arrow-up"></i>
+  </span>
+  {% else %}
+  <i class="fa fa-folder-open {{ c }}"></i>
+  {% endif %}
 {% else %}
-<i class="fa fa-folder {{ c }}"></i>
+  {% if subcase %}
+  <span class="icon-stack {{ c }}">
+    <i class="fa fa-folder"></i>
+    <i class="fa fa-folder"></i>
+  </span>
+  {% elif parentcase %}
+  <span class="icon-stack {{ c }}">
+    <i class="fa fa-folder"></i>
+    <i class="fa fa-arrow-up"></i>
+  </span>
+  {% else %}
+  <i class="fa fa-folder {{ c }}"></i>
+  {% endif %}
 {% endif %}

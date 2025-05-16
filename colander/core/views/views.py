@@ -12,7 +12,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFoun
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.cache import cache_page, cache_control
+from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, DetailView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_serverless_cron.services import RunJobs
@@ -265,6 +265,7 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         'teams',
         'tlp',
         'pap',
+        'parent_case',
     ]
 
     def get_form(self, form_class=None):
@@ -273,6 +274,16 @@ class CaseCreateView(LoginRequiredMixin, CreateView):
         form = super(CaseCreateView, self).get_form(form_class)
         form.fields['teams'].queryset = self.request.user.my_teams_as_qset
         form.fields['teams'].widget.attrs['size'] = 10
+        parentable_cases = self.request.user.all_my_cases.filter(parent_case__isnull=True)
+        if self.object:
+            if self.object.is_parent_case:
+                # A.K.a : has sub_cases
+                # => Do not allow to attach this case to a parent case
+                parentable_cases = parentable_cases.none()
+                form.fields['parent_case'].help_text = _("Parent cases can't be themselve linked to a parent case")
+            else:
+                parentable_cases = parentable_cases.exclude(id=self.object.id)
+        form.fields['parent_case'].queryset = parentable_cases
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20, 'placeholder': _("No case description yet.")})
         return form
 

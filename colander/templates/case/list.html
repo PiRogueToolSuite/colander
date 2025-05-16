@@ -5,7 +5,20 @@
     <h2>{% translate "Latest cases" %}</h2>
     {% if cases %}
       {% for case in cases %}
-        {% include "case/list_item.html" %}
+        {% if compact %}
+          {% include "case/list_item.html" %}
+        {% else %}
+          {% if not case.is_sub_case %}
+            {% include "case/list_item.html" %}
+            {% if case.is_parent_case %}
+              <div class="subcases">
+              {% for subcase in case.subcases %}
+                {% include "case/list_item.html" with case=subcase %}
+              {% endfor %}
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endif %}
       {% endfor %}
     {% endif %}
   </div>

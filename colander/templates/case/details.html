@@ -4,7 +4,9 @@
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h2><i class="nf {{ case.type.nf_icon }} text-primary"></i> {{ case.name }}</h2>
+    <h2>
+      {% include "icons/case_icon.html" with subcase=case.is_sub_case open=contextual_case%} {{ case.name }}
+    </h2>
     <div class="mb-3">
       {% if case.description %}
         {{ case.description | markdownify }}
@@ -78,6 +80,32 @@
           {% include "tlp/show_tlp_pap.html" with element=case %}
         </td>
       </tr>
+      {% if case.is_sub_case %}
+      <tr>
+        <td>Parent case</td>
+        <td>
+            {% include "icons/case_icon.html" with parentcase=True c='text-primary' %}
+            <a href="{% url 'case_details_view' pk=case.parent_case.id %}">
+              {{ case.parent_case }}
+            </a>
+        </td>
+      </tr>
+      {% endif %}
+      {% if case.is_parent_case %}
+      <tr>
+        <td>Sub cases</td>
+        <td>
+          {% for subcase in case.subcases %}
+            <div>
+              {% include "icons/case_icon.html" with subcase=True c='text-primary' %}
+              <a href="{% url 'case_details_view' pk=subcase.id %}">
+                {{ subcase }}
+              </a>
+            </div>
+          {% endfor %}
+        </td>
+      </tr>
+      {% endif %}
       </tbody>
     </table>
   </div>

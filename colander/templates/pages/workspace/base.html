@@ -16,7 +16,7 @@
 
   <div class="list-group list-group-flush">
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == case_ws_url %} active {% endif %}" href="{{case_ws_url}}">
-      <i class="fa fa-folder-open list-group-item-icon"></i>
+      {% include "icons/case_icon.html" with open=True subcase=contextual_case.is_sub_case %}
       <span class="d-none d-sm-inline list-group-item-label">Case overview</span>
     </a>
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"

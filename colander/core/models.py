@@ -303,6 +303,7 @@ class Case(models.Model):
     )
     parent_case = models.ForeignKey(
         'self',
+        help_text=_('Make this case a sub-case of another one.'),
         on_delete=models.CASCADE,
         blank=True,
         null=True,
@@ -357,6 +358,18 @@ class Case(models.Model):
     @property
     def value(self):
         return self.name
+
+    @cached_property
+    def is_parent_case(self):
+        return Case.objects.filter(parent_case_id=self.id).exists()
+
+    @property
+    def is_sub_case(self):
+        return self.parent_case is not None
+
+    @cached_property
+    def subcases(self):
+        return Case.objects.filter(parent_case_id=self.id).all()
 
     def __str__(self):
         return self.name

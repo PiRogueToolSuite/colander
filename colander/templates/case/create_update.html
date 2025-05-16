@@ -12,12 +12,12 @@
         {% csrf_token %}
         <div class="row justify-content-center">
           <div class="col">
-            
             <div is="vue:Suggester"
                  data-type="Case"
                  data-csrf-token="{{ csrf_token }}">
               {{ form.name|as_crispy_field }}
             </div>
+            {{ form.parent_case|as_crispy_field }}
             {{ form.tlp|as_crispy_field }}
             {{ form.pap|as_crispy_field }}
             {{ form.description|as_crispy_field }}

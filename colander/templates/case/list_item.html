@@ -4,10 +4,12 @@
     <div class="row">
       <div class="{% if not compact %}col-md-8 border-end border-secondary{% else %}col-md-12{% endif %} text-truncate">
         <div class="{% if not compact %}border-bottom border-secondary{% endif %}">
-          {% include "icons/case_icon.html" with c="h4 text-primary" %}
-          <a class="{% if compact %}h5{% else %}h4{% endif %}" href="{% url "case_details_view" pk=case.id %}">
-            {{ case.name }}
-          </a>
+          <span class="{% if compact %}h5{% else %}h4{% endif %} text-primary">
+            {% include "icons/case_icon.html" with subcase=case.is_sub_case c='text-primary' %}
+            <a href="{% url "case_details_view" pk=case.id %}">
+              {{ case.name }}
+            </a>
+          </span>
           {% if compact %}
             <span class="text-tiny text-muted">
               {% include "icons/date_icon.html" %}

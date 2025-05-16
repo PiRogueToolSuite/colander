@@ -74,25 +74,49 @@
       {% endif %}
       <div id="overall-case-selection" class="w-50" tabindex="0">
         <div class="case-title">
-          {% if contextual_case %}
-            <i class="fa fa-folder-open" aria-hidden="true"></i>
-          {% else %}
-            <i class="fa fa-folder" aria-hidden="true"></i>
-          {% endif %}
+          {% include "icons/case_icon.html" with open=contextual_case subcase=contextual_case.is_sub_case %}
           {{ title_placeholder }}
           <i id="overall-case-list-toggle-icon" class="nf nf-fa-toggle_down" aria-hidden="true"></i>
         </div>
         <div id="overall-case-list">
           <div class="list-group">
             {% for case in request.user_cases %}
-              <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
-                <div class="d-flex w-100 justify-content-between">
-                  <h5 class="mb-1">{{ case.name }}</h5>
-                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
-                </div>
-                <p class="mb-1 text-muted">{{ case.description }}</p>
-{#                  <small class="{% if not case == contextual_case %}text-muted{% endif %}">And some small print.</small>#}
-              </a>
+              {% if not case.is_sub_case %}
+                {% if contextual_case.id == case.id %}
+                  {% define True as case_is_opened %}
+                {% else %}
+                  {% define False as case_is_opened %}
+                {% endif %}
+                <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">
+                      {% include "icons/case_icon.html" with subcase=case.is_sub_case open=case_is_opened %}
+                      {{ case.name }}
+                    </h5>
+                    <small class="{% if not case == contextual_case %}text-muted{% endif %}">{{ case.updated_at }}</small>
+                  </div>
+                  <p class="mb-1 text-muted">{{ case.description }}</p>
+                </a>
+                {% if case.is_parent_case %}
+                  {% for subcase in case.subcases %}
+                    {% if contextual_case.id == subcase.id %}
+                      {% define True as subcase_is_opened %}
+                    {% else %}
+                      {% define False as subcase_is_opened %}
+                    {% endif %}
+                    <a href="{% url "case_workspace_view" case_id=subcase.id %}" class="list-group-item list-group-item-action {% if subcase == contextual_case %}active{% endif %}" aria-current="{% if subcase is contextual_case %}true{% else %}false{% endif %}">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">
+                          {% include "icons/case_icon.html" with subcase=True open=subcase_is_opened %}
+                          {{ subcase.name }}
+                        </h5>
+                        <small class="{% if not subcase == contextual_case %}text-muted{% endif %}">{{ subcase.updated_at }}</small>
+                      </div>
+                      <p class="mb-1 text-muted">{{ subcase.description }}</p>
+                    </a>
+                  {% endfor %}
+                {% endif %}
+              {% endif %}
             {% endfor %}
           </div>
           </div>

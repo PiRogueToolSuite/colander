@@ -42,8 +42,8 @@ def _mandolin_thumbnail(artifact: Artifact, mandolin_configuration):
                 api_response:bytearray = api_instance.generate_thumbnail_converter_thumbnail_post(
                     artifact_file.name,
                     strategy=ThumbnailStrategy.FIT,
-                    width=200,
-                    height=200,
+                    width=256,
+                    height=256,
                     _request_timeout=30,
                 )
                 if len(api_response) > 0:

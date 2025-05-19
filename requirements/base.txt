@@ -44,6 +44,7 @@ django-serverless-cron @ git+https://github.com/TontonSancho/django-serverless-c
 # Analysis
 communityid==1.5.0
 yara-python==4.5.0  # https://github.com/VirusTotal/yara-python
+pcapng-utils>=1.0.9  # https://github.com/PiRogueToolSuite/pcapng-utils
 
 # Mandolin
 mandolin-python-client>=1.0.2

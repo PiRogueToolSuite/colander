@@ -1,12 +1,12 @@
 {% load i18n %}
 <div class="btn-group {{ c }}" role="group" aria-label="Basic example">
-  {% if "details" not in exclude %}
+  {% if "details" not in exclude and is_accessible %}
     <a href="{% url "case_details_view" pk=case.id %}" class="btn btn-primary" title="{% translate "Details" %}">
       <i class="nf nf-fa-eye"></i>
       {% translate "Details" %}
     </a>
   {% endif %}
-  {% if not contextual_case == case %}
+  {% if not contextual_case == case and is_accessible %}
     <a href="{% url 'case_workspace_view' case_id=case.id %}" class="btn btn-primary" title="{% translate "Open case" %}">
       <i class="fa fa-folder-open"></i>
       {% translate "Open" %}
@@ -18,7 +18,7 @@
       {% translate "Select" %}
     </a>
   {% endcomment %}
-  {% if not compact and request.user == case.owner %}
+  {% if not compact and request.user == case.owner and is_accessible %}
     <a href="{% url "case_update_view" pk=case.id %}" class="btn btn-primary" title="{% translate "Edit" %}">
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}

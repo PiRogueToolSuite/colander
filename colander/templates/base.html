@@ -81,13 +81,16 @@
         <div id="overall-case-list">
           <div class="list-group">
             {% for case in request.user_cases %}
+              {% can_contribute case as is_accessible %}
               {% if not case.is_sub_case %}
                 {% if contextual_case.id == case.id %}
                   {% define True as case_is_opened %}
                 {% else %}
                   {% define False as case_is_opened %}
                 {% endif %}
-                <a href="{% url "case_workspace_view" case_id=case.id %}" class="list-group-item list-group-item-action {% if case == contextual_case %}active{% endif %}" aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
+                <a {% if is_accessible %}href="{% url "case_workspace_view" case_id=case.id %}"{% endif %}
+                   class="list-group-item list-group-item-action{% if case == contextual_case %} active{% endif %}{% if not is_accessible %} disabled{% endif %}"
+                   aria-current="{% if case is contextual_case %}true{% else %}false{% endif %}">
                   <div class="d-flex w-100 justify-content-between">
                     <h5 class="mb-1">
                       {% include "icons/case_icon.html" with subcase=case.is_sub_case open=case_is_opened %}
@@ -98,13 +101,17 @@
                   <p class="mb-1 text-muted">{{ case.description }}</p>
                 </a>
                 {% if case.is_parent_case %}
+                  <div class="subcases">
                   {% for subcase in case.subcases %}
+                    {% can_contribute subcase as is_accessible %}
                     {% if contextual_case.id == subcase.id %}
                       {% define True as subcase_is_opened %}
                     {% else %}
                       {% define False as subcase_is_opened %}
                     {% endif %}
-                    <a href="{% url "case_workspace_view" case_id=subcase.id %}" class="list-group-item list-group-item-action {% if subcase == contextual_case %}active{% endif %}" aria-current="{% if subcase is contextual_case %}true{% else %}false{% endif %}">
+                    <a {% if is_accessible %}href="{% url "case_workspace_view" case_id=subcase.id %}"{% endif %}
+                       class="list-group-item list-group-item-action{% if subcase == contextual_case %} active{% endif %}{% if not is_accessible %} disabled{% endif %}"
+                       aria-current="{% if subcase is contextual_case %}true{% else %}false{% endif %}">
                       <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1">
                           {% include "icons/case_icon.html" with subcase=True open=subcase_is_opened %}
@@ -115,6 +122,7 @@
                       <p class="mb-1 text-muted">{{ subcase.description }}</p>
                     </a>
                   {% endfor %}
+                  </div>
                 {% endif %}
               {% endif %}
             {% endfor %}

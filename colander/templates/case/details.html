@@ -1,7 +1,8 @@
 {% load i18n %}
 {% load static %}
 {% load markdownify %}
-
+{% load colander_tags %}
+{% can_contribute case as is_accessible %}
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
     <h2>
@@ -81,11 +82,13 @@
         </td>
       </tr>
       {% if case.is_sub_case %}
+      {% can_contribute case.parent_case as is_accessible %}
       <tr>
         <td>Parent case</td>
         <td>
             {% include "icons/case_icon.html" with parentcase=True c='text-primary' %}
-            <a href="{% url 'case_details_view' pk=case.parent_case.id %}">
+            <a {% if is_accessible %}href="{% url 'case_details_view' pk=case.parent_case.id %}"{% endif %}
+               class="{% if not is_accessible %}disabled{% endif %}">
               {{ case.parent_case }}
             </a>
         </td>
@@ -96,9 +99,11 @@
         <td>Sub cases</td>
         <td>
           {% for subcase in case.subcases %}
+            {% can_contribute subcase as is_accessible %}
             <div>
               {% include "icons/case_icon.html" with subcase=True c='text-primary' %}
-              <a href="{% url 'case_details_view' pk=subcase.id %}">
+              <a {% if is_accessible %}href="{% url 'case_details_view' pk=subcase.id %}"{% endif %}
+                 class="{% if not is_accessible %}disabled{% endif %}">
                 {{ subcase }}
               </a>
             </div>

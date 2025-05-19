@@ -1,12 +1,15 @@
 {% load i18n %}
-<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
+{% load colander_tags %}
+{% can_contribute case as is_accessible %}
+<div class="card m-1 shadow-sm bg-secondary-light border-secondary{% if not is_accessible %} disabled{% endif %}">
   <div class="card-body p-2">
     <div class="row">
       <div class="{% if not compact %}col-md-8 border-end border-secondary{% else %}col-md-12{% endif %} text-truncate">
         <div class="{% if not compact %}border-bottom border-secondary{% endif %}">
           <span class="{% if compact %}h5{% else %}h4{% endif %} text-primary">
             {% include "icons/case_icon.html" with subcase=case.is_sub_case c='text-primary' %}
-            <a href="{% url "case_details_view" pk=case.id %}">
+            <a {% if is_accessible %}href="{% url "case_details_view" pk=case.id %}"{% endif %}
+               class="{% if not is_accessible %}disabled{% endif %}">
               {{ case.name }}
             </a>
           </span>

@@ -124,3 +124,10 @@ def bs_alert_level_class(message_tag_level):
     if message_tag_level == 'error':
         return 'danger'
     return message_tag_level
+
+@register.simple_tag(takes_context=True, name='can_contribute')
+def user_can_contribute(context, case, *args, **kwargs):
+    if context.request.user:
+        return case.can_contribute(context.request.user)
+    else:
+        return False

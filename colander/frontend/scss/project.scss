@@ -780,3 +780,31 @@ header .navbar-nav {
     }
   }
 }
+#overall-case-list {
+  .subcases {
+    padding-left: initial;
+    margin-top: -1px;
+    margin-bottom: -1px;
+    .list-group-item {
+      padding-left: 2em;
+    }
+  }
+}
+
+a.disabled
+{
+  cursor: not-allowed;
+  pointer-events: none;
+  color: var(--bs-gray);
+}
+
+.card.disabled
+{
+  &.border-secondary {
+    border-color: var(--bs-card-border-color) !important;
+  }
+  .border-secondary {
+    border-color: var(--bs-card-border-color) !important;
+  }
+  --bs-card-border-color: var(--bs-gray);
+}

@@ -46,4 +46,4 @@ communityid==1.5.0
 yara-python==4.5.0  # https://github.com/VirusTotal/yara-python
 
 # Mandolin
-mandolin-python-client
+mandolin-python-client>=1.0.2

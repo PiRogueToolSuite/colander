@@ -412,14 +412,10 @@ class Case(models.Model):
                 field_name = 'value'
             try:
                 if hasattr(model, 'case'):
-                    # objects = model.objects.filter(**{f'{field_name}__icontains': value, 'case__in': self.owner.all_my_cases})
                     objects = model.objects.filter(**{f'{field_name}__icontains': value, 'case': self})
-                    # else:
-                    #     objects = model.objects.filter(**{f'{field_name}__icontains': value})
                     results.extend(objects.all())
             except Exception as e:
-                print(model, e)
-                pass
+                logger.error(e, extra={'model': model})
         return results
 
     def get_all_entities(self, exclude_types=[]):

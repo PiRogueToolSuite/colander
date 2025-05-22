@@ -28,7 +28,7 @@ styles.push({
     //'background-blacken': -0.5,
     'shape': 'round-rectangle',
     'border-width': 2,
-    'font-family': 'sans-serif, ForkAwesome',
+    'font-family': '"Open Sans", sans-serif, ForkAwesome',
     'font-size': '10px',
     'line-height': 1.25,
     'text-halign': 'center',
@@ -95,7 +95,7 @@ styles.push({
     'text-outline-color': 'white',
     'text-outline-opacity': 1,
     'text-outline-width': 3,
-    'font-family': 'sans-serif, ForkAwesome',
+    'font-family': '"Open Sans", sans-serif, ForkAwesome',
     'font-size': '10px',
     'curve-style': 'bezier',
   }
@@ -950,7 +950,7 @@ class ColanderDGraph {
   }
 
   _onCyReady() {
-    console.log('Fetching ...');
+    this.$vue.$info('Fetching ...');
     fetch(this._config.datasourceUrl)
       .then((r) => r.json())
       .then(this._onGraphData.bind(this))
@@ -960,6 +960,7 @@ class ColanderDGraph {
   }
 
   _onGraphData(data) {
+    this.$vue.$info('Graph data received');
     this.g = data;
 
     // Ensure we have defaults

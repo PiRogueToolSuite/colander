@@ -33,20 +33,22 @@ let nodeBody = _memoize(function(e, iid) {
   let svgTxt = `${icon_unicodes[iid]} ${e.data('name')}`;
 
   const ctx = document.createElement('canvas').getContext("2d");
-  const fStyle = e.style('font-style').strValue;
-  const size = e.style('font-size').pfValue + 'px';
-  const family = e.style('font-family').strValue;
-  const weight = e.style('font-weight').strValue;
+  const fStyle = e.style('font-style');
+  const size = e.style('font-size');
+  const family = e.style('font-family');
+  const weight = e.style('font-weight');
   ctx.font = fStyle + ' ' + weight + ' ' + size + ' ' + family;
+  const horizontalPadding = 12;
+  const verticalPadding = 14;
   let measures = ctx.measureText(svgTxt);
-  let maxWidth = measures.width + 8;
+  let maxWidth = measures.width + horizontalPadding;
   let lineHeight = measures.actualBoundingBoxAscent + measures.actualBoundingBoxDescent;
   let maxHeight = lineHeight;
 
   if (e.data('type')) {
     let typeTxt = e.cy().data('all-styles')[e.data('super_type')].types[e.data('type')].name;
     measures = ctx.measureText(`${typeTxt}`);
-    maxWidth = Math.max(maxWidth, measures.width + 8);
+    maxWidth = Math.max(maxWidth, measures.width + horizontalPadding);
     svgTxt += `\n${typeTxt}`;
     maxHeight += lineHeight; // +1 line
   }
@@ -54,7 +56,7 @@ let nodeBody = _memoize(function(e, iid) {
     maxHeight += lineHeight; // +1 line
   }
 
-  maxHeight += 8; // default margin
+  maxHeight += verticalPadding; // default margin
 
   let labelAlign = 'center';
   let labelJustification = 'center';
@@ -67,8 +69,14 @@ let nodeBody = _memoize(function(e, iid) {
     //maxHeight = Math.max(maxHeight, 144);
     labelAlign = 'center';
     labelJustification = 'left';
-    labelMarginX = 18;
-    maxWidth += 32 + 4;
+
+    // The following may depend on the total Height of the node
+    // Why: Node label are a mix of Icon + text,
+    //      'cause: Difference in icon height
+    //labelMarginX = 18;
+    labelMarginX = (maxHeight * 0.5);
+    //maxWidth += 32 + 4;
+    maxWidth += (maxHeight * 0.84) + 4;
   }
   //console.log(e.data(), bgImageUrl);
 

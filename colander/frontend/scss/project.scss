@@ -344,16 +344,53 @@ header .navbar-brand span {
   }
 
   .pin-toggle {
+    border: none;
+    /* considering unpinned by default */
+    .pin {
+      display: none;
+    }
     .unpin {
+      display: initial;
+    }
+
+    &.pinned {
+      .pin {
+        display: initial;
+      }
+      .unpin {
+        display: none;
+      }
+    }
+
+    &:hover {
+      border: initial;
+      .pin, .unpin {
+        color: var(--bs-secondary);
+      }
+      .pin {
+        display: initial;
+      }
+      .unpin {
+        display: none;
+      }
+      &.pinned {
+        .pin {
+          display: none;
+        }
+        .unpin {
+          display: initial;
+        }
+      }
+    }
+  }
+  .list-group-item:has(> .pin-toggle)
+  {
+    .pin-toggle.pinned {
       display: none;
     }
 
     &:hover {
-      .pin {
-        display: none;
-      }
-
-      .unpin {
+      .pin-toggle.pinned {
         display: initial;
       }
     }

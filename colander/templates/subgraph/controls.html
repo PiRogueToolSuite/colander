@@ -1,8 +1,8 @@
 {% load i18n %}
-
-
+{% load colander_tags %}
 <div class="btn-group" role="group">
-  {% if subgraph.pinned %}
+  {% pinned subgraph as is_pinned %}
+  {% if is_pinned %}
     <a href="{% url "subgraph_pin_toggle_view" case_id=subgraph.case.id pk=subgraph.id %}"
        class="btn btn-secondary {{ btn_class }}"
        title="Unpin from navigation sidebar">

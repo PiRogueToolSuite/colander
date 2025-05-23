@@ -103,7 +103,20 @@ def subgraph_editor_view(request, pk):
 
 @login_required
 def subgraph_pin_toggle_view(request, pk):
-    return redirect("subgraph_create_view", case_id=request.contextual_case.id)
+    preferences = request.user.get_or_create_preferences_with_domain('pinned_entities')
+
+    if pk in preferences['pinned_entities']:
+        preferences['pinned_entities'].pop(pk)
+    else:
+        preferences['pinned_entities'][pk] = True
+
+    request.user.save()
+
+    next_url = request.GET.get('next', None)
+    if next_url:
+        return redirect(next_url)
+    else:
+        return redirect("subgraph_create_view", case_id=request.contextual_case.id)
 
 
 @login_required

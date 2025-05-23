@@ -41,6 +41,32 @@ class User(AbstractUser):
         editable=False
     )
 
+    # workspaces visibilities
+    #   'workspace_visilities: { drops: false, cyberchef: false }
+    # entities preferences by 'feature' domain
+    #   'pinned_entities': { eid1: true, eid2: true, }
+    preferences = models.JSONField(
+        verbose_name='User preferences',
+        blank=True,
+        null=True
+    )
+
+    def get_or_create_preferences(self):
+        self.preferences = self.preferences or dict()
+
+        return self.preferences
+
+    def get_or_create_preferences_with_domain(self, domain: str, domain_default=None):
+        preferences = self.get_or_create_preferences()
+
+        if domain_default is None:
+            domain_default = dict()
+
+        if domain not in preferences:
+            preferences[domain] = domain_default
+
+        return preferences
+
     @property
     def token(self):
         return self.get_auth_token()

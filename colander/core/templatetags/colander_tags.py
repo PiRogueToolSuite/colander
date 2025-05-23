@@ -125,9 +125,25 @@ def bs_alert_level_class(message_tag_level):
         return 'danger'
     return message_tag_level
 
+
 @register.simple_tag(takes_context=True, name='can_contribute')
 def user_can_contribute(context, case, *args, **kwargs):
     if context.request.user:
         return case.can_contribute(context.request.user)
     else:
         return False
+
+
+@register.simple_tag(takes_context=True, name='pinned')
+def is_pinned_entity(context, entity, *args, **kwargs):
+    if not context.request.user:
+        return False
+
+    if not hasattr(entity, 'id'):
+        return False
+
+    entity_id = str(entity.id)
+
+    preferences = context.request.user.get_or_create_preferences_with_domain('pinned_entities')
+
+    return entity_id in preferences['pinned_entities']

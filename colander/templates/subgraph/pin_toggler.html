@@ -1,0 +1,7 @@
+{% load colander_tags %}
+{% pinned subgraph as is_pinned %}
+<button data-href="{% url "subgraph_pin_toggle_view" case_id=subgraph.case.id pk=subgraph.id %}?next={{ request.path }}"
+  class="pin-toggle position-absolute btn btn-outline-light py-0 px-1 {{is_pinned|yesno:"pinned,unpinned"}}" style="right: 0.6em;" title="Unpin SubGraph">
+  <i class="pin nf nf-md-pin" aria-hidden="true"></i>
+  <i class="unpin nf nf-md-pin_off" aria-hidden="true"></i>
+</button>

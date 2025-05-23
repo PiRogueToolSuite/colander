@@ -555,7 +555,13 @@ class SubGraph(models.Model):
 
     @staticmethod
     def get_pinned(user, case):
-        return SubGraph.objects.filter(owner=user, case=case)
+        pinned_entities_ids = list()
+
+        if user.preferences:
+            if 'pinned_entities' in user.preferences:
+                pinned_entities_ids =  user.preferences['pinned_entities'].keys()
+
+        return SubGraph.objects.filter(owner=user, case=case).filter(id__in=pinned_entities_ids)
 
     @property
     def entities(self):

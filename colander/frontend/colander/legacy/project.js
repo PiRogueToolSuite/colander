@@ -53,6 +53,18 @@ function handle_comment_controls() {
     })
 }
 
+function handle_pin_toggler_buttons() {
+  $('button.pin-toggle').click(function(e){
+    let href = $(this).attr('data-href');
+    if (href) {
+      window.open(href, '_self');
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
+}
+
 export default () => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -74,4 +86,5 @@ export default () => {
     })
 
     handle_comment_controls();
+    handle_pin_toggler_buttons();
 };

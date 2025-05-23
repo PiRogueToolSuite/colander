@@ -1,10 +1,14 @@
 {% load i18n %}
 {% load markdownify %}
 
-<div class="card m-1 shadow-sm bg-secondary-light border-secondary">
-  <div class="card-body p-2 ">
-    <p class="text-wrap mb-0 comment-content-{{ comment.id }}">
-      {% include "icons/comment_icon.html" with c="h4 text-primary" %}
+<div class="card shadow-sm bg-secondary-light border-secondary mb-2">
+  <div class="card-body m-0 p-2 pb-0">
+    <p class="text-wrap comment-content-{{ comment.id }}">
+      {% include "icons/comment_icon.html" with c="text-primary me-1" %}
+
+      <i>by</i>
+      {% include "icons/user_icon.html" %}
+      {{ comment.owner }} {% if comment.owner == request.user %}(me){% endif %}
       {{ comment.content | markdownify }}
     </p>
     <form method="post" class="edit-comment-form-{{ comment.id }} text-center"
@@ -20,22 +24,17 @@
       </div>
     </form>
   </div>
-  <div class="card-footer bg-transparent border-secondary m-0 p-1 small text-muted row">
-    <div class="col">
-      {% include "icons/user_icon.html" %}
-      {{ comment.owner }} {% if comment.owner == request.user %}(me){% endif %}
-      {% include "icons/date_icon.html" %}
-      {{ comment.created_at }}
+  <div class="card-footer bg-transparent border-0 m-0 p-0 small text-muted row">
+    <div class="col fst-italic">
+      Posted {{ comment.created_at|timesince }} ago
     </div>
-    <div class="col-md-2 text-end btn-group" role="group">
+    <div class="col-1 text-end btn-group mb-1" role="group">
       <a href="#" comment-id="{{ comment.id }}" class="update-comment-btn btn btn-sm btn-primary text-white">
         <i class="nf nf-fa-pencil"></i>
-        Edit
       </a>
       <a href="{% url "delete_comment_view" pk=comment.id %}" class="delete-comment-btn btn btn-sm btn-danger text-white"
          is="vue:ConfirmButton">
         <i class="nf nf-fa-trash"></i>
-        Delete
       </a>
     </div>
   </div>

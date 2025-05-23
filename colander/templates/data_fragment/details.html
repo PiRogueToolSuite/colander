@@ -3,7 +3,7 @@
 
 <div class="row justify-content-center my-2">
   <div class="col">
-    <h2>{% include "icons/pills.html" with elt=data_fragment %} {{ data_fragment.name }}</h2>
+    <h3>{% include "icons/pills.html" with elt=data_fragment %} {{ data_fragment.name }}</h3>
     {% if data_fragment.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=data_fragment %}</div>
     {% endif %}
@@ -24,7 +24,7 @@
 </div>
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -62,15 +62,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ data_fragment.created_at }}
+          {% include "helpers/date_since.html" with date=data_fragment.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ data_fragment.updated_at }}
+          {% include "helpers/date_since.html" with date=data_fragment.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -112,44 +110,16 @@
   </div>
 
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <pre class="bg-dark text-white rounded-2 p-2"><code>{{ data_fragment.content }}</code></pre>
   </div>
 
   {% include "helpers/extra_attributes.html" with attributes=data_fragment.attributes %}
+</div>
 
-  {% with targets=data_fragment.out_relations origins=data_fragment.in_relations %}
-    {% if origins or targets %}
-      <div class="col-md-12 mt-2">
-        <h3>{% translate "Related entities" %}</h3>
-        <table class="table table-sm">
-          <thead class="bg-secondary-light">
-          <tr>
-            <td>Type</td>
-            <td>Entity</td>
-            <td></td>
-          </tr>
-          </thead>
-          <tbody>
-          {% for relation in origins %}
-            {% include "entity_relation/table_item.html" with direction="from" %}
-          {% endfor %}
-          {% for relation in targets %}
-            {% include "entity_relation/table_item.html" with direction="to" %}
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in data_fragment.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=data_fragment.id %}
-  </div>
+<div class="row justify-content-center">
+  {% include "entity_relation/related_entities.html" with entity=data_fragment %}
+</div>
+<div class="row justify-content-center">
+  {% include "helpers/entity_comments.html" with entity=data_fragment %}
 </div>

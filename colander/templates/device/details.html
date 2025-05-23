@@ -3,7 +3,7 @@
 
 <div class="row justify-content-center my-2">
   <div class="col">
-    <h2>{% include "icons/pills.html" with elt=device %} {{ device.name }}</h2>
+    <h3>{% include "icons/pills.html" with elt=device %} {{ device.name }}</h3>
     {% if device.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=device %}</div>
     {% endif %}
@@ -22,9 +22,10 @@
     </div>
   {% endif %}
 </div>
-<div class="row justify-content-center">
-  <div class="col-md-6 mt-2">
-    <h3>{% translate "Details" %}</h3>
+
+<div class="row justify-content-center mt-2">
+  <div class="col-6">
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -62,15 +63,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ device.created_at }}
+          {% include "helpers/date_since.html" with date=device.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ device.updated_at }}
+          {% include "helpers/date_since.html" with date=device.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -110,22 +109,15 @@
       </tbody>
     </table>
   </div>
-  <div class="col-md-6 mt-2">
-    <h3>{% translate "Attributes" %}</h3>
+  <div class="col-6">
+    <h5>{% translate "Attributes" %}</h5>
     {% include "helpers/extra_attributes_light.html" with attributes=device.attributes %}
   </div>
 </div>
 
 <div class="row justify-content-center">
   {% include "entity_relation/related_entities.html" with entity=device %}
-
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in device.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=device.id %}
-  </div>
+</div>
+<div class="row justify-content-center">
+  {% include "helpers/entity_comments.html" with entity=device %}
 </div>

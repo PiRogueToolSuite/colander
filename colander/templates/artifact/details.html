@@ -4,7 +4,7 @@
 
 <div class="row justify-content-center my-2">
   <div class="col">
-    <h2>{% include "icons/pills.html" with elt=artifact %} {{ artifact.name }}</h2>
+    <h3>{% include "icons/pills.html" with elt=artifact %} {{ artifact.name }}</h3>
     {% if artifact.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=artifact %}</div>
     {% endif %}
@@ -26,7 +26,7 @@
 
 <div class="row justify-content-center">
   <div class="col-md-8 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -64,15 +64,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ artifact.created_at }}
+          {% include "helpers/date_since.html" with date=artifact.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ artifact.updated_at }}
+          {% include "helpers/date_since.html" with date=artifact.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -192,7 +190,7 @@
     {% endif %}
     <div class="card bg-secondary-light">
       <div class="card-body bg-secondary-light p-2">
-        <h3 class="card-title ">Artifact integrity check</h3>
+        <h5 class="card-title ">Artifact integrity check</h5>
         <p>
         To verify the integrity of this artifact, you have to download the public key of the case, the signature of the
         artifact and the artifact itself.
@@ -250,13 +248,13 @@
     <div is="vue:har-analyzer" data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div>
   {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" or artifact.mime_type == "text/csv" %}
     {% if artifact.size_in_bytes < 500000 %}
-      <div class="col-md-10 mt-4 mb-2">
+      <div class="col-md-12 mt-4 mb-2">
         <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
       </div>
     {% endif %}
   {% elif artifact.analysis %}
     {% if artifact.analysis.content|length > 32 and artifact.analysis.content|length < 512000 %}
-      <div class="col-md-10 mt-4 mb-2">
+      <div class="col-md-12 mt-4 mb-2">
         <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{{ artifact.analysis.content }}</code></pre>
       </div>
     {% endif %}
@@ -264,13 +262,5 @@
 </div>
 
 <div class="row justify-content-center">
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in artifact.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=artifact.id %}
-  </div>
+  {% include "helpers/entity_comments.html" with entity=artifact %}
 </div>

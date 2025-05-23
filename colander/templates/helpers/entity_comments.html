@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div class="col-12 mt-4">
+  <div class="row">
+    <h5>{% translate "Comments" %}</h5>
+    <div class="col-6">
+    {% for comment in entity.sorted_comments %}
+      {% include "comment/list_item.html" %}
+    {% empty %}
+      {% translate "No comment" %}
+    {% endfor %}
+    </div>
+    <div class="col-6">
+      {% include "comment/form.html" with elt_id=entity.id %}
+    </div>
+  </div>
+</div>

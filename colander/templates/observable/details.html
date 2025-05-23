@@ -4,7 +4,7 @@
 
 <div class="row justify-content-center my-2">
   <div class="col">
-    <h2>{% include "icons/pills.html" with elt=observable %} {{ observable.name }}</h2>
+    <h5>{% include "icons/pills.html" with elt=observable %} {{ observable.name }}</h5>
     {% if observable.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=observable %}</div>
     {% endif %}
@@ -25,7 +25,7 @@
 </div>
 <div class="row justify-content-center">
   <div class="col-md-6 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -63,15 +63,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ observable.created_at }}
+          {% include "helpers/date_since.html" with date=observable.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ observable.updated_at }}
+          {% include "helpers/date_since.html" with date=observable.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -150,7 +148,7 @@
     </table>
   </div>
   <div class="col-md-6 mt-2">
-    <h3>{% translate "Attributes" %}</h3>
+    <h5>{% translate "Attributes" %}</h5>
     {% include "helpers/extra_attributes_light.html" with attributes=observable.attributes %}
   </div>
 </div>
@@ -159,7 +157,7 @@
   {% include "entity_relation/related_entities.html" with entity=observable %}
 
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Timeline" %}</h3>
+    <h5>{% translate "Timeline" %}</h5>
     {% with events=observable.sorted_events %}
       {% if events %}
         {% include "event/timeline.html" %}
@@ -168,13 +166,5 @@
       {% endif %}
     {% endwith %}
   </div>
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in observable.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=observable.id %}
-  </div>
+  {% include "helpers/entity_comments.html" with entity=observable %}
 </div>

@@ -3,7 +3,7 @@
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <div class="h2">
+    <div class="h3">
         <span class="badge bg-secondary">
           {{ relation.observable_from.type }}
         </span>
@@ -11,11 +11,11 @@
           {{ relation.observable_from.value }}
         </span>
     </div>
-    <div class="h2">
+    <div class="h3">
       <i class="nf nf-fa-long_arrow_down text-primary"></i>
       {{ relation.name }}
     </div>
-    <div class="h2">
+    <div class="h3">
         <span class="badge bg-secondary">
           {{ relation.observable_to.type }}
         </span>
@@ -38,7 +38,7 @@
     </div>
   </div>
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -109,14 +109,7 @@
   </div>
 
   {% include "helpers/extra_attributes.html" with attributes=relation.attributes %}
-
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in relation.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=relation.id %}
-  </div>
+</div>
+<div class="row justify-content-center">
+  {% include "helpers/entity_comments.html" with entity=relation %}
 </div>

@@ -3,7 +3,7 @@
 
 <div class="row justify-content-center my-2">
   <div class="col">
-    <h2>{% include "icons/pills.html" with elt=actor %} {{ actor.name }}</h2>
+    <h3>{% include "icons/pills.html" with elt=actor %} {{ actor.name }}</h3>
     {% if actor.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=actor %}</div>
     {% endif %}
@@ -24,7 +24,7 @@
 </div>
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -62,15 +62,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ actor.created_at }}
+          {% include "helpers/date_since.html" with date=actor.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ actor.updated_at }}
+          {% include "helpers/date_since.html" with date=actor.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -99,15 +97,15 @@
 
   {% include "helpers/extra_attributes.html" with attributes=actor.attributes %}
 
-  {% if actor.observables %}
+  {% if actor.observables.all %}
     <div class="col-md-12 mt-2">
-      <h3>{% translate "Operated observables" %}</h3>
+      <h5>{% translate "Operated observables" %}</h5>
       <table class="table table-sm">
         <thead class="bg-secondary-light">
         <tr>
-          <td>Type</td>
-          <td>Entity</td>
-          <td></td>
+          <th class="col-2">Type</th>
+          <th>Entity</th>
+          <th></th>
         </tr>
         </thead>
         <tbody>
@@ -131,16 +129,11 @@
       </table>
     </div>
   {% endif %}
+</div>
 
+<div class="row justify-content-center">
   {% include "entity_relation/related_entities.html" with entity=actor %}
-
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in actor.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=actor.id %}
-  </div>
+</div>
+<div class="row justify-content-center">
+  {% include "helpers/entity_comments.html" with entity=actor %}
 </div>

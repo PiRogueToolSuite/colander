@@ -1,0 +1,6 @@
+{% include "icons/date_icon.html" with c="text-primary" %}
+{{ date }}
+<span class="text-muted ms-1">
+  {% include "icons/since_icon.html" with c="text-muted" %}
+  {{ date|timesince }} ago
+</span>

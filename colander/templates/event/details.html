@@ -3,7 +3,7 @@
 
 <div class="row justify-content-center my-2">
   <div class="col">
-    <h2>{% include "icons/pills.html" with elt=event %} {{ event.name }}</h2>
+    <h5>{% include "icons/pills.html" with elt=event %} {{ event.name }}</h5>
     {% if event.attributes.tags %}
       <div class="my-2">{% include "helpers/tags.html" with entity=event %}</div>
     {% endif %}
@@ -25,7 +25,7 @@
 
 <div class="row justify-content-center">
   <div class="col-md-6 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -63,15 +63,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ event.created_at }}
+          {% include "helpers/date_since.html" with date=event.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ event.updated_at }}
+          {% include "helpers/date_since.html" with date=event.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -130,27 +128,21 @@
     </table>
   </div>
   <div class="col-md-6 mt-2">
-    <h3>{% translate "Attributes" %}</h3>
+    <h5>{% translate "Attributes" %}</h5>
     {% include "helpers/extra_attributes_light.html" with attributes=event.attributes %}
   </div>
 </div>
 
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Involved observables" %}</h3>
+    <h5>{% translate "Involved observables" %}</h5>
     {% for observable in event.involved_observables.all %}
       {% include "observable/list_item.html" %}
     {% empty %}
       {% translate "No observables" %}
     {% endfor %}
   </div>
-  <div class="col-md-12 mt-2">
-    <h3>{% translate "Comments" %}</h3>
-    {% for comment in event.sorted_comments %}
-      {% include "comment/list_item.html" %}
-    {% empty %}
-      {% translate "No comment" %}
-    {% endfor %}
-    {% include "comment/form.html" with elt_id=event.id %}
-  </div>
+</div>
+<div class="row justify-content-center">
+  {% include "helpers/entity_comments.html" with entity=event %}
 </div>

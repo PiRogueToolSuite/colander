@@ -5,9 +5,9 @@
 {% can_contribute case as is_accessible %}
 <div class="row justify-content-center">
   <div class="col-md-12 mt-2">
-    <h2>
+    <h5>
       {% include "icons/case_icon.html" with subcase=case.is_sub_case open=contextual_case%} {{ case.name }}
-    </h2>
+    </h5>
     <div class="mb-3">
       {% if case.description %}
         {{ case.description | markdownify }}
@@ -18,7 +18,7 @@
     {% include "case/controls.html" with exclude="details" %}
   </div>
   <div class="col-md-12 mt-2">
-    <h3>{% translate "Details" %}</h3>
+    <h5>{% translate "Details" %}</h5>
     <table class="table table-sm">
       <tbody>
       <tr>
@@ -64,15 +64,13 @@
       <tr>
         <td>Created at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ case.created_at }}
+          {% include "helpers/date_since.html" with date=case.created_at c="text-primary" %}
         </td>
       </tr>
       <tr>
         <td>Updated at</td>
         <td>
-          {% include "icons/date_icon.html" with c="text-primary" %}
-          {{ case.updated_at }}
+          {% include "helpers/date_since.html" with date=case.updated_at c="text-primary" %}
         </td>
       </tr>
       <tr>
@@ -127,7 +125,7 @@
 {% with events=case.events %}
   {% if case.events %}
     <div class="col-md-12">
-      <h2>{% translate "Timeline" %}</h2>
+      <h5>{% translate "Timeline" %}</h5>
       {% include "event/timeline.html" %}
     </div>
   {% endif %}
@@ -135,8 +133,8 @@
 
   {% if case.documentation %}
     <div class="col-md-12 mt-2">
-      <h3>Documentation</h3>
-      {{ case.documentation|markdownify }}
+      <h5>Documentation</h5>
+      <div class="m-1">{{ case.documentation|markdownify }}</div>
     </div>
   {% endif %}
 </div>

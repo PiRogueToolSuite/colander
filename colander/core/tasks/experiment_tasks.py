@@ -1,4 +1,6 @@
 import base64
+from pathlib import Path
+
 import binascii
 import datetime
 import json
@@ -401,7 +403,6 @@ def get_detected_tracker(tracker_definitions, stack_trace):
     return None
 
 
-
 def save_decrypted_traffic(pirogue_dump_id):
     from elasticsearch_dsl import connections
     connections.create_connection(hosts=['elasticsearch'], timeout=20)
@@ -534,7 +535,6 @@ def save_decrypted_traffic(pirogue_dump_id):
                             print('Oooooops')
                             print(e)
 
-
 def _extract_matching_snippet(match: StringMatchInstance, content):
     content_length = len(content)
     context = 64
@@ -591,4 +591,3 @@ def apply_detection_rules(pirogue_dump_id):
                 print(rule_matches)
                 record.detections['yara'] = matches
                 record.save()
-

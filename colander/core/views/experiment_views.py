@@ -11,6 +11,7 @@ from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.tasks.experiment_tasks import apply_detection_rules, save_decrypted_traffic
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
+from colander.core.tasks.experiment_to_har import experiment_to_har
 from colander.core.views.views import CaseContextMixin
 
 
@@ -212,7 +213,7 @@ def start_decryption(request, pk):
         experiment = PiRogueExperiment.objects.get(id=pk)
         if experiment.pcap and experiment.sslkeylog:
             messages.success(request, 'Traffic decryption is in progress, refresh this page in a few minutes.')
-            # save_decrypted_traffic(pk)
+            async_task(experiment_to_har, pk)
             async_task(save_decrypted_traffic, pk)
         else:
             messages.error(request, 'Cannot decrypt traffic since your experiment does not have both a PCAP file and an SSL keylog file.')

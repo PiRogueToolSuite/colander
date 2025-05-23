@@ -223,6 +223,10 @@ class CommonModelType(models.Model):
         null=True
     )
 
+    @staticmethod
+    def get_by_short_name(short_name) -> 'ArtifactType':
+        return ArtifactType.objects.get(short_name__iexact=short_name)
+
     def __str__(self):
         return self.name
 
@@ -2019,6 +2023,22 @@ class PiRogueExperiment(Entity):
 
     def get_es_index(self):
         return f'c.{self.case.es_prefix}.ex.{self.analysis_index}'
+
+    def get_traffic_es_index(self) -> str:
+        """
+        Generates the Elasticsearch index ID for traffic data.
+
+        This method constructs and returns the Elasticsearch index string
+        based on the specific format 'c.{es_prefix}.ex.{traffic_index}'.
+        It uses the `es_prefix` and `traffic_index` attributes of the
+        instance to dynamically generate the string.
+
+        Returns:
+            str: The Elasticsearch index ID, using the instance's
+            `es_prefix` and `traffic_index` attributes, formatted as
+            'c.{es_prefix}.ex.{traffic_index}'.
+        """
+        return f'c.{self.case.es_prefix}.ex.{self.traffic_index}'
 
     def get_absolute_url(self):
         from django.urls import reverse

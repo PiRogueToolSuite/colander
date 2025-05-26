@@ -9,9 +9,9 @@ import i18nPlugin from './plugins/i18n';
 import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import EventBusPlugin from './plugins/EventBus';
 
-import HarAnalyzerPlugin, {
-       DesignSystemConfig as HarPrimeVueConfig
-       } from 'har-analyzer-vue';
+import HarAnalyzerPlugin from 'har-analyzer-vue';
+/* FIXME: Confirm not needed anymore, then clean */
+/* import { DesignSystemConfig as HarPrimeVueConfig } from 'har-analyzer-vue'; */
 
 import Legacy from './legacy/project';
 import ColanderTextEditor from './legacy/colander-text-editor';
@@ -93,6 +93,18 @@ export const ColanderApp = {
   },
 };
 
+const colander_primevue_options = {
+  theme: {
+    preset: ColanderTheme,
+    options: {
+      darkModeSelector: 'none',
+    }
+  },
+  locale: {
+    dateFormat: 'mm/dd/yy',
+  },
+};
+
 export default () => {
   const colander_application = createApp(ColanderApp);
 
@@ -131,14 +143,15 @@ export default () => {
       'all_styles': '/rest/dataset/all_styles/',
     },
   });
-  colander_application.use(PrimeVue, {
-    theme: {
-      preset: ColanderTheme,
-      options: {
-        darkModeSelector: 'none',
-      }
+  if (navigator.language) {
+    if (String(navigator.language).toLowerCase() === 'fr') {
+      colander_primevue_options.locale.dateFormat = 'dd/mm/yy';
     }
-  });
+  }
+  colander_application.use(PrimeVue, colander_primevue_options);
+
+  /* FIXME: Confirm not needed anymore, then clean */
+  /*
   colander_application.use( HarPrimeVueConfig, {
     theme: {
       preset: ColanderTheme,
@@ -147,6 +160,7 @@ export default () => {
       }
     }
   });
+   */
   colander_application.use(ToastService);
   colander_application.use(HarAnalyzerPlugin);
 

@@ -43,60 +43,56 @@
                      data-case-id="{{ contextual_case.id }}">
                   {{ form.name|as_crispy_field }}
                 </div>
-{#                <div class="mb-3">#}
-{#                  <label for="id_first_seen" class="form-label requiredField">#}
-{#                    First seen<span class="asteriskField">*</span>#}
-{#                  </label>#}
-{#                  {% if form.first_seen.errors %}#}
-{#                    {% for err in form.first_seen.errors %}#}
-{#                      <div class="text-danger">{{ err }}</div>#}
-{#                    {% endfor %}#}
-{#                  {% endif %}#}
-{#                  <div is="vue:DatePicker"#}
-{#                       input-id="id_first_seen"#}
-{#                       name="first_seen"#}
-{#                       show-time#}
-{#                       hour-format="24"#}
-{#                       date-format="dd/mm/yy"#}
-{#                       fluid#}
-{#                       show-icon#}
-{#                       size="small"#}
-{#                       show-seconds#}
-{#                       :show-on-focus="false"#}
-{#                       :max-date="new Date()"#}
-{#                       :invalid="{{ form.first_seen.errors|yesno:'true,false' }}"#}
-{#                       :default-value="new Date('{{ form.first_seen.value|date:'Y-m-d H:i:s' }}'||Date.now())"#}
-{#                       required></div>#}
-{#                  <div id="hint_id_first_seen" class="form-text">First time you observed this event.</div>#}
-{#                </div>#}
-                {{ form.first_seen|as_crispy_field }}
-{#                <div class="mb-3">#}
-{#                  <label for="id_last_seen" class="form-label requiredField">#}
-{#                    Last seen<span class="asteriskField">*</span>#}
-{#                  </label>#}
-{#                  {% if form.last_seen.errors %}#}
-{#                    {% for err in form.last_seen.errors %}#}
-{#                      <div class="text-danger">{{ err }}</div>#}
-{#                    {% endfor %}#}
-{#                  {% endif %}#}
-{#                  <div is="vue:DatePicker"#}
-{#                       input-id="id_last_seen"#}
-{#                       name="last_seen"#}
-{#                       show-time#}
-{#                       hour-format="24"#}
-{#                       date-format="dd/mm/yy"#}
-{#                       fluid#}
-{#                       show-icon#}
-{#                       size="small"#}
-{#                       show-seconds#}
-{#                       :show-on-focus="false"#}
-{#                       :max-date="new Date()"#}
-{#                       :invalid="{{ form.last_seen.errors|yesno:'true,false' }}"#}
-{#                       :default-value="new Date('{{ form.last_seen.value|date:'Y-m-d H:i:s' }}'||Date.now())"#}
-{#                       required></div>#}
-{#                  <div id="hint_id_last_seen" class="form-text">Most recent time you observed this event.</div>#}
-{#                </div>#}
-                {{ form.last_seen|as_crispy_field }}
+                <div class="mb-3">
+                  <label for="id_first_seen" class="form-label requiredField">
+                    First seen<span class="asteriskField">*</span>
+                  </label>
+                  {% if form.first_seen.errors %}
+                    {% for err in form.first_seen.errors %}
+                      <div class="text-danger">{{ err }}</div>
+                    {% endfor %}
+                  {% endif %}
+                  <div is="vue:DatePicker"
+                       input-id="id_first_seen"
+                       name="first_seen"
+                       show-time
+                       hour-format="24"
+                       fluid
+                       show-icon
+                       size="small"
+                       show-seconds
+                       :show-on-focus="false"
+                       :max-date="new Date()"
+                       :invalid="{{ form.first_seen.errors|yesno:'true,false' }}"
+                       :default-value="new Date('{{ form.first_seen.value|date:'Y-m-d H:i:s' }}'||Date.now())"
+                       required></div>
+                  <div id="hint_id_first_seen" class="form-text">First time you observed this event.</div>
+                </div>
+                <div class="mb-3">
+                  <label for="id_last_seen" class="form-label requiredField">
+                    Last seen<span class="asteriskField">*</span>
+                  </label>
+                  {% if form.last_seen.errors %}
+                    {% for err in form.last_seen.errors %}
+                      <div class="text-danger">{{ err }}</div>
+                    {% endfor %}
+                  {% endif %}
+                  <div is="vue:DatePicker"
+                       input-id="id_last_seen"
+                       name="last_seen"
+                       show-time
+                       hour-format="24"
+                       fluid
+                       show-icon
+                       size="small"
+                       show-seconds
+                       :show-on-focus="false"
+                       :max-date="new Date()"
+                       :invalid="{{ form.last_seen.errors|yesno:'true,false' }}"
+                       :default-value="new Date('{{ form.last_seen.value|date:'Y-m-d H:i:s' }}'||Date.now())"
+                       required></div>
+                  <div id="hint_id_last_seen" class="form-text">Most recent time you observed this event.</div>
+                </div>
                 {{ form.count|as_crispy_field }}
                 {{ form.tlp|as_crispy_field }}
                 {{ form.pap|as_crispy_field }}

@@ -237,6 +237,11 @@
       <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
            class="img-thumbnail" style="max-height: 50vh" alt="{{ artifact.name }}">
     </div>
+    {% if artifact.analysis.content|length > 32 and artifact.analysis.content|length < 512000 %}
+      <div class="col-md-4 mt-2">
+        <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{{ artifact.analysis.content }}</code></pre>
+      </div>
+    {% endif %}
   {% elif artifact.type.short_name == "VIDEO" %}
     <div class="col-md-4 mt-2">
       <video controls class="object-fit-contain col-12">

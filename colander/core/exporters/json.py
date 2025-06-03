@@ -25,7 +25,7 @@ class JsonCaseExporter:
         self.__entities = {}
         for entity in self.input_entities:
             entity_model = entity.__class__
-            serializer = self.serializers.get(entity_model, 'None')
+            serializer = self.serializers.get(entity_model, None)
             if serializer:
                 self.__entity_ids.append(str(entity.id))
                 self.__entities[str(entity.id)] = serializer(entity, many=False).data

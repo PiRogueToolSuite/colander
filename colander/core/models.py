@@ -86,6 +86,13 @@ class Appendix:
             (WHITE, 'WHITE'),
         ]
 
+    class ExportType:
+        UNSPECIFIED = 'UNSPECIFIED'
+        CASE = 'CASE'
+        EXPORT_TYPE_CHOICES = [
+            (UNSPECIFIED, 'UNSPECIFIED'),
+            (CASE, 'CASE'),
+        ]
 
 def list_accepted_levels(input_level: str):
     triggered = False
@@ -2586,6 +2593,57 @@ class DroppedFile(models.Model):
 
 @receiver(pre_delete, sender=DroppedFile, dispatch_uid='delete_dropped_file')
 def delete_dropped_file_stored_file(sender, instance: DroppedFile, using, **kwargs):
+    instance.file.delete()
+
+
+def _get_export_file_dir(instance, filename):
+    case_id = instance.case.id
+    return f'cases/{case_id}/exports/{instance.id}'
+
+
+class ArchiveExport(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+
+    type = models.CharField(
+        max_length=16,
+        choices=Appendix.ExportType.EXPORT_TYPE_CHOICES,
+        help_text=_('Export type.'),
+        verbose_name='Export type',
+        default=Appendix.ExportType.UNSPECIFIED,
+    )
+
+    requested_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Export request date.'),
+        editable=False
+    )
+
+    done_at = models.DateTimeField(
+        help_text=_('Export done date.'),
+        editable=False
+    )
+
+    file = models.FileField(
+        upload_to=_get_export_file_dir,
+        max_length=512,
+        blank=True, null=True
+    )
+
+
+@receiver(pre_delete, sender=ArchiveExport, dispatch_uid='delete_export_file')
+def delete_dropped_file_stored_file(sender, instance: ArchiveExport, using, **kwargs):
     instance.file.delete()
 
 

@@ -94,6 +94,14 @@ class Appendix:
             (CASE, 'CASE'),
         ]
 
+    class NotificationType:
+        INTERNAL = 'INTERNAL'
+        MAIL = 'MAIL'
+        NOTIFICATION_TYPE_CHOICES = [
+            (INTERNAL, 'INTERNAL'),
+            (MAIL, 'MAIL'),
+        ]
+
 def list_accepted_levels(input_level: str):
     triggered = False
     levels = []
@@ -2645,6 +2653,57 @@ class ArchiveExport(models.Model):
 @receiver(pre_delete, sender=ArchiveExport, dispatch_uid='delete_export_file')
 def delete_dropped_file_stored_file(sender, instance: ArchiveExport, using, **kwargs):
     instance.file.delete()
+
+
+class NotificationMessage(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+    )
+
+    type = models.CharField(
+        max_length=16,
+        choices=Appendix.NotificationType.NOTIFICATION_TYPE_CHOICES,
+        help_text=_('Notification type.'),
+        verbose_name='Notification type',
+        default=Appendix.NotificationType.INTERNAL,
+    )
+
+    requested_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Notification request date.'),
+        editable=False
+    )
+
+    processed_at = models.DateTimeField(
+        help_text=_('Notification process date.'),
+        editable=False
+    )
+
+    success = models.BooleanField(
+        help_text=_('Notification process result success.'),
+        editable=False
+    )
+
+    template_path = models.CharField(
+        max_length=512,
+        verbose_name=_('template_path'),
+        help_text=_('Internal template path used to generate the notification content with the given context.'),
+        default='',
+    )
+
+    context = JSONField(
+        verbose_name='Template context used to generate the notification content.',
+        default=dict,
+    )
 
 
 colander_models = CaseInsensitiveDict({

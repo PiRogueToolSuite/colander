@@ -83,12 +83,54 @@
         <td>
           {% if event.extracted_from %}
             <i class="nf {{ event.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_artifact_details_view" case_id=event.extracted_from.case.id pk=event.extracted_from_id %}">
+            <a href="{% url "collect_artifact_details_view" case_id=event.case.id pk=event.extracted_from_id %}">
               {{ event.extracted_from.original_name }}
             </a>
             ({{ event.extracted_from.type }})
           {% else %}
             {% translate "No artifact specified" %}
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Detected by</td>
+        <td>
+          {% if event.detected_by %}
+            <i class="nf {{ event.detected_by.type.nf_icon }} text-primary"></i>
+            <a href="{% url "collect_detection_rule_details_view" case_id=event.case.id pk=event.detected_by_id %}">
+              {{ event.detected_by.name }}
+            </a>
+            ({{ event.detected_by.type }})
+          {% else %}
+            {% translate "No detection rule specified" %}
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Attributed to</td>
+        <td>
+          {% if event.attributed_to %}
+            <i class="nf {{ event.attributed_to.type.nf_icon }} text-primary"></i>
+            <a href="{% url "collect_actor_details_view" case_id=event.case.id pk=event.attributed_to_id %}">
+              {{ event.attributed_to.name }}
+            </a>
+            ({{ event.attributed_to.type }})
+          {% else %}
+            {% translate "No attribution specified" %}
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td>Target</td>
+        <td>
+          {% if event.target %}
+            <i class="nf {{ event.target.type.nf_icon }} text-primary"></i>
+            <a href="{% url "collect_actor_details_view" case_id=event.case.id pk=event.target_id %}">
+              {{ event.target.name }}
+            </a>
+            ({{ event.target.type }})
+          {% else %}
+            {% translate "No target specified" %}
           {% endif %}
         </td>
       </tr>

@@ -1807,6 +1807,22 @@ class Event(Entity):
         null=True,
         blank=True,
     )
+    attributed_to = models.ForeignKey(
+        Actor,
+        help_text=_('Select the actor attributed to this event.'),
+        on_delete=models.SET_NULL,
+        related_name='attributed_events',
+        null=True,
+        blank=True,
+    )
+    target = models.ForeignKey(
+        Actor,
+        help_text=_('Select the actor targeted during this event.'),
+        on_delete=models.SET_NULL,
+        related_name='targeted_events',
+        null=True,
+        blank=True,
+    )
     attributes = HStoreField(
         help_text=_('Add custom attributes to this event.'),
         verbose_name='Custom attributes',
@@ -1908,6 +1924,22 @@ class Event(Entity):
                     name="detected by",
                     source=self,
                     target=self.detected_by
+                )
+            )
+        if self.attributed_to:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="attributed to",
+                    source=self,
+                    target=self.attributed_to
+                )
+            )
+        if self.target:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="target",
+                    source=self,
+                    target=self.target
                 )
             )
         if self.involved_observables:

@@ -14,22 +14,6 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          {% comment %}
-          {% block context_javascript %}
-          <link rel="stylesheet" type="text/css"
-                href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-icons.css' %}"/>
-          <link rel="stylesheet" type="text/css"
-                href="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.css' %}"/>
-          <link rel="stylesheet" type="text/css"
-                href="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.css' %}"/>
-          <script type="text/javascript"
-                  src="{% static 'vendors/bootstrap_datepicker_plus/moment-with-locales.min.js' %}"></script>
-          <script type="text/javascript"
-                  src="{% static 'vendors/bootstrap_datepicker_plus/bootstrap-datetimepicker.min.js' %}"></script>
-          <script type="text/javascript"
-                  src="{% static 'vendors/bootstrap_datepicker_plus/datepicker-widget.js' %}"></script>
-          {% endblock context_javascript %}
-          {% endcomment %}
           <form method="post" enctype="multipart/form-data" autocomplete="off">
             {% csrf_token %}
             <div class="row justify-content-center">
@@ -99,6 +83,8 @@
                 {{ form.extracted_from|as_crispy_field }}
                 {{ form.observed_on|as_crispy_field }}
                 {{ form.detected_by|as_crispy_field }}
+                {{ form.attributed_to|as_crispy_field }}
+                {{ form.target|as_crispy_field }}
                 {{ form.source_url|as_crispy_field }}
                 {{ form.description|as_crispy_field }}
                 {% if is_editing %}

@@ -1,16 +1,15 @@
 from typing import List, Type
 
 from colander_data_converter.base.models import ColanderFeed
-from colander_data_converter.converters.stix2.converter import Stix2Converter
+from colander_data_converter.converters.misp.converter import MISPConverter
+from pymisp import MISPOrganisation
 
 from colander.core.exporters.json import JsonCaseExporter
 from colander.core.models import Case, Entity, EntityOutgoingFeed
 
 
-class Stix2CaseExporter:
+class MISPCaseExporter:
     case: Case
-    __entities: dict = None
-    __relations: dict = None
 
     def __init__(self, case: Case, feed: EntityOutgoingFeed, entities: List[Type[Entity]]):
         self.case = case
@@ -21,5 +20,17 @@ class Stix2CaseExporter:
         exporter = JsonCaseExporter(self.case, self.input_entities)
         export = exporter.export()
         colander_feed = ColanderFeed.load(export)
-        stix2_bundle = Stix2Converter.colander_to_stix2(colander_feed)
-        return stix2_bundle.model_dump()
+        misp_feed = MISPConverter.colander_to_misp(colander_feed)
+        if len(misp_feed or []) == 1:
+            misp_event = misp_feed[0]
+        else:
+            return []
+        org = MISPOrganisation()
+        org.from_dict(
+            **{
+                "name": self.feed.misp_org_name,
+                "uuid": self.feed.misp_org_id,
+            }
+        )
+        misp_event.orgc = org
+        return misp_event.to_feed()

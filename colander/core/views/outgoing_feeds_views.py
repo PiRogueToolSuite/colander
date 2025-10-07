@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
@@ -10,8 +12,9 @@ from django.views.generic import CreateView, UpdateView
 
 from colander.core.exporters.csv import CsvCaseExporter
 from colander.core.exporters.json import JsonCaseExporter
+from colander.core.exporters.misp import MISPCaseExporter
 from colander.core.exporters.stix2 import Stix2CaseExporter
-from colander.core.models import DetectionRuleOutgoingFeed, DetectionRuleType, EntityOutgoingFeed
+from colander.core.models import DetectionRuleOutgoingFeed, DetectionRuleType, EntityOutgoingFeed, list_accepted_levels
 from colander.core.serializers.generic import OutgoingFeedSerializer
 from colander.core.views.views import CaseContextMixin
 
@@ -20,7 +23,6 @@ class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, 
     model = DetectionRuleOutgoingFeed
     template_name = 'pages/feeds/detection_rule_out_feeds.html'
     contextual_success_url = 'feeds_detection_rule_out_feed_create_view'
-    #success_url = reverse_lazy('feeds_detection_rule_out_feed_create_view')
     fields = [
         'name',
         'description',
@@ -44,7 +46,6 @@ class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, 
         return form
 
     def form_valid(self, form):
-        #active_case = get_active_case(self.request)
         if form.is_valid() and self.active_case:
             feed = form.save(commit=False)
             if not hasattr(feed, 'owner'):
@@ -82,13 +83,14 @@ class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateV
     model = EntityOutgoingFeed
     template_name = 'pages/feeds/entity_out_feeds.html'
     contextual_success_url = 'feeds_entity_out_feed_create_view'
-    #success_url = reverse_lazy('feeds_entity_out_feed_create_view')
     fields = [
         'name',
         'description',
         'secret',
         'max_tlp',
         'max_pap',
+        'misp_org_name',
+        'misp_org_id',
         'content_type',
     ]
     case_required_message_action = "create detection rule outgoing feed"
@@ -107,7 +109,6 @@ class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateV
         return form
 
     def form_valid(self, form):
-        #active_case = get_active_case(self.request)
         if form.is_valid() and self.active_case:
             feed = form.save(commit=False)
             if not hasattr(feed, 'owner'):
@@ -145,7 +146,7 @@ def outgoing_entities_feed_view(request, pk):
     try:
         feed = EntityOutgoingFeed.objects.get(id=pk)
     except EntityOutgoingFeed.DoesNotExist:
-        return HttpResponse('', status=503, content_type='text/plain')
+        return HttpResponse('', status=404, content_type='text/plain')
 
     is_authenticated = request.user.is_authenticated
     is_authenticated |= request.GET.get('secret', '') == feed.secret
@@ -156,34 +157,51 @@ def outgoing_entities_feed_view(request, pk):
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
 
-    format = request.GET.get('format', 'json')
-    if format not in ['json', 'stix2', 'csv']:
-        format = 'json'
+    requested_format = request.GET.get('format', 'json')
+    if requested_format not in ['json', 'stix2', 'misp', 'csv']:
+        requested_format = 'json'
 
-    cache_key = f'feed_{feed.id}_{format}_{feed.secret}'
+    cache_key = f'feed_{feed.id}_{requested_format}_{feed.secret}'
     cached = cache.get(cache_key)
     if cached:
-        if format == 'json' or format == 'stix2':
+        if requested_format in ['json', 'stix2', 'misp']:
             return JsonResponse(cached, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'hit'})
-        elif format == 'csv':
+        elif requested_format == 'csv':
             return HttpResponse(cached, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'hit'})
 
+    dummy_case = deepcopy(feed.case)
+    tlp_levels = list_accepted_levels(feed.max_tlp)
+    pap_levels = list_accepted_levels(feed.max_pap)
+
+    if feed.case.tlp not in tlp_levels or feed.case.pap not in pap_levels:
+        dummy_case.name = '[REDACTED]'
+        dummy_case.description = '[REDACTED]'
+
     entities = feed.get_entities()
-    if format == 'json':
-        exporter = JsonCaseExporter(feed.case, entities)
+    if requested_format == 'json':
+        exporter = JsonCaseExporter(dummy_case, entities)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return JsonResponse(export, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'miss'})
-    elif format == 'stix2':
-        exporter = Stix2CaseExporter(feed.case, feed, entities)
+    elif requested_format == 'stix2':
+        exporter = Stix2CaseExporter(dummy_case, feed, entities)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return JsonResponse(export, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'miss'})
-    elif format == 'csv':
-        exporter = CsvCaseExporter(feed.case, entities)
+    elif requested_format == 'misp':
+        if not feed.misp_org_id or not feed.misp_org_name:
+            return HttpResponse('Unavailable', status=404, content_type='text/plain')
+        else:
+            exporter = MISPCaseExporter(dummy_case, feed, entities)
+            export = exporter.export()
+            cache.set(cache_key, export, 3600)
+            return JsonResponse(export, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'miss'})
+    elif requested_format == 'csv':
+        exporter = CsvCaseExporter(dummy_case, entities)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return HttpResponse(export, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'miss'})
+    return HttpResponse('', status=404, content_type='text/plain')
 
 
 def outgoing_detection_rules_feed_view(request, pk):

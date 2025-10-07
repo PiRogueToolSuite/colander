@@ -22,7 +22,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, analyzer, Search
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, Search
 from elasticsearch_dsl.response import Response
 from requests.structures import CaseInsensitiveDict
 
@@ -37,6 +37,7 @@ class BusinessIntegrityError(IntegrityError):
 class OverwritableFileFieldAttrClass(models.fields.files.FieldFile):
     """attr_class used by colander.core.models.OverwritableFileField.
     This attr_class performs the actual task of supporting overwrites on existing files."""
+
     def __init__(self, instance, field, name):
         super().__init__(instance, field, name)
 
@@ -101,6 +102,7 @@ class Appendix:
             (INTERNAL, 'INTERNAL'),
             (MAIL, 'MAIL'),
         ]
+
 
 def list_accepted_levels(input_level: str):
     triggered = False
@@ -497,7 +499,6 @@ def _get_subgraph_thumbnails_storage_dir(instance, filename):
 
 
 class SubGraph(models.Model):
-
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -566,7 +567,7 @@ class SubGraph(models.Model):
 
         if user.preferences:
             if 'pinned_entities' in user.preferences:
-                pinned_entities_ids =  user.preferences['pinned_entities'].keys()
+                pinned_entities_ids = user.preferences['pinned_entities'].keys()
 
         return SubGraph.objects.filter(owner=user, case=case).filter(id__in=pinned_entities_ids)
 
@@ -591,7 +592,6 @@ def _get_entity_thumbnails_storage_dir(instance, filename):
 
 
 class Entity(models.Model):
-
     class Meta:
         abstract: True
         ordering = ['-updated_at']
@@ -672,8 +672,8 @@ class Entity(models.Model):
 
     def get_out_relations(self):
         relations = []
-        relations += EntityRelation.objects\
-            .filter(obj_from_id=self.id)\
+        relations += EntityRelation.objects \
+            .filter(obj_from_id=self.id) \
             .exclude(obj_from_id=F('obj_to_id')).all()
         relations += self.out_immutable_relations
         return relations
@@ -2336,7 +2336,7 @@ class UploadRequest(models.Model):
             raise Exception("Can't touch file without name")
         if self.size == 0:
             open(self.path, 'wb').close()
-            #raise Exception("Can't touch zero sized file")
+            # raise Exception("Can't touch zero sized file")
         else:
             with open(self.path, 'wb') as f:
                 f.seek(self.size - 1)
@@ -2378,7 +2378,6 @@ def delete_upload_request_stored_files(sender, instance: UploadRequest, using, *
 
 
 class OutgoingFeed(models.Model):
-
     class Meta:
         abstract: True
         ordering = ['name']
@@ -2441,6 +2440,24 @@ class OutgoingFeed(models.Model):
 
 
 class EntityOutgoingFeed(OutgoingFeed):
+    misp_org_name = models.CharField(
+        max_length=512,
+        help_text=_(
+            'Name of your organization as set in MISP. The Orgc name of your events will be set accordingly. '
+            'Must be set to make your feed available in MISP format.'),
+        verbose_name='MISP: name of your organization',
+        blank=True,
+        null=True
+    )
+    misp_org_id = models.CharField(
+        max_length=512,
+        help_text=_(
+            'UUID of your organization as set in MISP. The Orgc UUID of your events will be set accordingly. '
+            'Must be set to make your feed available in MISP format.'),
+        verbose_name='MISP: UUID of your organization',
+        blank=True,
+        null=True
+    )
     content_type = models.ManyToManyField(
         ContentType,
         related_name='entity_out_feed_types',
@@ -2512,7 +2529,6 @@ def _get_dropped_file_upload_dir(instance, filename):
 
 
 class DroppedFile(models.Model):
-
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,

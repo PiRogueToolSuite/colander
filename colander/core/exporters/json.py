@@ -1,4 +1,6 @@
-from colander.core.models import Case
+from typing import List, Type
+
+from colander.core.models import Entity
 from colander.core.serializers.generic import *
 
 
@@ -14,7 +16,7 @@ class JsonCaseExporter:
         Threat: ThreatSerializer,
     }
 
-    def __init__(self, case: Case, entities: []):
+    def __init__(self, case: Case, entities: List[Type[Entity]]):
         self.case = case
         self.input_entities = entities
         self.__entity_ids: list[str] = []
@@ -46,6 +48,7 @@ class JsonCaseExporter:
 
     def export(self):
         return {
+            'cases': {str(self.case.id): CaseSerializer(self.case).data},
             'entities': self.__get_entities(),
             'relations': self.__get_relations(),
         }

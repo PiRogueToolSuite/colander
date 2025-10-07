@@ -18,7 +18,7 @@
             {% if feed.feed_type == "detection_rules" %}
               {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
             {% else %}
-              {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?format=[json|stix2|csv]
+              {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?format=[json|misp|stix2|csv]
             {% endif %}
           </span>
         </div>

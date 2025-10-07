@@ -198,7 +198,7 @@ class CommonModelType(models.Model):
         blank=True,
         null=True
     )
-    svg_icon = models.TextField(
+    icon = models.TextField(
         blank=True,
         null=True
     )
@@ -207,23 +207,11 @@ class CommonModelType(models.Model):
         blank=True,
         null=True
     )
-    stix2_type = models.CharField(
-        max_length=256,
+    value_example = models.TextField(
         blank=True,
         null=True
     )
-    stix2_value_field_name = models.CharField(
-        max_length=256,
-        blank=True,
-        null=True
-    )
-    stix2_pattern = models.CharField(
-        max_length=256,
-        blank=True,
-        null=True
-    )
-    stix2_pattern_type = models.CharField(
-        max_length=256,
+    regex = models.TextField(
         blank=True,
         null=True
     )

@@ -1,35 +1,19 @@
 import csv
 import io
 
-from colander.core.models import Case
-from colander.core.serializers.generic import *
+from colander.core.serializers.generic import EntitySerializer
 
 
-class CsvCaseExporter:
-    case: Case
-    __entities: dict = None
-
-    serializers = {
-        Actor: ActorSerializer,
-        Artifact: ArtifactSerializer,
-        Device: DeviceSerializer,
-        Observable: ObservableSerializer,
-        Threat: ThreatSerializer,
-    }
-
-    def __init__(self, case: Case, entities: []):
-        self.case = case
-        self.input_entities = entities
-        self.__entity_ids: list[str] = []
+class CsvFeedExporter:
+    def __init__(self, feed):
+        self.feed = feed
+        self.__entities = {}
 
     def __get_entities(self):
-        if self.__entities:
-            return self.__entities
         self.__entities = {}
-        for entity in self.input_entities:
+        for entity in self.feed.entities:
             serializer = EntitySerializer(entity)
             if serializer:
-                self.__entity_ids.append(str(entity.id))
                 self.__entities[str(entity.id)] = serializer.data
         return self.__entities
 

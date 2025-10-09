@@ -21,9 +21,9 @@ from colander.core import datasets
 from colander.core.forms import DocumentationForm
 from colander.core.models import (
     Case,
-    DetectionRuleOutgoingFeed,
+    DetectionRuleExportFeed,
     Entity,
-    EntityOutgoingFeed,
+    EntityExportFeed,
     colander_models,
     color_scheme,
     icons, Observable, Actor, Artifact, DataFragment, DetectionRule, Device, Event,
@@ -487,8 +487,8 @@ def case_workspace_view(request):
 @login_required
 def feeds_view(request):
     feeds = []
-    feeds.extend( DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(request.user, request.contextual_case) )
-    feeds.extend( EntityOutgoingFeed.get_user_entity_out_feeds(request.user, request.contextual_case) )
+    feeds.extend(DetectionRuleExportFeed.get_user_detection_rule_out_feeds(request.user, request.contextual_case))
+    feeds.extend(EntityExportFeed.get_user_entity_out_feeds(request.user, request.contextual_case))
     ctx = {
         'feeds': feeds
     }

@@ -13,12 +13,15 @@
   {% url 'report_base_view' as report_base_view_url %}
   {% url 'document_case_write_doc_view' case_id=contextual_case.id as document_cases_write_doc_url %}
   {% url 'feeds_view' case_id=contextual_case.id as feeds_view_url %}
+  {% url 'import_view' case_id=contextual_case.id as import_view_url %}
+  {% url 'import_csv_view' case_id=contextual_case.id as import_csv_view_url %}
 
   <div class="list-group list-group-flush">
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == case_ws_url %} active {% endif %}" href="{{case_ws_url}}">
       {% include "icons/case_icon.html" with open=True subcase=contextual_case.is_sub_case %}
       <span class="d-none d-sm-inline list-group-item-label">Case overview</span>
     </a>
+
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
        href="{{ collect_quick_creation_view_url }}">
       <i class="fa fa-th" aria-hidden="true"></i>
@@ -27,6 +30,7 @@
     <div class="list-group list-group-flush list-group-secondary">
       {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
     </div>
+
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"
        href="{{ graph_base_view_url }}">
       <i class="fa fa-hubzilla" aria-hidden="true"></i>
@@ -35,11 +39,13 @@
     <div class="list-group list-group-flush list-group-secondary">
       {% block graph-sidebar-items %}{% endblock graph-sidebar-items %}
     </div>
+
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
        href="{{ document_cases_write_doc_url }}">
       <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
       <span class="d-none d-sm-inline list-group-item-label">Document</span>
     </a>
+
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link feeds_view_url %}"
        href="{{ feeds_view_url }}">
       <i class="nf nf-fa-feed list-group-item-icon" aria-hidden="true"></i>
@@ -48,6 +54,16 @@
     <div class="list-group list-group-flush list-group-secondary">
       {% block feeds-sidebar-items %}{% endblock feeds-sidebar-items %}
     </div>
+
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link import_view_url %}"
+       href="{{ import_csv_view_url }}">
+      <i class="nf nf-fae-file_import" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Import</span>
+    </a>
+    <div class="list-group list-group-flush list-group-secondary">
+      {% block import-sidebar-items %}{% endblock import-sidebar-items %}
+    </div>
+
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
        href="{{ investigate_base_view_url }}">
       <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>

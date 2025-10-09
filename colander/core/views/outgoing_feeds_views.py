@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
@@ -10,17 +8,19 @@ from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.generic import CreateView, UpdateView
 
-from colander.core.exporters.csv import CsvCaseExporter
-from colander.core.exporters.json import JsonCaseExporter
-from colander.core.exporters.misp import MISPCaseExporter
-from colander.core.exporters.stix2 import Stix2CaseExporter
-from colander.core.models import DetectionRuleOutgoingFeed, DetectionRuleType, EntityOutgoingFeed, list_accepted_levels
-from colander.core.serializers.generic import OutgoingFeedSerializer
+from colander.core.feed.exporters.csv import CsvFeedExporter
+from colander.core.feed.exporters.dot import DotFeedExporter
+from colander.core.feed.exporters.json import JsonFeedExporter
+from colander.core.feed.exporters.mermaid import MermaidFeedExporter
+from colander.core.feed.exporters.misp import MISPFeedExporter
+from colander.core.feed.exporters.stix2 import Stix2FeedExporter
+from colander.core.feed.serializers import OutgoingFeedInfoSerializer
+from colander.core.models import DetectionRuleExportFeed, DetectionRuleType, EntityExportFeed
 from colander.core.views.views import CaseContextMixin
 
 
-class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
-    model = DetectionRuleOutgoingFeed
+class DetectionRuleExportFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
+    model = DetectionRuleExportFeed
     template_name = 'pages/feeds/detection_rule_out_feeds.html'
     contextual_success_url = 'feeds_detection_rule_out_feed_create_view'
     fields = [
@@ -34,7 +34,7 @@ class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, 
     case_required_message_action = "create detection rule outgoing feed"
 
     def get_form(self, form_class=None):
-        form = super(DetectionRuleOutgoingFeedCreateView, self).get_form(form_class)
+        form = super(DetectionRuleExportFeedCreateView, self).get_form(form_class)
         rule_types = DetectionRuleType.objects.all()
         choices = [
             (t.id, mark_safe(f'<i class="nf {t.nf_icon} text-primary"></i> {t.name}'))
@@ -57,30 +57,30 @@ class DetectionRuleOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, 
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(self.request.user, self.active_case)
+        ctx['feeds'] = DetectionRuleExportFeed.get_user_detection_rule_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
 
-class DetectionRuleOutgoingFeedUpdateView(DetectionRuleOutgoingFeedCreateView, UpdateView):
+class DetectionRuleExportFeedUpdateView(DetectionRuleExportFeedCreateView, UpdateView):
     case_required_message_action = "update feed"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(self.request.user, self.active_case)
+        ctx['feeds'] = DetectionRuleExportFeed.get_user_detection_rule_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
 
 @login_required
-def delete_detection_rule_out_feed_view(request, pk):
-    obj = DetectionRuleOutgoingFeed.objects.get(id=pk)
+def delete_detection_rule_export_feed_view(request, pk):
+    obj = DetectionRuleExportFeed.objects.get(id=pk)
     obj.delete()
     return redirect("feeds_detection_rule_out_feed_create_view", case_id=request.contextual_case.id)
 
 
-class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
-    model = EntityOutgoingFeed
+class EntityExportFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
+    model = EntityExportFeed
     template_name = 'pages/feeds/entity_out_feeds.html'
     contextual_success_url = 'feeds_entity_out_feed_create_view'
     fields = [
@@ -96,7 +96,7 @@ class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateV
     case_required_message_action = "create detection rule outgoing feed"
 
     def get_form(self, form_class=None):
-        form = super(EntityOutgoingFeedCreateView, self).get_form(form_class)
+        form = super(EntityExportFeedCreateView, self).get_form(form_class)
         choices = []
         for m, l in form.fields['content_type'].choices:
             label = l.replace('core | ', '')
@@ -120,32 +120,32 @@ class EntityOutgoingFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateV
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = EntityOutgoingFeed.get_user_entity_out_feeds(self.request.user, self.active_case)
+        ctx['feeds'] = EntityExportFeed.get_user_entity_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = False
         return ctx
 
 
-class EntityOutgoingFeedUpdateView(EntityOutgoingFeedCreateView, UpdateView):
+class EntityExportFeedUpdateView(EntityExportFeedCreateView, UpdateView):
     case_required_message_action = "update feed"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['feeds'] = EntityOutgoingFeed.get_user_entity_out_feeds(self.request.user, self.active_case)
+        ctx['feeds'] = EntityExportFeed.get_user_entity_out_feeds(self.request.user, self.active_case)
         ctx['is_editing'] = True
         return ctx
 
 
 @login_required
-def delete_entity_out_feed_view(request, pk):
-    obj = EntityOutgoingFeed.objects.get(id=pk)
+def delete_entity_export_feed_view(request, pk):
+    obj = EntityExportFeed.objects.get(id=pk)
     obj.delete()
     return redirect("feeds_entity_out_feed_create_view", case_id=request.contextual_case.id)
 
 
-def outgoing_entities_feed_view(request, pk):
+def entity_export_feed_view(request, pk):
     try:
-        feed = EntityOutgoingFeed.objects.get(id=pk)
-    except EntityOutgoingFeed.DoesNotExist:
+        feed = EntityExportFeed.objects.get(id=pk)
+    except EntityExportFeed.DoesNotExist:
         return HttpResponse('', status=404, content_type='text/plain')
 
     is_authenticated = request.user.is_authenticated
@@ -155,36 +155,28 @@ def outgoing_entities_feed_view(request, pk):
         return HttpResponse('', status=503, content_type='text/plain')
 
     if 'info' in request.GET:
-        return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
+        return JsonResponse(OutgoingFeedInfoSerializer(feed).data, json_dumps_params={})
 
     requested_format = request.GET.get('format', 'json')
-    if requested_format not in ['json', 'stix2', 'misp', 'csv']:
+    if requested_format not in ['json', 'stix2', 'misp', 'csv', 'mermaid', 'dot']:
         requested_format = 'json'
 
     cache_key = f'feed_{feed.id}_{requested_format}_{feed.secret}'
+
     cached = cache.get(cache_key)
     if cached:
         if requested_format in ['json', 'stix2', 'misp']:
             return JsonResponse(cached, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'hit'})
-        elif requested_format == 'csv':
+        elif requested_format in ['csv', 'mermaid', 'dot']:
             return HttpResponse(cached, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'hit'})
 
-    dummy_case = deepcopy(feed.case)
-    tlp_levels = list_accepted_levels(feed.max_tlp)
-    pap_levels = list_accepted_levels(feed.max_pap)
-
-    if feed.case.tlp not in tlp_levels or feed.case.pap not in pap_levels:
-        dummy_case.name = '[REDACTED]'
-        dummy_case.description = '[REDACTED]'
-
-    entities = feed.get_entities()
     if requested_format == 'json':
-        exporter = JsonCaseExporter(dummy_case, entities)
+        exporter = JsonFeedExporter(feed)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return JsonResponse(export, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'miss'})
     elif requested_format == 'stix2':
-        exporter = Stix2CaseExporter(dummy_case, feed, entities)
+        exporter = Stix2FeedExporter(feed)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return JsonResponse(export, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'miss'})
@@ -192,22 +184,32 @@ def outgoing_entities_feed_view(request, pk):
         if not feed.misp_org_id or not feed.misp_org_name:
             return HttpResponse('Unavailable', status=404, content_type='text/plain')
         else:
-            exporter = MISPCaseExporter(dummy_case, feed, entities)
+            exporter = MISPFeedExporter(feed)
             export = exporter.export()
             cache.set(cache_key, export, 3600)
             return JsonResponse(export, json_dumps_params={}, headers={'X-Colander-Feed-Cache': 'miss'})
     elif requested_format == 'csv':
-        exporter = CsvCaseExporter(dummy_case, entities)
+        exporter = CsvFeedExporter(feed)
+        export = exporter.export()
+        cache.set(cache_key, export, 3600)
+        return HttpResponse(export, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'miss'})
+    elif requested_format == 'mermaid':
+        exporter = MermaidFeedExporter(feed)
+        export = exporter.export()
+        cache.set(cache_key, export, 3600)
+        return HttpResponse(export, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'miss'})
+    elif requested_format == 'dot':
+        exporter = DotFeedExporter(feed)
         export = exporter.export()
         cache.set(cache_key, export, 3600)
         return HttpResponse(export, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'miss'})
     return HttpResponse('', status=404, content_type='text/plain')
 
 
-def outgoing_detection_rules_feed_view(request, pk):
+def detection_rule_export_feed_view(request, pk):
     try:
-        feed = DetectionRuleOutgoingFeed.objects.get(id=pk)
-    except DetectionRuleOutgoingFeed.DoesNotExist:
+        feed = DetectionRuleExportFeed.objects.get(id=pk)
+    except DetectionRuleExportFeed.DoesNotExist:
         return HttpResponse('', status=503, content_type='text/plain')
 
     is_authenticated = request.user.is_authenticated
@@ -217,7 +219,7 @@ def outgoing_detection_rules_feed_view(request, pk):
         return HttpResponse('', status=503, content_type='text/plain')
 
     if 'info' in request.GET:
-        return JsonResponse(OutgoingFeedSerializer(feed).data, json_dumps_params={})
+        return JsonResponse(OutgoingFeedInfoSerializer(feed).data, json_dumps_params={})
 
     cache_key = f'feed_{feed.id}_{feed.secret}'
     cached = cache.get(cache_key)

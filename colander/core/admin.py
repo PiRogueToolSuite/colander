@@ -9,9 +9,9 @@ from colander.core.models import (
     ColanderTeam,
     Comment,
     DetectionRule,
-    DetectionRuleOutgoingFeed,
+    DetectionRuleExportFeed,
     DroppedFile,
-    EntityOutgoingFeed,
+    EntityExportFeed,
     EntityRelation,
     Event,
     EventType,
@@ -128,12 +128,12 @@ admin.site.register(UploadRequest, UploadRequestAdmin)
 
 class EntityOutFeedAdmin(admin.ModelAdmin):
     list_display = ('name',)
-admin.site.register(EntityOutgoingFeed, EntityOutFeedAdmin)
+admin.site.register(EntityExportFeed, EntityOutFeedAdmin)
 
 
 class DetectionRuleOutFeedAdmin(admin.ModelAdmin):
     list_display = ('name',)
-admin.site.register(DetectionRuleOutgoingFeed, DetectionRuleOutFeedAdmin)
+admin.site.register(DetectionRuleExportFeed, DetectionRuleOutFeedAdmin)
 
 
 class DroppedFileAdmin(admin.ModelAdmin):

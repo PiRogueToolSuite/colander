@@ -4,6 +4,7 @@ import os
 import random
 import string
 import uuid
+from copy import deepcopy
 from hashlib import sha256
 
 import django
@@ -228,16 +229,14 @@ class CommonModelType(models.Model):
         null=True
     )
 
-    @staticmethod
-    def get_by_short_name(short_name) -> 'ArtifactType':
-        return ArtifactType.objects.get(short_name__iexact=short_name)
-
     def __str__(self):
         return self.name
 
 
 class ArtifactType(CommonModelType):
-    pass
+    @staticmethod
+    def get_by_short_name(short_name) -> 'ArtifactType':
+        return ArtifactType.objects.get(short_name__iexact=short_name)
 
 
 class ObservableType(CommonModelType):
@@ -593,7 +592,6 @@ def _get_entity_thumbnails_storage_dir(instance, filename):
 
 class Entity(models.Model):
     class Meta:
-        abstract: True
         ordering = ['-updated_at']
 
     id = models.UUIDField(
@@ -2411,7 +2409,6 @@ def delete_upload_request_stored_files(sender, instance: UploadRequest, using, *
 
 class OutgoingFeed(models.Model):
     class Meta:
-        abstract: True
         ordering = ['name']
 
     id = models.UUIDField(
@@ -2471,7 +2468,7 @@ class OutgoingFeed(models.Model):
     )
 
 
-class EntityOutgoingFeed(OutgoingFeed):
+class EntityExportFeed(OutgoingFeed):
     misp_org_name = models.CharField(
         max_length=512,
         help_text=_(
@@ -2494,7 +2491,7 @@ class EntityOutgoingFeed(OutgoingFeed):
         ContentType,
         related_name='entity_out_feed_types',
         limit_choices_to={
-            'model__in': ['actor', 'artifact', 'device', 'observable', 'threat'],
+            'model__in': ['actor', 'artifact', 'datafragment', 'detectionrule', 'device', 'observable', 'threat'],
             'app_label': 'core',
         },
     )
@@ -2504,31 +2501,61 @@ class EntityOutgoingFeed(OutgoingFeed):
         return 'entities'
 
     def get_entities(self):
-        tlp_levels = list_accepted_levels(self.max_tlp)
-        pap_levels = list_accepted_levels(self.max_pap)
         entities = []
         for entity_type in self.content_type.all():
             if hasattr(entity_type.model_class(), 'tlp'):
                 entities.extend(entity_type.model_class().objects.filter(
                     case=self.case,
-                    tlp__in=tlp_levels,
-                    pap__in=pap_levels).all())
+                    tlp__in=self.tlp_levels,
+                    pap__in=self.pap_levels).all())
             else:
                 entities.extend(entity_type.model_class().objects.filter(case=self.case).all())
         return entities
+
+    def get_relations(self):
+        return [e for e in EntityRelation.objects.filter(
+            obj_from_id__in=self.entity_ids,
+            obj_to_id__in=self.entity_ids,
+            case=self.case,
+        ).iterator()]
+
+    @cached_property
+    def tlp_levels(self):
+        return list_accepted_levels(self.max_tlp)
+
+    @cached_property
+    def pap_levels(self):
+        return list_accepted_levels(self.max_pap)
+
+    @cached_property
+    def cases(self):
+        dummy_case = deepcopy(self.case)
+        if self.case.tlp not in self.tlp_levels or self.case.pap not in self.pap_levels:
+            dummy_case.name = 'REDACTED for confidentiality reasons.'
+            dummy_case.description = 'REDACTED for confidentiality reasons.'
+            dummy_case.documentation = 'REDACTED for confidentiality reasons.'
+        return [dummy_case]
 
     @cached_property
     def entities(self):
         return self.get_entities()
 
+    @cached_property
+    def relations(self):
+        return self.get_relations()
+
+    @cached_property
+    def entity_ids(self):
+        return [e.id for e in self.get_entities()]
+
     @staticmethod
     def get_user_entity_out_feeds(user, case=None):
         if case:
-            return EntityOutgoingFeed.objects.filter(case=case).all()
-        return EntityOutgoingFeed.objects.filter(case__in=user.all_my_cases).all()
+            return EntityExportFeed.objects.filter(case=case).all()
+        return EntityExportFeed.objects.filter(case__in=user.all_my_cases).all()
 
 
-class DetectionRuleOutgoingFeed(OutgoingFeed):
+class DetectionRuleExportFeed(OutgoingFeed):
     content_type = models.ForeignKey(
         DetectionRuleType,
         on_delete=models.CASCADE
@@ -2537,8 +2564,8 @@ class DetectionRuleOutgoingFeed(OutgoingFeed):
     @staticmethod
     def get_user_detection_rule_out_feeds(user, case=None):
         if case:
-            return DetectionRuleOutgoingFeed.objects.filter(case=case).all()
-        return DetectionRuleOutgoingFeed.objects.filter(case__in=user.all_my_cases).all()
+            return DetectionRuleExportFeed.objects.filter(case=case).all()
+        return DetectionRuleExportFeed.objects.filter(case__in=user.all_my_cases).all()
 
     @property
     def feed_type(self):

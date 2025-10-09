@@ -1,0 +1,29 @@
+{% extends "pages/workspace/base.html" %}
+{% load static %}
+
+{% block import-sidebar-items %}
+  {% url 'import_csv_view' case_id=contextual_case.id as import_csv_view_url %}
+  {% url 'import_misp_view' case_id=contextual_case.id as import_misp_view_url %}
+
+  <a class="list-group-item list-group-item-action list-group-item-light{% if import_csv_view_url in request.path %} active {% endif %}"
+    href="{{ import_csv_view_url }}" title="Import CSV">
+    <i class="nf nf-fa-table" aria-hidden="true"></i>
+    <span class="list-group-item-label">CSV</span>
+  </a>
+
+  <a class="list-group-item list-group-item-action list-group-item-light{% if import_misp_view_url in request.path %} active {% endif %}"
+    href="{{ import_misp_view_url }}" title="Import MISP">
+    <i class="nf nf-md-code_json" aria-hidden="true"></i>
+    <span class="list-group-item-label">MISP</span>
+  </a>
+{% endblock import-sidebar-items %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <h2>{{ active_case.name }}</h2>
+      </div>
+    </div>
+  {% endblock inner-content %}
+{% endblock content %}

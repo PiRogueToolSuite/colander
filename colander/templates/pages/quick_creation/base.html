@@ -13,10 +13,9 @@
       <div class="row justify-content-center">
         <div class="col-md-12" id="quick-create-entities">
           <h2 class="m-4 text-center">
-            Create new entities <i>or</i>
-            <a href="{% url "import_csv_view" contextual_case.id %}">
-              import a CSV
-            </a>
+            Create new entities or import from
+            <a href="{% url "import_csv_view" contextual_case.id %}">CSV</a>
+            <a href="{% url "import_csv_view" contextual_case.id %}">MISP</a>
           </h2>
           <div class="card mb-4 bg-secondary-light">
             <div class="card-body">

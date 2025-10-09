@@ -2,9 +2,6 @@ from rest_framework import serializers
 
 from colander.core.models import *
 
-from colander_data_converter.base.models import (Case as cdc_Case, Device as cdc_Device, Actor as cdc_Actor, Artifact as cdc_Artifact, DataFragment as cdc_DataFragment, DetectionRule as cdc_DetectionRule, Event as cdc_Event, Observable as cdc_Observable,
-                                  Threat as cdc_Threat, EntityRelation as cdc_EntityRelation)
-
 
 class BaseEntitySuperTypeSerializer(serializers.Serializer):
     name = serializers.CharField()
@@ -107,6 +104,7 @@ class EntityRelationSerializer(serializers.ModelSerializer):
 
 class ActorSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ActorTypeSerializer()
+
     class Meta:
         model = Actor
         write_only = BaseEntitySerializer.write_only
@@ -118,6 +116,7 @@ class ActorSerializer(BaseEntitySerializer, serializers.ModelSerializer):
 
 class ArtifactSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ArtifactTypeSerializer()
+
     class Meta:
         model = Artifact
         write_only = BaseEntitySerializer.write_only
@@ -135,6 +134,7 @@ class ArtifactSerializer(BaseEntitySerializer, serializers.ModelSerializer):
 
 class DataFragmentSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = DataFragmentTypeSerializer()
+
     class Meta:
         model = DataFragment
         write_only = BaseEntitySerializer.write_only
@@ -146,6 +146,7 @@ class DataFragmentSerializer(BaseEntitySerializer, serializers.ModelSerializer):
 
 class DetectionRuleSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = DetectionRuleTypeSerializer()
+
     class Meta:
         model = DetectionRule
         write_only = BaseEntitySerializer.write_only
@@ -157,6 +158,7 @@ class DetectionRuleSerializer(BaseEntitySerializer, serializers.ModelSerializer)
 
 class DeviceSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = DeviceTypeSerializer()
+
     class Meta:
         model = Device
         write_only = BaseEntitySerializer.write_only
@@ -168,6 +170,7 @@ class DeviceSerializer(BaseEntitySerializer, serializers.ModelSerializer):
 
 class EventSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = EventTypeSerializer()
+
     class Meta:
         model = Event
         write_only = BaseEntitySerializer.write_only
@@ -179,6 +182,7 @@ class EventSerializer(BaseEntitySerializer, serializers.ModelSerializer):
 
 class ObservableSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ObservableTypeSerializer()
+
     class Meta:
         model = Observable
         write_only = BaseEntitySerializer.write_only
@@ -194,6 +198,7 @@ class ObservableSerializer(BaseEntitySerializer, serializers.ModelSerializer):
 
 class ThreatSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ThreatTypeSerializer()
+
     class Meta:
         model = Threat
         write_only = BaseEntitySerializer.write_only

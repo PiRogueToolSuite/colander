@@ -325,7 +325,7 @@ class Case(models.Model):
         max_length=16,
         editable=True,
         default=_random_id)
-    verify_key = models.TextField(
+    public_key = models.TextField(
         editable=True,
         default=''
     )
@@ -399,7 +399,7 @@ class Case(models.Model):
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
             self.signing_key = private_pem.decode('utf-8')
-            self.verify_key = public_pem.decode('utf-8')
+            self.public_key = public_pem.decode('utf-8')
             if save:
                 self.save()
 
@@ -1027,7 +1027,7 @@ class Artifact(Entity):
             return False
 
         public_key = serialization.load_pem_public_key(
-            self.case.verify_key.encode('utf-8'),
+            self.case.public_key.encode('utf-8'),
         )
         chosen_hash = hashes.SHA256()
         try:

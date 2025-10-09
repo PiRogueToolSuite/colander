@@ -348,7 +348,7 @@ class CaseDetailsView(LoginRequiredMixin, DetailView):
 @login_required
 def download_case_public_key(request, pk):
     case = Case.objects.get(id=pk)
-    response = HttpResponse(case.verify_key, content_type='application/octet-stream')
+    response = HttpResponse(case.public_key, content_type='application/octet-stream')
     response['Content-Disposition'] = f'attachment; filename={case.name}.pem'
     return response
 

@@ -108,7 +108,7 @@ class ActorSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     class Meta:
         model = Actor
         write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
     def get_super_type(self, obj):
         return {'name': 'actor', 'short_name': 'ACTOR'}
@@ -125,6 +125,7 @@ class ArtifactSerializer(BaseEntitySerializer, serializers.ModelSerializer):
             'storage_name',
             'storage_location',
             'analysis_index',
+            'thumbnail',
             'file'
         ]
 
@@ -138,7 +139,7 @@ class DataFragmentSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     class Meta:
         model = DataFragment
         write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
     def get_super_type(self, obj):
         return {'name': 'datafragment', 'short_name': 'DATAFRAGMENT'}
@@ -150,7 +151,7 @@ class DetectionRuleSerializer(BaseEntitySerializer, serializers.ModelSerializer)
     class Meta:
         model = DetectionRule
         write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
     def get_super_type(self, obj):
         return {'name': 'detectionrule', 'short_name': 'DETECTIONRULE'}
@@ -162,7 +163,7 @@ class DeviceSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     class Meta:
         model = Device
         write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
     def get_super_type(self, obj):
         return {'name': 'device', 'short_name': 'DEVICE'}
@@ -174,7 +175,7 @@ class EventSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     class Meta:
         model = Event
         write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
     def get_super_type(self, obj):
         return {'name': 'event', 'short_name': 'EVENT'}
@@ -190,6 +191,7 @@ class ObservableSerializer(BaseEntitySerializer, serializers.ModelSerializer):
             'raw_value',
             'es_prefix',
             'analysis_index',
+            'thumbnail',
         ]
 
     def get_super_type(self, obj):
@@ -202,7 +204,7 @@ class ThreatSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     class Meta:
         model = Threat
         write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
     def get_super_type(self, obj):
         return {'name': 'threat', 'short_name': 'THREAT'}

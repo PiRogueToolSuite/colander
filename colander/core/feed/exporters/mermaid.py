@@ -5,7 +5,7 @@ from colander_data_converter.converters.misp.converter import MISPConverter
 from colander_data_converter.exporters.mermaid import MermaidExporter
 from pymisp import MISPOrganisation
 
-from colander.core.feed.serializers import FullOutgoingFeedSerializer
+from colander.core.feed.serializers import EntityFeedContentSerializer
 from colander.core.models import EntityExportFeed
 
 
@@ -14,7 +14,7 @@ class MermaidFeedExporter:
         self.feed = feed
 
     def export(self):
-        s = FullOutgoingFeedSerializer(self.feed)
+        s = EntityFeedContentSerializer(self.feed)
         colander_feed = ColanderFeed.load(s.data)
         exporter = MermaidExporter(colander_feed)
         io = StringIO()

@@ -50,4 +50,4 @@ pcapng-utils>=1.0.9  # https://github.com/PiRogueToolSuite/pcapng-utils
 mandolin-python-client>=1.0.2
 
 # Colander
-colander-data-converter==1.0.4
+colander-data-converter==1.0.7

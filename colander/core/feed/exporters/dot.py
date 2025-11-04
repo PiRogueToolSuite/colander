@@ -6,7 +6,7 @@ from colander_data_converter.exporters.graphviz import GraphvizExporter
 from colander_data_converter.exporters.mermaid import MermaidExporter
 from pymisp import MISPOrganisation
 
-from colander.core.feed.serializers import FullOutgoingFeedSerializer
+from colander.core.feed.serializers import EntityFeedContentSerializer
 from colander.core.models import EntityExportFeed
 
 
@@ -15,7 +15,7 @@ class DotFeedExporter:
         self.feed = feed
 
     def export(self):
-        s = FullOutgoingFeedSerializer(self.feed)
+        s = EntityFeedContentSerializer(self.feed)
         colander_feed = ColanderFeed.load(s.data)
         exporter = GraphvizExporter(colander_feed)
         io = StringIO()

@@ -1,4 +1,4 @@
-from colander.core.feed.serializers import FullOutgoingFeedSerializer
+from colander.core.feed.serializers import EntityFeedContentSerializer
 from colander.core.models import EntityExportFeed
 
 
@@ -8,4 +8,4 @@ class JsonFeedExporter:
         self.feed = feed
 
     def export(self):
-        return FullOutgoingFeedSerializer(self.feed).data
+        return EntityFeedContentSerializer(self.feed).data

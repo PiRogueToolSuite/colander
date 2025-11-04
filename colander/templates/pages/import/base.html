@@ -24,6 +24,13 @@
       <div class="col-md-12">
         <h2>{{ active_case.name }}</h2>
       </div>
+      <div class="col-12">
+        <form method="post">
+          {% csrf_token %}
+            <textarea name="content" rows="10"></textarea>
+        <button type="submit" class="btn btn-primary">Import</button>
+        </form>
+      </div>
     </div>
   {% endblock inner-content %}
 {% endblock content %}

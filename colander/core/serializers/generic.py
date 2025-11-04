@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 
+# noinspection PyMethodMayBeStatic
 class EntitySerializer(serializers.Serializer):
     super_type = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()

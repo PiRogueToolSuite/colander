@@ -2,7 +2,7 @@ from colander_data_converter.base.models import ColanderFeed
 from colander_data_converter.converters.misp.converter import MISPConverter
 from pymisp import MISPOrganisation
 
-from colander.core.feed.serializers import FullOutgoingFeedSerializer
+from colander.core.feed.serializers import EntityFeedContentSerializer
 from colander.core.models import EntityExportFeed
 
 
@@ -11,7 +11,7 @@ class MISPFeedExporter:
         self.feed = feed
 
     def export(self):
-        s = FullOutgoingFeedSerializer(self.feed)
+        s = EntityFeedContentSerializer(self.feed)
         colander_feed = ColanderFeed.load(s.data)
         misp_feed = MISPConverter.colander_to_misp(colander_feed)
         if len(misp_feed or []) == 1:

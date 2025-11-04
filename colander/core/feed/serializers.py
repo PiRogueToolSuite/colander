@@ -1,4 +1,7 @@
+import colander_data_converter.base.models
+from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from colander.core.models import *
 
@@ -9,6 +12,7 @@ class BaseEntitySuperTypeSerializer(serializers.Serializer):
 
 
 class BaseEntityTypeSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=False)
     name = serializers.CharField()
     short_name = serializers.CharField()
     description = serializers.CharField()
@@ -16,41 +20,57 @@ class BaseEntityTypeSerializer(serializers.Serializer):
 
 class ActorTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, ActorType):
+            return data
         return ActorType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class ArtifactTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, ArtifactType):
+            return data
         return ArtifactType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class DataFragmentTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, DataFragmentType):
+            return data
         return DataFragmentType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class DetectionRuleTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, DetectionRuleType):
+            return data
         return DetectionRuleType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class DeviceTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, DeviceType):
+            return data
         return DeviceType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class EventTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, EventType):
+            return data
         return EventType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class ObservableTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, ObservableType):
+            return data
         return ObservableType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
 class ThreatTypeSerializer(BaseEntityTypeSerializer):
     def to_internal_value(self, data):
+        if isinstance(data, ThreatType):
+            return data
         return ThreatType.objects.get(short_name__iexact=data.get('short_name', 'GENERIC'))
 
 
@@ -66,14 +86,50 @@ class BaseEntitySerializer(serializers.Serializer):
     tlp = serializers.CharField()
     pap = serializers.CharField()
 
+    common_attributes = [
+        'id',
+        'name',
+        'case',
+        'owner',
+        'type',
+        'description',
+        'created_at',
+        'updated_at',
+        'tlp',
+        'pap',
+    ]
     excluded_fields = ['owner']
     write_only = ['owner']
+
+    def __init__(self, *args, **kwargs):
+        self.updating = "instance" in kwargs and "data" in kwargs
+        super().__init__(*args, **kwargs)
+
+    def prepare(self, validated_data):
+        validated_data['case'] = self.context.get('case')
+        validated_data['owner'] = self.context.get('case').owner
+        validated_data.setdefault('tlp', self.context.get('case').tlp)
+        validated_data.setdefault('pap', self.context.get('case').pap)
+
+    def update(self, instance, validated_data):
+        self.prepare(validated_data)
+        for k, v in validated_data.items():
+            if hasattr(instance, k):
+                if isinstance(v, list):  # ManyToMany relationship
+                    attr = getattr(instance, k)
+                    for item in v:
+                        attr.add(item)
+                else:
+                    setattr(instance, k, v)
+        instance.save()
+        return instance
 
     def get_colander_internal_type(self, obj):
         return self.get_super_type(obj).get('name', '').lower()
 
-    def get_super_type(self, obj):
-        return {'name': 'actor', 'short_name': 'ACTOR'}
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'undefined', 'short_name': 'UNDEFINED'}
 
 
 class CaseSerializer(BaseEntitySerializer, serializers.ModelSerializer):
@@ -88,11 +144,18 @@ class CaseSerializer(BaseEntitySerializer, serializers.ModelSerializer):
             'teams',
         ]
 
-    def get_super_type(self, obj):
+    def create(self, validated_data):
+        return Case.objects.get(id=validated_data)
+
+    @staticmethod
+    def get_super_type(_):
         return {'name': 'case', 'short_name': 'CASE'}
 
 
 class EntityRelationSerializer(serializers.ModelSerializer):
+    super_type = serializers.SerializerMethodField()
+    colander_internal_type = serializers.SerializerMethodField()
+
     class Meta:
         model = EntityRelation
         write_only = BaseEntitySerializer.write_only
@@ -101,21 +164,95 @@ class EntityRelationSerializer(serializers.ModelSerializer):
             'obj_to_type'
         ]
 
+    def get_colander_internal_type(self, obj):
+        return self.get_super_type(obj).get('name', '').lower()
+
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'entityrelation', 'short_name': 'ENTITYRELATION'}
+
+    def create(self, validated_data):
+        obj_from = Entity.objects.get(case=self.context.get('case'), pk=validated_data['obj_from_id'])
+        obj_to = Entity.objects.get(case=self.context.get('case'), pk=validated_data['obj_to_id'])
+        validated_data['case'] = self.context.get('case')
+        validated_data['owner'] = self.context.get('case').owner
+        validated_data['obj_from'] = obj_from.concrete()
+        validated_data['obj_to'] = obj_to.concrete()
+        return EntityRelation.objects.create(
+            **{k: v for k, v in validated_data.items() if v}
+        )
+
 
 class ActorSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ActorTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes
 
     class Meta:
         model = Actor
         write_only = BaseEntitySerializer.write_only
         exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
-    def get_super_type(self, obj):
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return Actor.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    @staticmethod
+    def get_super_type(_):
         return {'name': 'actor', 'short_name': 'ACTOR'}
+
+
+class DeviceSerializer(BaseEntitySerializer, serializers.ModelSerializer):
+    type = DeviceTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes
+
+    class Meta:
+        model = Device
+        write_only = BaseEntitySerializer.write_only
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
+
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return Device.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    def to_internal_value(self, data):
+        if not self.updating:
+            data.pop('operated_by') if 'operated_by' in data else None
+        return super().to_internal_value(data)
+
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'device', 'short_name': 'DEVICE'}
+
+
+class ThreatSerializer(BaseEntitySerializer, serializers.ModelSerializer):
+    type = ThreatTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes
+
+    class Meta:
+        model = Threat
+        write_only = BaseEntitySerializer.write_only
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
+
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return Threat.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'threat', 'short_name': 'THREAT'}
 
 
 class ArtifactSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ArtifactTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes + [
+        'md5', 'sha1', 'sha256', 'mime_type', 'extension', 'original_name', 'size_in_bytes', 'attributes'
+    ]
 
     class Meta:
         model = Artifact
@@ -129,60 +266,28 @@ class ArtifactSerializer(BaseEntitySerializer, serializers.ModelSerializer):
             'file'
         ]
 
-    def get_super_type(self, obj):
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        artifact = Artifact.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+        artifact.file = ContentFile(b'', artifact.name)
+        artifact.save()
+        return artifact
+
+    def to_internal_value(self, data):
+        if not self.updating:
+            data.pop('extracted_from') if 'extracted_from' in data else None
+        return super().to_internal_value(data)
+
+    @staticmethod
+    def get_super_type(_):
         return {'name': 'artifact', 'short_name': 'ARTIFACT'}
-
-
-class DataFragmentSerializer(BaseEntitySerializer, serializers.ModelSerializer):
-    type = DataFragmentTypeSerializer()
-
-    class Meta:
-        model = DataFragment
-        write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
-
-    def get_super_type(self, obj):
-        return {'name': 'datafragment', 'short_name': 'DATAFRAGMENT'}
-
-
-class DetectionRuleSerializer(BaseEntitySerializer, serializers.ModelSerializer):
-    type = DetectionRuleTypeSerializer()
-
-    class Meta:
-        model = DetectionRule
-        write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
-
-    def get_super_type(self, obj):
-        return {'name': 'detectionrule', 'short_name': 'DETECTIONRULE'}
-
-
-class DeviceSerializer(BaseEntitySerializer, serializers.ModelSerializer):
-    type = DeviceTypeSerializer()
-
-    class Meta:
-        model = Device
-        write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
-
-    def get_super_type(self, obj):
-        return {'name': 'device', 'short_name': 'DEVICE'}
-
-
-class EventSerializer(BaseEntitySerializer, serializers.ModelSerializer):
-    type = EventTypeSerializer()
-
-    class Meta:
-        model = Event
-        write_only = BaseEntitySerializer.write_only
-        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
-
-    def get_super_type(self, obj):
-        return {'name': 'event', 'short_name': 'EVENT'}
 
 
 class ObservableSerializer(BaseEntitySerializer, serializers.ModelSerializer):
     type = ObservableTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes
 
     class Meta:
         model = Observable
@@ -194,20 +299,109 @@ class ObservableSerializer(BaseEntitySerializer, serializers.ModelSerializer):
             'thumbnail',
         ]
 
-    def get_super_type(self, obj):
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return Observable.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    def to_internal_value(self, data):
+        if not self.updating:
+            data.pop('extracted_from') if 'extracted_from' in data else None
+            data.pop('associated_threat') if 'associated_threat' in data else None
+            data.pop('operated_by') if 'operated_by' in data else None
+        return super().to_internal_value(data)
+
+    @staticmethod
+    def get_super_type(_):
         return {'name': 'observable', 'short_name': 'OBSERVABLE'}
 
 
-class ThreatSerializer(BaseEntitySerializer, serializers.ModelSerializer):
-    type = ThreatTypeSerializer()
+class DataFragmentSerializer(BaseEntitySerializer, serializers.ModelSerializer):
+    type = DataFragmentTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes + [
+        'content'
+    ]
 
     class Meta:
-        model = Threat
+        model = DataFragment
         write_only = BaseEntitySerializer.write_only
         exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
 
-    def get_super_type(self, obj):
-        return {'name': 'threat', 'short_name': 'THREAT'}
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return DataFragment.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    def to_internal_value(self, data):
+        if not self.updating:
+            data.pop('extracted_from') if 'extracted_from' in data else None
+        return super().to_internal_value(data)
+
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'datafragment', 'short_name': 'DATAFRAGMENT'}
+
+
+class DetectionRuleSerializer(BaseEntitySerializer, serializers.ModelSerializer):
+    type = DetectionRuleTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes + [
+        'content'
+    ]
+
+    class Meta:
+        model = DetectionRule
+        write_only = BaseEntitySerializer.write_only
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
+
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return DetectionRule.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    def to_internal_value(self, data):
+        if not self.updating:
+            data.pop('targeted_observables') if 'targeted_observables' in data else None
+        return super().to_internal_value(data)
+
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'detectionrule', 'short_name': 'DETECTIONRULE'}
+
+
+class EventSerializer(BaseEntitySerializer, serializers.ModelSerializer):
+    # Not fully supported yet, waiting for a new release of MISP
+    type = EventTypeSerializer()
+    creation_fields = BaseEntitySerializer.common_attributes + [
+        'first_seen', 'last_seen', 'count'
+    ]
+
+    class Meta:
+        model = Event
+        write_only = BaseEntitySerializer.write_only
+        exclude = BaseEntitySerializer.excluded_fields + ['thumbnail']
+
+    def create(self, validated_data):
+        self.prepare(validated_data)
+        return Event.objects.create(
+            **{k: v for k, v in validated_data.items() if k in self.creation_fields and v}
+        )
+
+    def to_internal_value(self, data):
+        if not self.updating:
+            data.pop('extracted_from') if 'extracted_from' in data else None
+            data.pop('observed_on') if 'observed_on' in data else None
+            data.pop('detected_by') if 'detected_by' in data else None
+            data.pop('attributed_to') if 'attributed_to' in data else None
+            data.pop('target') if 'target' in data else None
+            data.pop('involved_observables') if 'involved_observables' in data else None
+        return super().to_internal_value(data)
+
+    @staticmethod
+    def get_super_type(_):
+        return {'name': 'event', 'short_name': 'EVENT'}
 
 
 class OutgoingFeedInfoSerializer(serializers.ModelSerializer):
@@ -250,17 +444,23 @@ class PolymorphicSerializer(serializers.Serializer):
         Observable: ObservableSerializer,
         Threat: ThreatSerializer,
     }
+    serializer_mapping_str = {
+        'case': CaseSerializer,
+        'entityrelation': EntityRelationSerializer,
+        'actor': ActorSerializer,
+        'artifact': ArtifactSerializer,
+        'datafragment': DataFragmentSerializer,
+        'detectionrule': DetectionRuleSerializer,
+        'device': DeviceSerializer,
+        'event': EventSerializer,
+        'observable': ObservableSerializer,
+        'threat': ThreatSerializer,
+    }
 
     def __init__(self, *args, **kwargs):
-        # Set output_mode to 'list' or 'dict', default to 'dict'
-        self.output_mode = kwargs.pop('output_mode', 'dict')
         super().__init__(*args, **kwargs)
 
-    def _to_representation(self, instance):
-        """
-        Override the serialization method.
-        `instance` can be a single object or an object within a list.
-        """
+    def to_representation(self, instance):
         # Get the specific serializer class for this instance
         serializer_class = self.serializer_mapping.get(type(instance))
 
@@ -270,29 +470,32 @@ class PolymorphicSerializer(serializers.Serializer):
             data = serializer.data
             return data
         else:
-            return super().to_representation(instance)
+            raise ValidationError('Serializer not supported')
 
-    def to_representation(self, instances):
-        """
-        Handle serialization for multiple instances based on output_mode.
-        """
-        if not isinstance(instances, list):
-            return self._to_representation(instances)
-        if self.output_mode == 'dict':
-            # Dictionary mode: keys are IDs, values are serialized objects
-            return {
-                str(instance.id): self._to_representation(instance)
-                for instance in instances
-            }
-        else:
-            # List mode: default behavior
-            return [self._to_representation(instance) for instance in instances]
+    @classmethod
+    def get_serializer_by_model(cls, model):
+        return cls.serializer_mapping.get(type(model))
+
+    @classmethod
+    def get_serializer_from_data(cls, data):
+        serializer_class = None
+        if isinstance(data, dict):
+            colander_internal_type = data.get('colander_internal_type', None)
+            super_type_name = colander_internal_type or data.get('super_type', {}).get('short_name', '').lower()
+            serializer_class = cls.serializer_mapping_str.get(super_type_name, None)
+        elif isinstance(data, colander_data_converter.base.models.Entity):
+            colander_internal_type = data.colander_internal_type or None
+            super_type_name = colander_internal_type or data.super_type.short_name.lower()
+            serializer_class = cls.serializer_mapping_str.get(super_type_name, None)
+        if not serializer_class:
+            raise ValidationError(f'Super type for "{data}" not supported')
+        return serializer_class
 
 
-class FullOutgoingFeedSerializer(serializers.ModelSerializer):
-    entities = PolymorphicSerializer()
-    relations = PolymorphicSerializer()
-    cases = PolymorphicSerializer()
+class EntityFeedContentSerializer(serializers.ModelSerializer):
+    entities = serializers.SerializerMethodField()
+    relations = serializers.SerializerMethodField()
+    cases = serializers.SerializerMethodField()
 
     class Meta:
         model = EntityExportFeed
@@ -305,5 +508,24 @@ class FullOutgoingFeedSerializer(serializers.ModelSerializer):
             'max_pap',
             'entities',
             'relations',
-            'cases'
+            'cases',
         ]
+
+    def get_entities(self, obj):
+        _entities = {}
+        for entity in obj.entities:
+            s = PolymorphicSerializer(entity)
+            _entities[str(entity.id)] = s.data
+        return _entities
+
+    def get_relations(self, obj):
+        _relations = {}
+        for entity in obj.relations:
+            s = PolymorphicSerializer(entity)
+            _relations[str(entity.id)] = s.data
+        return _relations
+
+    def get_cases(self, obj):
+        return {
+            str(obj.case.id): PolymorphicSerializer(obj.case).data
+        }

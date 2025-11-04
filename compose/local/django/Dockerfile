@@ -1,19 +1,31 @@
 ARG PYTHON_VERSION=3.12-slim-bookworm
 
 # define an alias for the specfic python version used in this file.
-FROM python:${PYTHON_VERSION} as python
+FROM python:${PYTHON_VERSION} AS python
 
-# Python build stage
-FROM python as python-build-stage
-
-ARG BUILD_ENVIRONMENT=local
+# System build stage
+FROM python AS system-build-stage
 
 # Install apt packages
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-  # dependencies for building Python packages
-  build-essential git inotify-tools\
-  # psycopg2 dependencies
-  libpq-dev libmagic1 tshark wireshark-common libssl-dev python3-dev
+  build-essential \
+  gettext \
+  git \
+  libmagic1 \
+  libpq-dev \
+  libssl-dev \
+  inotify-tools\
+  python3-dev \
+  tshark \
+  wireshark-common
+
+RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /var/lib/apt/lists/*
+
+# Python build stage
+FROM system-build-stage AS python-build-stage
+
+ARG BUILD_ENVIRONMENT=local
 
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
@@ -24,7 +36,7 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels  \
 
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM system-build-stage AS python-run-stage
 
 ARG BUILD_ENVIRONMENT=local
 ARG APP_HOME=/app
@@ -34,16 +46,6 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV BUILD_ENV ${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
-
-# Install required system dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
-  libpq-dev  inotify-tools \
-  # Translations dependencies
-  gettext libmagic1 tshark wireshark-common libssl-dev python3-dev \
-  # cleaning up unused files
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage

@@ -872,7 +872,7 @@ class ColanderDGraph {
     }
 
     this._HANDLING_SAVE_IN_PROGRESS = true;
-    if (this.jStatusSaving) this.jStatusSaving.show();
+    if (this.jStatusSaving) this.jStatusSaving.visible();
 
     let post_data = {};
 

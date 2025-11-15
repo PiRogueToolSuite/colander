@@ -17,19 +17,20 @@ def __all_styles():
             'icon-font-classname': icons[model],
             'icon-font-unicode': icons_unicodes[model],
             'icon-svg': None,
+            'short_name': name.upper(),
             'color': color_scheme[model],
             'types': {}
         }
         if hasattr(model, 'type'):
             for model_type in model.type.get_queryset().all():
                 mtid = model_type.short_name
-                if mtid in all_styles[name]['types']:
-                    print("WARNING", f"all_styles already contains {mtid} entry. Occurs for model:{model}.")
                 all_styles[name]['types'][mtid] = {
                     'name': model_type.name,
+                    'description': model_type.description,
                     'icon-font-classname': model_type.nf_icon,
                     'icon-font-unicode': None,
                     'icon-svg': model_type.icon,
+                    'short_name': mtid,
                     'color': None
                 }
 

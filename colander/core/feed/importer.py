@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import get_args, List
+from typing import get_args, List, Dict, Any
 
 from colander_data_converter.base.common import ObjectReference
 from colander_data_converter.base.models import ColanderFeed, Observable, ColanderRepository, Artifact
@@ -153,10 +153,13 @@ class FeedImporter:
                     relation.obj_to = new
         self.input_feed.rebuild_immutable_relations()
 
+    @cached_property
+    def internal_feed_content(self) -> Dict[Any, Any]:
+        return self.internal_feed_object.content
+
     def import_feed(self):
         # Generate feed of the case
-        c = self.internal_feed_object.content
-        internal_feed = ColanderFeed.load(c)
+        internal_feed = ColanderFeed.load(self.internal_feed_content)
 
         # Merge the two feeds
         feed_merger = FeedMerger(self.input_feed, internal_feed)
@@ -169,7 +172,7 @@ class FeedImporter:
             entity_data = entity.model_dump(mode='json')
             model_class = self.get_model_class(entity_data)
             serializer_class = self.get_serializer_class(entity_data)
-            if not model_class.objects.filter(id=entity_id).exists():
+            if not model_class.objects.filter(id=entity.id).exists():
                 serializer = serializer_class(data=entity_data, context={'case': self.case})
                 if serializer.is_valid():
                     serializer.save()
@@ -180,8 +183,8 @@ class FeedImporter:
             entity_data = entity.model_dump(mode='json')
             model_class = self.get_model_class(entity_data)
             serializer_class = self.get_serializer_class(entity_data)
-            if model_class.objects.filter(id=entity_id).exists():
-                instance = model_class.objects.get(id=entity_id)
+            if model_class.objects.filter(id=entity.id).exists():
+                instance = model_class.objects.get(id=entity.id)
                 serializer = serializer_class(instance=instance, data=entity_data, context={'case': self.case})
                 if serializer.is_valid():
                     serializer.save()

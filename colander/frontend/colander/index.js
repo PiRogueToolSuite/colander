@@ -8,6 +8,7 @@ import CachePlugin from './plugins/Cache';
 import i18nPlugin from './plugins/i18n';
 import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import EventBusPlugin from './plugins/EventBus';
+import ThemeUtilsPlugin from './plugins/ThemeUtils';
 
 import HarAnalyzerPlugin from 'har-analyzer-vue';
 /* FIXME: Confirm not needed anymore, then clean */
@@ -77,6 +78,24 @@ export const ColanderApp = {
       import(/* webpackChunkName: "ThumbnailInputField" */ '../colander-vue-components/ThumbnailInputField.vue')),
     ToolbarSearch: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ToolbarSearch" */ '../colander-vue-components/ToolbarSearch.vue')),
+    Pills: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "Pills" */ '../colander-vue-components/generics/Pills.vue')),
+    GenericEntity: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericEntity" */ '../colander-vue-components/generics/GenericEntity.vue')),
+    GenericEntityDetails: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericEntityDetails" */ '../colander-vue-components/generics/GenericEntityDetails.vue')),
+    GenericEntityList: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericEntityList" */ '../colander-vue-components/generics/GenericEntityList.vue')),
+    CachedFileUpload: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "CachedFileUpload" */ '../colander-vue-components/generics/CachedFileUpload.vue')),
+    GenericFeedImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericFeedImporter" */ '../colander-vue-components/generics/GenericFeedImporter.vue')),
+    EntityQuickViewDialog: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "EntityQuickViewDialog" */ '../colander-vue-components/generics/EntityQuickViewDialog.vue')),
+    MISPImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "MISPImporter" */ '../colander-vue-components/importers/MISPImporter.vue')),
+    STIX2Importer: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "STIX2Importer" */ '../colander-vue-components/importers/STIX2Importer.vue')),
     /* PRIMEVUE COMPONENTS */
     DatePicker: defineAsyncComponent(() =>
       /* webpackChunkName: "pv-datepicker" */ import('primevue/datepicker')),
@@ -143,6 +162,8 @@ export default () => {
       'all_styles': '/rest/dataset/all_styles/',
     },
   });
+  // Must be registered after the CachePlugin
+  colander_application.use(ThemeUtilsPlugin);
   if (navigator.language) {
     if (String(navigator.language).toLowerCase() === 'fr') {
       colander_primevue_options.locale.dateFormat = 'dd/mm/yy';

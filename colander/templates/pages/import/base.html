@@ -1,9 +1,11 @@
 {% extends "pages/workspace/base.html" %}
+{% load i18n %}
 {% load static %}
 
 {% block import-sidebar-items %}
   {% url 'import_csv_view' case_id=contextual_case.id as import_csv_view_url %}
   {% url 'import_misp_view' case_id=contextual_case.id as import_misp_view_url %}
+  {% url 'import_stix2_view' case_id=contextual_case.id as import_stix2_view_url %}
 
   <a class="list-group-item list-group-item-action list-group-item-light{% if import_csv_view_url in request.path %} active {% endif %}"
     href="{{ import_csv_view_url }}" title="Import CSV">
@@ -13,24 +15,31 @@
 
   <a class="list-group-item list-group-item-action list-group-item-light{% if import_misp_view_url in request.path %} active {% endif %}"
     href="{{ import_misp_view_url }}" title="Import MISP">
-    <i class="nf nf-md-code_json" aria-hidden="true"></i>
+    <i class="nf nf-fa-upload" aria-hidden="true"></i>
     <span class="list-group-item-label">MISP</span>
+  </a>
+
+  <a class="list-group-item list-group-item-action list-group-item-light{% if import_stix2_view_url in request.path %} active {% endif %}"
+    href="{{ import_stix2_view_url }}" title="Import STIX2">
+    <i class="nf nf-fa-upload" aria-hidden="true"></i>
+    <span class="list-group-item-label">STIX2</span>
   </a>
 {% endblock import-sidebar-items %}
 
 {% block content %}
   {% block inner-content %}
     <div class="row justify-content-center">
-      <div class="col-md-12">
-        <h2>{{ active_case.name }}</h2>
+      <div class="col-md-12 mt-2">
+        <h4>Import Colander feed</h4>
       </div>
-      <div class="col-12">
-        <form method="post">
-          {% csrf_token %}
-            <textarea name="content" rows="10"></textarea>
-        <button type="submit" class="btn btn-primary">Import</button>
-        </form>
+      <div class="col-md-12 mt-2">
+        <div
+          is="vue:GenericFeedImporter"
+          data-case-id="{{ contextual_case.id }}"
+          data-csrf-token="{{ csrf_token }}"
+          feed-type="colander"
+        ></div>
       </div>
     </div>
-  {% endblock inner-content %}
-{% endblock content %}
+  {% endblock %}
+{% endblock %}

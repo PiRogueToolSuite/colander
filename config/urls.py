@@ -9,7 +9,6 @@ from django.views.i18n import JavaScriptCatalog
 from rest_framework.schemas import get_schema_view
 
 from colander.core.graph.views import case_graph, case_subgraph
-from colander.core.views import import_views
 from colander.core.views.actor_views import ActorCreateView, ActorDetailsView, ActorUpdateView, delete_actor_view
 from colander.core.views.artifact_views import (
     ArtifactCreateView,
@@ -55,7 +54,6 @@ from colander.core.views.experiment_views import (
     start_detection,
 )
 from colander.core.views.graph_views import graph_base_view
-from colander.core.views.import_views import import_view, import_misp_view
 from colander.core.views.investigate_views import investigate_search_view
 from colander.core.views.obversable_views import (
     ObservableCreateView,
@@ -188,9 +186,10 @@ case_contextualized_url_patterns = [
 
     path("investigate/", investigate_search_view, name="investigate_base_view"),
 
-    path("import", import_view, name="import_view"),
-    path("import/misp", import_misp_view, name="import_misp_view"),
+    path("import", TemplateView.as_view(template_name="pages/import/base.html"), name="import_view"),
     path("import/csv", TemplateView.as_view(template_name="import/csv.html"), name="import_csv_view"),
+    path("import/misp", TemplateView.as_view(template_name="import/misp.html"), name="import_misp_view"),
+    path("import/stix2", TemplateView.as_view(template_name="import/stix2.html"), name="import_stix2_view"),
 ]
 
 urlpatterns = [

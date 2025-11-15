@@ -4,6 +4,7 @@ from django.http import HttpResponseForbidden
 from colander.core.forms import DocumentationForm
 from colander.core.models import Case
 
+
 class GitCommitHashMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -15,7 +16,8 @@ class GitCommitHashMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         try:  # this attribute does not exist in dev mode
             request.GIT_COMMIT_HASH = settings.GIT_COMMIT_HASH
-        except: pass
+        except (Exception,):
+            pass
 
 
 class ContextualCaseMiddleware:
@@ -39,7 +41,6 @@ class ContextualCaseMiddleware:
             request.contextual_case = case  # even if case is None
         else:
             return HttpResponseForbidden()
-
 
 
 def contextual_case(request):

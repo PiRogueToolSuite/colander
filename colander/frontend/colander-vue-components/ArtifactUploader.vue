@@ -19,7 +19,7 @@ function register_legacy_uploader(case_id) {
     $('#upload_btn').prop('disabled', true);
     $('#upload_btn').hide();
     $('#upload_submit_btn').prop('disabled', false);
-    $('#upload_submit_btn').show();
+    $('#upload_submit_btn').visible();
 
     $('#artifact-upload-form').submit();
   }

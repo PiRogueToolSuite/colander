@@ -9,10 +9,10 @@
   {% block inner-content %}
     <div class="row justify-content-center">
       <div class="col-md-12 mt-2">
-        <h4>Import MISP event</h4>
+        <h4>Import STIX2 bundle</h4>
       </div>
       <div class="col-md-12 mt-2">
-        <div is="vue:MISPImporter" data-case-id="{{ contextual_case.id }}" data-csrf-token="{{ csrf_token }}"></div>
+        <div is="vue:STIX2Importer" data-case-id="{{ contextual_case.id }}" data-csrf-token="{{ csrf_token }}"></div>
       </div>
     </div>
   {% endblock %}

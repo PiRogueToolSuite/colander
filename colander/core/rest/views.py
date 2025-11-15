@@ -118,6 +118,8 @@ class EntityViewSet(CreateModelMixin,
     def import_entity(self, request):
         case_id = self.request.data.pop('case_id')
         case = Case.objects.get(pk=case_id)
+        # if not case.can_contribute(self.request.user):
+        #     return JsonResponse({}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = DetailedEntitySerializer(data=request.data)
         updated = False
         try:

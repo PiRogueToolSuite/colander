@@ -2,13 +2,13 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models import CharField, Q
+from django.db.models import CharField, Q, QuerySet
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 
-from colander.core.models import Case, ColanderTeam
+from colander.core.models import Case, ColanderTeam, FeedTemplate
 
 
 class User(AbstractUser):
@@ -97,6 +97,18 @@ class User(AbstractUser):
         teams.extend(self.teams_as_owner.all())
         teams.extend(self.teams_as_contrib.all())
         return list(set(teams))
+
+    @cached_property
+    def available_templates_qs(self) -> QuerySet:
+        user_templates = FeedTemplate.objects.filter(owner=self)
+        public_templates = FeedTemplate.get_public_templates_qs()
+        teams_templates = FeedTemplate.get_teams_templates_qs(self.all_my_teams)
+        cases_templates = FeedTemplate.get_cases_templates_qs(self.all_my_cases)
+        return user_templates.union(public_templates.union(teams_templates.union(cases_templates))).order_by('name')
+
+    @cached_property
+    def available_templates(self):
+        return self.available_templates_qs.all()
 
     @cached_property
     def my_teams_as_qset(self):

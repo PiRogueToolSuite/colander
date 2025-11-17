@@ -62,7 +62,7 @@ from colander.core.views.obversable_views import (
     capture_observable_view,
     delete_observable_view,
 )
-from colander.core.views.outgoing_feeds_views import (
+from colander.core.views.export_feeds_views import (
     DetectionRuleExportFeedCreateView,
     DetectionRuleExportFeedUpdateView,
     EntityExportFeedCreateView,
@@ -70,7 +70,8 @@ from colander.core.views.outgoing_feeds_views import (
     delete_detection_rule_export_feed_view,
     delete_entity_export_feed_view,
     detection_rule_export_feed_view,
-    entity_export_feed_view,
+    entity_export_feed_view, FeedTemplateCreateView, FeedTemplateUpdateView, delete_feed_template_view,
+    feed_template_live_editor_view,
 )
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.status_views import colander_status_view
@@ -175,6 +176,11 @@ case_contextualized_url_patterns = [
     path("document/export/markdown", export_case_documentation_as_markdown_view, name="cases_doc_export_as_markdown_view"),
 
     path("feeds", feeds_view, name="feeds_view"),
+
+    path("feeds/templates", FeedTemplateCreateView.as_view(), name="feeds_template_create_view"),
+    path("feeds/templates/<slug:pk>/edit", FeedTemplateUpdateView.as_view(), name="feeds_template_update_view"),
+    path("feeds/templates/<slug:pk>/live_editor", feed_template_live_editor_view, name="feeds_template_live_editor_view"),
+    path("feeds/templates/<slug:pk>/delete", delete_feed_template_view, name="feeds_template_delete_view"),
 
     path("feeds/detection_rules", DetectionRuleExportFeedCreateView.as_view(), name="feeds_detection_rule_out_feed_create_view"),
     path("feeds/detection_rules/<slug:pk>/edit", DetectionRuleExportFeedUpdateView.as_view(), name="feeds_detection_rule_out_feed_update_view"),

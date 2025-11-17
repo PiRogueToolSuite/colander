@@ -1,4 +1,4 @@
-import colander_data_converter.base.models
+from colander_data_converter.base.models import Entity as cdc_Entity
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -483,7 +483,7 @@ class PolymorphicSerializer(serializers.Serializer):
             colander_internal_type = data.get('colander_internal_type', None)
             super_type_name = colander_internal_type or data.get('super_type', {}).get('short_name', '').lower()
             serializer_class = cls.serializer_mapping_str.get(super_type_name, None)
-        elif isinstance(data, colander_data_converter.base.models.Entity):
+        elif isinstance(data, cdc_Entity):
             colander_internal_type = data.colander_internal_type or None
             super_type_name = colander_internal_type or data.super_type.short_name.lower()
             serializer_class = cls.serializer_mapping_str.get(super_type_name, None)

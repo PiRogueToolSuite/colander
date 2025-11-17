@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.forms.widgets import RadioSelect, Textarea
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.generic import CreateView, UpdateView
@@ -15,7 +15,7 @@ from colander.core.feed.exporters.mermaid import MermaidFeedExporter
 from colander.core.feed.exporters.misp import MISPFeedExporter
 from colander.core.feed.exporters.stix2 import Stix2FeedExporter
 from colander.core.feed.serializers import OutgoingFeedInfoSerializer
-from colander.core.models import DetectionRuleExportFeed, DetectionRuleType, EntityExportFeed
+from colander.core.models import DetectionRuleExportFeed, DetectionRuleType, EntityExportFeed, FeedTemplate
 from colander.core.views.views import CaseContextMixin
 
 
@@ -77,6 +77,73 @@ def delete_detection_rule_export_feed_view(request, pk):
     obj = DetectionRuleExportFeed.objects.get(id=pk)
     obj.delete()
     return redirect("feeds_detection_rule_out_feed_create_view", case_id=request.contextual_case.id)
+
+
+class FeedTemplateCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
+    model = FeedTemplate
+    template_name = 'pages/feeds/template.html'
+    contextual_success_url = 'feeds_template_create_view'
+    fields = [
+        'name',
+        'description',
+        'visibility',
+        'teams',
+        'content',
+    ]
+    case_required_message_action = "create templates"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['templates'] = self.request.user.available_templates
+        ctx['active_case'] = self.active_case
+        ctx['is_editing'] = False
+        return ctx
+
+    def form_valid(self, form):
+        if form.is_valid() and self.active_case:
+            template = form.save(commit=False)
+            if not hasattr(template, 'owner'):
+                template.owner = self.request.user
+                template.case = self.active_case
+            template.save()
+            form.save_m2m()
+        return super().form_valid(form)
+
+    def get_form(self, form_class=None):
+        form = super(FeedTemplateCreateView, self).get_form(form_class)
+        form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        return form
+
+
+class FeedTemplateUpdateView(FeedTemplateCreateView, UpdateView):
+    case_required_message_action = "update template"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['templates'] = self.request.user.available_templates
+        ctx['active_case'] = self.active_case
+        ctx['is_editing'] = True
+        return ctx
+
+
+@login_required
+def feed_template_live_editor_view(request, pk):
+    obj = FeedTemplate.objects.get(id=pk)
+    if obj not in request.user.available_templates:
+        return redirect("feeds_template_create_view", case_id=request.contextual_case.id)
+    else:
+        return render(request, 'feed/template_live_editor.html', {
+            "case_id": request.contextual_case.id,
+            "template_id": str(obj.id)
+        })
+
+
+@login_required
+def delete_feed_template_view(request, pk):
+    obj = FeedTemplate.objects.get(id=pk)
+    if obj in request.user.available_templates:
+        obj.delete()
+    return redirect("feeds_template_create_view", case_id=request.contextual_case.id)
 
 
 class EntityExportFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):

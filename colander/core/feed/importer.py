@@ -5,63 +5,11 @@ from colander_data_converter.base.common import ObjectReference
 from colander_data_converter.base.models import ColanderFeed, Observable, ColanderRepository, Artifact
 from colander_data_converter.base.types.observable import ObservableTypes
 from colander_data_converter.base.utils import FeedMerger
-from django.contrib.contenttypes.models import ContentType
 from rest_framework.exceptions import ValidationError
 
+from colander.core.feed.internal import InternalFeed
 from colander.core.feed.serializers import PolymorphicSerializer, EntityRelationSerializer
-from colander.core.models import Case, EntityRelation
-
-
-class InternalFeed:
-    case: Case
-
-    def __init__(self, case: Case):
-        self.case = case
-        self.content_types = ContentType.objects.filter(
-            app_label='core',
-            model__in=[
-                'actor',
-                'artifact',
-                'datafragment',
-                'detectionrule',
-                'device',
-                'event',
-                'observable',
-                'threat'
-            ]).all()
-
-    @cached_property
-    def cases(self):
-        return {
-            str(self.case.id): PolymorphicSerializer(self.case).data
-        }
-
-    @cached_property
-    def entities(self):
-        entities = {}
-        for content_type in self.content_types:
-            entities_from_orm = content_type.model_class().objects.filter(case=self.case).iterator()
-            for entity in entities_from_orm:
-                entities[str(entity.id)] = PolymorphicSerializer(entity).data
-        return entities
-
-    @cached_property
-    def relations(self):
-        return {
-            str(relation.id): PolymorphicSerializer(relation).data for relation in EntityRelation.objects.filter(
-                obj_from_id__in=self.entities.keys(),
-                obj_to_id__in=self.entities.keys(),
-                case=self.case
-            ).iterator()
-        }
-
-    @cached_property
-    def content(self):
-        return {
-            'cases': self.cases,
-            'entities': self.entities,
-            'relations': self.relations,
-        }
+from colander.core.models import Case
 
 
 # noinspection DuplicatedCode

@@ -92,6 +92,8 @@ export const ColanderApp = {
       import(/* webpackChunkName: "GenericFeedImporter" */ '../colander-vue-components/generics/GenericFeedImporter.vue')),
     EntityQuickViewDialog: defineAsyncComponent(() =>
       import(/* webpackChunkName: "EntityQuickViewDialog" */ '../colander-vue-components/generics/EntityQuickViewDialog.vue')),
+    TemplateFeedEditor: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "TemplateFeedEditor" */ '../colander-vue-components/generics/TemplateFeedEditor.vue')),
     MISPImporter: defineAsyncComponent(() =>
       import(/* webpackChunkName: "MISPImporter" */ '../colander-vue-components/importers/MISPImporter.vue')),
     STIX2Importer: defineAsyncComponent(() =>

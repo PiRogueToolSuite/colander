@@ -20,7 +20,7 @@ from colander.core.models import (
     ObservableType,
     PiRogueExperiment,
     Threat,
-    UploadRequest, SubGraph,
+    UploadRequest, SubGraph, FeedTemplate,
 )
 
 
@@ -144,3 +144,8 @@ admin.site.register(DroppedFile, DroppedFileAdmin)
 class SubGraphAdmin(admin.ModelAdmin):
     list_display = ('owner', 'created_at', 'case', 'name')
 admin.site.register(SubGraph, SubGraphAdmin)
+
+
+class FeedTemplateAdmin(admin.ModelAdmin):
+    list_display = ('name', 'owner', 'visibility', 'in_error')
+admin.site.register(FeedTemplate, FeedTemplateAdmin)

@@ -1,25 +1,30 @@
 import base64
 import fnmatch
+import json
 import mimetypes
 
-import json
-
+from colander_data_converter.base.models import ColanderFeed
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.db.models import QuerySet
 from django.http import JsonResponse
-from rest_framework import status
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
+from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin, CreateModelMixin, \
     UpdateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet, ViewSet
 
 from colander.core import datasets
 from colander.core.api.serializers import DroppedFileSerializer, CaseSerializer, \
     ArtifactTypeSerializer, DeviceSerializer
+from colander.core.feed.internal import InternalFeed
 from colander.core.graph.serializers import GraphRelationSerializer
 from colander.core.models import (
     Case,
@@ -30,9 +35,10 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph,
+    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph, FeedTemplate,
 )
-from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer
+from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer, FeedTemplateSerializer, \
+    UserSerializer
 
 
 class DatasetViewSet(ViewSet):
@@ -77,6 +83,57 @@ class EntityRelationViewSet(CreateModelMixin,
             owner=self.request.user,
             case=Case.objects.get(pk=case_id)
         )
+
+
+class UserViewSet(RetrieveModelMixin, GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(instance=request.user)
+        return Response(serializer.data)
+
+
+class FeedTemplateViewSet(RetrieveModelMixin,
+                          UpdateModelMixin,
+                          ListModelMixin,
+                          GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = FeedTemplateSerializer
+
+    @action(detail=False, methods=['GET'])
+    def visibilities(self, request):
+        return Response(FeedTemplate.Visibility.VISIBILITY_CHOICES)
+
+    @action(detail=True, methods=['GET'])
+    def render(self, request, pk=None):
+        case_id = request.query_params.get('case_id')
+        case = Case.objects.get(pk=case_id)
+        template = FeedTemplate.objects.get(pk=pk)
+        try:
+            rendered_content = template.render(InternalFeed(case).content)
+            template.in_error = False
+            template.save()
+            return Response(rendered_content)
+        except (Exception,) as e:
+            template.in_error = True
+            template.save()
+            return Response(str(e), status=HTTP_400_BAD_REQUEST)
+
+    def get_object(self):
+        return FeedTemplate.objects.get(pk=self.kwargs['pk'])
+
+    def retrieve(self, request, pk=None):
+        t = FeedTemplate.objects.get(pk=pk)
+        if t not in self.request.user.available_templates_qs:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(t)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        return self.request.user.available_templates_qs
 
 
 class EntityViewSet(CreateModelMixin,
@@ -190,11 +247,28 @@ class CaseViewSet(RetrieveModelMixin,
         # Implicitly 'case' the user can contribute
         case = self.get_queryset().get(pk=pk)
         devices = Device.objects.filter(case__id=case.id)
-        devicesDictionary = {}
+        devices_dictionary = {}
         serializer = DeviceSerializer()
         for device in devices:
-            devicesDictionary[str(device.id)] = serializer.to_representation(device)
-        return JsonResponse(devicesDictionary, safe=False)
+            devices_dictionary[str(device.id)] = serializer.to_representation(device)
+        return JsonResponse(devices_dictionary, safe=False)
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(vary_on_cookie)
+    @action(detail=True, methods=['GET'])
+    def internal(self, request, pk=None):
+        # Implicitly 'case' the user can contribute
+        try:
+            case = self.get_queryset().get(pk=pk)
+        except (Case.DoesNotExist, Exception):
+            return JsonResponse(
+                {"status": "failed", "message": "The case does not exist"},
+                status=HTTP_400_BAD_REQUEST
+            )
+        internal_feed_object = InternalFeed(case).content
+        internal_feed = ColanderFeed.load(internal_feed_object)
+        internal_feed.unlink_references()
+        return JsonResponse(internal_feed.model_dump(mode="json"))
 
 
 class ArtifactTypeViewSet(ListModelMixin,
@@ -215,9 +289,7 @@ class ArtifactTypeViewSet(ListModelMixin,
                 continue
             if 'types' not in at.type_hints['suggested_by_mime_types']:
                 continue
-            print(at.type_hints['suggested_by_mime_types']['types'])
             for t in at.type_hints['suggested_by_mime_types']['types']:
-                print(f'type: {tested_mime_type} against {t}')
                 if fnmatch.fnmatch(tested_mime_type, t):
                     serializer = self.get_serializer(at)
                     serialized_artifact_types.append(serializer.data)
@@ -269,27 +341,27 @@ def get_threatr_entity_type(entity):
     if entity['super_type']['short_name'] == 'OBSERVABLE':
         try:
             return Observable, ObservableType.objects.get(short_name=entity['type']['short_name'])
-        except Exception:
+        except (Exception,):
             return None, None
     if entity['super_type']['short_name'] == 'DEVICE':
         try:
             return Device, DeviceType.objects.get(short_name=entity['type']['short_name'])
-        except Exception:
+        except (Exception,):
             return None, None
     if entity['super_type']['short_name'] == 'THREAT':
         try:
             return Threat, ThreatType.objects.get(short_name=entity['type']['short_name'])
-        except Exception:
+        except (Exception,):
             return None, None
     if entity['super_type']['short_name'] == 'ACTOR':
         try:
             return Actor, ActorType.objects.get(short_name=entity['type']['short_name'])
-        except Exception:
+        except (Exception,):
             return None, None
     if entity['super_type']['short_name'] == 'EVENT':
         try:
             return Event, EventType.objects.get(short_name=entity['type']['short_name'])
-        except Exception:
+        except (Exception,):
             return None, None
     return None, None
 
@@ -355,14 +427,14 @@ def __create_immutable_relation(obj_from, obj_to, relation):
             setattr(obj_to, attr_name, obj_from)
             obj_to.save()
             return True
-        except:
+        except (Exception,):
             pass
     elif hasattr(obj_from, attr_name) and not getattr(obj_from, attr_name):
         try:
             setattr(obj_from, attr_name, obj_to)
             obj_from.save()
             return True
-        except:
+        except (Exception,):
             pass
     return False
 
@@ -411,14 +483,14 @@ def import_entity_from_threatr(request):
         event = data.get('event', None)
         relation = data.get('relation', None)
         case = Case.objects.get(pk=case_id)
-        if root :
+        if root:
             root_model, root_type = get_threatr_entity_type(root)
             root_obj, _ = update_or_create_entity(root, root_model, root_type, case, request.user)
             if event:
                 _, entity_type = get_threatr_entity_type(event)
                 try:
                     update_or_create_event(event, entity_type, root_obj, case, request.user)
-                except:
+                except (Exception,):
                     return JsonResponse({'status': -1})
             elif entity and relation:
                 entity_model, entity_type = get_threatr_entity_type(entity)

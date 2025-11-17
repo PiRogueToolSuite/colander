@@ -2,10 +2,10 @@ from django.conf import settings
 from django.urls import path
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
-from colander.core.feed.views import FeedImportViewSet
+from colander.core.feed.views import FeedViewSet
 from colander.core.rest.views import DatasetViewSet, EntityRelationViewSet, EntityViewSet, \
     import_entity_from_threatr, DroppedFileViewSet, CaseViewSet, ArtifactTypeViewSet, \
-    SubGraphViewSet
+    SubGraphViewSet, FeedTemplateViewSet, UserViewSet
 from colander.core.views.cached_files_view import CachedFileApiView
 from colander.core.views.views import entity_exists, overall_search, entity_types
 
@@ -19,7 +19,9 @@ router.register("cases", CaseViewSet, basename="cases")
 router.register("dataset", DatasetViewSet, basename="dataset")
 router.register("drops", DroppedFileViewSet, basename="drops")
 router.register("entity", EntityViewSet, basename="entity")
-router.register("feed", FeedImportViewSet, basename="feed")
+router.register("user", UserViewSet, basename="user")
+router.register("feed", FeedViewSet, basename="feed")
+router.register("template", FeedTemplateViewSet, basename="template")
 router.register("entity_relation", EntityRelationViewSet, basename="entity_relation")
 router.register("subgraph", SubGraphViewSet, basename="subgraph")
 

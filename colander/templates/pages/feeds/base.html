@@ -4,17 +4,24 @@
 {% block feeds-sidebar-items %}
   {% url 'feeds_detection_rule_out_feed_create_view' case_id=contextual_case.id as feeds_detection_rule_out_feed_create_view_url %}
   {% url 'feeds_entity_out_feed_create_view' case_id=contextual_case.id  as feeds_entity_out_feed_create_view_url %}
+  {% url 'feeds_template_create_view' case_id=contextual_case.id  as feeds_template_create_view_url %}
   <a
     class="list-group-item list-group-item-action list-group-item-light{% if feeds_entity_out_feed_create_view_url in request.path %} active {% endif %}"
     href="{{ feeds_entity_out_feed_create_view_url }}" title="Entities export feeds">
     <i class="nf nf-md-code_json"></i>
-    <span class="list-group-item-label">Export Entities</span>
+    <span class="list-group-item-label">Entities</span>
   </a>
   <a
     class="list-group-item list-group-item-action list-group-item-light{% if feeds_detection_rule_out_feed_create_view_url in request.path %} active {% endif %}"
     href="{{ feeds_detection_rule_out_feed_create_view_url }}" title="Detection rules export feeds">
     {% include "icons/out_feed_icon.html" %}
-    <span class="list-group-item-label">Export Detection rules</span>
+    <span class="list-group-item-label">Detection rules</span>
+  </a>
+  <a
+    class="list-group-item list-group-item-action list-group-item-light{% if feeds_template_create_view_url in request.path %} active {% endif %}"
+    href="{{ feeds_template_create_view_url }}" title="Templates">
+    {% include "icons/template_icon.html" %}
+    <span class="list-group-item-label">Templates for feeds</span>
   </a>
 {% endblock feeds-sidebar-items %}
 

@@ -6,8 +6,12 @@ import string
 import uuid
 from copy import deepcopy
 from hashlib import sha256
+from io import StringIO
+from tempfile import TemporaryDirectory
 
 import django
+from colander_data_converter.base.models import ColanderFeed
+from colander_data_converter.exporters.template import TemplateExporter
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa, utils
@@ -648,7 +652,6 @@ class Entity(models.Model):
         verbose_name='PAP',
         default=Appendix.TlpPap.WHITE
     )
-
     thumbnail = OverwritableFileField(
         overwrite_existing_file=True,
         upload_to=_get_entity_thumbnails_storage_dir,
@@ -1952,6 +1955,136 @@ class Event(Entity):
         return relations
 
 
+class FeedTemplate(models.Model):
+    class Meta:
+        ordering = ['name']
+
+    class Visibility:
+        CASES = "Cases"
+        TEAMS = "Teams"
+        PUBLIC = "Public"
+        VISIBILITY_CHOICES = [
+            (CASES, "Cases"),
+            (TEAMS, "Teams"),
+            (PUBLIC, "Public"),
+        ]
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    name = models.CharField(
+        max_length=512,
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this object.'),
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this object.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+    content = models.TextField()
+    in_error = models.BooleanField(
+        default=False,
+        editable=False,
+    )
+    visibility = models.CharField(
+        max_length=6,
+        choices=Visibility.VISIBILITY_CHOICES,
+        help_text=_('The visibility of the template, either limited to the case, to the teams or public'),
+        verbose_name='Visibility',
+        default=Visibility.TEAMS
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+        blank=True,
+        null=True,
+    )
+    teams = models.ManyToManyField(
+        ColanderTeam,
+        related_name='templates',
+        help_text=_('Share this template with the selected teams. Press ctrl to select/deselect teams.'),
+        blank=True,
+    )
+
+    @classmethod
+    def get_public_templates_qs(cls):
+        return (FeedTemplate.objects.
+                filter(visibility=cls.Visibility.PUBLIC)
+                .order_by('name'))
+
+    @classmethod
+    def get_teams_templates_qs(cls, teams):
+        return (FeedTemplate.objects.
+                filter(visibility=cls.Visibility.TEAMS).
+                filter(teams__in=teams).
+                order_by('name'))
+
+    @classmethod
+    def get_cases_templates_qs(cls, cases):
+        return (FeedTemplate.objects.
+                filter(visibility=cls.Visibility.CASES).
+                filter(case__in=cases).
+                order_by('name'))
+
+    def render(self, feed: dict) -> str:
+        """
+        Renders the content of an InternalFeed object using a specified template.
+
+        This method uses the TemplateExporter to process the content of the
+        feed and outputs the rendered result as a string. The TemplateExporter
+        is initialized with the content of the feed and a template that is
+        specified internally by the class. The final rendered content is
+        returned as a string.
+
+        Parameters:
+            feed: The feed data.
+
+        Returns:
+            str: The rendered string output from the provided feed content.
+
+        Raises:
+            ~jinja2.TemplateError: If there are errors in template syntax or rendering
+            ~jinja2.TemplateNotFound: If the specified template file cannot be found
+            IOError: If there are issues writing to the output stream
+        """
+        # Copy all templates in the same folder
+        with TemporaryDirectory() as tmpdir:
+            for template in self.owner.available_templates_qs:
+                with open(os.path.join(tmpdir, template.name), mode='w') as f:
+                    f.write(template.content)
+            colander_feed = ColanderFeed.load(feed)
+            exporter = TemplateExporter(
+                colander_feed,
+                tmpdir,
+                self.name
+            )
+            io = StringIO()
+            exporter.export(io)
+            io.seek(0)
+
+            return io.read()
+
+
 class PiRogueExperiment(Entity):
     class Meta:
         verbose_name = 'PiRogue experiment'
@@ -2491,7 +2624,8 @@ class EntityExportFeed(OutgoingFeed):
         ContentType,
         related_name='entity_out_feed_types',
         limit_choices_to={
-            'model__in': ['actor', 'artifact', 'datafragment', 'detectionrule', 'device', 'event', 'observable', 'threat'],
+            'model__in': ['actor', 'artifact', 'datafragment', 'detectionrule', 'device', 'event', 'observable',
+                          'threat'],
             'app_label': 'core',
         },
     )

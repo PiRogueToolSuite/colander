@@ -2632,8 +2632,7 @@ class EntityExportFeed(OutgoingFeed):
         ContentType,
         related_name='entity_out_feed_types',
         limit_choices_to={
-            'model__in': ['actor', 'artifact', 'datafragment', 'detectionrule', 'device', 'event', 'observable',
-                          'threat'],
+            'model__in': ['actor', 'artifact', 'datafragment', 'detectionrule', 'device', 'observable', 'threat'],
             'app_label': 'core',
         },
     )

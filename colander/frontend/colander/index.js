@@ -51,6 +51,7 @@ function init_websocket($vue) {
 
 
 export const ColanderApp = {
+  delimiters: ['~ColanderApp{', '}~'],
   components: {
     ArtifactUploader: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
@@ -102,6 +103,7 @@ export const ColanderApp = {
     DatePicker: defineAsyncComponent(() =>
       /* webpackChunkName: "pv-datepicker" */ import('primevue/datepicker')),
   },
+
   created() {
     this.$logger(this, 'ColanderApp');
 

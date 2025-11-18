@@ -7,13 +7,29 @@
 {% block inner-content %}
   <div class="row justify-content-center">
     <div class="col-md-12 mt-2">
-      <h3>{% trans "Live editor" %}</h3>
+      <h3>{% trans "Template editor" %}</h3>
+      <div class="fw-bold">
+        <p>
+        Colander uses <a href="https://jinja.palletsprojects.com/" target="_blank">Jinja2</a> templates to generate
+        custom output formats with automatic sandboxing for security. Refer to the
+        <a href="https://pts-project.org/colander-data-converter/data_types/colander.html"
+           target="_blank">documentation</a> for more information. When using the templates, be aware of the
+        security considerations and inherent limitations.
+        </p>
+        <p>
+          Only the template owner can edit it.
+        </p>
+      </div>
       <div
         is="vue:TemplateFeedEditor"
+        class="mt-3"
         data-case-id="{{ case_id }}"
         data-template-id="{{ template_id }}"
         data-csrf-token="{{ csrf_token }}"
         data-user-id="{{ request.user.id }}"
+        {% if read_only %}
+        data-read-only
+        {% endif %}
       ></div>
     </div>
   </div>

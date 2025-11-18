@@ -20,8 +20,7 @@
   <a
     class="list-group-item list-group-item-action list-group-item-light{% if feeds_template_create_view_url in request.path %} active {% endif %}"
     href="{{ feeds_template_create_view_url }}" title="Templates">
-    {% include "icons/template_icon.html" %}
-    <span class="list-group-item-label">Templates for feeds</span>
+    <span class="list-group-item-label fst-italic">Edit feed templates</span>
   </a>
 {% endblock feeds-sidebar-items %}
 

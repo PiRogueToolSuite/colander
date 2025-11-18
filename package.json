@@ -42,6 +42,7 @@
     "simplemde": "version 1.11.2 to have a moderate vuln. Kept for now since colander will migrate to another editor."
   },
   "dependencies": {
+    "@ddietr/codemirror-themes": "^1.5.2",
     "@fontsource/jetbrains-mono": "^5.2.5",
     "@fontsource/open-sans": "^5.2.5",
     "@popperjs/core": "^2.11.8",

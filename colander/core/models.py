@@ -1961,11 +1961,11 @@ class FeedTemplate(models.Model):
 
     class Visibility:
         CASES = "Cases"
-        TEAMS = "Teams"
+        # TEAMS = "Teams"
         PUBLIC = "Public"
         VISIBILITY_CHOICES = [
             (CASES, "Cases"),
-            (TEAMS, "Teams"),
+            # (TEAMS, "Teams"),
             (PUBLIC, "Public"),
         ]
 
@@ -2009,15 +2009,13 @@ class FeedTemplate(models.Model):
         choices=Visibility.VISIBILITY_CHOICES,
         help_text=_('The visibility of the template, either limited to the case, to the teams or public'),
         verbose_name='Visibility',
-        default=Visibility.TEAMS
+        default=Visibility.CASES
     )
     case = models.ForeignKey(
         Case,
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_related",
         related_query_name="%(app_label)s_%(class)ss",
-        blank=True,
-        null=True,
     )
     teams = models.ManyToManyField(
         ColanderTeam,
@@ -2032,12 +2030,12 @@ class FeedTemplate(models.Model):
                 filter(visibility=cls.Visibility.PUBLIC)
                 .order_by('name'))
 
-    @classmethod
-    def get_teams_templates_qs(cls, teams):
-        return (FeedTemplate.objects.
-                filter(visibility=cls.Visibility.TEAMS).
-                filter(teams__in=teams).
-                order_by('name'))
+    # @classmethod
+    # def get_teams_templates_qs(cls, teams):
+    #     return (FeedTemplate.objects.
+    #             filter(visibility=cls.Visibility.TEAMS).
+    #             filter(teams__in=teams).
+    #             order_by('name'))
 
     @classmethod
     def get_cases_templates_qs(cls, cases):
@@ -2714,6 +2712,30 @@ class DetectionRuleExportFeed(OutgoingFeed):
             tlp__in=tlp_levels,
             pap__in=pap_levels)
         return rules.all()
+
+
+class CustomExportFeed(OutgoingFeed):
+    template = models.ForeignKey(
+        FeedTemplate,
+        on_delete=models.CASCADE
+    )
+    @staticmethod
+    def get_user_custom_out_feeds(user, case=None):
+        if case:
+            return CustomExportFeed.objects.filter(case=case).all()
+        return CustomExportFeed.objects.filter(case__in=user.all_my_cases).all()
+
+    @property
+    def feed_type(self):
+        return 'custom'
+
+    def get_content(self):
+        from colander.core.feed.internal import InternalFeed  # prevents import loop
+        try:
+            rendered_content = self.template.render(InternalFeed(self.case).content)
+            return rendered_content
+        except (Exception,):
+            return "An error occurred."
 
 
 def _get_dropped_file_upload_dir(instance, filename):

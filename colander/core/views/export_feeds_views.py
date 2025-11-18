@@ -15,7 +15,8 @@ from colander.core.feed.exporters.mermaid import MermaidFeedExporter
 from colander.core.feed.exporters.misp import MISPFeedExporter
 from colander.core.feed.exporters.stix2 import Stix2FeedExporter
 from colander.core.feed.serializers import OutgoingFeedInfoSerializer
-from colander.core.models import DetectionRuleExportFeed, DetectionRuleType, EntityExportFeed, FeedTemplate
+from colander.core.models import DetectionRuleExportFeed, DetectionRuleType, EntityExportFeed, FeedTemplate, \
+    CustomExportFeed
 from colander.core.views.views import CaseContextMixin
 
 
@@ -134,7 +135,8 @@ def feed_template_live_editor_view(request, pk):
     else:
         return render(request, 'feed/template_live_editor.html', {
             "case_id": request.contextual_case.id,
-            "template_id": str(obj.id)
+            "template_id": str(obj.id),
+            "read_only": bool(request.user != obj.owner),
         })
 
 
@@ -271,6 +273,30 @@ def entity_export_feed_view(request, pk):
         cache.set(cache_key, export, 3600)
         return HttpResponse(export, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'miss'})
     return HttpResponse('', status=404, content_type='text/plain')
+
+
+def custom_export_feed_view(request, pk):
+    try:
+        feed = CustomExportFeed.objects.get(id=pk)
+    except CustomExportFeed.DoesNotExist:
+        return HttpResponse('', status=503, content_type='text/plain')
+
+    is_authenticated = request.user.is_authenticated
+    is_authenticated |= request.GET.get('secret', '') == feed.secret
+    is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
+    if not is_authenticated:
+        return HttpResponse('', status=503, content_type='text/plain')
+
+    if 'info' in request.GET:
+        return JsonResponse(OutgoingFeedInfoSerializer(feed).data, json_dumps_params={})
+
+    cache_key = f'feed_{feed.id}_{feed.secret}'
+    cached = cache.get(cache_key)
+    if cached:
+        return HttpResponse(cached, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'hit'})
+    content = feed.get_content()
+    cache.set(cache_key, content, 3600)
+    return HttpResponse(content, status=200, content_type='text/plain', headers={'X-Colander-Feed-Cache': 'miss'})
 
 
 def detection_rule_export_feed_view(request, pk):

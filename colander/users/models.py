@@ -102,9 +102,9 @@ class User(AbstractUser):
     def available_templates_qs(self) -> QuerySet:
         user_templates = FeedTemplate.objects.filter(owner=self)
         public_templates = FeedTemplate.get_public_templates_qs()
-        teams_templates = FeedTemplate.get_teams_templates_qs(self.all_my_teams)
+        # teams_templates = FeedTemplate.get_teams_templates_qs(self.all_my_teams)
         cases_templates = FeedTemplate.get_cases_templates_qs(self.all_my_cases)
-        return user_templates.union(public_templates.union(teams_templates.union(cases_templates))).order_by('name')
+        return user_templates.union(public_templates.union(cases_templates)).order_by('name')
 
     @cached_property
     def available_templates(self):

@@ -3,13 +3,11 @@ from functools import cached_property
 from django.contrib.contenttypes.models import ContentType
 
 from colander.core.feed.serializers import PolymorphicSerializer
-from colander.core.models import Case, EntityRelation
+from colander.core.models import EntityRelation
 
 
 class InternalFeed:
-    case: Case
-
-    def __init__(self, case: Case):
+    def __init__(self, case):
         self.case = case
         self.content_types = ContentType.objects.filter(
             app_label='core',

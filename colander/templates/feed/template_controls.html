@@ -1,21 +1,23 @@
 {% load i18n %}
 
-
 <div class="btn-group" role="group">
+
   <a href="{% url "feeds_template_live_editor_view" case_id=active_case.id pk=template.id %}"
      class="btn btn-sm btn-primary {{ btn_class }}">
     <i class="nf nf-fa-eye"></i>
     {% translate "Live editor" %}
   </a>
-  <a href="{% url "feeds_template_update_view" case_id=active_case.id pk=template.id %}"
-     class="btn btn-sm btn-primary {{ btn_class }}">
-    <i class="nf nf-fa-edit"></i>
-    {% translate "Edit" %}
-  </a>
-  <a href="{% url "feeds_template_delete_view" case_id=active_case.id pk=template.id %}"
-     class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}"
-     is="vue:ConfirmButton">
-    <i class="nf nf-fa-trash"></i>
-    Delete
-  </a>
+  {% if user is not template.owner %}
+    <a href="{% url "feeds_template_update_view" case_id=active_case.id pk=template.id %}"
+       class="btn btn-sm btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-edit"></i>
+      {% translate "Edit" %}
+    </a>
+    <a href="{% url "feeds_template_delete_view" case_id=active_case.id pk=template.id %}"
+       class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}"
+       is="vue:ConfirmButton">
+      <i class="nf nf-fa-trash"></i>
+      Delete
+    </a>
+  {% endif %}
 </div>

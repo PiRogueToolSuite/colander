@@ -71,7 +71,8 @@ from colander.core.views.export_feeds_views import (
     delete_entity_export_feed_view,
     detection_rule_export_feed_view,
     entity_export_feed_view, FeedTemplateCreateView, FeedTemplateUpdateView, delete_feed_template_view,
-    feed_template_live_editor_view,
+    feed_template_live_editor_view, CustomExportFeedCreateView, CustomExportFeedUpdateView,
+    delete_custom_export_feed_view, custom_export_feed_view,
 )
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.status_views import colander_status_view
@@ -186,6 +187,10 @@ case_contextualized_url_patterns = [
     path("feeds/detection_rules/<slug:pk>/edit", DetectionRuleExportFeedUpdateView.as_view(), name="feeds_detection_rule_out_feed_update_view"),
     path("feeds/detection_rules/<slug:pk>/delete", delete_detection_rule_export_feed_view, name="feeds_detection_rule_out_feed_delete_view"),
 
+    path("feeds/custom", CustomExportFeedCreateView.as_view(), name="feeds_custom_out_feed_create_view"),
+    path("feeds/custom/<slug:pk>/edit", CustomExportFeedUpdateView.as_view(), name="feeds_custom_out_feed_update_view"),
+    path("feeds/custom/<slug:pk>/delete", delete_custom_export_feed_view, name="feeds_custom_out_feed_delete_view"),
+
     path("feeds/entity_out_feed", EntityExportFeedCreateView.as_view(), name="feeds_entity_out_feed_create_view"),
     path("feeds/entity_out_feed/<slug:pk>/edit", EntityExportFeedUpdateView.as_view(), name="feeds_entity_out_feed_update_view"),
     path("feeds/entity_out_feed/<slug:pk>/delete", delete_entity_export_feed_view, name="feeds_entity_out_feed_delete_view"),
@@ -222,9 +227,10 @@ urlpatterns = [
       path("collaborate/team/<slug:pk>/edit", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
-      path("feed/detection_rules/colander_<slug:pk>.rules", detection_rule_export_feed_view, name="collaborate_detection_rule_out_feed_view-rules"),  # to please suricata-update 🤪🤦‍♀️
-      path("feed/detection_rules/<slug:pk>", detection_rule_export_feed_view, name="collaborate_detection_rule_out_feed_view"),
-      path("feed/entities/<slug:pk>", entity_export_feed_view, name="collaborate_entity_out_feed_view"),
+      path("feed/detection_rules/colander_<slug:pk>.rules", detection_rule_export_feed_view, name="detection_rule_out_feed_view-rules"),  # to please suricata-update 🤪🤦‍♀️
+      path("feed/detection_rules/<slug:pk>", detection_rule_export_feed_view, name="detection_rule_out_feed_view"),
+      path("feed/entities/<slug:pk>", entity_export_feed_view, name="entity_out_feed_view"),
+      path("feed/custom/<slug:pk>", custom_export_feed_view, name="custom_out_feed_view"),
       path("case", CaseCreateView.as_view(), name="case_base_view"),
       path("case/create", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),

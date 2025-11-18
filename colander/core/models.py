@@ -2051,6 +2051,9 @@ class FeedTemplate(models.Model):
                 filter(case__in=cases).
                 order_by('name'))
 
+    def __str__(self):
+        return self.name
+
     def render(self, feed: dict) -> str:
         """
         Renders the content of an InternalFeed object using a specified template.

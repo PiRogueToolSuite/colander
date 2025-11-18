@@ -27,7 +27,7 @@ from colander.core.models import (
     colander_models,
     color_scheme,
     icons, Observable, Actor, Artifact, DataFragment, DetectionRule, Device, Event,
-    Threat,
+    Threat, CustomExportFeed,
 )
 from colander.core.templatetags.colander_tags import model_name
 
@@ -489,6 +489,7 @@ def feeds_view(request):
     feeds = []
     feeds.extend(DetectionRuleExportFeed.get_user_detection_rule_out_feeds(request.user, request.contextual_case))
     feeds.extend(EntityExportFeed.get_user_entity_out_feeds(request.user, request.contextual_case))
+    feeds.extend(CustomExportFeed.get_user_custom_out_feeds(request.user, request.contextual_case))
     ctx = {
         'feeds': feeds
     }

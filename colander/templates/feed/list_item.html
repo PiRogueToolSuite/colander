@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n colander_tags %}
 
 
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
@@ -7,18 +7,17 @@
       <div class="col-md-10 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           <h4>
-            {% if feed.feed_type == "detection_rules" %}
-              <i class="nf {{ feed.content_type.nf_icon }} h4 text-primary"></i>
-            {% else %}
-              <i class="nf nf-md-code_json h4 text-primary"></i>
-            {% endif %}
+            <i class="nf nf-fae-file_export h4 text-primary"></i>
             {{ feed.name }}
           </h4>
           <span class="font-monospace">
             {% if feed.feed_type == "detection_rules" %}
               {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
-            {% else %}
-              {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?format=[json|misp|stix2|csv|mermaid|dot]
+            {% elif feed.feed_type == "entities" %}
+              {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
+              ?format=[json|misp|stix2|csv|mermaid|dot]
+            {% elif feed.feed_type == "custom" %}
+              {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
             {% endif %}
           </span>
         </div>
@@ -41,12 +40,20 @@
             </div>
           </div>
           <div class="col-md-9">
-            Get feed information:
-            <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
-              curl {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}&info
-            </p>
+            {% if feed.feed_type == "custom" %}
+              Get feed content:
+              <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
+                curl {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}
+              </p>
+            {% else %}
+              Get feed information:
+              <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
+                curl {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?secret={{ feed.secret }}&info
+              </p>
+            {% endif %}
             {% if feed.content_type.short_name == "YARA" %}
-              Download <a href="https://yara.readthedocs.io/en/stable/index.html" title="Yara documentation" target="_blank">Yara</a> rules:
+              Download<a href="https://yara.readthedocs.io/en/stable/index.html" title="Yara documentation"
+                         target="_blank">Yara</a> rules:
               <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
                 curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
                 -o Colander_{{ feed.name|slugify }}_{{ feed.id }}.yar \ <br>
@@ -54,11 +61,13 @@
               </p>
             {% endif %}
             {% if feed.content_type.short_name == "SURICATA" %}
-              {% url "collaborate_detection_rule_out_feed_view-rules" pk=feed.id as feed_url %}
+              {% url "detection_rule_out_feed_view-rules" pk=feed.id as feed_url %}
 
-              Download rules and use with <a href="https://suricata.io/" title="Suricata documentation" target="_blank">Suricata</a>:
+              Download rules and use with
+              <a href="https://suricata.io/" title="Suricata documentation" target="_blank">Suricata</a>:
               <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
-                suricata-update add-source --no-checksum colander/{{ feed.name|slugify }} {{ request.scheme }}://{{ request.META.HTTP_HOST }}{{ feed_url }}?secret={{ feed.secret }}<br>
+                suricata-update add-source --no-checksum
+                colander/{{ feed.name|slugify }} {{ request.scheme }}://{{ request.META.HTTP_HOST }}{{ feed_url }}?secret={{ feed.secret }}<br>
                 suricata-update<br>
                 suricatasc -c reload-rules
               </p>
@@ -70,11 +79,13 @@
                 -o entities-{{ feed.id }}.json \ <br>
                 {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}
               </p>
-              Download as a STIX2 file and use with <a href="https://docs.mvt.re" title="MVT documentation" target="_blank">mvt</a>:
+              Download as a STIX2 file and use with
+              <a href="https://docs.mvt.re" title="MVT documentation" target="_blank">mvt</a>:
               <p class="font-monospace small bg-dark text-white p-2 mt-1 mb-1 rounded-2 shadow text-wrap">
                 curl -H "X-Colander-Feed: Secret {{ feed.secret }}" \ <br>
                 -o ~/entities-{{ feed.id }}.stix2 \ <br>
-                {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?format=stix2 <br>
+                {{ request.scheme }}://{{ request.META.HTTP_HOST }}/feed/{{ feed.feed_type }}/{{ feed.id }}?format=stix2
+                <br>
                 mvt-[ios|android] check-backup --iocs ~/entities-{{ feed.id }}.stix2 [...]
               </p>
             {% endif %}
@@ -84,18 +95,21 @@
       <div class="col-md-2 text-truncate ">
         <div class="row">
           <div class="col">
-            {% include "tlp/badge_tlp.html" with tlp=feed.max_tlp c="small" %}
-            {% include "tlp/badge_pap.html" with pap=feed.max_pap c="small" %}
-            {% if feed.feed_type == "detection_rules" %}
-              <div class="small">
-                <i class="nf nf-fa-filter"></i> {{ feed.content_type.name }}
-              </div>
-            {% else %}
-              {% for t in feed.content_type.all %}
-              <div class="small">
-                <i class="nf nf-fa-filter"></i> {{ t.name }}
-              </div>
-              {% endfor %}
+            <div class="text-muted">{{ feed.feed_type|to_title }} export</div>
+            {% if feed.feed_type != "custom" %}
+              {% include "tlp/badge_tlp.html" with tlp=feed.max_tlp c="small" %}
+              {% include "tlp/badge_pap.html" with pap=feed.max_pap c="small" %}
+              {% if feed.feed_type == "detection_rules" %}
+                <div class="small">
+                  <i class="nf nf-fa-filter"></i> {{ feed.content_type.name }}
+                </div>
+              {% else %}
+                {% for t in feed.content_type.all %}
+                  <div class="small">
+                    <i class="nf nf-fa-filter"></i> {{ t.name }}
+                  </div>
+                {% endfor %}
+              {% endif %}
             {% endif %}
             <div class="small">
               <i class="nf nf-fa-lock"></i> <code>{{ feed.secret }}</code>
@@ -108,8 +122,10 @@
   <div class="card-footer bg-transparent border-secondary m-0 p-1 text-end">
     {% if feed.feed_type == "detection_rules" %}
       {% include "feed/detection_rule_out_feed_controls.html" with exclude="" btn_class="btn-sm" %}
-    {% else %}
+    {% elif feed.feed_type == "entities" %}
       {% include "feed/entity_out_feed_controls.html" with exclude="" btn_class="btn-sm" %}
+    {% elif feed.feed_type == "custom" %}
+      {% include "feed/custom_out_feed_controls.html" with exclude="" btn_class="btn-sm" %}
     {% endif %}
   </div>
 </div>

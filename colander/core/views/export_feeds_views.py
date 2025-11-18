@@ -80,6 +80,57 @@ def delete_detection_rule_export_feed_view(request, pk):
     return redirect("feeds_detection_rule_out_feed_create_view", case_id=request.contextual_case.id)
 
 
+class CustomExportFeedCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
+    model = CustomExportFeed
+    template_name = 'pages/feeds/custom_out_feeds.html'
+    contextual_success_url = 'feeds_custom_out_feed_create_view'
+    fields = [
+        'name',
+        'description',
+        'template',
+        'secret',
+    ]
+    case_required_message_action = "create detection rule outgoing feed"
+
+    def get_form(self, form_class=None):
+        form = super(CustomExportFeedCreateView, self).get_form(form_class)
+        form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        return form
+
+    def form_valid(self, form):
+        if form.is_valid() and self.active_case:
+            feed = form.save(commit=False)
+            if not hasattr(feed, 'owner'):
+                feed.owner = self.request.user
+                feed.case = self.active_case
+            feed.save()
+            form.save_m2m()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['feeds'] = CustomExportFeed.get_user_custom_out_feeds(self.request.user, self.active_case)
+        ctx['is_editing'] = False
+        return ctx
+
+
+class CustomExportFeedUpdateView(CustomExportFeedCreateView, UpdateView):
+    case_required_message_action = "update feed"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['feeds'] = CustomExportFeed.get_user_custom_out_feeds(self.request.user, self.active_case)
+        ctx['is_editing'] = True
+        return ctx
+
+
+@login_required
+def delete_custom_export_feed_view(request, pk):
+    obj = CustomExportFeed.objects.get(id=pk)
+    obj.delete()
+    return redirect("feeds_custom_out_feed_create_view", case_id=request.contextual_case.id)
+
+
 class FeedTemplateCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = FeedTemplate
     template_name = 'pages/feeds/template.html'

@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
-from django.forms.widgets import RadioSelect, Textarea
+from django.forms.widgets import RadioSelect, Textarea, HiddenInput
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.safestring import mark_safe
@@ -149,6 +149,7 @@ class FeedTemplateCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         ctx['templates'] = self.request.user.available_templates
         ctx['active_case'] = self.active_case
         ctx['is_editing'] = False
+        ctx['is_used'] = False
         return ctx
 
     def form_valid(self, form):
@@ -175,7 +176,18 @@ class FeedTemplateUpdateView(FeedTemplateCreateView, UpdateView):
         ctx['templates'] = self.request.user.available_templates
         ctx['active_case'] = self.active_case
         ctx['is_editing'] = True
+        ctx['is_used'] = len(self.get_object().used_by()) > 0
         return ctx
+
+    def get_form(self, form_class=None):
+        form = super(FeedTemplateUpdateView, self).get_form(form_class)
+        form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
+        if len(self.get_object().used_by()) > 0:
+            form.fields['visibility'].widget = HiddenInput(
+                attrs={'name': 'visibility', 'value': self.get_object().visibility}
+            )
+            form.fields['name'].widget.attrs['readonly'] = 'readonly'
+        return form
 
 
 @login_required

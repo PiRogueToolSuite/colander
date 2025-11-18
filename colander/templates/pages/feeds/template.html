@@ -19,8 +19,8 @@
             <div class="row justify-content-center">
               <div class="col-md-6">
                 {{ form.name|as_crispy_field }}
-                {{ form.description|as_crispy_field }}
                 {{ form.visibility|as_crispy_field }}
+                {{ form.description|as_crispy_field }}
                 {% if is_editing %}
                   <button class="btn btn-primary" type="submit" name="save_feed">{% translate "Update" %}</button>
                 {% else %}

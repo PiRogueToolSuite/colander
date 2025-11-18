@@ -2030,6 +2030,13 @@ class FeedTemplate(models.Model):
                 filter(visibility=cls.Visibility.PUBLIC)
                 .order_by('name'))
 
+    def used_by(self):
+        include_clause = 'include "%s"' % self.name
+        extend_clause = 'extends "%s"' % self.name
+        includes = FeedTemplate.objects.filter(content__icontains=include_clause)
+        extends = FeedTemplate.objects.filter(content__icontains=extend_clause)
+        return includes.union(extends)
+
     # @classmethod
     # def get_teams_templates_qs(cls, teams):
     #     return (FeedTemplate.objects.

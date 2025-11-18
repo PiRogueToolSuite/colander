@@ -13,11 +13,13 @@
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}
     </a>
-    <a href="{% url "feeds_template_delete_view" case_id=active_case.id pk=template.id %}"
-       class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}"
-       is="vue:ConfirmButton">
-      <i class="nf nf-fa-trash"></i>
-      Delete
-    </a>
+    {% if template.used_by|length == 0 %}
+      <a href="{% url "feeds_template_delete_view" case_id=active_case.id pk=template.id %}"
+         class="delete-entity-btn btn-sm btn btn-danger text-white {{ btn_class }}"
+         is="vue:ConfirmButton">
+        <i class="nf nf-fa-trash"></i>
+        Delete
+      </a>
+    {% endif %}
   {% endif %}
 </div>

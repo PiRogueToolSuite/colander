@@ -4,7 +4,7 @@
 <div class="card m-1 shadow-sm bg-secondary-light border-secondary">
   <div class="card-body p-2">
     <div class="row">
-      <div class="col-md-12 text-truncate">
+      <div class="col-md-8 text-truncate border-end border-secondary">
         <div class="border-bottom border-secondary">
           {% include "icons/template_icon.html" with c="h4 text-primary" %}
           {{ template.name }}
@@ -22,6 +22,28 @@
             {{ template.owner }} {% if template.owner == request.user %}(me){% endif %}
           </div>
         </div>
+      </div>
+      <div class="col-md-4 text-truncate text-small">
+        {% if template.used_by|length > 0 %}
+          <span>
+            <button
+              type="button"
+              class="btn btn-sm text-warning ps-0"
+              data-bs-toggle="popover"
+              data-bs-trigger="focus"
+              data-bs-title="Used by {{ template.used_by|length }} templates"
+              data-bs-content="
+                <ul>
+                  {% for t in template.used_by %}
+                  <li>{{ t.name }}</li>
+                  {% endfor %}
+                </ul>
+              ">
+              Used by {{ template.used_by|length }} template{{ template.used_by|length|pluralize }}
+              <i class="nf nf-fa-eye"></i>
+            </button>
+          </span>
+        {% endif %}
       </div>
     </div>
   </div>

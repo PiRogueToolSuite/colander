@@ -44,11 +44,11 @@ function handle_comment_controls() {
     $('.update-comment-btn').on('click', function () {
         const id = $(this).attr('comment-id');
         $(`.comment-content-${id}`).hide();
-        $(`.edit-comment-form-${id}`).visible();
+        $(`.edit-comment-form-${id}`).show();
     })
     $('.cancel-comment-edit-btn').on('click', function () {
         const id = $(this).attr('comment-id');
-        $(`.comment-content-${id}`).visible();
+        $(`.comment-content-${id}`).show();
         $(`.edit-comment-form-${id}`).hide();
     })
 }

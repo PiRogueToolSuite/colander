@@ -70,7 +70,7 @@ def __threaded_dropped_files_conversion(dropped_file_ids):
 def __threaded_artifact_process_hash_and_signing(upload_request_id):
     print(f"process_hash_and_signing[{upload_request_id}]: executing ...")
     upr = UploadRequest.objects.get(pk=upload_request_id)
-    artifact = Artifact.objects.get(pk=upr.target_artifact_id)
+    artifact = Artifact.objects.get(pk=upr.target_entity_id)
     print(f"process_hash_and_signing[{upload_request_id}]: upr:{upr.name} artifact:{artifact.name}")
     with open(upr.path, 'rb') as f:
         sha256, sha1, md5, size = hash_file(f)
@@ -82,7 +82,7 @@ def __threaded_artifact_process_hash_and_signing(upload_request_id):
     print(f"process_hash_and_signing[{upload_request_id}]: saving ...")
     artifact.save()
     artifact_ready_for_analysis.send(
-        sender='signaling_hub.__threaded_dropped_files_conversion',
+        sender='signaling_hub.__threaded_artifact_process_hash_and_signing',
         artifact_id=str(artifact.id)
     )
     print(f"process_hash_and_signing[{upload_request_id}]: saved.")

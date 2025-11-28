@@ -5,6 +5,7 @@ import pytz
 from django.core.files import File
 
 from colander.core.models import Artifact, UploadRequest
+from colander.core.signals import artifact_ready_for_analysis
 from colander.core.utils import hash_file
 
 logger = logging.getLogger(__name__)
@@ -15,16 +16,16 @@ def clean_upload_request_orphans():
     # To clean:
     # UploadRequest that:
     #   - is older than 1 day
-    #   - has empty or null target_artifact_id
+    #   - has empty or null target_entity_id
     #   - is in any state
     fence_date = datetime.now(tz=pytz.UTC) - timedelta(days=4)
-    UploadRequest.objects.filter(created_at__lt=fence_date, target_artifact_id__isnull=True).delete()
+    UploadRequest.objects.filter(created_at__lt=fence_date, target_entity_id__isnull=True).delete()
 
     logger.info("clean_upload_request_orphans : UploadRequest without existing Artifact id")
     uprs = UploadRequest.objects.filter(created_at__lt=fence_date)
     for upr in uprs:
         try:
-            a = Artifact.objects.get(pk=str(upr.target_artifact_id))
+            a = Artifact.objects.get(pk=str(upr.target_entity_id))
         except Artifact.DoesNotExist:
             upr.delete()
 
@@ -37,7 +38,7 @@ def compute_non_signed_artifacts(batch=1):
         logger.info(f"compute_non_signed_artifacts[{artifact.id}]: processing ...")
         upr = None
         try:
-            upr = UploadRequest.objects.get(target_artifact_id=str(artifact.id))
+            upr = UploadRequest.objects.get(target_entity_id=str(artifact.id))
             logger.info(f"compute_non_signed_artifacts[{artifact.id}]: upr:{upr.name} artifact:{artifact.name}")
             with open(upr.path, 'rb') as f:
                 sha256, sha1, md5, size = hash_file(f)

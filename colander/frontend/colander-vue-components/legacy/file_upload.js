@@ -74,8 +74,12 @@ export default class FileUpload {
       });
   }
 
+  async upload_async(fileToUpload) {
+    await this.validate(fileToUpload);
+    return await this.init_file_upload(fileToUpload);
+  }
+
   async validate(fileToUpload) {
-    console.log('file ?', fileToUpload);
     this.config.progress(FileUpload.State.VALIDATING);
     if ( fileToUpload ) {
       // pass
@@ -101,23 +105,23 @@ export default class FileUpload {
       }
     });
     const payload = {
-      'file_name': this.file_name,
-      'file_size': this.file_size,
+      'name': this.file_name,
+      'size': this.file_size,
       'chunks': this.slices,
     };
-    await $.ajax({
+    let data = await $.ajax({
       url: `${this.config.upload_uri}`,
       method: 'POST',
       data: JSON.stringify(payload),
       contentType:'application/json; charset=utf-8',
       dataType: 'json',
-      success: (data) => {
-        this.config.progress(FileUpload.State.INITIALIZED);
-        this.upload_request = data;
-        this.next_addr = data['next_addr'];
-        this.upload_file();
-      }
     });
+
+    this.config.progress(FileUpload.State.INITIALIZED);
+    this.upload_request = data;
+    this.next_addr = data['next_addr'];
+
+    return await this.upload_file();
   }
 
   async init_file_slices() {
@@ -127,7 +131,7 @@ export default class FileUpload {
     this.file_name = this.file.name;
     let addr = 0;
 
-    while(addr < this.file_size) {
+    while(addr <= this.file_size) {
       let next_chunk = addr + this.config.max_chunk_length + 1 ;
       const chunk = this.file.slice(addr, next_chunk);
       const buf = await chunk.arrayBuffer()
@@ -141,55 +145,67 @@ export default class FileUpload {
     this.config.progress(FileUpload.State.HASHED);
   }
 
-  upload_file() {
-    let end;
-    let start_addr = this.next_addr;
-    const formData = new FormData();
-    let nextChunk = start_addr + this.config.max_chunk_length + 1;
-    let currentChunk = this.file.slice(start_addr, nextChunk);
-    let uploadedChunk = start_addr + currentChunk.size;
-    if (uploadedChunk >= this.file.size) {
-      end = 1;
-    } else {
-      end = 0;
+  async upload_file() {
+    do {
+      let start_addr = this.next_addr;
+      const formData = new FormData();
+      let nextChunk = start_addr + this.config.max_chunk_length + 1;
+      let currentChunk = this.file.slice(start_addr, nextChunk);
+      let uploadedChunk = start_addr + currentChunk.size;
+
+      formData.append('file', currentChunk);
+      formData.append('addr', start_addr);
+
+      this.config.progress(FileUpload.State.UPLOADING, this.upload_request, uploadedChunk, this.file.size);
+
+      $.ajaxSetup({
+        async: true,
+        headers: {
+          "X-CSRFToken": this.config.csrf_token,
+        }
+      });
+      let res = await $.ajax({
+        url: `${this.config.upload_uri}/${this.upload_request.id}`,
+        type: 'POST',
+        dataType: 'json',
+        cache: false,
+        processData: false,
+        contentType: false,
+        data: formData,
+      });
+      this.upload_request = res;
+      this.next_addr = res['next_addr'];
+    } while(this.next_addr > 0);
+
+    // upload complete
+    this.config.progress(FileUpload.State.UPLOADED);
+    this.config.success(this.upload_request);
+    return this.upload_request;
+  }
+
+  async update_upload_request(updates) {
+
+    if (!this.upload_request) throw new Error('Please upload first');
+
+    let formData = new FormData()
+    for(let e in updates) {
+      formData.append(e, updates[e]);
     }
 
-    formData.append('file', currentChunk);
-    formData.append('addr', start_addr);
-    formData.append('eof', end);
-
-    this.config.progress(FileUpload.State.UPLOADING, this.upload_request, uploadedChunk, this.file.size);
-
-    $.ajaxSetup({
-      async: true,
-      headers: {
-        "X-CSRFToken": this.config.csrf_token,
+    let response = await fetch(
+      `${this.config.upload_uri}/${this.upload_request.id}`, {
+        method: 'POST',
+        headers: {
+          "X-CSRFToken": this.config.csrf_token,
+        },
+        body: formData,
       }
-    });
-    $.ajax({
-      url: `${this.config.upload_uri}/${this.upload_request.id}`,
-      type: 'POST',
-      dataType: 'json',
-      cache: false,
-      processData: false,
-      contentType: false,
-      data: formData,
-      error: (xhr) => {
-        this.config.progress(FileUpload.State.ERROR);
-        this.config.error(xhr);
-      },
-      success: (res) => {
-        this.upload_request = res;
-        this.next_addr = res['next_addr'];
-        if (this.next_addr > 0) {
-          // next chunk file upload
-          setTimeout( this.upload_file.bind(this), 0 );
-        } else {
-          // upload complete
-          this.config.progress(FileUpload.State.UPLOADED);
-          this.config.success(this.upload_request);
-        }
-      },
-    });
-  };
+    );
+
+    if (!response.ok) {
+      throw new Error("Unable to update upload request");
+    }
+
+    return await response.json();
+  }
 };

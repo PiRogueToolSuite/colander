@@ -3,83 +3,56 @@ import json
 import logging
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404
 
 from colander.core.models import UploadRequest
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
 
+
 logger = logging.getLogger(__name__)
+
 
 @login_required
 def initialize_upload(request):
     if request.method == 'POST':
+        payload = json.loads(request.body.decode('utf-8'))
+        serializer = UploadRequestSerializer(data=payload, context={'request': request})
         try:
-            payload = json.loads(request.body.decode('utf-8'))
-            file_size = int(payload.get('file_size'))
-            upload_request = UploadRequest(
-                owner=request.user,
-                size=file_size,
-                name=payload.get('file_name'),
-                chunks=payload.get('chunks'),
-                status=UploadRequest.Status.PROCESSING
-            )
-            upload_request.save()
-            try:
-                with open(upload_request.path, 'wb') as f:
-                    f.seek(file_size - 1)
-                    f.write(b'\0')
-            except OSError as e:
-                error_message = f"Unable to create file: {e}"
-                logger.error(error_message, exc_info=True)
-                upload_request.cleanup()
-                upload_request.status = UploadRequest.Status.FAILED
-                upload_request.save()
-                return JsonResponse({'message': error_message}, status=500)
-            return JsonResponse(UploadRequestSerializer(upload_request).data)
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save(owner=request.user)
+            return JsonResponse(UploadRequestSerializer(instance).data)
+        except ValidationError as ve:
+            return JsonResponse({'message': ve.messages}, status=500)
         except Exception as e:
-            return JsonResponse({'message': str(e)}, status=500)
+            return JsonResponse({'message': f"Unable to create upload: {e}"}, status=500)
+    else:
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
+
 
 @login_required
 def append_to_upload(request, upload_id):
     upload_request = get_object_or_404(UploadRequest, id=upload_id)
+
     if request.method == 'GET':
         response = JsonResponse(UploadRequestSerializer(upload_request).data)
         return response
+
     if request.method == 'POST':
-        file = request.FILES['file'].read()
-        addr = int(request.POST['addr'])
-        # Get chunk digest from DB
-        if str(addr) not in upload_request.chunks:
-            return JsonResponse({'message': f'Chunk {addr} not found'}, status=500)
-        chunk_hash = upload_request.chunks.get(str(addr))
-        # Compute chunk SHA256
-        sha256 = hashlib.sha256(file).hexdigest()
-        print(f'@ {addr} stored {chunk_hash} received {sha256}')
-        print(f'@ {addr} stored {chunk_hash} received {sha256}')
-        if chunk_hash == sha256:
-            upload_request.chunks.pop(str(addr))
-        else:
-            upload_request.eof = False
-            upload_request.next_addr = -2
+        payload = request.POST.copy()
+        if 'file' in request.FILES:
+            payload['file'] = request.FILES['file']
+        serializer = UploadRequestSerializer(upload_request, data=payload, partial=True, context={'request': request})
+        try:
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save()
+            return JsonResponse(UploadRequestSerializer(instance).data)
+        except ValidationError as ve:
             upload_request.status = UploadRequest.Status.FAILED
             upload_request.save()
-            upload_request.cleanup()
-            return JsonResponse({'message': f'Corrupted chunk @ {addr}'}, status=500)
-
-        with open(upload_request.path, mode='r+b') as destination:
-            destination.seek(int(addr))
-            destination.write(file)
-            destination.flush()
-
-        if len(upload_request.chunks) > 0:
-            upload_request.next_addr = list(upload_request.chunks.keys())[0]
-        else:
-            upload_request.eof = True
-            upload_request.next_addr = -1
-            upload_request.status = UploadRequest.Status.SUCCEEDED
+            return JsonResponse({'message': ve.messages}, status=500)
+        except Exception as e:
+            upload_request.status = UploadRequest.Status.FAILED
             upload_request.save()
-
-        upload_request.save()
-        response = UploadRequestSerializer(upload_request).data
-        return JsonResponse(response)
+            return JsonResponse({'message': f"Unable to update upload: {e}"}, status=500)

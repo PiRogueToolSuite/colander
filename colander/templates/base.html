@@ -185,48 +185,7 @@
   <div id="main-wrapper" class="d-flex">
     <aside id="sidebar-wrapper">
       {% block root-sidebar-menu %}
-        {% comment %}
-        <div class="p-3">
-          <div>
-            {% if request.active_case %}
-              <div>
-                <a href="{% url "case_details_view" pk=request.active_case.id %}">
-                  {% include "icons/case_icon.html" with c="text-primary" %}
-                  {{ request.active_case.name }}
-                </a>
-              </div>
-              <div class="small text-muted">
-                {% include "icons/date_icon.html" %}
-                {{ request.active_case.created_at }}
-              </div>
-            {% else %}
-              No case selected, select one.
-            {% endif %}
-          </div>
-          <div>
-            <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal"
-                    data-bs-target="#caseSwitchModal">
-              <i class="nf nf-cod-arrow_swap"></i>
-              Switch case
-            </button>
-            <!--
-            <br>
-            <button class="btn btn-primary text-white mt-2" type="button" data-bs-toggle="offcanvas"
-                    data-bs-target="#documentationOffCanvas" aria-controls="documentationOffCanvas">
-              <i class="nf nf-fa-file_text"></i>
-              Doc editor
-            </button>
-            -->
-          </div>
-        </div>
-        {% endcomment %}
         <div class="list-group list-group-flush">
-          {% comment %}
-          <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
-            <i class="nf nf-fa-home list-group-item-icon"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Home</span>
-          </a>
-          {% endcomment %}
           <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
             <i class="nf nf-fa-home list-group-item-icon"></i>
             <span class="d-none d-sm-inline list-group-item-label">Dashboard</span>
@@ -250,49 +209,6 @@
           <div class="list-group list-group-flush list-group-secondary">
             {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
           </div>
-          {% comment %}
-          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collect_quick_creation_view_url %}"
-             href="{{ collect_quick_creation_view_url }}">
-            <i class="fa fa-th" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Collect</span>
-          </a>
-          <div class="list-group list-group-flush list-group-secondary">
-            {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
-          </div>
-          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"
-             href="{{ graph_base_view_url }}">
-            <i class="fa fa-hubzilla" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Graph</span>
-          </a>
-          <div class="list-group list-group-flush list-group-secondary">
-            {% block graph-sidebar-items %}{% endblock graph-sidebar-items %}
-          </div>
-          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link document_cases_write_doc_url %}"
-             href="{{ document_cases_write_doc_url }}">
-            <i class="nf nf-fa-file_text list-group-item-icon" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Document</span>
-          </a>
-          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link investigate_base_view_url %}"
-             href="{{ investigate_base_view_url }}">
-            <i class="nf nf-fa-search list-group-item-icon" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Investigate</span>
-          </a>
-          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link cyberchef_base_url %}"
-             href="{{ cyberchef_base_url }}" target="_blank">
-            <i class="icon-cyberchef_hat" aria-hidden="true"></i>
-            <!--img height="12px" src="{% static "images/cyberchef_hat.svg" %}" class="list-group-item-icon" /-->
-            <span class="d-none d-sm-inline list-group-item-label">Cyberchef</span>
-          </a>
-        {% endcomment %}
-        {% comment "FIXEME: To clean since My Profile has moved to header" %}
-        {% if request.user.is_authenticated %}
-            {# URL provided by django-allauth/account/urls.py #}
-            <a class="list-group-item list-group-item-action list-group-item-light" href="{% url 'users:detail' request.user.username %}">
-              <i class="nf nf-fa-user list-group-item-icon" aria-hidden="true"></i>
-              <span class="d-none d-sm-inline list-group-item-label">{% translate "My Profile" %}</span>
-            </a>
-        {% endif %}
-        {% endcomment %}
         </div>
       {% endblock root-sidebar-menu %}
       <div class="fixed-bottom m-2 h4">
@@ -351,20 +267,6 @@
     </div>
   </div>
   {% endblock %}
-  {% comment %}
-  <div class="toast-container position-absolute p-3 pt-5 top-0 end-0" style="z-index: 10000;">
-    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header bg-secondary text-light">
-        <strong class="me-auto">New toast</strong>
-        <small class=" text-light">just now</small>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        Toast content sample.
-      </div>
-    </div>
-  </div>
-  {% endcomment %}
   {% block offcanvas %}{% endblock offcanvas %}
   {% block modal %}
     <div class="modal fade" id="caseSwitchModal" tabindex="-1" aria-labelledby="caseSwitchModalLabel" aria-hidden="true">
@@ -391,10 +293,5 @@
   {% block vue_javascript %}{% endblock vue_javascript %}
   <img alt='Cron Job triggering' width="1" height="1" src="{{cron_url}}" style="display: none;" />
   {# Extra scripts #}
-  {% comment %}
-  <script src="{% static 'js/externals/popper.min.js' %}"></script>
-  <script src="{% static 'js/externals/bootstrap.min.js' %}"></script>
-  <script src="{% static 'js/externals/bootstrap.bundle.min.js' %}"></script>
-  {% endcomment %}
 </body>
 </html>

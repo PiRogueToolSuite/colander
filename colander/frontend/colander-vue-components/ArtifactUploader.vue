@@ -19,7 +19,7 @@ function register_legacy_uploader(case_id, csrf_token) {
     $('#upload_btn').prop('disabled', true);
     $('#upload_btn').hide();
     $('#upload_submit_btn').prop('disabled', false);
-    $('#upload_submit_btn').visible();
+    $('#upload_submit_btn').show();
 
     $('#artifact-upload-form').submit();
   }
@@ -92,7 +92,7 @@ function register_legacy_uploader(case_id, csrf_token) {
     event.stopPropagation();
     const uploader = new FileUpload(
       upload_success, upload_progress, upload_error,
-      `/ws/${ case_id }/collect/artifact/upload`,
+      '/upload',
       csrf_token,
     );
     uploader.upload($('#id_file')[0].files[0]);

@@ -110,8 +110,6 @@ case_contextualized_url_patterns = [
     path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
     path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
-    path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
-    path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
     path("collect/artifact/<slug:pk>", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
     path("collect/artifact/<slug:pk>/edit", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
     path("collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
@@ -241,6 +239,8 @@ urlpatterns = [
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
       path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
       path("drops/", triage_view, name="dropped_files_triage_base_view"),
+      path("upload", initialize_upload, name="initialize_upload"),
+      path("upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
       path("ws/<str:case_id>/", include(case_contextualized_url_patterns)),
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),

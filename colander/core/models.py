@@ -22,7 +22,7 @@ from django.contrib.postgres.fields import HStoreField
 from django.core.validators import FileExtensionValidator
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -30,6 +30,7 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, Search
 from elasticsearch_dsl.response import Response
 from requests.structures import CaseInsensitiveDict
+
 
 logger = logging.getLogger(__name__)
 
@@ -2490,7 +2491,7 @@ class UploadRequest(models.Model):
 
     # Weak reference style
     # Will be set only at Artifact (first data) POST
-    target_artifact_id = models.CharField(
+    target_entity_id = models.CharField(
         max_length=36,
         blank=True,
         null=True
@@ -2539,8 +2540,9 @@ class UploadRequest(models.Model):
             self.status = UploadRequest.Status.SUCCEEDED
 
     def cleanup(self):
-        if os.path.exists(self.path):
-            os.remove(self.path)
+        if self.name:
+            if os.path.exists(self.path):
+                os.remove(self.path)
 
 
 @receiver(pre_delete, sender=UploadRequest, dispatch_uid='delete_upload_request_file')
@@ -2868,7 +2870,8 @@ class ArchiveExport(models.Model):
 
     done_at = models.DateTimeField(
         help_text=_('Export done date.'),
-        editable=False
+        editable=False,
+        blank=True, null=True,
     )
 
     file = models.FileField(
@@ -2877,9 +2880,17 @@ class ArchiveExport(models.Model):
         blank=True, null=True
     )
 
+    @property
+    def is_done(self):
+        return self.done_at is not None and self.file
+
+    @property
+    def is_pending(self):
+        return not self.is_done
+
 
 @receiver(pre_delete, sender=ArchiveExport, dispatch_uid='delete_export_file')
-def delete_dropped_file_stored_file(sender, instance: ArchiveExport, using, **kwargs):
+def delete_archive_export_file(sender, instance: ArchiveExport, using, **kwargs):
     instance.file.delete()
 
 
@@ -2913,12 +2924,14 @@ class NotificationMessage(models.Model):
 
     processed_at = models.DateTimeField(
         help_text=_('Notification process date.'),
-        editable=False
+        editable=False,
+        blank=True, null=True,
     )
 
     success = models.BooleanField(
         help_text=_('Notification process result success.'),
-        editable=False
+        editable=False,
+        default=False,
     )
 
     template_path = models.CharField(

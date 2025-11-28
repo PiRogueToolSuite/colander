@@ -7,7 +7,7 @@ class UploadRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = UploadRequest
         exclude = [
-            'target_artifact_id',
+            #'target_entity_id',
             'owner'
         ]
         read_only_fields = [
@@ -18,27 +18,31 @@ class UploadRequestSerializer(serializers.ModelSerializer):
         ]
 
     addr = serializers.IntegerField(required=False, allow_null=False, write_only=True)
-    file = serializers.FileField(required=False, allow_empty_file=False, write_only=True)
+    file = serializers.FileField(required=False, allow_empty_file=True, write_only=True)
 
     def create(self, validated_data):
-        print('UploadRequestSerializer create', validated_data)
         instance = super().create(validated_data)
         instance.touch()
         return instance
 
     def update(self, instance, validated_data):
-        print('UploadRequestSerializer update', instance, validated_data)
+        if 'addr' in validated_data or 'file' in validated_data:
+            if instance.eof:
+                raise Exception("UploadRequest update can't accept new chunk as it already reached EOF")
+            if 'addr' not in validated_data:
+                raise Exception("UploadRequest update need an addr address")
+            if 'file' not in validated_data:
+                raise Exception("UploadRequest update need a file")
 
-        if 'addr' not in validated_data:
-            raise Exception("UploadRequest update need an addr address")
-        if 'file' not in validated_data:
-            raise Exception("UploadRequest update need a file")
+            provided_addr = validated_data['addr']
+            provided_fchunk = validated_data['file']
 
-        provided_addr = validated_data['addr']
-        provided_fchunk = validated_data['file']
+            instance.append_chunk(provided_addr, provided_fchunk.read())
 
-        instance.append_chunk(provided_addr, provided_fchunk.read())
-        instance.save()
+            validated_data.pop('addr')
+            validated_data.pop('file')
 
-        return instance
+            instance.save()
+
+        return super().update(instance, validated_data)
 

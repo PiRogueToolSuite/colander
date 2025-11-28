@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from colander.core.models import Actor, Artifact, Device, EntityRelation, Event, Observable, Threat, \
+    DataFragment, DetectionRule, PiRogueExperiment, SubGraph, Case
 
 # noinspection PyMethodMayBeStatic
 class EntitySerializer(serializers.Serializer):

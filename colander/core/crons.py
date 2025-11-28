@@ -48,6 +48,10 @@ def compute_non_signed_artifacts(batch=1):
             artifact.md5 = md5
             logger.info(f"compute_non_signed_artifacts[{artifact.id}]: saving ...")
             artifact.save()
+            artifact_ready_for_analysis.send(
+                sender='signaling_hub.compute_non_signed_artifacts',
+                artifact_id=str(artifact.id)
+            )
             logger.info(f"compute_non_signed_artifacts[{artifact.id}]: saved.")
             logger.info(f"compute_non_signed_artifacts[{artifact.id}]: cleaning...")
             upr.delete()

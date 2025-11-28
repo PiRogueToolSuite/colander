@@ -65,7 +65,7 @@ class ThreatrClient:
         if not self.__correctly_configured:
             status['configured'] = False
             return status
-        response = requests.get(f'{self.url}/api/status/', headers=self.__get_headers())
+        response = requests.get(f'{self.url}/api/status/now/', headers=self.__get_headers())
         if response.status_code < 300:
             status.update(response.json())
         return status

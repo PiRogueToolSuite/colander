@@ -1,6 +1,7 @@
-import {createApp, defineAsyncComponent} from "vue";
+import {computed, createApp, defineAsyncComponent} from "vue";
 import "primeicons/primeicons.css";
 import PrimeVue from "primevue/config";
+import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 import ColanderTheme from './theme-preset';
 
@@ -32,17 +33,22 @@ function init_websocket($vue) {
   // let ws = new WebSocket(ws_url_case);
   let ws = new WebSocket(`${ws_protocol}//${loc.host}${loc.pathname}`);
   ws.addEventListener('message', function(evt) {
-     let data = JSON.parse(evt.data)
-     $vue.$debug('Channel message data', data);
+    let data = JSON.parse(evt.data)
+    $vue.$debug('Channel message data', data);
+    if (data.msg) {
+      $vue.$debug('New notification', data, 'on', $vue.$bus);
+      let result = $vue.$bus.emit('notification', data);
+      $vue.$debug('New notification', result);
+    }
   });
   ws.addEventListener('close', function(evt) {
-     $vue.$info('Channel disconnected', arguments);
+    $vue.$info('Channel disconnected', arguments);
   });
   ws.addEventListener('open', function(evt) {
-     $vue.$info('Channel connected', arguments);
+    $vue.$info('Channel connected', arguments);
   });
   ws.addEventListener('error', function(evt) {
-     $vue.$error('Channel error', arguments);
+    $vue.$error('Channel error', arguments);
   });
   $vue.$bus.on('msg.example.to.server', (msg) => {
     ws.send(JSON.stringify(msg));
@@ -53,12 +59,18 @@ function init_websocket($vue) {
 export const ColanderApp = {
   delimiters: ['~ColanderApp{', '}~'],
   components: {
+    /* Primevue components that 'may' appear in dom as <div is="vue:"/> */
+    Toast, // Not async as it appear on all pages
+
+    /* Colander components that 'may' appear in dom as <div is="vue:"/> */
     ArtifactUploader: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
+    CaseImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "CaseImporter" */ '../colander-vue-components/importers/CaseImporter.vue')),
     ConfirmButton: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ConfirmButton" */ '../colander-vue-components/ConfirmButton.vue')),
     CsvImporter: defineAsyncComponent(() =>
-      import(/* webpackChunkName: "Csv" */ '../colander-vue-components/importers/CsvImporter.vue')),
+      import(/* webpackChunkName: "CsvImporter" */ '../colander-vue-components/importers/CsvImporter.vue')),
     DocumentationPane: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DocumentationPane" */ '../colander-vue-components/DocumentationPane.vue')),
     DropfileTriage: defineAsyncComponent(() =>
@@ -73,6 +85,8 @@ export const ColanderApp = {
       import(/* webpackChunkName: "HStoreTable" */ '../colander-vue-components/HStoreTable.vue')),
     InvestigateView: defineAsyncComponent(() =>
       import(/* webpackChunkName: "InvestigateView" */ '../colander-vue-components/InvestigateView.vue')),
+    NotificationCenter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "NotificationCenter" */ '../colander-vue-components/NotificationCenter.vue')),
     Suggester: defineAsyncComponent(() =>
       import(/* webpackChunkName: "Suggester" */ '../colander-vue-components/Suggester.vue')),
     ThumbnailInputField: defineAsyncComponent(() =>
@@ -109,6 +123,7 @@ export const ColanderApp = {
 
     init_websocket(this);
   },
+
   mounted() {
     this.$info('Colander Wide Application', 'mounted');
     Legacy();

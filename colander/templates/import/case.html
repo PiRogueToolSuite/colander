@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load colander_tags %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12 mt-2">
+        <h2>{% translate "Import a Case archive" %}</h2>
+        <div is="vue:CaseImporter" data-csrf-token="{{ csrf_token }}"></div>
+      </div>
+    </div>
+  {% endblock %}
+{% endblock %}

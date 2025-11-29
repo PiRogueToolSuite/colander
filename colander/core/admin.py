@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from colander.core.models import (
     Actor,
+    ArchiveExport,
     Artifact,
     ArtifactType,
     BackendCredentials,
@@ -15,12 +16,14 @@ from colander.core.models import (
     EntityRelation,
     Event,
     EventType,
+    FeedTemplate,
     Observable,
     ObservableRelation,
     ObservableType,
     PiRogueExperiment,
+    SubGraph,
     Threat,
-    UploadRequest, SubGraph, FeedTemplate,
+    UploadRequest, NotificationMessage,
 )
 
 
@@ -149,3 +152,12 @@ admin.site.register(SubGraph, SubGraphAdmin)
 class FeedTemplateAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner', 'visibility', 'in_error')
 admin.site.register(FeedTemplate, FeedTemplateAdmin)
+
+
+class ArchiveExportAdmin(admin.ModelAdmin):
+    list_display = ('case', 'type', 'requested_at', 'done_at', 'file')
+admin.site.register(ArchiveExport, ArchiveExportAdmin)
+
+class NotificationMessageAdmin(admin.ModelAdmin):
+    list_display = ('recipient', 'type', 'requested_at', 'processed_at', 'success')
+admin.site.register(NotificationMessage, NotificationMessageAdmin)

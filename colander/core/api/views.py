@@ -290,5 +290,10 @@ class ApiDroppedFileViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         inst = serializer.save(owner=self.request.user)
-        CaseContextConsumer.send_message_to_user_consumers(self.request.user, { 'msg': 'New dropped file' })
+        CaseContextConsumer.send_message_to_user_consumers(
+            self.request.user, {
+                'msg': 'A new drop is available',
+                'detail': inst.filename
+            }
+        )
         return inst

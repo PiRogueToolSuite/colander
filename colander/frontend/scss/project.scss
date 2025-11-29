@@ -236,6 +236,16 @@ header .navbar-brand span {
   transition: opacity 0.25s ease-out;
 }
 
+header .nav-link {
+  min-width: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+  text-align: center;
+  &:hover {
+    background-color: rgba(0,0,0,0.1);
+  }
+}
+
 #main-wrapper {
   overflow-x: hidden;
 }
@@ -844,4 +854,30 @@ a.disabled
     border-color: var(--bs-card-border-color) !important;
   }
   --bs-card-border-color: var(--bs-gray);
+}
+
+.dropdown-menu-compact
+{
+  --bs-dropdown-item-padding-x: 0.75rem;
+  --bs-dropdown-item-padding-y: 0.25rem;
+}
+.dropdown-menu-blurry
+{
+  --bs-dropdown-bg: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+}
+
+.dropdown-item.link-primary:hover
+{
+  color: white !important;
+}
+
+.blink
+{
+  animation: 1s infinite blink-animation;
+}
+
+@keyframes blink-animation {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }

@@ -1,10 +1,18 @@
 {% load crispy_forms_tags %}
 {% load i18n %}
+{% url 'import_case_view' as import_case_view_url %}
 <div class="col-xl-8 mt-2">
   {% if is_editing %}
     <h2>{% translate "Edit this case" %}</h2>
   {% else %}
-    <h2>{% translate "New case" %}</h2>
+    <h2>
+      <span>{% translate "New case" %}</span>
+      <span>or</span>
+      <a class=""
+         href="{{ import_case_view_url }}" title="{% translate "Import a Case archive" %}">
+        <i class="fa fa-file-import"></i><span>{% translate "import an archive" %}</span>
+      </a>
+    </h2>
   {% endif %}
   <div class="card mb-2 bg-secondary-light">
     <div class="card-body">

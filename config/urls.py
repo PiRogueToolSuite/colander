@@ -9,6 +9,9 @@ from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 from rest_framework.schemas import get_schema_view
 
+from colander.core.archives.endpoints import archives_create_entity_view, \
+    archives_remap_entity_view, archives_attach_entity_view, case_archive_request_view, \
+    archive_takeout_view
 from colander.core.graph.views import case_graph, case_subgraph
 from colander.core.views.actor_views import ActorCreateView, ActorDetailsView, ActorUpdateView, delete_actor_view
 from colander.core.views.artifact_views import (
@@ -230,14 +233,20 @@ urlpatterns = [
       path("feed/detection_rules/<slug:pk>", detection_rule_export_feed_view, name="detection_rule_out_feed_view"),
       path("feed/entities/<slug:pk>", entity_export_feed_view, name="entity_out_feed_view"),
       path("feed/custom/<slug:pk>", custom_export_feed_view, name="custom_out_feed_view"),
+      path("archives/import/<str:super_type>/create", archives_create_entity_view, name="archives_create_entity_view" ),
+      path("archives/import/<str:super_type>/remap/<str:uuid>", archives_remap_entity_view, name="archives_remap_entity_view" ),
+      path("archives/import/<str:super_type>/attach/<str:uuid>", archives_attach_entity_view, name="archives_attach_entity_view" ),
       path("case", CaseCreateView.as_view(), name="case_base_view"),
+      path("case/import", login_required(TemplateView.as_view(template_name="import/case.html")), name="import_case_view"),
       path("case/create", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),
-      path("case/<slug:pk>/edit", CaseUpdateView.as_view(), name="case_update_view"),
       path("case/<slug:pk>", CaseDetailsView.as_view(), name="case_details_view"),
+      path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+      path("case/<slug:pk>/edit", CaseUpdateView.as_view(), name="case_update_view"),
       path("case/<slug:pk>/graph", case_graph, name="case_graph"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
-      path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+      path("case/<slug:pk>/archive/request", case_archive_request_view, name="case_archive_request_view"),
+      path("archive/<slug:pk>/takeout", archive_takeout_view, name="archive_takeout_view"),
       path("drops/", triage_view, name="dropped_files_triage_base_view"),
       path("upload", initialize_upload, name="initialize_upload"),
       path("upload/<str:upload_id>", append_to_upload, name="append_to_upload"),

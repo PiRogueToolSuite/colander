@@ -384,6 +384,12 @@ class Case(models.Model):
     def subcases(self):
         return Case.objects.filter(parent_case_id=self.id).all()
 
+    @cached_property
+    def archives(self):
+        return ArchiveExport.objects.filter(
+            case_id=self.id, type=Appendix.ExportType.CASE
+        ).all()
+
     def __str__(self):
         return self.name
 
@@ -2887,6 +2893,10 @@ class ArchiveExport(models.Model):
     @property
     def is_pending(self):
         return not self.is_done
+
+    @property
+    def filename(self):
+        return f"{self.case.name} - {self.requested_at.isoformat(timespec='minutes')}.zip"
 
 
 @receiver(pre_delete, sender=ArchiveExport, dispatch_uid='delete_export_file')

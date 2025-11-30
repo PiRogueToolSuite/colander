@@ -43,6 +43,7 @@ def _archive_export_end(task):
         CaseContextConsumer.send_message_to_user_consumers(archive_export.case.owner, {
             'msg': 'A new archive is available',
             'detail': archive_export.filename,
+            'url': archive_export.case.get_absolute_url(),
         })
         notify_case_archive_done(archive_export)
 

@@ -6,9 +6,10 @@ import ToastService from 'primevue/toastservice';
 import ColanderTheme from './theme-preset';
 
 import CachePlugin from './plugins/Cache';
-import i18nPlugin from './plugins/i18n';
-import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import EventBusPlugin from './plugins/EventBus';
+import i18nPlugin from './plugins/i18n';
+import LocalStorage from "./plugins/LocalStorage";
+import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import ThemeUtilsPlugin from './plugins/ThemeUtils';
 
 import HarAnalyzerPlugin from 'har-analyzer-vue';
@@ -168,6 +169,7 @@ export default () => {
   } catch(err) {}
 
   // -- Plugin registration
+  colander_application.use(LocalStorage);
   colander_application.use(LoggerPlugin, {
     logLevel: localLogLevel,
   });

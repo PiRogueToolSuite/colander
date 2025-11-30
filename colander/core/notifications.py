@@ -41,10 +41,10 @@ def notify_case_archive_done(archive_export: ArchiveExport):
         # json.dumps with DjangoJSONEncoder: serialize all django 'objects' as str
         # json.loads: get back json object to by stored in database
 
-        ctx['case'] = json.loads(json.dumps(model_to_dict(archive_export.case), cls=DjangoJSONEncoder))
+        ctx['case'] = json.loads(json.dumps(model_to_dict(archive_export.case, exclude=['teams']), cls=DjangoJSONEncoder))
         ctx['user'] = json.loads(json.dumps(model_to_dict(archive_export.case.owner, exclude=['password']), cls=DjangoJSONEncoder))
         ctx['subject'] = "A new archive is available"
-        ctx['url'] = f"{base_url}{reverse('case_details_view', kwargs={'pk': str(archive_export.case.id)})}"
+        ctx['url'] = f"{base_url}{archive_export.case.get_absolute_url()}"
 
         nm = NotificationMessage.objects.create(
             template_path='notification/case-archive-done',

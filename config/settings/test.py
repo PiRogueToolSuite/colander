@@ -29,5 +29,9 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 # ------------------------------------------------------------------------------
 TEMPLATES[0]["OPTIONS"]["debug"] = True  # type: ignore # noqa F405
 
+# DJANGO Q - Force async to be sync
+# ------------------------------------------------------------------------------
+Q_CLUSTER['sync'] = True
+
 # Your stuff...
 # ------------------------------------------------------------------------------

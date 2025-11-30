@@ -4,22 +4,7 @@
 
 {% block content %}
   <div class="row justify-content-center">
-    {% comment %}
-    {% if not request.active_case %}
-      <div class="col-md-4 mt-5">
-        <div class="card border-warning">
-          <div class="card-body">
-            <h3 class="card-title">
-              <i class="nf nf-fa-warning text-warning"></i> No case selected
-            </h3>
-            You have not selected a case yet. Create a new one or select one from the list below.
-          </div>
-        </div>
-      </div>
-      <div class="col"></div>
-    {% endif %}
-    {% endcomment %}
     {% include 'case/create_update.html' %}
   </div>
-  {%  include 'case/list.html' %}
+  {% include 'case/list.html' %}
 {% endblock content %}

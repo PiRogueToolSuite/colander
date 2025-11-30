@@ -390,6 +390,7 @@ Q_CLUSTER = {
     'retry': 36 * 60,
     'max_attempts': 5,
     'timeout': 35 * 60,
+    'catch_up': False,
     'compress': True,
     'save_limit': 25,
     'max_rss': 1024 * 1024,

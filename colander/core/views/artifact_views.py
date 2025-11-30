@@ -91,7 +91,7 @@ class ArtifactCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
             artifact.save()
             form.save_m2m()
 
-            upr.target_artifact_id = str(artifact.id)
+            upr.target_entity_id = str(artifact.id)
             upr.save()
 
             transaction.on_commit(lambda: process_hash_and_signing.send(sender=self.__class__, upload_request_id=str(upr.id)))

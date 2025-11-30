@@ -24,6 +24,25 @@ export default definePreset(Aura, {
         shadow: '0 0 0 0.25rem rgba(113,34,218,0.25)'
       },
     },
+    message: {
+      info: {
+        color: 'blue',
+      },
+    },
   },
-  components: {}
+  components: {
+    message: {
+      colorScheme: {
+        light: {
+          info: {
+            color: '{primary.color}',
+            border: {
+              color: '{primary.color}',
+            },
+            background: '{primary.50}',
+          },
+        },
+      },
+    },
+  },
 });

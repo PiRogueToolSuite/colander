@@ -17,19 +17,20 @@ def __all_styles():
             'icon-font-classname': icons[model],
             'icon-font-unicode': icons_unicodes[model],
             'icon-svg': None,
+            'short_name': name.upper(),
             'color': color_scheme[model],
             'types': {}
         }
         if hasattr(model, 'type'):
             for model_type in model.type.get_queryset().all():
                 mtid = model_type.short_name
-                if mtid in all_styles[name]['types']:
-                    print("WARNING", f"all_styles already contains {mtid} entry. Occurs for model:{model}.")
                 all_styles[name]['types'][mtid] = {
                     'name': model_type.name,
+                    'description': model_type.description,
                     'icon-font-classname': model_type.nf_icon,
                     'icon-font-unicode': None,
-                    'icon-svg': model_type.svg_icon,
+                    'icon-svg': model_type.icon,
+                    'short_name': mtid,
                     'color': None
                 }
 
@@ -40,14 +41,14 @@ def __creatable_entity_and_types():
     models = []
     types = {}
     common_fields = [
-            {'label': 'Value or name', 'name': 'name', 'required': True, 'multiple': False},
-            # {'label': 'TLP', 'name': 'tlp', 'required': False, 'multiple': False},
-            # {'label': 'PAP', 'name': 'pap', 'required': False, 'multiple': False},
-            {'label': 'Description', 'name': 'description', 'required': False, 'multiple': False},
-            {'label': 'Source URL', 'name': 'source_url', 'required': False, 'multiple': False},
-            {'label': 'Ignore', 'name': 'ignored_field', 'required': False, 'multiple': True},
+        {'label': 'Value or name', 'name': 'name', 'required': True, 'multiple': False},
+        # {'label': 'TLP', 'name': 'tlp', 'required': False, 'multiple': False},
+        # {'label': 'PAP', 'name': 'pap', 'required': False, 'multiple': False},
+        {'label': 'Description', 'name': 'description', 'required': False, 'multiple': False},
+        {'label': 'Source URL', 'name': 'source_url', 'required': False, 'multiple': False},
+        {'label': 'Ignore', 'name': 'ignored_field', 'required': False, 'multiple': True},
     ]
-    extra_fields =  [{'label': 'Extra attribute', 'name': 'attributes', 'required': False, 'multiple': True}]
+    extra_fields = [{'label': 'Extra attribute', 'name': 'attributes', 'required': False, 'multiple': True}]
     fields = {
         'ACTOR': common_fields,
         'DEVICE': common_fields + extra_fields,
@@ -59,9 +60,9 @@ def __creatable_entity_and_types():
     for name, model in colander_models.items():
         if hasattr(model, 'type') and name not in exclude:
             models.append({
-                 'name': name,
-                 'short_name': name.upper(),
-                 'fields': fields.get(name.upper(), []),
+                'name': name,
+                'short_name': name.upper(),
+                'fields': fields.get(name.upper(), []),
             })
             types[name.upper()] = [
                 {

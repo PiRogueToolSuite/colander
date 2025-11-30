@@ -1,0 +1,19 @@
+{% extends "pages/import/base.html" %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+{% load colander_tags %}
+
+{% block content %}
+  {% block inner-content %}
+    <div class="row justify-content-center">
+      <div class="col-md-12 mt-2">
+        <h4>Import MISP event</h4>
+      </div>
+      <div class="col-md-12 mt-2">
+        <div is="vue:MISPImporter" data-case-id="{{ contextual_case.id }}" data-csrf-token="{{ csrf_token }}"></div>
+      </div>
+    </div>
+  {% endblock %}
+{% endblock %}

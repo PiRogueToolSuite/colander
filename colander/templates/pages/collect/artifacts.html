@@ -13,7 +13,7 @@
       {% endif %}
       <div class="card mb-4 bg-secondary-light">
         <div class="card-body">
-          <div is="vue:ArtifactUploader" data-case-id="{{ contextual_case.id }}">
+          <div is="vue:ArtifactUploader" data-case-id="{{ contextual_case.id }}" data-csrf-token="{{ csrf_token }}">
             <form id="artifact-upload-form" method="post" enctype="multipart/form-data">
               {% csrf_token %}
               <fieldset class='disableable'>
@@ -22,11 +22,6 @@
                     {{ form.type|as_crispy_field }}
                   </div>
                   <div class="col">
-                    {% comment %}
-                    {% if not is_editing %}
-                      {{ form.file|as_crispy_field }}
-                    {% endif %}
-                    {% endcomment %}
                     {% if not is_editing %}
                       {% if form.filename %}
                         {{ form.filename|as_crispy_field }}

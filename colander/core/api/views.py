@@ -1,4 +1,5 @@
 from django.http import Http404, HttpResponse, JsonResponse
+from django.urls import reverse
 from rest_framework import mixins, status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
@@ -290,5 +291,11 @@ class ApiDroppedFileViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         inst = serializer.save(owner=self.request.user)
-        CaseContextConsumer.send_message_to_user_consumers(self.request.user, { 'msg': 'New dropped file' })
+        CaseContextConsumer.send_message_to_user_consumers(
+            self.request.user, {
+                'msg': 'A new drop is available',
+                'detail': inst.filename,
+                'url': reverse('dropped_files_triage_base_view'),
+            }
+        )
         return inst

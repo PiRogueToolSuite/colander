@@ -139,7 +139,7 @@ class ArtifactSerializer(serializers.ModelSerializer):
             artifact.pap = artifact.case.pap
         artifact.save()
 
-        upr.target_artifact_id = str(artifact.id)
+        upr.target_entity_id = str(artifact.id)
         upr.save()
 
         transaction.on_commit(

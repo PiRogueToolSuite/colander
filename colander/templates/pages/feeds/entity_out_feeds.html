@@ -26,6 +26,8 @@
                 {{ form.secret|as_crispy_field }}
                 {{ form.max_tlp|as_crispy_field }}
                 {{ form.max_pap|as_crispy_field }}
+                {{ form.misp_org_name|as_crispy_field }}
+                {{ form.misp_org_id|as_crispy_field }}
                 {% if is_editing %}
                   <button class="btn btn-primary" type="submit" name="save_feed">{% translate "Update" %}</button>
                 {% else %}

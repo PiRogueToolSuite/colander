@@ -12,12 +12,41 @@
       {% translate "Open" %}
     </a>
   {% endif %}
-  {% comment %}
-    <a href="{% url "cases_select_view" pk=case.id %}" class="btn btn-primary" title="{% translate "Select" %}">
-      <i class="nf nf-cod-arrow_swap"></i>
-      {% translate "Select" %}
-    </a>
-  {% endcomment %}
+  {% if not compact and is_accessible %}
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="nf nf-md-archive"></i>
+        {% translate 'Archives' %}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-blurry dropdown-menu-compact">
+        {% for archive in case.archives|dictsortreversed:'requested_at' %}
+          <li>
+          {% if archive.is_done %}
+            <a class="dropdown-item link-primary" href="{% url "archive_takeout_view" pk=archive.id %}">
+              <i class="nf nf-md-archive_outline"></i>
+              {{ archive.requested_at }}
+            </a>
+          {% else %}
+            <a class="dropdown-item link-secondary disabled" href="#">
+              <i class="nf nf-md-archive_clock_outline blink"></i>
+              {{ archive.requested_at }}
+            </a>
+          {% endif %}
+          </li>
+        {% endfor %}
+        {% if case.archives %}
+          <li><hr class="dropdown-divider"></li>
+        {% endif %}
+        <li>
+          <a class="dropdown-item link-primary" href="{% url 'case_archive_request_view' pk=case.id %}"
+               title="{% translate 'Request a new archive export' %}">
+            <i class="nf nf-md-archive_plus_outline"></i>
+            {% translate "Generate a new one" %}
+          </a>
+        </li>
+      </ul>
+    </div>
+  {% endif %}
   {% if not compact and request.user == case.owner and is_accessible %}
     <a href="{% url "case_update_view" pk=case.id %}" class="btn btn-primary" title="{% translate "Edit" %}">
       <i class="nf nf-fa-edit"></i>

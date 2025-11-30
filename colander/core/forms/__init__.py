@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from colander.core.models import Case, Comment, DetectionRule
+from colander.core.models import Case, Comment, DetectionRule, FeedTemplate
 from colander.core.threatr import ThreatrClient
 
 
@@ -66,10 +66,6 @@ class CommentForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'rows': 2, 'cols': 20}),
             'commented_object': forms.TextInput()
         },
-
-    def set_user(self, connected_user):
-        if connected_user:
-            self.instance.owner = connected_user
 
 
 class InvestigateSearchForm(forms.Form):

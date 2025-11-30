@@ -4,9 +4,14 @@ import os
 import random
 import string
 import uuid
+from copy import deepcopy
 from hashlib import sha256
+from io import StringIO
+from tempfile import TemporaryDirectory
 
 import django
+from colander_data_converter.base.models import ColanderFeed
+from colander_data_converter.exporters.template import TemplateExporter
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa, utils
@@ -17,14 +22,15 @@ from django.contrib.postgres.fields import HStoreField
 from django.core.validators import FileExtensionValidator
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, analyzer, Search
+from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, Search
 from elasticsearch_dsl.response import Response
 from requests.structures import CaseInsensitiveDict
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +43,7 @@ class BusinessIntegrityError(IntegrityError):
 class OverwritableFileFieldAttrClass(models.fields.files.FieldFile):
     """attr_class used by colander.core.models.OverwritableFileField.
     This attr_class performs the actual task of supporting overwrites on existing files."""
+
     def __init__(self, instance, field, name):
         super().__init__(instance, field, name)
 
@@ -84,6 +91,22 @@ class Appendix:
             (AMBER, 'AMBER'),
             (GREEN, 'GREEN'),
             (WHITE, 'WHITE'),
+        ]
+
+    class ExportType:
+        UNSPECIFIED = 'UNSPECIFIED'
+        CASE = 'CASE'
+        EXPORT_TYPE_CHOICES = [
+            (UNSPECIFIED, 'UNSPECIFIED'),
+            (CASE, 'CASE'),
+        ]
+
+    class NotificationType:
+        INTERNAL = 'INTERNAL'
+        MAIL = 'MAIL'
+        NOTIFICATION_TYPE_CHOICES = [
+            (INTERNAL, 'INTERNAL'),
+            (MAIL, 'MAIL'),
         ]
 
 
@@ -183,7 +206,7 @@ class CommonModelType(models.Model):
         blank=True,
         null=True
     )
-    svg_icon = models.TextField(
+    icon = models.TextField(
         blank=True,
         null=True
     )
@@ -192,23 +215,11 @@ class CommonModelType(models.Model):
         blank=True,
         null=True
     )
-    stix2_type = models.CharField(
-        max_length=256,
+    value_example = models.TextField(
         blank=True,
         null=True
     )
-    stix2_value_field_name = models.CharField(
-        max_length=256,
-        blank=True,
-        null=True
-    )
-    stix2_pattern = models.CharField(
-        max_length=256,
-        blank=True,
-        null=True
-    )
-    stix2_pattern_type = models.CharField(
-        max_length=256,
+    regex = models.TextField(
         blank=True,
         null=True
     )
@@ -223,16 +234,14 @@ class CommonModelType(models.Model):
         null=True
     )
 
-    @staticmethod
-    def get_by_short_name(short_name) -> 'ArtifactType':
-        return ArtifactType.objects.get(short_name__iexact=short_name)
-
     def __str__(self):
         return self.name
 
 
 class ArtifactType(CommonModelType):
-    pass
+    @staticmethod
+    def get_by_short_name(short_name) -> 'ArtifactType':
+        return ArtifactType.objects.get(short_name__iexact=short_name)
 
 
 class ObservableType(CommonModelType):
@@ -321,7 +330,7 @@ class Case(models.Model):
         max_length=16,
         editable=True,
         default=_random_id)
-    verify_key = models.TextField(
+    public_key = models.TextField(
         editable=True,
         default=''
     )
@@ -375,6 +384,12 @@ class Case(models.Model):
     def subcases(self):
         return Case.objects.filter(parent_case_id=self.id).all()
 
+    @cached_property
+    def archives(self):
+        return ArchiveExport.objects.filter(
+            case_id=self.id, type=Appendix.ExportType.CASE
+        ).all()
+
     def __str__(self):
         return self.name
 
@@ -395,7 +410,7 @@ class Case(models.Model):
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             )
             self.signing_key = private_pem.decode('utf-8')
-            self.verify_key = public_pem.decode('utf-8')
+            self.public_key = public_pem.decode('utf-8')
             if save:
                 self.save()
 
@@ -494,7 +509,6 @@ def _get_subgraph_thumbnails_storage_dir(instance, filename):
 
 
 class SubGraph(models.Model):
-
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -563,7 +577,7 @@ class SubGraph(models.Model):
 
         if user.preferences:
             if 'pinned_entities' in user.preferences:
-                pinned_entities_ids =  user.preferences['pinned_entities'].keys()
+                pinned_entities_ids = user.preferences['pinned_entities'].keys()
 
         return SubGraph.objects.filter(owner=user, case=case).filter(id__in=pinned_entities_ids)
 
@@ -588,9 +602,7 @@ def _get_entity_thumbnails_storage_dir(instance, filename):
 
 
 class Entity(models.Model):
-
     class Meta:
-        abstract: True
         ordering = ['-updated_at']
 
     id = models.UUIDField(
@@ -647,7 +659,6 @@ class Entity(models.Model):
         verbose_name='PAP',
         default=Appendix.TlpPap.WHITE
     )
-
     thumbnail = OverwritableFileField(
         overwrite_existing_file=True,
         upload_to=_get_entity_thumbnails_storage_dir,
@@ -669,8 +680,8 @@ class Entity(models.Model):
 
     def get_out_relations(self):
         relations = []
-        relations += EntityRelation.objects\
-            .filter(obj_from_id=self.id)\
+        relations += EntityRelation.objects \
+            .filter(obj_from_id=self.id) \
             .exclude(obj_from_id=F('obj_to_id')).all()
         relations += self.out_immutable_relations
         return relations
@@ -1026,7 +1037,7 @@ class Artifact(Entity):
             return False
 
         public_key = serialization.load_pem_public_key(
-            self.case.verify_key.encode('utf-8'),
+            self.case.public_key.encode('utf-8'),
         )
         chosen_hash = hashes.SHA256()
         try:
@@ -1804,6 +1815,22 @@ class Event(Entity):
         null=True,
         blank=True,
     )
+    attributed_to = models.ForeignKey(
+        Actor,
+        help_text=_('Select the actor attributed to this event.'),
+        on_delete=models.SET_NULL,
+        related_name='attributed_events',
+        null=True,
+        blank=True,
+    )
+    target = models.ForeignKey(
+        Actor,
+        help_text=_('Select the actor targeted during this event.'),
+        on_delete=models.SET_NULL,
+        related_name='targeted_events',
+        null=True,
+        blank=True,
+    )
     attributes = HStoreField(
         help_text=_('Add custom attributes to this event.'),
         verbose_name='Custom attributes',
@@ -1907,6 +1934,22 @@ class Event(Entity):
                     target=self.detected_by
                 )
             )
+        if self.attributed_to:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="attributed to",
+                    source=self,
+                    target=self.attributed_to
+                )
+            )
+        if self.target:
+            relations.append(
+                EntityRelation.immutable_instance(
+                    name="target",
+                    source=self,
+                    target=self.target
+                )
+            )
         if self.involved_observables:
             for io in self.involved_observables.all():
                 relations.append(
@@ -1917,6 +1960,144 @@ class Event(Entity):
                     )
                 )
         return relations
+
+
+class FeedTemplate(models.Model):
+    class Meta:
+        ordering = ['name']
+
+    class Visibility:
+        CASES = "Cases"
+        # TEAMS = "Teams"
+        PUBLIC = "Public"
+        VISIBILITY_CHOICES = [
+            (CASES, "Cases"),
+            # (TEAMS, "Teams"),
+            (PUBLIC, "Public"),
+        ]
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    name = models.CharField(
+        max_length=512,
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this object.'),
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        help_text=_('Who owns this object.'),
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Creation date of this object.'),
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        help_text=_('Latest modification of this object.'),
+        auto_now=True
+    )
+    content = models.TextField()
+    in_error = models.BooleanField(
+        default=False,
+        editable=False,
+    )
+    visibility = models.CharField(
+        max_length=6,
+        choices=Visibility.VISIBILITY_CHOICES,
+        help_text=_('The visibility of the template, either limited to the case, to the teams or public'),
+        verbose_name='Visibility',
+        default=Visibility.CASES
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    teams = models.ManyToManyField(
+        ColanderTeam,
+        related_name='templates',
+        help_text=_('Share this template with the selected teams. Press ctrl to select/deselect teams.'),
+        blank=True,
+    )
+
+    @classmethod
+    def get_public_templates_qs(cls):
+        return (FeedTemplate.objects.
+                filter(visibility=cls.Visibility.PUBLIC)
+                .order_by('name'))
+
+    def used_by(self):
+        include_clause = 'include "%s"' % self.name
+        extend_clause = 'extends "%s"' % self.name
+        includes = FeedTemplate.objects.filter(content__icontains=include_clause)
+        extends = FeedTemplate.objects.filter(content__icontains=extend_clause)
+        return includes.union(extends)
+
+    # @classmethod
+    # def get_teams_templates_qs(cls, teams):
+    #     return (FeedTemplate.objects.
+    #             filter(visibility=cls.Visibility.TEAMS).
+    #             filter(teams__in=teams).
+    #             order_by('name'))
+
+    @classmethod
+    def get_cases_templates_qs(cls, cases):
+        return (FeedTemplate.objects.
+                filter(visibility=cls.Visibility.CASES).
+                filter(case__in=cases).
+                order_by('name'))
+
+    def __str__(self):
+        return self.name
+
+    def render(self, feed: dict) -> str:
+        """
+        Renders the content of an InternalFeed object using a specified template.
+
+        This method uses the TemplateExporter to process the content of the
+        feed and outputs the rendered result as a string. The TemplateExporter
+        is initialized with the content of the feed and a template that is
+        specified internally by the class. The final rendered content is
+        returned as a string.
+
+        Parameters:
+            feed: The feed data.
+
+        Returns:
+            str: The rendered string output from the provided feed content.
+
+        Raises:
+            ~jinja2.TemplateError: If there are errors in template syntax or rendering
+            ~jinja2.TemplateNotFound: If the specified template file cannot be found
+            IOError: If there are issues writing to the output stream
+        """
+        # Copy all templates in the same folder
+        with TemporaryDirectory() as tmpdir:
+            for template in self.owner.available_templates_qs:
+                with open(os.path.join(tmpdir, template.name), mode='w') as f:
+                    f.write(template.content)
+            colander_feed = ColanderFeed.load(feed)
+            exporter = TemplateExporter(
+                colander_feed,
+                tmpdir,
+                self.name
+            )
+            io = StringIO()
+            exporter.export(io)
+            io.seek(0)
+
+            return io.read()
 
 
 class PiRogueExperiment(Entity):
@@ -2316,7 +2497,7 @@ class UploadRequest(models.Model):
 
     # Weak reference style
     # Will be set only at Artifact (first data) POST
-    target_artifact_id = models.CharField(
+    target_entity_id = models.CharField(
         max_length=36,
         blank=True,
         null=True
@@ -2333,7 +2514,7 @@ class UploadRequest(models.Model):
             raise Exception("Can't touch file without name")
         if self.size == 0:
             open(self.path, 'wb').close()
-            #raise Exception("Can't touch zero sized file")
+            # raise Exception("Can't touch zero sized file")
         else:
             with open(self.path, 'wb') as f:
                 f.seek(self.size - 1)
@@ -2365,8 +2546,9 @@ class UploadRequest(models.Model):
             self.status = UploadRequest.Status.SUCCEEDED
 
     def cleanup(self):
-        if os.path.exists(self.path):
-            os.remove(self.path)
+        if self.name:
+            if os.path.exists(self.path):
+                os.remove(self.path)
 
 
 @receiver(pre_delete, sender=UploadRequest, dispatch_uid='delete_upload_request_file')
@@ -2375,9 +2557,7 @@ def delete_upload_request_stored_files(sender, instance: UploadRequest, using, *
 
 
 class OutgoingFeed(models.Model):
-
     class Meta:
-        abstract: True
         ordering = ['name']
 
     id = models.UUIDField(
@@ -2437,12 +2617,30 @@ class OutgoingFeed(models.Model):
     )
 
 
-class EntityOutgoingFeed(OutgoingFeed):
+class EntityExportFeed(OutgoingFeed):
+    misp_org_name = models.CharField(
+        max_length=512,
+        help_text=_(
+            'Name of your organization as set in MISP. The Orgc name of your events will be set accordingly. '
+            'Must be set to make your feed available in MISP format.'),
+        verbose_name='MISP: name of your organization',
+        blank=True,
+        null=True
+    )
+    misp_org_id = models.CharField(
+        max_length=512,
+        help_text=_(
+            'UUID of your organization as set in MISP. The Orgc UUID of your events will be set accordingly. '
+            'Must be set to make your feed available in MISP format.'),
+        verbose_name='MISP: UUID of your organization',
+        blank=True,
+        null=True
+    )
     content_type = models.ManyToManyField(
         ContentType,
         related_name='entity_out_feed_types',
         limit_choices_to={
-            'model__in': ['actor', 'artifact', 'device', 'observable', 'threat'],
+            'model__in': ['actor', 'artifact', 'datafragment', 'detectionrule', 'device', 'observable', 'threat'],
             'app_label': 'core',
         },
     )
@@ -2452,31 +2650,61 @@ class EntityOutgoingFeed(OutgoingFeed):
         return 'entities'
 
     def get_entities(self):
-        tlp_levels = list_accepted_levels(self.max_tlp)
-        pap_levels = list_accepted_levels(self.max_pap)
         entities = []
         for entity_type in self.content_type.all():
             if hasattr(entity_type.model_class(), 'tlp'):
                 entities.extend(entity_type.model_class().objects.filter(
                     case=self.case,
-                    tlp__in=tlp_levels,
-                    pap__in=pap_levels).all())
+                    tlp__in=self.tlp_levels,
+                    pap__in=self.pap_levels).all())
             else:
                 entities.extend(entity_type.model_class().objects.filter(case=self.case).all())
         return entities
+
+    def get_relations(self):
+        return [e for e in EntityRelation.objects.filter(
+            obj_from_id__in=self.entity_ids,
+            obj_to_id__in=self.entity_ids,
+            case=self.case,
+        ).iterator()]
+
+    @cached_property
+    def tlp_levels(self):
+        return list_accepted_levels(self.max_tlp)
+
+    @cached_property
+    def pap_levels(self):
+        return list_accepted_levels(self.max_pap)
+
+    @cached_property
+    def cases(self):
+        dummy_case = deepcopy(self.case)
+        if self.case.tlp not in self.tlp_levels or self.case.pap not in self.pap_levels:
+            dummy_case.name = 'REDACTED for confidentiality reasons.'
+            dummy_case.description = 'REDACTED for confidentiality reasons.'
+            dummy_case.documentation = 'REDACTED for confidentiality reasons.'
+        return [dummy_case]
 
     @cached_property
     def entities(self):
         return self.get_entities()
 
+    @cached_property
+    def relations(self):
+        return self.get_relations()
+
+    @cached_property
+    def entity_ids(self):
+        return [e.id for e in self.get_entities()]
+
     @staticmethod
     def get_user_entity_out_feeds(user, case=None):
         if case:
-            return EntityOutgoingFeed.objects.filter(case=case).all()
-        return EntityOutgoingFeed.objects.filter(case__in=user.all_my_cases).all()
+            return EntityExportFeed.objects.filter(case=case).all()
+        return EntityExportFeed.objects.filter(case__in=user.all_my_cases).all()
 
 
-class DetectionRuleOutgoingFeed(OutgoingFeed):
+class DetectionRuleExportFeed(OutgoingFeed):
     content_type = models.ForeignKey(
         DetectionRuleType,
         on_delete=models.CASCADE
@@ -2485,8 +2713,8 @@ class DetectionRuleOutgoingFeed(OutgoingFeed):
     @staticmethod
     def get_user_detection_rule_out_feeds(user, case=None):
         if case:
-            return DetectionRuleOutgoingFeed.objects.filter(case=case).all()
-        return DetectionRuleOutgoingFeed.objects.filter(case__in=user.all_my_cases).all()
+            return DetectionRuleExportFeed.objects.filter(case=case).all()
+        return DetectionRuleExportFeed.objects.filter(case__in=user.all_my_cases).all()
 
     @property
     def feed_type(self):
@@ -2503,13 +2731,36 @@ class DetectionRuleOutgoingFeed(OutgoingFeed):
         return rules.all()
 
 
+class CustomExportFeed(OutgoingFeed):
+    template = models.ForeignKey(
+        FeedTemplate,
+        on_delete=models.CASCADE
+    )
+    @staticmethod
+    def get_user_custom_out_feeds(user, case=None):
+        if case:
+            return CustomExportFeed.objects.filter(case=case).all()
+        return CustomExportFeed.objects.filter(case__in=user.all_my_cases).all()
+
+    @property
+    def feed_type(self):
+        return 'custom'
+
+    def get_content(self):
+        from colander.core.feed.internal import InternalFeed  # prevents import loop
+        try:
+            rendered_content = self.template.render(InternalFeed(self.case).content)
+            return rendered_content
+        except (Exception,):
+            return "An error occurred."
+
+
 def _get_dropped_file_upload_dir(instance, filename):
     user_id = instance.owner.id
     return f'user/{user_id}/dropbox/{instance.id}'
 
 
 class DroppedFile(models.Model):
-
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -2587,6 +2838,123 @@ class DroppedFile(models.Model):
 @receiver(pre_delete, sender=DroppedFile, dispatch_uid='delete_dropped_file')
 def delete_dropped_file_stored_file(sender, instance: DroppedFile, using, **kwargs):
     instance.file.delete()
+
+
+def _get_export_file_dir(instance, filename):
+    case_id = instance.case.id
+    return f'cases/{case_id}/exports/{instance.id}'
+
+
+class ArchiveExport(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+
+    type = models.CharField(
+        max_length=16,
+        choices=Appendix.ExportType.EXPORT_TYPE_CHOICES,
+        help_text=_('Export type.'),
+        verbose_name='Export type',
+        default=Appendix.ExportType.UNSPECIFIED,
+    )
+
+    requested_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Export request date.'),
+        editable=False
+    )
+
+    done_at = models.DateTimeField(
+        help_text=_('Export done date.'),
+        editable=False,
+        blank=True, null=True,
+    )
+
+    file = models.FileField(
+        upload_to=_get_export_file_dir,
+        max_length=512,
+        blank=True, null=True
+    )
+
+    @property
+    def is_done(self):
+        return self.done_at is not None and self.file
+
+    @property
+    def is_pending(self):
+        return not self.is_done
+
+    @property
+    def filename(self):
+        return f"{self.case.name} - {self.requested_at.isoformat(timespec='minutes')}.zip"
+
+
+@receiver(pre_delete, sender=ArchiveExport, dispatch_uid='delete_export_file')
+def delete_archive_export_file(sender, instance: ArchiveExport, using, **kwargs):
+    instance.file.delete()
+
+
+class NotificationMessage(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+    )
+
+    type = models.CharField(
+        max_length=16,
+        choices=Appendix.NotificationType.NOTIFICATION_TYPE_CHOICES,
+        help_text=_('Notification type.'),
+        verbose_name='Notification type',
+        default=Appendix.NotificationType.INTERNAL,
+    )
+
+    requested_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Notification request date.'),
+        editable=False
+    )
+
+    processed_at = models.DateTimeField(
+        help_text=_('Notification process date.'),
+        editable=False,
+        blank=True, null=True,
+    )
+
+    success = models.BooleanField(
+        help_text=_('Notification process result success.'),
+        editable=False,
+        default=False,
+    )
+
+    template_path = models.CharField(
+        max_length=512,
+        verbose_name=_('template_path'),
+        help_text=_('Internal template path used to generate the notification content with the given context.'),
+        default='',
+    )
+
+    context = JSONField(
+        verbose_name='Template context used to generate the notification content.',
+        default=dict,
+    )
 
 
 colander_models = CaseInsensitiveDict({

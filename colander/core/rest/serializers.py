@@ -1,14 +1,28 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from colander.core.models import Entity, EntityRelation, colander_models, SubGraph
+from colander.core.models import Entity, EntityRelation, colander_models, SubGraph, FeedTemplate
 from colander.core.rest.commons import CommonTypeSerializer, KeyedListSerializer
+from colander.users.models import User
 
 
 class EntityRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntityRelation
         fields = ['id', 'name', 'obj_from', 'obj_to']
+
+
+class FeedTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedTemplate
+        fields = [
+            'id',
+            'name',
+            'description',
+            'content',
+            'visibility',
+            'in_error'
+        ]
 
 
 class DetailedEntitySerializer(serializers.ModelSerializer):
@@ -75,3 +89,9 @@ class SubGraphSerializer(serializers.ModelSerializer):
         model = SubGraph
         fields = ['id', 'case', 'name', 'description', 'absolute_url', 'overrides']
 
+
+class UserSerializer(serializers.ModelSerializer):
+    available_templates = FeedTemplateSerializer(many=True, read_only=True)
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'available_templates']

@@ -7,7 +7,7 @@ from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.forms import CommentForm
 from colander.core.forms.widgets import ThumbnailFileInput
-from colander.core.models import Artifact, DetectionRule, Device, Event, EventType, Observable
+from colander.core.models import Artifact, DetectionRule, Device, Event, EventType, Observable, Actor
 from colander.core.views.views import CaseContextMixin
 
 
@@ -15,7 +15,6 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = Event
     template_name = 'pages/collect/events.html'
     contextual_success_url = 'collect_event_create_view'
-    #success_url = reverse_lazy('collect_event_create_view')
     fields = [
         'type',
         'name',
@@ -27,6 +26,8 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         'observed_on',
         'attributes',
         'detected_by',
+        'attributed_to',
+        'target',
         'involved_observables',
         'source_url',
         'tlp',
@@ -36,9 +37,9 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     case_required_message_action = "create events"
 
     def get_form(self, form_class=None, edit=False):
-        #active_case = get_active_case(self.request)
         observable_qset = Observable.get_user_observables(self.request.user, self.active_case)
         artifact_qset = Artifact.get_user_artifacts(self.request.user, self.active_case)
+        actor_qset = Actor.get_user_actors(self.request.user, self.active_case)
         devices_qset = Device.get_user_devices(self.request.user, self.active_case)
         rules_qset = DetectionRule.get_user_detection_rules(self.request.user, self.active_case)
         form = super(EventCreateView, self).get_form(form_class)
@@ -52,6 +53,8 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         form.fields['extracted_from'].queryset = artifact_qset
         form.fields['observed_on'].queryset = devices_qset
         form.fields['detected_by'].queryset = rules_qset
+        form.fields['attributed_to'].queryset = actor_qset
+        form.fields['target'].queryset = actor_qset
         form.fields['type'].widget = RadioSelect(choices=choices)
         form.fields['description'].widget = Textarea(attrs={'rows': 2, 'cols': 20})
         #form.fields['first_seen'].widget = DateTimePickerInput(options={
@@ -74,7 +77,6 @@ class EventCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
         return form
 
     def form_valid(self, form):
-        #active_case = get_active_case(self.request)
         if form.is_valid() and self.active_case:
             event = form.save(commit=False)
             if not hasattr(event, 'owner'):

@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from colander.core.forms import InvestigateSearchForm
-from colander.core.models import ObservableType, colander_models, color_scheme
+from colander.core.models import colander_models, color_scheme
 from colander.core.threatr import ThreatrClient
 
 THREAT_BACKEND_IDENTIFIER = 'threatr'
@@ -65,12 +65,12 @@ def investigate_search_view(request):
             threatr_results, wait = threatr_client.send_request(request_data)
             request_data.pop('force', False)
             if not wait and type(threatr_results) is dict:
-                ordering = {'global':{
+                ordering = {'global': {
                     'total': len(threatr_results['entities']),
                     'events': len(threatr_results['events']),
                     'entities': 0,
                     'external_doc': 0,
-                    },
+                },
                     # ToDo: get rid of the hardcoded list of types
                     'importable_types': ['OBSERVABLE', 'DEVICE', 'THREAT', 'ACTOR'],
                     'types': {
@@ -108,7 +108,7 @@ def investigate_search_view(request):
                         ordering['types'][entity_super_type_short_name] = {
                             'super_type': entity_super_type,
                             'entities': [],
-                            'count': 0 }
+                            'count': 0}
                     ordering['types'][entity_super_type_short_name]['count'] += 1
                     ordering['types'][entity_super_type_short_name]['entities'].append(entity)
                     # Apply Colander colors

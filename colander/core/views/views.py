@@ -21,13 +21,13 @@ from colander.core import datasets
 from colander.core.forms import DocumentationForm
 from colander.core.models import (
     Case,
-    DetectionRuleOutgoingFeed,
+    DetectionRuleExportFeed,
     Entity,
-    EntityOutgoingFeed,
+    EntityExportFeed,
     colander_models,
     color_scheme,
     icons, Observable, Actor, Artifact, DataFragment, DetectionRule, Device, Event,
-    Threat,
+    Threat, CustomExportFeed,
 )
 from colander.core.templatetags.colander_tags import model_name
 
@@ -348,7 +348,7 @@ class CaseDetailsView(LoginRequiredMixin, DetailView):
 @login_required
 def download_case_public_key(request, pk):
     case = Case.objects.get(id=pk)
-    response = HttpResponse(case.verify_key, content_type='application/octet-stream')
+    response = HttpResponse(case.public_key, content_type='application/octet-stream')
     response['Content-Disposition'] = f'attachment; filename={case.name}.pem'
     return response
 
@@ -487,8 +487,9 @@ def case_workspace_view(request):
 @login_required
 def feeds_view(request):
     feeds = []
-    feeds.extend( DetectionRuleOutgoingFeed.get_user_detection_rule_out_feeds(request.user, request.contextual_case) )
-    feeds.extend( EntityOutgoingFeed.get_user_entity_out_feeds(request.user, request.contextual_case) )
+    feeds.extend(DetectionRuleExportFeed.get_user_detection_rule_out_feeds(request.user, request.contextual_case))
+    feeds.extend(EntityExportFeed.get_user_entity_out_feeds(request.user, request.contextual_case))
+    feeds.extend(CustomExportFeed.get_user_custom_out_feeds(request.user, request.contextual_case))
     ctx = {
         'feeds': feeds
     }

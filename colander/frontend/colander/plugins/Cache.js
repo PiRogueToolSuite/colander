@@ -5,7 +5,7 @@ class Cache {
   }
   async retrieve(domain) {
     if (domain in this.#dictionary) {
-      return this.#dictionary;
+      return this.#dictionary[domain];
     }
     if (!(domain in this.options.dataSources))
       throw new Error(`retrieve error: ${domain} in not defined in cache dataSources`);

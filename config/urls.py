@@ -2,12 +2,16 @@ from allauth_2fa.views import TwoFactorAuthenticate, TwoFactorBackupTokens, TwoF
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from django.views.i18n import JavaScriptCatalog
 from rest_framework.schemas import get_schema_view
 
+from colander.core.archives.endpoints import archives_create_entity_view, \
+    archives_remap_entity_view, archives_attach_entity_view, case_archive_request_view, \
+    archive_takeout_view
 from colander.core.graph.views import case_graph, case_subgraph
 from colander.core.views.actor_views import ActorCreateView, ActorDetailsView, ActorUpdateView, delete_actor_view
 from colander.core.views.artifact_views import (
@@ -62,15 +66,17 @@ from colander.core.views.obversable_views import (
     capture_observable_view,
     delete_observable_view,
 )
-from colander.core.views.outgoing_feeds_views import (
-    DetectionRuleOutgoingFeedCreateView,
-    DetectionRuleOutgoingFeedUpdateView,
-    EntityOutgoingFeedCreateView,
-    EntityOutgoingFeedUpdateView,
-    delete_detection_rule_out_feed_view,
-    delete_entity_out_feed_view,
-    outgoing_detection_rules_feed_view,
-    outgoing_entities_feed_view,
+from colander.core.views.export_feeds_views import (
+    DetectionRuleExportFeedCreateView,
+    DetectionRuleExportFeedUpdateView,
+    EntityExportFeedCreateView,
+    EntityExportFeedUpdateView,
+    delete_detection_rule_export_feed_view,
+    delete_entity_export_feed_view,
+    detection_rule_export_feed_view,
+    entity_export_feed_view, FeedTemplateCreateView, FeedTemplateUpdateView, delete_feed_template_view,
+    feed_template_live_editor_view, CustomExportFeedCreateView, CustomExportFeedUpdateView,
+    delete_custom_export_feed_view, custom_export_feed_view,
 )
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.status_views import colander_status_view
@@ -107,8 +113,6 @@ case_contextualized_url_patterns = [
     path("collect/actor/<slug:pk>/delete", delete_actor_view, name="collect_actor_delete_view"),
 
     path("collect/artifact", ArtifactCreateView.as_view(), name="collect_artifact_create_view"),
-    path("collect/artifact/upload", initialize_upload, name="initialize_upload"),
-    path("collect/artifact/upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
     path("collect/artifact/<slug:pk>", ArtifactDetailsView.as_view(), name="collect_artifact_details_view"),
     path("collect/artifact/<slug:pk>/edit", ArtifactUpdateView.as_view(), name="collect_artifact_update_view"),
     path("collect/artifact/<slug:pk>/delete", delete_artifact_view, name="collect_artifact_delete_view"),
@@ -176,23 +180,35 @@ case_contextualized_url_patterns = [
 
     path("feeds", feeds_view, name="feeds_view"),
 
-    path("feeds/detection_rules", DetectionRuleOutgoingFeedCreateView.as_view(), name="feeds_detection_rule_out_feed_create_view"),
-    path("feeds/detection_rules/<slug:pk>/edit", DetectionRuleOutgoingFeedUpdateView.as_view(), name="feeds_detection_rule_out_feed_update_view"),
-    path("feeds/detection_rules/<slug:pk>/delete", delete_detection_rule_out_feed_view, name="feeds_detection_rule_out_feed_delete_view"),
+    path("feeds/templates", FeedTemplateCreateView.as_view(), name="feeds_template_create_view"),
+    path("feeds/templates/<slug:pk>/edit", FeedTemplateUpdateView.as_view(), name="feeds_template_update_view"),
+    path("feeds/templates/<slug:pk>/live_editor", feed_template_live_editor_view, name="feeds_template_live_editor_view"),
+    path("feeds/templates/<slug:pk>/delete", delete_feed_template_view, name="feeds_template_delete_view"),
 
-    path("feeds/entity_out_feed", EntityOutgoingFeedCreateView.as_view(), name="feeds_entity_out_feed_create_view"),
-    path("feeds/entity_out_feed/<slug:pk>/edit", EntityOutgoingFeedUpdateView.as_view(), name="feeds_entity_out_feed_update_view"),
-    path("feeds/entity_out_feed/<slug:pk>/delete", delete_entity_out_feed_view, name="feeds_entity_out_feed_delete_view"),
+    path("feeds/detection_rules", DetectionRuleExportFeedCreateView.as_view(), name="feeds_detection_rule_out_feed_create_view"),
+    path("feeds/detection_rules/<slug:pk>/edit", DetectionRuleExportFeedUpdateView.as_view(), name="feeds_detection_rule_out_feed_update_view"),
+    path("feeds/detection_rules/<slug:pk>/delete", delete_detection_rule_export_feed_view, name="feeds_detection_rule_out_feed_delete_view"),
+
+    path("feeds/custom", CustomExportFeedCreateView.as_view(), name="feeds_custom_out_feed_create_view"),
+    path("feeds/custom/<slug:pk>/edit", CustomExportFeedUpdateView.as_view(), name="feeds_custom_out_feed_update_view"),
+    path("feeds/custom/<slug:pk>/delete", delete_custom_export_feed_view, name="feeds_custom_out_feed_delete_view"),
+
+    path("feeds/entity_out_feed", EntityExportFeedCreateView.as_view(), name="feeds_entity_out_feed_create_view"),
+    path("feeds/entity_out_feed/<slug:pk>/edit", EntityExportFeedUpdateView.as_view(), name="feeds_entity_out_feed_update_view"),
+    path("feeds/entity_out_feed/<slug:pk>/delete", delete_entity_export_feed_view, name="feeds_entity_out_feed_delete_view"),
 
     path("investigate/", investigate_search_view, name="investigate_base_view"),
 
+    path("import", TemplateView.as_view(template_name="pages/import/base.html"), name="import_view"),
     path("import/csv", TemplateView.as_view(template_name="import/csv.html"), name="import_csv_view"),
+    path("import/misp", TemplateView.as_view(template_name="import/misp.html"), name="import_misp_view"),
+    path("import/stix2", TemplateView.as_view(template_name="import/stix2.html"), name="import_stix2_view"),
 ]
 
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
       path("", landing_view, name="home"),
-      path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
+      path("about/", login_required(TemplateView.as_view(template_name="pages/about.html")), name="about"),
       # Django Admin, use {% url 'admin:index' %}
       path(settings.ADMIN_URL, admin.site.urls),
       # User management
@@ -213,18 +229,27 @@ urlpatterns = [
       path("collaborate/team/<slug:pk>/edit", ColanderTeamUpdateView.as_view(), name="collaborate_team_update_view"),
       path("collaborate/team/<slug:pk>/contribs", add_remove_team_contributor, name="collaborate_team_add_remove_contributor"),
       path("collaborate/team/<slug:pk>/delete", delete_team_view, name="collaborate_team_delete_view"),
-      path("feed/detection_rules/colander_<slug:pk>.rules", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view-rules"),  # to please suricata-update 🤪🤦‍♀️
-      path("feed/detection_rules/<slug:pk>", outgoing_detection_rules_feed_view, name="collaborate_detection_rule_out_feed_view"),
-      path("feed/entities/<slug:pk>", outgoing_entities_feed_view, name="collaborate_entity_out_feed_view"),
+      path("feed/detection_rules/colander_<slug:pk>.rules", detection_rule_export_feed_view, name="detection_rule_out_feed_view-rules"),  # to please suricata-update 🤪🤦‍♀️
+      path("feed/detection_rules/<slug:pk>", detection_rule_export_feed_view, name="detection_rule_out_feed_view"),
+      path("feed/entities/<slug:pk>", entity_export_feed_view, name="entity_out_feed_view"),
+      path("feed/custom/<slug:pk>", custom_export_feed_view, name="custom_out_feed_view"),
+      path("archives/import/<str:super_type>/create", archives_create_entity_view, name="archives_create_entity_view" ),
+      path("archives/import/<str:super_type>/remap/<str:uuid>", archives_remap_entity_view, name="archives_remap_entity_view" ),
+      path("archives/import/<str:super_type>/attach/<str:uuid>", archives_attach_entity_view, name="archives_attach_entity_view" ),
       path("case", CaseCreateView.as_view(), name="case_base_view"),
+      path("case/import", login_required(TemplateView.as_view(template_name="import/case.html")), name="import_case_view"),
       path("case/create", CaseCreateView.as_view(), name="case_create_view"),
       path("case/close", case_close, name="case_close"),
-      path("case/<slug:pk>/edit", CaseUpdateView.as_view(), name="case_update_view"),
       path("case/<slug:pk>", CaseDetailsView.as_view(), name="case_details_view"),
+      path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+      path("case/<slug:pk>/edit", CaseUpdateView.as_view(), name="case_update_view"),
       path("case/<slug:pk>/graph", case_graph, name="case_graph"),
       path("case/<slug:pk>/select", cases_select_view, name="cases_select_view"),
-      path("case/<slug:pk>/download_key", download_case_public_key, name="cases_download_key_view"),
+      path("case/<slug:pk>/archive/request", case_archive_request_view, name="case_archive_request_view"),
+      path("archive/<slug:pk>/takeout", archive_takeout_view, name="archive_takeout_view"),
       path("drops/", triage_view, name="dropped_files_triage_base_view"),
+      path("upload", initialize_upload, name="initialize_upload"),
+      path("upload/<str:upload_id>", append_to_upload, name="append_to_upload"),
       path("ws/<str:case_id>/", include(case_contextualized_url_patterns)),
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),

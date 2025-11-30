@@ -1,17 +1,20 @@
-import {createApp, defineAsyncComponent} from "vue";
+import {computed, createApp, defineAsyncComponent} from "vue";
 import "primeicons/primeicons.css";
 import PrimeVue from "primevue/config";
+import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 import ColanderTheme from './theme-preset';
 
 import CachePlugin from './plugins/Cache';
-import i18nPlugin from './plugins/i18n';
-import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import EventBusPlugin from './plugins/EventBus';
+import i18nPlugin from './plugins/i18n';
+import LocalStorage from "./plugins/LocalStorage";
+import LoggerPlugin, {LogLevel} from './plugins/Logger';
+import ThemeUtilsPlugin from './plugins/ThemeUtils';
 
-import HarAnalyzerPlugin, {
-       DesignSystemConfig as HarPrimeVueConfig
-       } from 'har-analyzer-vue';
+import HarAnalyzerPlugin from 'har-analyzer-vue';
+/* FIXME: Confirm not needed anymore, then clean */
+/* import { DesignSystemConfig as HarPrimeVueConfig } from 'har-analyzer-vue'; */
 
 import Legacy from './legacy/project';
 import ColanderTextEditor from './legacy/colander-text-editor';
@@ -31,17 +34,22 @@ function init_websocket($vue) {
   // let ws = new WebSocket(ws_url_case);
   let ws = new WebSocket(`${ws_protocol}//${loc.host}${loc.pathname}`);
   ws.addEventListener('message', function(evt) {
-     let data = JSON.parse(evt.data)
-     $vue.$debug('Channel message data', data);
+    let data = JSON.parse(evt.data)
+    $vue.$debug('Channel message data', data);
+    if (data.msg) {
+      $vue.$debug('New notification', data, 'on', $vue.$bus);
+      let result = $vue.$bus.emit('notification', data);
+      $vue.$debug('New notification', result);
+    }
   });
   ws.addEventListener('close', function(evt) {
-     $vue.$info('Channel disconnected', arguments);
+    $vue.$info('Channel disconnected', arguments);
   });
   ws.addEventListener('open', function(evt) {
-     $vue.$info('Channel connected', arguments);
+    $vue.$info('Channel connected', arguments);
   });
   ws.addEventListener('error', function(evt) {
-     $vue.$error('Channel error', arguments);
+    $vue.$error('Channel error', arguments);
   });
   $vue.$bus.on('msg.example.to.server', (msg) => {
     ws.send(JSON.stringify(msg));
@@ -50,13 +58,20 @@ function init_websocket($vue) {
 
 
 export const ColanderApp = {
+  delimiters: ['~ColanderApp{', '}~'],
   components: {
+    /* Primevue components that 'may' appear in dom as <div is="vue:"/> */
+    Toast, // Not async as it appear on all pages
+
+    /* Colander components that 'may' appear in dom as <div is="vue:"/> */
     ArtifactUploader: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ArtifactUploader" */ '../colander-vue-components/ArtifactUploader.vue')),
+    CaseImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "CaseImporter" */ '../colander-vue-components/importers/CaseImporter.vue')),
     ConfirmButton: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ConfirmButton" */ '../colander-vue-components/ConfirmButton.vue')),
     CsvImporter: defineAsyncComponent(() =>
-      import(/* webpackChunkName: "Csv" */ '../colander-vue-components/importers/CsvImporter.vue')),
+      import(/* webpackChunkName: "CsvImporter" */ '../colander-vue-components/importers/CsvImporter.vue')),
     DocumentationPane: defineAsyncComponent(() =>
       import(/* webpackChunkName: "DocumentationPane" */ '../colander-vue-components/DocumentationPane.vue')),
     DropfileTriage: defineAsyncComponent(() =>
@@ -71,25 +86,61 @@ export const ColanderApp = {
       import(/* webpackChunkName: "HStoreTable" */ '../colander-vue-components/HStoreTable.vue')),
     InvestigateView: defineAsyncComponent(() =>
       import(/* webpackChunkName: "InvestigateView" */ '../colander-vue-components/InvestigateView.vue')),
+    NotificationCenter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "NotificationCenter" */ '../colander-vue-components/NotificationCenter.vue')),
     Suggester: defineAsyncComponent(() =>
       import(/* webpackChunkName: "Suggester" */ '../colander-vue-components/Suggester.vue')),
     ThumbnailInputField: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ThumbnailInputField" */ '../colander-vue-components/ThumbnailInputField.vue')),
     ToolbarSearch: defineAsyncComponent(() =>
       import(/* webpackChunkName: "ToolbarSearch" */ '../colander-vue-components/ToolbarSearch.vue')),
+    Pills: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "Pills" */ '../colander-vue-components/generics/Pills.vue')),
+    GenericEntity: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericEntity" */ '../colander-vue-components/generics/GenericEntity.vue')),
+    GenericEntityDetails: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericEntityDetails" */ '../colander-vue-components/generics/GenericEntityDetails.vue')),
+    GenericEntityList: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericEntityList" */ '../colander-vue-components/generics/GenericEntityList.vue')),
+    CachedFileUpload: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "CachedFileUpload" */ '../colander-vue-components/generics/CachedFileUpload.vue')),
+    GenericFeedImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "GenericFeedImporter" */ '../colander-vue-components/generics/GenericFeedImporter.vue')),
+    EntityQuickViewDialog: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "EntityQuickViewDialog" */ '../colander-vue-components/generics/EntityQuickViewDialog.vue')),
+    TemplateFeedEditor: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "TemplateFeedEditor" */ '../colander-vue-components/generics/TemplateFeedEditor.vue')),
+    MISPImporter: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "MISPImporter" */ '../colander-vue-components/importers/MISPImporter.vue')),
+    STIX2Importer: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "STIX2Importer" */ '../colander-vue-components/importers/STIX2Importer.vue')),
     /* PRIMEVUE COMPONENTS */
     DatePicker: defineAsyncComponent(() =>
       /* webpackChunkName: "pv-datepicker" */ import('primevue/datepicker')),
   },
+
   created() {
     this.$logger(this, 'ColanderApp');
 
     init_websocket(this);
   },
+
   mounted() {
     this.$info('Colander Wide Application', 'mounted');
     Legacy();
     ColanderTextEditor();
+  },
+};
+
+const colander_primevue_options = {
+  theme: {
+    preset: ColanderTheme,
+    options: {
+      darkModeSelector: 'none',
+    }
+  },
+  locale: {
+    dateFormat: 'mm/dd/yy',
   },
 };
 
@@ -118,6 +169,7 @@ export default () => {
   } catch(err) {}
 
   // -- Plugin registration
+  colander_application.use(LocalStorage);
   colander_application.use(LoggerPlugin, {
     logLevel: localLogLevel,
   });
@@ -131,14 +183,17 @@ export default () => {
       'all_styles': '/rest/dataset/all_styles/',
     },
   });
-  colander_application.use(PrimeVue, {
-    theme: {
-      preset: ColanderTheme,
-      options: {
-        darkModeSelector: 'none',
-      }
+  // Must be registered after the CachePlugin
+  colander_application.use(ThemeUtilsPlugin);
+  if (navigator.language) {
+    if (String(navigator.language).toLowerCase() === 'fr') {
+      colander_primevue_options.locale.dateFormat = 'dd/mm/yy';
     }
-  });
+  }
+  colander_application.use(PrimeVue, colander_primevue_options);
+
+  /* FIXME: Confirm not needed anymore, then clean */
+  /*
   colander_application.use( HarPrimeVueConfig, {
     theme: {
       preset: ColanderTheme,
@@ -147,6 +202,7 @@ export default () => {
       }
     }
   });
+   */
   colander_application.use(ToastService);
   colander_application.use(HarAnalyzerPlugin);
 

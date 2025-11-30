@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponse, \
     StreamingHttpResponse
-from django.utils.http import content_disposition_header
+from django.utils.http import content_disposition_header, url_has_allowed_host_and_scheme
 from rest_framework.exceptions import ValidationError
 
 from colander.core.archives.exporters import schedule_archive_export
@@ -29,7 +29,10 @@ def case_archive_request_view(request, pk):
 
     messages.info(request, "Archive export requested. You will be notified when done.")
 
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    referrer = request.META.get('HTTP_REFERER')
+    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
+        return HttpResponseRedirect(referrer)
+    return HttpResponseRedirect('/')
 
 
 @login_required

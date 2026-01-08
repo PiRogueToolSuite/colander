@@ -19,7 +19,7 @@ def model_name(instance):
 @register.filter(name="escape_space")
 def escape_space(instance):
     if type(instance) is str:
-        return instance.replace(' ', '\ ')
+        return instance.replace(' ', r'\ ')
     return ''
 
 @register.filter(name="get_field")

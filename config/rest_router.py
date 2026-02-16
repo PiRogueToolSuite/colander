@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter, SimpleRouter
 from colander.core.feed.views import FeedViewSet
 from colander.core.rest.views import DatasetViewSet, EntityRelationViewSet, EntityViewSet, \
     import_entity_from_threatr, DroppedFileViewSet, CaseViewSet, ArtifactTypeViewSet, \
-    SubGraphViewSet, FeedTemplateViewSet, UserViewSet
+    SubGraphViewSet, FeedTemplateViewSet, UserViewSet, PiRogueViewSet
 from colander.core.views.cached_files_view import CachedFileApiView
 from colander.core.views.views import entity_exists, overall_search, entity_types
 
@@ -23,6 +23,7 @@ router.register("user", UserViewSet, basename="user")
 router.register("feed", FeedViewSet, basename="feed")
 router.register("template", FeedTemplateViewSet, basename="template")
 router.register("entity_relation", EntityRelationViewSet, basename="entity_relation")
+router.register("pirogue", PiRogueViewSet, basename="pirogue")
 router.register("subgraph", SubGraphViewSet, basename="subgraph")
 
 app_name = "rest"

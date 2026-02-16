@@ -1,7 +1,14 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from colander.core.models import Entity, EntityRelation, colander_models, SubGraph, FeedTemplate
+from colander.core.models import (
+    Entity,
+    EntityRelation,
+    colander_models,
+    SubGraph,
+    FeedTemplate,
+    PiRogueStatus,
+)
 from colander.core.rest.commons import CommonTypeSerializer, KeyedListSerializer
 from colander.users.models import User
 
@@ -95,3 +102,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'available_templates']
+
+
+class PiRogueStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PiRogueStatus
+        fields = ['reported_at', 'success', 'error', 'content']

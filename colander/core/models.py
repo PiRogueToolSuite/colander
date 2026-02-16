@@ -2349,6 +2349,96 @@ def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
         logger.error(e)
 
 
+class PiRogueCredentials(models.Model):
+    class Meta:
+        verbose_name = 'PiRogue Credentials'
+        verbose_name_plural = 'PiRogue Credentials'
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        editable=False
+    )
+    friendly_name = models.CharField(
+        help_text=_('A friendly name only displayed in Colander. If empty, this PiRogue will be displayed with its host value.'),
+        max_length=128,
+        null=True,
+        blank=True,
+    )
+    host = models.CharField(
+        help_text=_('Can be FQDN or IP address (for non publicly visible PiRogue).'),
+        max_length=256,
+    )
+    port = models.IntegerField(
+        default=50051
+    )
+    token = models.CharField(
+        help_text=_('Private access token (retrieved on your PiRogue).'),
+        max_length=512,
+    )
+    has_public_visibility = models.BooleanField(
+        help_text=_('Does this PiRogue has public access enabled ?')
+    )
+    certificate = models.CharField(
+        help_text=_('Certificate must be provided if PiRogue public access has not been enabled.'),
+        max_length=2048,
+        null=True,
+        blank=True,
+    )
+
+    @property
+    def last_status(self):
+        return PiRogueStatus.objects.filter(pirogue_credentials=self).order_by('reported_at').last()
+
+
+class PiRogueStatus(models.Model):
+    class Meta:
+        verbose_name = 'PiRogue Status'
+        verbose_name_plural = 'PiRogue Status'
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        help_text=_('Unique identifier.'),
+        editable=False,
+    )
+
+    pirogue_credentials = models.ForeignKey(
+        PiRogueCredentials,
+        on_delete=models.CASCADE,
+        related_name='pirogue_aes_trace',
+        editable=False,
+    )
+
+    reported_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_('Reported date of this status.'),
+        editable=False,
+    )
+
+    success = models.BooleanField(
+        help_text=_('Does this status retrieval has succeed ?'),
+        default=False,
+    )
+
+    error = models.CharField(
+        help_text=_('Error detail if status retrieval failed.'),
+        max_length=4096,
+        null=True,
+        blank=True,
+    )
+
+    content = models.JSONField(
+        default=dict,
+    )
+
+
 class ObservableAnalysisEngine(models.Model):
     id = models.UUIDField(
         primary_key=True,

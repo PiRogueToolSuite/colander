@@ -112,6 +112,8 @@ export const ColanderApp = {
       import(/* webpackChunkName: "TemplateFeedEditor" */ '../colander-vue-components/generics/TemplateFeedEditor.vue')),
     MISPImporter: defineAsyncComponent(() =>
       import(/* webpackChunkName: "MISPImporter" */ '../colander-vue-components/importers/MISPImporter.vue')),
+    PiRogueConfigurator: defineAsyncComponent(() =>
+      import(/* webpackChunkName: "PiRogueConfigurator" */'../colander-vue-components/pirogue/PiRogueConfigurator.vue')),
     STIX2Importer: defineAsyncComponent(() =>
       import(/* webpackChunkName: "STIX2Importer" */ '../colander-vue-components/importers/STIX2Importer.vue')),
     /* PRIMEVUE COMPONENTS */

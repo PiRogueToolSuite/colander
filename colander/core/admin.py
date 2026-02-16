@@ -23,7 +23,10 @@ from colander.core.models import (
     PiRogueExperiment,
     SubGraph,
     Threat,
-    UploadRequest, NotificationMessage,
+    UploadRequest,
+    NotificationMessage,
+    PiRogueCredentials,
+    PiRogueStatus,
 )
 
 
@@ -158,6 +161,18 @@ class ArchiveExportAdmin(admin.ModelAdmin):
     list_display = ('case', 'type', 'requested_at', 'done_at', 'file')
 admin.site.register(ArchiveExport, ArchiveExportAdmin)
 
+
 class NotificationMessageAdmin(admin.ModelAdmin):
     list_display = ('recipient', 'type', 'requested_at', 'processed_at', 'success')
 admin.site.register(NotificationMessage, NotificationMessageAdmin)
+
+
+class PiRogueCredentialsAdmin(admin.ModelAdmin):
+    list_display = ('owner', 'host', 'port', 'has_public_visibility')
+admin.site.register(PiRogueCredentials, PiRogueCredentialsAdmin)
+
+
+class PiRogueStatusAdmin(admin.ModelAdmin):
+    list_display = ('pirogue_credentials', 'reported_at', 'success')
+    ordering = ('-reported_at',)
+admin.site.register(PiRogueStatus, PiRogueStatusAdmin)

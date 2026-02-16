@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin, CreateModelMixin, \
@@ -35,10 +35,12 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph, FeedTemplate,
+    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph,
+    FeedTemplate, PiRogueCredentials, PiRogueStatus,
 )
-from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer, FeedTemplateSerializer, \
-    UserSerializer
+from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer, \
+    FeedTemplateSerializer, \
+    UserSerializer, PiRogueStatusSerializer
 
 
 class DatasetViewSet(ViewSet):
@@ -335,6 +337,28 @@ class SubGraphViewSet(ListModelMixin,
             owner=self.request.user,
             case=case,
         )
+
+
+class PiRogueViewSet(GenericViewSet):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return PiRogueCredentials.objects.filter(owner=self.request.user)
+
+    @action(detail=True, methods=['GET'])
+    def status(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        pirogue_statuses = PiRogueStatus.objects.filter(pirogue_credentials=pirogue_credentials.id).order_by('reported_at')
+        status_list = list()
+        for pirogue_status in pirogue_statuses:
+            serializer = PiRogueStatusSerializer(pirogue_status)
+            status_list.append(serializer.data)
+        return JsonResponse(status_list, safe=False)
+
+    @action(detail=True, methods=['GET'])
+    def configuration(self, request, pk=None):
+        return JsonResponse({}, safe=False)
 
 
 def get_threatr_entity_type(entity):

@@ -78,6 +78,9 @@ from colander.core.views.export_feeds_views import (
     feed_template_live_editor_view, CustomExportFeedCreateView, CustomExportFeedUpdateView,
     delete_custom_export_feed_view, custom_export_feed_view,
 )
+from colander.core.views.pirogue_creadentials_views import PiRogueCredentialsCreateView, \
+    PiRogueCredentialsDetailsView, PiRogueCredentialsUpdateView, pirogue_credentials_delete_view, \
+    pirogue_credentials_check_status_view
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.status_views import colander_status_view
 from colander.core.views.subgraphs_views import SubGraphCreateView, delete_subgraph_view, \
@@ -254,6 +257,13 @@ urlpatterns = [
       path("comment/", create_comment_view, name="create_comment_view"),
       path("comment/<slug:pk>/edit", CommentUpdateView.as_view(), name="update_comment_view"),
       path("comment/<slug:pk>/delete", delete_comment_view, name="delete_comment_view"),
+
+      path("pirogue", PiRogueCredentialsCreateView.as_view(), name="pirogue_credentials_base_view"),
+      path("pirogue/create", PiRogueCredentialsCreateView.as_view(), name="pirogue_credentials_create_view"),
+      path("pirogue/<slug:pk>", PiRogueCredentialsDetailsView.as_view(), name="pirogue_credentials_details_view"),
+      path("pirogue/<slug:pk>/edit", PiRogueCredentialsUpdateView.as_view(), name="pirogue_credentials_update_view"),
+      path("pirogue/<slug:pk>/delete", pirogue_credentials_delete_view, name="pirogue_credentials_delete_view"),
+      path("pirogue/<slug:pk>/check_status", pirogue_credentials_check_status_view, name="pirogue_credentials_check_status_view"),
 
       # path("_auth", forward_auth, name="forward-auth_view"),
 

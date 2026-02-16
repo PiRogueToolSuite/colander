@@ -45,6 +45,7 @@
   {% url 'case_create_view' as case_create_view_url %}
   {% url 'collaborate_base_view' as collaborate_base_view_url %}
   {% url 'dropped_files_triage_base_view' as dropped_files_triage_base_view_url %}
+  {% url 'pirogue_credentials_base_view' as pirogue_credentials_base_view_url %}
   {% url 'cron-jobs' as cron_url %}
 
   {% block top_bar %}
@@ -198,6 +199,11 @@
              href="{{ dropped_files_triage_base_view_url }}" title="Dropped files triage">
             <i class="nf nf-fa-inbox list-group-item-icon"></i>
             <span class="list-group-item-label">Drops</span>
+          </a>
+          <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link pirogue_credentials_base_view_url %}"
+             href="{{ pirogue_credentials_base_view_url }}" title="PiRogue Credentials">
+            <i class="nf nf-fa-inbox list-group-item-icon"></i>
+            <span class="list-group-item-label">PiRogue fleet</span>
           </a>
           <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link collaborate_base_view_url %}"
              href="{{ collaborate_base_view_url }}">

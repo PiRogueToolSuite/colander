@@ -25,7 +25,8 @@ django-ipware==7.0.1  # https://github.com/un33k/django-ipware
 # Django REST Framework
 djangorestframework==3.15.2  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3 # Included explicitly since it's defined optional by djangorestframework
-setuptools # As coreapi needs 'pkg_resources' to load and 'pkg_resources' as been migrated to 'setuptools' since python3.12
+setuptools==81.0.0 # As coreapi needs 'pkg_resources' to load and 'pkg_resources' as been migrated to 'setuptools' since python3.12
+                   # WARNING: 'setuptools' has finally removed 'pkg_resources' since v82.+, we now have to stick on v81.0.0
 django-cors-headers==4.3.1 # https://github.com/adamchainz/django-cors-headers
 # DRF-spectacular for api documentation
 drf-spectacular==0.27.2  # https://github.com/tfranzel/drf-spectacular
@@ -51,3 +52,8 @@ mandolin-python-client>=1.0.2
 
 # Colander
 colander-data-converter==1.0.7
+
+# PiRogue
+protobuf
+pirogue-admin-api>=2.0.4
+pirogue-admin-client>=2.0.6

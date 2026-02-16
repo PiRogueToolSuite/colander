@@ -39,7 +39,7 @@
           <a href="{% url "cases_download_key_view" pk=case.id %}" class="btn btn-sm btn-secondary">
             Download key
           </a>
-          <div class="modal fade modal-lg" id="pubKeyModal" tabindex="-1"
+          <div class="modal fade modal-md" id="pubKeyModal" tabindex="-1"
                aria-labelledby="pubKeyModalLabel" aria-hidden="true">
             <div class="modal-dialog">
               <div class="modal-content">
@@ -47,7 +47,7 @@
                   <h1 class="modal-title fs-5" id="pubKeyModalLabel">RSA public key</h1>
                 </div>
                 <div class="modal-body">
-                  <pre><code>{{ case.verify_key }}</code></pre>
+                  <pre><code>{{ case.public_key }}</code></pre>
                 </div>
               </div>
             </div>

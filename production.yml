@@ -135,7 +135,7 @@ services:
     restart: unless-stopped
 
   elasticsearch:
-    image: elasticsearch:8.4.1
+    image: elasticsearch:8.19.11
     volumes:
       - production_colander_es_data:/usr/share/elasticsearch/data
     environment:

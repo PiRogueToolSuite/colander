@@ -119,7 +119,7 @@ services:
     restart: unless-stopped
 
   elasticsearch:
-    image: elasticsearch:8.4.1
+    image: elasticsearch:8.19.11
     ports:
       - 9200:9200
       - 9300:9300

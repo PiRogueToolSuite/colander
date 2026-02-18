@@ -26,7 +26,7 @@ from colander.core.models import (
     UploadRequest,
     NotificationMessage,
     PiRogueCredentials,
-    PiRogueStatus,
+    PiRogueStatus, DeviceMonitoring,
 )
 
 
@@ -176,3 +176,9 @@ class PiRogueStatusAdmin(admin.ModelAdmin):
     list_display = ('pirogue_credentials', 'reported_at', 'success')
     ordering = ('-reported_at',)
 admin.site.register(PiRogueStatus, PiRogueStatusAdmin)
+
+
+class DeviceMonitoringAdmin(admin.ModelAdmin):
+    list_display = ('pirogue', 'device', 'status')
+    ordering = ('-started_at',)
+admin.site.register(DeviceMonitoring, DeviceMonitoringAdmin)

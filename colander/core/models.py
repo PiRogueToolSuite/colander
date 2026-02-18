@@ -19,7 +19,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField
 from django.db.models.signals import pre_delete, pre_save, post_save
@@ -2436,6 +2436,85 @@ class PiRogueStatus(models.Model):
 
     content = models.JSONField(
         default=dict,
+    )
+
+
+class DeviceMonitoring(models.Model):
+    STATUS_CHOICES = [
+        (0, 'Not started'),
+        (1, 'In progress'),
+        (2, 'Finished'),
+        (-1, 'Failed'),
+    ]
+
+    class Meta:
+        verbose_name = 'Device monitoring'
+        unique_together = ('device', 'pirogue', 'peer_id')
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    description = models.TextField(
+        help_text=_('Add more details about this object.'),
+        null=True,
+        blank=True
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    case = models.ForeignKey(
+        Case,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+    started_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False
+    )
+    ended_at = models.DateTimeField(
+        editable=False,
+        null=True,
+        blank=True
+    )
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        help_text=_('The device to be monitored.'),
+    )
+    peer_id = models.IntegerField(
+        editable=False,
+        null=True,
+        blank=True
+    )
+    pirogue = models.ForeignKey(
+        PiRogueCredentials,
+        on_delete=models.CASCADE,
+    )
+    status = models.IntegerField(
+        editable=False,
+        choices=STATUS_CHOICES,
+        default=0
+    )
+    duration = models.IntegerField(
+        default=1,
+        help_text=_('Number of days this monitoring will be active (between 1 and 14 days).'),
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(14)
+        ],
     )
 
 

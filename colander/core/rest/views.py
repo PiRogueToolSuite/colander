@@ -38,6 +38,10 @@ from colander.core.models import (
     ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph,
     FeedTemplate, PiRogueCredentials, PiRogueStatus,
 )
+from colander.core.pirogue import (
+    get_configuration,
+    get_packages_info,
+)
 from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer, \
     FeedTemplateSerializer, \
     UserSerializer, PiRogueStatusSerializer
@@ -358,7 +362,15 @@ class PiRogueViewSet(GenericViewSet):
 
     @action(detail=True, methods=['GET'])
     def configuration(self, request, pk=None):
-        return JsonResponse({}, safe=False)
+        pirogue_credentials = self.get_object()
+        response = get_configuration(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'])
+    def packages_info(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        response = get_packages_info(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
 
 
 def get_threatr_entity_type(entity):

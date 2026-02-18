@@ -69,3 +69,52 @@ def _proceed_pirogue_status_retrieval(pirogue_credentials_id):
         ps.content = status
         ps.save()
 
+
+def get_configuration(pirogue_credentials_id):
+    prc = PiRogueCredentials.objects.get(pk=pirogue_credentials_id)
+
+    response = dict({ "success": False, "error": None })
+
+    try:
+        certificate = 'public' if prc.has_public_visibility else prc.certificate
+        paca = PirogueAdminClientAdapter(prc.host, prc.port, prc.token, certificate)
+        content = paca.get_configuration()
+    except RpcError as rpc_error:
+        response['success'] = False
+        response['grpc_success'] = True
+        response['error'] = rpc_error.details()
+    except Exception as exception:
+        response['success'] = False
+        response['grpc_success'] = False
+        response['error'] = str(exception)
+    else:
+        response['success'] = True
+        response['grpc_success'] = True
+        response['content'] = content
+
+    return response
+
+
+def get_packages_info(pirogue_credentials_id):
+    prc = PiRogueCredentials.objects.get(pk=pirogue_credentials_id)
+
+    response = dict({ "success": False, "grpc_success": False, "error": None })
+
+    try:
+        certificate = 'public' if prc.has_public_visibility else prc.certificate
+        paca = PirogueAdminClientAdapter(prc.host, prc.port, prc.token, certificate)
+        content = paca.get_packages_info()
+    except RpcError as rpc_error:
+        response['success'] = False
+        response['grpc_success'] = True
+        response['error'] = rpc_error.details()
+    except Exception as exception:
+        response['success'] = False
+        response['grpc_success'] = False
+        response['error'] = str(exception)
+    else:
+        response['success'] = True
+        response['grpc_success'] = True
+        response['content'] = content
+
+    return response

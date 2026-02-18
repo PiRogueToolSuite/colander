@@ -7,6 +7,8 @@ import {
 
 import PiRogueNoSection from './sections/PiRogueNoSection.vue';
 import PiRogueStatus from './sections/PiRogueStatus.vue';
+import PiRogueConfigurationRead from './sections/PiRogueConfigurationRead.vue';
+import PiRoguePackagesInfo from './sections/PiRoguePackagesInfo.vue';
 
 export default {
   components: {
@@ -43,14 +45,14 @@ export default {
               label: 'Configuration',
               icon: 'pi pi-list-check',
               command: (a) => {
-                this.setSection('Configuration', shallowRef(PiRogueNoSection));
+                this.setSection('Configuration', shallowRef(PiRogueConfigurationRead));
               },
             },
             {
               label: 'Packages',
               icon: 'pi pi-box',
               command: (a) => {
-                this.setSection('Packages', shallowRef(PiRogueNoSection));
+                this.setSection('Packages', shallowRef(PiRoguePackagesInfo));
               },
             },
           ],

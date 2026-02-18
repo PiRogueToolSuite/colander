@@ -1,9 +1,9 @@
 <script>
-import {Message, Paginator, ProgressSpinner} from "primevue";
-
+import {Fieldset, Message, Paginator, ProgressSpinner} from "primevue";
 
 export default {
   components: {
+    Fieldset,
     Message,
     Paginator,
     ProgressSpinner,
@@ -19,7 +19,7 @@ export default {
   },
   created() {
      this.$logger(this, 'PiRogueStatus');
-     this.$debug('token', this.csrfToken);
+     this.$debug('token', this.csrfToken, 'PiRogue', this.pirogueId);
      this.queryStatuses();
   },
   methods: {
@@ -56,46 +56,49 @@ export default {
 }
 </script>
 <template>
-  <ProgressSpinner v-if="loading" style="width: 50px; height: 50px" strokeWidth="8"/>
-  <div v-if="currentStatus">
-
-    <Paginator :first="selectedStatusIndex"
-               :totalRecords="statuses.length" :pageLinkSize="20" :rows="1"
-               @update:first="_updateStatusIndex"
-               class="statusSelector"></Paginator>
-    <div class="text-center">
-      <span>
-        <i v-if="currentStatus.success" class="pi pi-check-circle text-success"></i>
-        <i v-else class="pi pi-times-circle text-danger"></i>
-      </span>
-      <span class="ms-2">Reported on: {{ new Date(currentStatus.reported_at) }}</span>
-    </div>
-    <div v-if="currentStatus.success" class="status-grid">
-      <div v-for="section in currentStatus.content.sections" class="section">
-        <strong>{{ section.description }}</strong>
-        <div v-for="item in section.items" class="item">
-          <span>{{item.description}}</span>
-          <span>{{item.state}}</span>
-        </div>
-      </div>
-    </div>
-    <div v-if="currentStatus.error" class="mt-2">
-      <Message severity="error">
-        <code>{{ currentStatus.error }}</code>
-      </Message>
-      <div v-if="currentStatus.success">
-        <Message severity="info" class="mt-2">
-          <div>This PiRogue has successfully been contacted but the current pirogue-admin version does not support status gathering.</div>
-          <div>
-            Please <a href="https://pts-project.org/docs/pirogue/operating-system/" target="_blank">upgrade your PiRogue</a>.
-          </div>
-        </Message>
-      </div>
-    </div>
-
+  <div v-if="loading" class="text-center">
+    <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8"/>
   </div>
   <div v-else>
-    <i>No status gathered yet</i>
+    <div v-if="currentStatus">
+      <Paginator :first="selectedStatusIndex"
+                 :totalRecords="statuses.length" :pageLinkSize="20" :rows="1"
+                 @update:first="_updateStatusIndex"
+                 class="statusSelector"></Paginator>
+      <div class="text-center">
+        <span>
+          <i v-if="currentStatus.success" class="pi pi-check-circle text-success"></i>
+          <i v-else class="pi pi-times-circle text-danger"></i>
+        </span>
+        <span class="ms-2">Reported on: {{ new Date(currentStatus.reported_at) }}</span>
+      </div>
+      <div v-if="currentStatus.success" class="status-grid">
+        <div v-for="section in currentStatus.content.sections" class="section">
+          <strong>{{ section.description }}</strong>
+          <div v-for="item in section.items" class="item">
+            <span>{{item.description}}</span>
+            <span>{{item.state}}</span>
+          </div>
+        </div>
+      </div>
+      <div v-if="currentStatus.error" class="mt-2">
+        <Message severity="error">
+          <code>{{ currentStatus.error }}</code>
+        </Message>
+        <div v-if="currentStatus.success">
+          <Message severity="info" class="mt-2">
+            <div>This PiRogue has successfully been contacted but the current pirogue-admin version does not support status gathering.</div>
+            <div>
+              Please <a href="https://pts-project.org/docs/pirogue/operating-system/" target="_blank">upgrade your PiRogue</a>.
+            </div>
+          </Message>
+        </div>
+      </div>
+
+    </div>
+    <div v-else class="text-center">
+      <i>No status gathered yet</i>
+    </div>
   </div>
 </template>
 <style>
@@ -122,6 +125,7 @@ export default {
     }
   }
 }
+
 .statusSelector
 {
   --p-paginator-padding: 0;

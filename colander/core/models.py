@@ -2372,21 +2372,21 @@ class PiRogueCredentials(models.Model):
         blank=True,
     )
     host = models.CharField(
-        help_text=_('Can be FQDN or IP address (for non publicly visible PiRogue).'),
+        help_text=_('Can be a FQDN or an IP address.'),
         max_length=256,
     )
     port = models.IntegerField(
         default=50051
     )
     token = models.CharField(
-        help_text=_('Private access token (retrieved on your PiRogue).'),
+        help_text=_('Private access token (generated on your PiRogue).'),
         max_length=512,
     )
     has_public_visibility = models.BooleanField(
-        help_text=_('Does this PiRogue has public access enabled ?')
+        help_text=_('Is this PiRogue accessible on the Internet?')
     )
     certificate = models.CharField(
-        help_text=_('Certificate must be provided if PiRogue public access has not been enabled.'),
+        help_text=_('Certificate must be provided if the PiRogue is not accessible on the Internet.'),
         max_length=2048,
         null=True,
         blank=True,
@@ -2423,7 +2423,7 @@ class PiRogueStatus(models.Model):
     )
 
     success = models.BooleanField(
-        help_text=_('Does this status retrieval has succeed ?'),
+        help_text=_('Does this status retrieval has succeed?'),
         default=False,
     )
 

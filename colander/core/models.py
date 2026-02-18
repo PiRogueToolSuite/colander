@@ -7,6 +7,7 @@ import uuid
 from copy import deepcopy
 from hashlib import sha256
 from io import StringIO
+from secrets import token_urlsafe
 from tempfile import TemporaryDirectory
 
 import django
@@ -179,6 +180,10 @@ def _get_evidence_upload_dir(instance, filename):
 
 def _random_id(length=16):
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
+
+def _generate_token():
+    return token_urlsafe(64)
 
 
 class CommonModelType(models.Model):
@@ -2502,6 +2507,11 @@ class DeviceMonitoring(models.Model):
     pirogue = models.ForeignKey(
         PiRogueCredentials,
         on_delete=models.CASCADE,
+    )
+    authentication_token = models.CharField(
+        editable=False,
+        default=_generate_token,
+        max_length=128,
     )
     status = models.IntegerField(
         editable=False,

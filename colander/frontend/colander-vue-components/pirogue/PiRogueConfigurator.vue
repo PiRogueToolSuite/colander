@@ -9,6 +9,7 @@ import PiRogueNoSection from './sections/PiRogueNoSection.vue';
 import PiRogueStatus from './sections/PiRogueStatus.vue';
 import PiRogueConfigurationRead from './sections/PiRogueConfigurationRead.vue';
 import PiRoguePackagesInfo from './sections/PiRoguePackagesInfo.vue';
+import PiRogueAccess from './sections/PiRogueAccess.vue';
 
 export default {
   components: {
@@ -78,7 +79,7 @@ export default {
               label: 'Access',
               icon: 'pi pi-key',
               command: (a) => {
-                this.setSection('Access', shallowRef(PiRogueNoSection));
+                this.setSection('Access', shallowRef(PiRogueAccess));
               },
             },
             {
@@ -117,10 +118,10 @@ export default {
 </script>
 <template>
   <div class="row">
-    <div class="col-2">
+    <div class="col-3">
       <Menu :model="menu"></Menu>
     </div>
-    <div class="col-10">
+    <div class="col ps-0">
       <Panel>
         <template #header><h4>{{ currentSection.title }}</h4></template>
         <component :is="currentSection.component" />

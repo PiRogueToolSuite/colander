@@ -12,6 +12,8 @@ import LocalStorage from "./plugins/LocalStorage";
 import LoggerPlugin, {LogLevel} from './plugins/Logger';
 import ThemeUtilsPlugin from './plugins/ThemeUtils';
 
+import CopyToClipboard from "./directives/CopyToClipboard";
+
 import HarAnalyzerPlugin from 'har-analyzer-vue';
 /* FIXME: Confirm not needed anymore, then clean */
 /* import { DesignSystemConfig as HarPrimeVueConfig } from 'har-analyzer-vue'; */
@@ -207,6 +209,9 @@ export default () => {
    */
   colander_application.use(ToastService);
   colander_application.use(HarAnalyzerPlugin);
+
+  // Directives (globally available)
+  colander_application.directive('clipboard', CopyToClipboard);
 
   // -- Mount and start
   colander_application.mount(document.querySelector('body'));

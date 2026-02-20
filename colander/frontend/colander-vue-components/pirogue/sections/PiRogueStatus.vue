@@ -87,7 +87,7 @@ export default {
         </Message>
         <div v-if="currentStatus.success">
           <Message severity="info" class="mt-2">
-            <div>This PiRogue has successfully been contacted but the current pirogue-admin version does not support status gathering.</div>
+            <div>This PiRogue has successfully been contacted but the current pirogue-admin version does not support this feature.</div>
             <div>
               Please <a href="https://pts-project.org/docs/pirogue/operating-system/" target="_blank">upgrade your PiRogue</a>.
             </div>

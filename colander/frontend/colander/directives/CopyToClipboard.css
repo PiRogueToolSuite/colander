@@ -1,0 +1,53 @@
+.clipboard-able {
+  position: relative;
+  cursor: pointer;
+  outline: 1px dashed rgba(var(--bs-secondary-rgb), 0.5);
+  outline-offset: 0px;
+  transition: outline-offset 0.25s, outline-color 0.25s;
+}
+
+
+
+.clipboard-able:before {
+  content: 'Copy to clipboard';
+  font-family: var(--bs-body-font-family);
+  position: absolute;
+  width: auto;
+  height: auto;
+  right: 0;
+  top: 0;
+  color: white;
+  background-color: var(--bs-secondary);
+  opacity: 0.5;
+  margin-right: -11rem;
+  transition: margin-right 0.25s, opacity 0.25s, background-color 0.25s;
+  padding: 1px 2px;
+}
+
+.clipboard-able.copy-success:before
+{
+  content: 'Copy successed';
+  background-color: var(--bs-success);
+  margin-right: 0;
+  opacity: 1;
+}
+
+.clipboard-able.copy-error:before
+{
+  content: 'Copy failed';
+  background-color: var(--bs-danger);
+  margin-right: 0;
+  opacity: 1;
+}
+
+.clipboard-able:hover
+{
+  outline-offset: 0px;
+  outline-color: rgba(var(--bs-secondary-rgb), 1);
+}
+
+.clipboard-able:hover:before
+{
+  margin-right: 0;
+  opacity: 0.9;
+}

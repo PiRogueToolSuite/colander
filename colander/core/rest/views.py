@@ -41,6 +41,10 @@ from colander.core.models import (
 from colander.core.pirogue import (
     get_configuration,
     get_packages_info,
+    list_user_accesses,
+    get_permission_list,
+    create_user_access, get_user_access, delete_user_access, reset_user_access_token,
+    set_user_access_permissions,
 )
 from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer, \
     FeedTemplateSerializer, \
@@ -370,6 +374,53 @@ class PiRogueViewSet(GenericViewSet):
     def packages_info(self, request, pk=None):
         pirogue_credentials = self.get_object()
         response = get_packages_info(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'],
+            url_path='access')
+    def list_user_accesses(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        response = list_user_accesses(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'],
+            url_path='access/create')
+    def create_user_access(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        response = create_user_access(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'],
+            url_path='access/permissions')
+    def access_permission_list(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        response = get_permission_list(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET', 'DELETE'],
+            url_path=r'access/(?P<user_access_idx>\d+)')
+    def access_user_access_get_or_delete(self, request, pk=None, user_access_idx=None):
+        pirogue_credentials = self.get_object()
+        response = dict()
+        if request.method == 'DELETE':
+            response = delete_user_access(pirogue_credentials.id, user_access_idx)
+        else:
+            response = get_user_access(pirogue_credentials.id, user_access_idx)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'],
+            url_path=r'access/(?P<user_access_idx>\d+)/reset-token')
+    def access_user_access_reset_token(self, request, pk=None, user_access_idx=None):
+        pirogue_credentials = self.get_object()
+        response = reset_user_access_token(pirogue_credentials.id, user_access_idx)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['POST'],
+            url_path=r'access/(?P<user_access_idx>\d+)/set-permissions')
+    def access_user_access_set_permissions(self, request, pk=None, user_access_idx=None):
+        pirogue_credentials = self.get_object()
+        permission_changes = request.data
+        response = set_user_access_permissions(pirogue_credentials.id, user_access_idx, permission_changes)
         return JsonResponse(response, safe=False)
 
 

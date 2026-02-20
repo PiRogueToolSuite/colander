@@ -78,9 +78,13 @@ from colander.core.views.export_feeds_views import (
     feed_template_live_editor_view, CustomExportFeedCreateView, CustomExportFeedUpdateView,
     delete_custom_export_feed_view, custom_export_feed_view,
 )
-from colander.core.views.pirogue_creadentials_views import PiRogueCredentialsCreateView, \
-    PiRogueCredentialsDetailsView, PiRogueCredentialsUpdateView, pirogue_credentials_delete_view, \
+from colander.core.views.pirogue_credentials_views import (
+    PiRogueCredentialsCreateView,
+    PiRogueCredentialsDetailsView,
+    PiRogueCredentialsUpdateView,
+    pirogue_credentials_delete_view,
     pirogue_credentials_check_status_view
+)
 from colander.core.views.relation_views import create_or_edit_entity_relation_view, delete_relation_view
 from colander.core.views.status_views import colander_status_view
 from colander.core.views.subgraphs_views import SubGraphCreateView, delete_subgraph_view, \

@@ -9,6 +9,7 @@ from hashlib import sha256
 from io import StringIO
 from secrets import token_urlsafe
 from tempfile import TemporaryDirectory
+from datetime import datetime, timedelta
 
 import django
 from colander_data_converter.base.models import ColanderFeed
@@ -22,7 +23,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField
 from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.db import models, IntegrityError
-from django.db.models import F, Q, JSONField
+from django.db.models import F, Q, JSONField, QuerySet
 from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -2462,7 +2463,7 @@ class DeviceMonitoring(models.Model):
         editable=False,
     )
     description = models.TextField(
-        help_text=_('Add more details about this object.'),
+        help_text=_('Add more details.'),
         null=True,
         blank=True
     )
@@ -2527,18 +2528,73 @@ class DeviceMonitoring(models.Model):
         ],
     )
 
+    def has_expired(self) -> bool:
+        """
+        Determines if the monitoring schedule has expired based on its start time and duration.
+
+        The method calculates if the current time exceeds the expiration time, defined as the
+        start time plus the monitoring duration in days.
+
+        Returns:
+            bool: True if the monitoring schedule has expired, otherwise False.
+        """
+        return datetime.now() > self.started_at + timedelta(days=self.duration)
+
+    def get_network_dpi(self) -> QuerySet['NetworkDPI']:
+        return NetworkDPI.objects.filter(device=self.device)
+
+    def get_network_alerts(self) -> QuerySet['NetworkAlert']:
+        return NetworkAlert.objects.filter(device=self.device)
+
 
 class NetworkDPI(models.Model):
+    """
+    Represents the Network DPI (Deep Packet Inspection) data with associated metadata.
+
+    This model provides a comprehensive structure for storing and managing details
+    about the traffic-related events in a network. It captures various metrics such
+    as the bytes transferred, packet counts, protocols, IPs, ports, and application
+    details, which are useful for network analysis, monitoring, and triggering alerts.
+
+    This model corresponds to the model used in Mongoose (https://pts-project.org/mongoose/).
+
+    Attributes:
+        id: The unique identifier for the Network DPI entry.
+        device: A foreign key referencing the associated device where the event was recorded.
+        time: The timestamp of when the DPI entry was generated.
+        timestamp: A UNIX timestamp indicating the precise time of the event.
+        community_id: A unique identifier representing the community ID of the network event, used for fast lookups.
+        community_id_b64: The Base64-encoded version of the community ID.
+        risk: The risk level of the event. Possible values are: 0 for normal, 1 for suspicious, and 2 for critical.
+        bidirectional_duration_ms: The duration of the bidirectional connection in milliseconds.
+        bidirectional_bytes: The total number of bytes transferred bidirectionally.
+        bidirectional_packets: The total number of packets transferred bidirectionally.
+        protocol: The name of the protocol used in the connection. Defaults to 'unknown'.
+        protocol_number: The numeric representation of the protocol used.
+        ip_version: The IP version. Defaults to 4 (IPv4).
+        src_ip: The source IP address involved in the connection.
+        src_mac: The source MAC address involved in the connection.
+        src_port: The source port number used.
+        dst_ip: The destination IP address involved in the connection.
+        dst_mac: The destination MAC address involved in the connection.
+        dst_port: The destination port number used.
+        dst2src_bytes: The number of bytes transferred from the destination to the source.
+        src2dst_bytes: The number of bytes transferred from the source to the destination.
+        application_name: The name of the application associated with the traffic. Defaults to 'unknown'.
+        application_category_name: The category of the application associated with the traffic. Defaults to 'unknown'.
+        requested_server_name: The name of the server being requested. Defaults to 'unknown'.
+        client_fingerprint: The fingerprint of the client involved in the transaction. Defaults to 'unknown'.
+        server_fingerprint: The fingerprint of the server involved in the transaction. Defaults to 'unknown'.
+        enrichment: A JSON field containing any additional enrichment data for the event.
+        extra: A JSON field for storing any additional metadata or custom information.
+    """
     class Meta:
         verbose_name = 'Network DPI'
         verbose_name_plural = 'Network DPI'
+        ordering = ['-time']
 
     id = models.CharField(max_length=255, editable=False, primary_key=True)
-    device = models.ForeignKey(
-        Device,
-        on_delete=models.CASCADE,
-        editable=False,
-    )
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, editable=False,)
     time = models.DateTimeField(editable=False, )
     timestamp = models.FloatField(editable=False, )
     community_id = models.CharField(editable=False, max_length=255, db_index=True)
@@ -2566,18 +2622,65 @@ class NetworkDPI(models.Model):
     enrichment = JSONField(default=dict)
     extra = JSONField(default=dict)
 
+    def get_alerts(self) -> QuerySet['NetworkAlert']:
+        """
+        Fetches network alerts associated with the specific device and community ID.
+
+        Returns:
+            QuerySet: A Django QuerySet containing NetworkAlert objects filtered
+            by the device and community_id attributes. This QuerySet represents
+            the network alerts relevant to the given device and community ID.
+        """
+        return NetworkAlert.objects.filter(
+            community_id=self.community_id,
+            device=self.device,
+        )
+
 
 class NetworkAlert(models.Model):
+    """
+    Represents a network alert generated from network activity.
+
+    This model serves as an abstraction of a network alert triggered by monitoring network
+    traffic. It contains detailed information about the source, destination, protocol,
+    and metadata related to the alert itself, allowing for detailed tracking and analysis
+    of network activity based on Suricata detection.
+
+    This model corresponds to the model used in Mongoose (https://pts-project.org/mongoose/).
+
+    Attributes:
+        id: Unique identifier for the alert.
+        device: Device associated with the alert.
+        time: The timestamp when the alert occurred.
+        timestamp: A floating-point representation of the alert's time.
+        community_id: An identifier used for correlating network flows across systems.
+        community_id_b64: Base64-encoded representation of the community ID.
+        flow_id: Identifier for the specific network flow that triggered the alert.
+        src_ip: Source IP address of the network traffic.
+        src_port: Source port of the network traffic.
+        dst_ip: Destination IP address of the network traffic.
+        dst_port: Destination port of the network traffic.
+        protocol: Protocol used in the network connection (e.g., TCP, UDP).
+        app_proto: High-level application protocol (e.g., HTTP, DNS) associated with the traffic.
+        rule: The alerting rule or signature content in text format.
+        category: Describes the rule category or classification of the alert.
+        signature: A detailed signature name or identifier associated with the alert.
+        severity: Integer describing the severity of the alert (e.g., 1 for critical severity, 5 for low severity).
+        action: Specifies the action taken in response to the alert (e.g., "allowed", "blocked").
+        signature_id: An integer uniquely identifying the rule or signature.
+        gid: Group identifier of the alert.
+        rev: Revision number of the alert's rule or signature.
+        enrichment: A JSON field containing additional automatically added metadata about the alert.
+        extra: A JSON field containing any other additional or custom information added manually
+        or dynamically to the alert.
+    """
     class Meta:
         verbose_name = 'Network alert'
         verbose_name_plural = 'Network alerts'
+        ordering = ['-time']
 
     id = models.CharField(max_length=255, editable=False, primary_key=True)
-    device = models.ForeignKey(
-        Device,
-        on_delete=models.CASCADE,
-        editable=False,
-    )
+    device = models.ForeignKey(Device, on_delete=models.CASCADE, editable=False,)
     time = models.DateTimeField(editable=False, )
     timestamp = models.FloatField(editable=False, )
     community_id = models.CharField(editable=False, max_length=255, db_index=True)

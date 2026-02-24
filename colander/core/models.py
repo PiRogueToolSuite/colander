@@ -2470,6 +2470,28 @@ class PiRogueStatus(models.Model):
     )
 
 
+class PiRogueUserAccessSharing(models.Model):
+    class Meta:
+        verbose_name = 'PiRogue UserAccess sharing'
+        unique_together = ('pirogue_credentials', 'user_access_index', 'team')
+
+    pirogue_credentials = models.ForeignKey(
+        PiRogueCredentials,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+
+    user_access_index = models.IntegerField()
+
+    team = models.ForeignKey(
+        ColanderTeam,
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
+
+
 class DeviceMonitoring(models.Model):
     STATUS_CHOICES = [
         (0, 'Not started'),

@@ -8,6 +8,8 @@ from colander.core.models import (
     SubGraph,
     FeedTemplate,
     PiRogueStatus,
+    PiRogueUserAccessSharing,
+    ColanderTeam,
 )
 from colander.core.rest.commons import CommonTypeSerializer, KeyedListSerializer
 from colander.users.models import User
@@ -108,3 +110,15 @@ class PiRogueStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = PiRogueStatus
         fields = ['reported_at', 'success', 'error', 'content']
+
+
+class PiRogueUserAccessSharingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PiRogueUserAccessSharing
+        fields = '__all__'
+
+
+class ColanderTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ColanderTeam
+        fields = ['id', 'name']

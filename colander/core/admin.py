@@ -27,6 +27,7 @@ from colander.core.models import (
     NotificationMessage,
     PiRogueCredentials,
     PiRogueStatus,
+    PiRogueUserAccessSharing,
     DeviceMonitoring,
     NetworkDPI,
     NetworkAlert,
@@ -185,6 +186,11 @@ class PiRogueStatusAdmin(admin.ModelAdmin):
     list_display = ('pirogue_credentials', 'reported_at', 'success')
     ordering = ('-reported_at',)
 admin.site.register(PiRogueStatus, PiRogueStatusAdmin)
+
+
+class PiRogueUserAccessSharingAdmin(admin.ModelAdmin):
+    list_display = ('pirogue_credentials', 'team', 'user_access_index')
+admin.site.register(PiRogueUserAccessSharing, PiRogueUserAccessSharingAdmin)
 
 
 class DeviceMonitoringAdmin(admin.ModelAdmin):

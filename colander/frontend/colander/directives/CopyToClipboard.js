@@ -36,7 +36,6 @@ const registry = new Registry();
 
 export default {
   mounted(el, binding, vnode) {
-    console.log('mounted', el, binding, vnode);
     el.classList.add('clipboard-able');
 
     let CopyToClipboardCtx = {
@@ -54,13 +53,11 @@ export default {
 
   },
   updated(el, binding, vnode, prevVnode) {
-    console.log('updated', el, binding, vnode, prevVnode);
     registry.update(el.dataset.CopyToClipboardRegistryKey, {
       value: binding.value,
     })
   },
   unmounted(el, binding, vnode) {
-    console.log('unmounted', el, binding, vnode);
     let oldCtx = registry.delete(el.dataset.CopyToClipboardRegistryKey);
     el.removeEventListener('click', oldCtx.callback);
   },

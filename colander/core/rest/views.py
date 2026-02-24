@@ -7,7 +7,7 @@ from colander_data_converter.base.models import ColanderFeed
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.db.models import QuerySet
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_cookie
@@ -19,7 +19,7 @@ from rest_framework.mixins import RetrieveModelMixin, ListModelMixin, CreateMode
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
-from rest_framework.viewsets import GenericViewSet, ViewSet
+from rest_framework.viewsets import GenericViewSet, ViewSet, ReadOnlyModelViewSet
 
 from colander.core import datasets
 from colander.core.api.serializers import DroppedFileSerializer, CaseSerializer, \
@@ -35,20 +35,40 @@ from colander.core.models import (
     Observable,
     ObservableType,
     Threat,
-    ThreatType, Device, DeviceType, Actor, ActorType, DroppedFile, ArtifactType, SubGraph,
-    FeedTemplate, PiRogueCredentials, PiRogueStatus,
+    ThreatType,
+    Device,
+    DeviceType,
+    Actor,
+    ActorType,
+    DroppedFile,
+    ArtifactType,
+    SubGraph,
+    FeedTemplate,
+    PiRogueCredentials,
+    PiRogueStatus,
+    PiRogueUserAccessSharing,
+    ColanderTeam,
 )
 from colander.core.pirogue import (
     get_configuration,
     get_packages_info,
     list_user_accesses,
     get_permission_list,
-    create_user_access, get_user_access, delete_user_access, reset_user_access_token,
+    create_user_access,
+    get_user_access,
+    delete_user_access,
+    reset_user_access_token,
     set_user_access_permissions,
 )
-from colander.core.rest.serializers import DetailedEntitySerializer, SubGraphSerializer, \
-    FeedTemplateSerializer, \
-    UserSerializer, PiRogueStatusSerializer
+from colander.core.rest.serializers import (
+    DetailedEntitySerializer,
+    SubGraphSerializer,
+    FeedTemplateSerializer,
+    UserSerializer,
+    PiRogueStatusSerializer,
+    PiRogueUserAccessSharingSerializer,
+    ColanderTeamSerializer,
+)
 
 
 class DatasetViewSet(ViewSet):
@@ -358,11 +378,8 @@ class PiRogueViewSet(GenericViewSet):
     def status(self, request, pk=None):
         pirogue_credentials = self.get_object()
         pirogue_statuses = PiRogueStatus.objects.filter(pirogue_credentials=pirogue_credentials.id).order_by('reported_at')
-        status_list = list()
-        for pirogue_status in pirogue_statuses:
-            serializer = PiRogueStatusSerializer(pirogue_status)
-            status_list.append(serializer.data)
-        return JsonResponse(status_list, safe=False)
+        serializer = PiRogueStatusSerializer(pirogue_statuses, many=True)
+        return JsonResponse(serializer.data, safe=False)
 
     @action(detail=True, methods=['GET'])
     def configuration(self, request, pk=None):
@@ -376,16 +393,29 @@ class PiRogueViewSet(GenericViewSet):
         response = get_packages_info(pirogue_credentials.id)
         return JsonResponse(response, safe=False)
 
+    @staticmethod
+    def _enrich_user_access(pirogue_credentials, user_access_dictionary):
+        sharing_list = PiRogueUserAccessSharing.objects.filter(
+            pirogue_credentials=pirogue_credentials,
+            user_access_index=user_access_dictionary['idx'])
+        serializer = PiRogueUserAccessSharingSerializer(sharing_list, many=True)
+        user_access_dictionary['sharing'] = serializer.data
+
     @action(detail=True, methods=['GET'],
             url_path='access')
-    def list_user_accesses(self, request, pk=None):
+    def user_access_list(self, request, pk=None):
         pirogue_credentials = self.get_object()
-        response = list_user_accesses(pirogue_credentials.id)
-        return JsonResponse(response, safe=False)
+        user_access_list = list_user_accesses(pirogue_credentials.id)
+        for user_access in user_access_list['content']['userAccesses']:
+            PiRogueViewSet._enrich_user_access(pirogue_credentials, user_access)
+            # sharing_list = PiRogueUserAccessSharing.objects.filter(pirogue_credentials=pirogue_credentials, user_access_index=user_access['idx'])
+            # serializer = PiRogueUserAccessSharingSerializer(sharing_list, many=True)
+            # user_access['sharing'] = serializer.data
+        return JsonResponse(user_access_list, safe=False)
 
     @action(detail=True, methods=['GET'],
             url_path='access/create')
-    def create_user_access(self, request, pk=None):
+    def user_access_create(self, request, pk=None):
         pirogue_credentials = self.get_object()
         response = create_user_access(pirogue_credentials.id)
         return JsonResponse(response, safe=False)
@@ -399,7 +429,7 @@ class PiRogueViewSet(GenericViewSet):
 
     @action(detail=True, methods=['GET', 'DELETE'],
             url_path=r'access/(?P<user_access_idx>\d+)')
-    def access_user_access_get_or_delete(self, request, pk=None, user_access_idx=None):
+    def user_access_get_or_delete(self, request, pk=None, user_access_idx=None):
         pirogue_credentials = self.get_object()
         response = dict()
         if request.method == 'DELETE':
@@ -410,18 +440,79 @@ class PiRogueViewSet(GenericViewSet):
 
     @action(detail=True, methods=['GET'],
             url_path=r'access/(?P<user_access_idx>\d+)/reset-token')
-    def access_user_access_reset_token(self, request, pk=None, user_access_idx=None):
+    def user_access_reset_token(self, request, pk=None, user_access_idx=None):
         pirogue_credentials = self.get_object()
         response = reset_user_access_token(pirogue_credentials.id, user_access_idx)
         return JsonResponse(response, safe=False)
 
     @action(detail=True, methods=['POST'],
             url_path=r'access/(?P<user_access_idx>\d+)/set-permissions')
-    def access_user_access_set_permissions(self, request, pk=None, user_access_idx=None):
+    def user_access_set_permissions(self, request, pk=None, user_access_idx=None):
         pirogue_credentials = self.get_object()
         permission_changes = request.data
         response = set_user_access_permissions(pirogue_credentials.id, user_access_idx, permission_changes)
         return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'],
+            url_path=r'sharing')
+    def sharing_list(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        sharing_list = PiRogueUserAccessSharing.objects.filter(pirogue_credentials=pirogue_credentials)
+        serializer = PiRogueUserAccessSharingSerializer(sharing_list, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    @action(detail=True, methods=['GET', 'PUT', 'POST'],
+            url_path=r'access/(?P<user_access_idx>\d+)/sharing')
+    def user_access_sharing_list(self, request, pk=None, user_access_idx=None):
+        if request.method == 'GET':
+            # GET list
+            pirogue_credentials = self.get_object()
+            sharing_list = PiRogueUserAccessSharing.objects.filter(pirogue_credentials=pirogue_credentials, user_access_index=user_access_idx)
+            serializer = PiRogueUserAccessSharingSerializer(sharing_list, many=True)
+            return JsonResponse(serializer.data, safe=False)
+        if request.method == 'PUT':
+            # PUT one
+            pirogue_credentials = self.get_object()
+            data = {
+                'pirogue_credentials': str(pirogue_credentials.id),
+                'user_access_index': user_access_idx,
+                'team': request.data.get('team'),
+            }
+            serializer = PiRogueUserAccessSharingSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data, safe=False, status=201)
+            return JsonResponse(serializer.errors, status=400)
+        if request.method == 'POST':
+            # POST many
+            pirogue_credentials = self.get_object()
+            datas = []
+            for dataElem in request.data:
+                data = {
+                    'pirogue_credentials': str(pirogue_credentials.id),
+                    'user_access_index': user_access_idx,
+                    'team': dataElem.get('team'),
+                }
+                datas.append(data)
+            # FIXME: We can't check serializer.is_valid() first
+            #        before deleting all previous object,
+            #        it fails on duplicates PiRogueUserAccessSharing
+            PiRogueUserAccessSharing.objects.filter(pirogue_credentials=pirogue_credentials, user_access_index=user_access_idx).delete()
+            serializer = PiRogueUserAccessSharingSerializer(data=datas, many=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse(serializer.data, safe=False, status=201)
+            return JsonResponse(serializer.errors, safe=False, status=400)
+        return HttpResponseNotAllowed(['GET', 'PUT', 'POST'])
+
+
+class ColanderTeamViewSet(ReadOnlyModelViewSet):
+    serializer_class = ColanderTeamSerializer
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ColanderTeam.get_my_teams_as_owner(self.request.user)
 
 
 def get_threatr_entity_type(entity):

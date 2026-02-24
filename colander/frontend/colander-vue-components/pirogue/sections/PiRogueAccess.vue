@@ -1,6 +1,7 @@
 <script>
 import {Button, Listbox, Panel, Message, Tree, ProgressSpinner} from "primevue";
 import SureButton from '../../utils/SureButton.vue';
+import {markRaw} from "vue";
 
 export default {
   components: {
@@ -21,23 +22,48 @@ export default {
       selectedUserAccess: null,
       permissions: null,
       permissionsNodes: [],
-      selectedKey: null,
+      selectedPermissions: null,
+      dirtyPermissions: false,
+      teams: [],
+      selectedTeams: null,
+      dirtyTeams: false,
     };
   },
-  created() {
+  async created() {
      this.$logger(this, 'PiRogueAccess');
      this.$debug('token', this.csrfToken, 'PiRogue', this.pirogueId);
+     await this.fetchTeams();
      this.fetchPermissionList();
   },
   methods: {
-    fetchUserAccesses() {
-      fetch(`/rest/pirogue/${this.pirogueId}/access`, {
+    async fetchUserAccesses() {
+      let res = await fetch(`/rest/pirogue/${this.pirogueId}/access`, {
         method: 'GET',
         headers: {
           "X-CSRFToken": this.csrfToken,
           "Content-Type": "application/json",
         },
-      }).then(this._onUserAccesses.bind(this)).catch(this._onFetchError.bind(this));
+      });
+      if (!res.ok) {
+        return this._onFetchError(res);
+      }
+      let json = await res.json();
+      await this._onUserAccesses(json);
+    },
+    async fetchTeams() {
+      let res = await fetch(`/rest/teams`, {
+        method: 'GET',
+        headers: {
+          "X-CSRFToken": this.csrfToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        return this._onFetchError(res);
+      }
+
+      this.teams = await res.json();
     },
     createUserAccess() {
       fetch(`/rest/pirogue/${this.pirogueId}/access/create`, {
@@ -91,11 +117,11 @@ export default {
 
       let permissionChanges = [];
 
-      for(let serv_perm_key in this.selectedKey) {
+      for(let serv_perm_key in this.selectedPermissions) {
         if (!serv_perm_key.includes(':')) {
           continue;
         }
-        if (this.selectedKey[serv_perm_key].checked) {
+        if (this.selectedPermissions[serv_perm_key].checked) {
           permissionChanges.push(`${serv_perm_key}`);
         }
       }
@@ -117,6 +143,24 @@ export default {
         body: JSON.stringify(permissionChanges),
       }).then(this._onSetPermissions.bind(this)).catch(this._onFetchError.bind(this));
 
+    },
+    applyTeamsChanges() {
+      let sharingCreationPayload = [];
+      for(let team of this.selectedTeams) {
+        this.$debug('selectedTeams:', team);
+        sharingCreationPayload.push({
+          team: team.id,
+        });
+      }
+      let idx = this.selectedUserAccess.idx;
+      fetch(`/rest/pirogue/${this.pirogueId}/access/${idx}/sharing/`, {
+        method: 'POST',
+        headers: {
+          "X-CSRFToken": this.csrfToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sharingCreationPayload),
+      }).then(this._onSetSharingList.bind(this, idx)).catch(this._onFetchError.bind(this));
     },
 
     _onFetchError(err) {
@@ -158,12 +202,9 @@ export default {
         this.permissionsNodes.push(serviceNode);
       }
 
-      setTimeout(this.fetchUserAccesses.bind(this), 0);
+      await this.fetchUserAccesses();
     },
-    async _onUserAccesses(res) {
-      if (!res.ok) return this._onFetchError(res);
-      let json = await res.json();
-
+    async _onUserAccesses(json) {
       if (!json.grpc_success) return;
 
       this.$debug('user accesses', json.content);
@@ -185,15 +226,15 @@ export default {
       if (!json.grpc_success) return;
 
       let newUserAccess = json.content;
-      setTimeout(this.fetchUserAccesses.bind(this), 0);
-      setTimeout(() => {
-        for(let ua of this.userAccesses) {
-          if (ua.idx === newUserAccess.idx) {
-            this.selectedUserAccess = ua;
-            break;
-          }
+
+      await this.fetchUserAccesses();
+
+      for(let ua of this.userAccesses) {
+        if (ua.idx === newUserAccess.idx) {
+          this.selectedUserAccess = ua;
+          break;
         }
-      }, 500);
+      }
     },
     async _onResetToken(res) {
       if (!res.ok) return this._onFetchError(res);
@@ -217,8 +258,7 @@ export default {
 
       this.selectedUserAccess = null;
 
-      setTimeout(this.fetchUserAccesses.bind(this), 0);
-      //this.userAccesses = json.content.userAccesses;
+      await this.fetchUserAccesses();
     },
     async _onSetPermissions(res) {
       if (!res.ok) return this._onFetchError(res);
@@ -233,6 +273,24 @@ export default {
           break;
         }
       }
+
+      this.dirtyPermissions = false;
+    },
+    async _onSetSharingList(userAccessIdx, res) {
+      this.$debug('_onSetSharingList', userAccessIdx, res);
+      if (!res.ok) return this._onFetchError(res);
+
+      let updates = await res.json();
+      this.$debug('_onSetSharingList', updates);
+
+      for(let ua of this.userAccesses) {
+        if (ua.idx === userAccessIdx) {
+          ua.sharing = updates;
+          break;
+        }
+      }
+
+      this.dirtyTeams = false;
     },
 
     /* FUNCTIONAL METHODS */
@@ -251,8 +309,17 @@ export default {
     truncate(v) {
       return v.substring(0, 30) + '...';
     },
+    onSelectedUserAccessChanged() {
+      this.updateSelectedPermissions();
+      this.updateSelectedTeams();
+    },
     updateSelectedPermissions() {
+      this.dirtyPermissions = false;
+      this.selectedPermissions = null;
+
+      // No current selection
       if (!this.selectedUserAccess) return;
+
       let permissionsSelection = {};
       let userServices = this.selectedUserAccess.permissions?.services || {};
       for(let serviceNode of this.permissionsNodes) {
@@ -275,14 +342,53 @@ export default {
           partialChecked: !allPermissionSelected && !nonePermissionSelected,
         };
       }
-      this.$debug('permissions', this.selectedKey);
-      this.selectedKey = permissionsSelection;
+      this.$debug('permissions', this.selectedPermissions);
+      this.selectedPermissions = permissionsSelection;
     },
+    updateSelectedTeams() {
+      this.dirtyTeams = false;
+      this.selectedTeams = null;
+
+      // No current selection
+      if (!this.selectedUserAccess) return;
+
+      let teamsSelection = [];
+      let sharings = this.selectedUserAccess.sharing || [];
+      for(let sharing of sharings) {
+        for(let team of this.teams) {
+          if (team.id === sharing.team) {
+            teamsSelection.push(markRaw(team));
+          }
+        }
+      }
+      this.selectedTeams = teamsSelection;
+    },
+    onPermissionsChanged() {
+      this.dirtyPermissions = true;
+
+      this.$debug('onPermissionsChanged', this.selectedPermissions);
+    },
+    onTeamsChanged() {
+      this.dirtyTeams = true;
+
+      this.$debug('onTeamsChanged', this.selectedTeams);
+    },
+    teamName(teamId) {
+      for(let team of this.teams) {
+        if (team.id === teamId) {
+          return team.name
+        }
+      };
+      return 'Unknown';
+    }
   },
   computed: {
     noCurrentSelection() {
       return this.selectedUserAccess === null;
     },
+    noTeamsChanges() {
+      return this.noCurrentSelection || (!this.dirtyTeams);
+    }
   },
 }
 </script>
@@ -294,61 +400,97 @@ export default {
     <div v-if="response.success">
       <div class="row">
         <div class="col-5">
-          <Panel class="default-height">
+          <Panel>
             <template #header>
               <h5>User access list</h5>
             </template>
-            <template #icons>
-              <Button icon="pi pi-plus" variant="outlined" size="small"
-                      aria-label="Create User Access"
-                      title="Create User Access"
-                      @click="createUserAccess" label="New" />
+            <template #footer>
+              <div class="text-end">
+                <SureButton label="Delete" icon="pi pi-trash" severity="danger" size="small" class="me-1"
+                            @confirmed="deleteUserAccess"
+                            :disabled="noCurrentSelection"/>
+                <Button icon="pi pi-plus" variant="outlined" size="small"
+                        aria-label="Create User Access"
+                        title="Create User Access"
+                        @click="createUserAccess" label="New" />
+              </div>
             </template>
             <Listbox :options="userAccesses" optionLabel="id"
                      v-model="selectedUserAccess"
-                     @update:modelValue="updateSelectedPermissions"
-                     scrollHeight="30rem" unstyled
-                     class="custom-list-box">
+                     @update:modelValue="onSelectedUserAccessChanged"
+                     scrollHeight="27rem" unstyled
+                     class="user-access-list">
               <template #option="{option}">
                 <div>
                   <span>Idx: <strong>{{option.idx}}</strong></span>
+                  <span class="ms-2">Permissions: </span>
                   <span v-if="option.permissions?.services">
-                    <span class="ms-2">Permissions: </span>
                     <span class="ms-1" v-for="(perms, service) in option.permissions.services">
                       <i :class="serviceToIcon(service)"></i>
                       <span class="ms-1">(</span><span>{{perms.permission.length}}</span><span>)</span>
                     </span>
                   </span>
+                  <span v-else class="ms-1 text-muted">None</span>
                 </div>
-                <div class="text-muted font-monospace text-truncate">{{option.token}}</div>
+                <div v-if="option.sharing?.length">
+                  <span>Teams: </span>
+                  <span v-for="sharing in option.sharing"
+                        class="badge ms-1 bg-secondary">{{teamName(sharing.team)}}</span>
+                </div>
+                <div v-else>
+                  <span>Teams: </span>
+                  <span class="ms-1 text-muted">None</span>
+                </div>
               </template>
             </Listbox>
           </Panel>
         </div>
         <div class="col-7">
           <Panel header="Token" class="secondary-panel mb-2">
+            <template #footer>
+              <div class="text-end">
+                <Button label="Regenerate token" icon="pi pi-refresh" severity="warn" size="small"
+                        @click="resetToken"
+                        :disabled="noCurrentSelection"/>
+              </div>
+            </template>
             <div class="mx-3 my-1">
               <div class="font-monospace text-truncate" v-clipboard="selectedUserAccess?.token">{{selectedUserAccess?.token || '&nbsp;'}}</div>
             </div>
           </Panel>
-          <Panel header="Permissions" class="secondary-panel default-height-permissions">
-            <Tree v-model:selectionKeys="selectedKey"
+          <Panel header="Teams" class="secondary-panel default-height-teams mb-2">
+            <template #footer>
+              <div class="text-end">
+                <Button label="Apply changes" icon="pi pi-save" size="small"
+                        @click="applyTeamsChanges"
+                        :disabled="noTeamsChanges"/>
+              </div>
+            </template>
+            <Listbox :options="teams" v-model="selectedTeams" optionLabel="name" scrollHeight="10rem"
+                     @update:modelValue="onTeamsChanged"
+                     unstyled checkmark multiple
+                     class="teams-list">
+              <template #empty>
+                No team available to share user accesses. Please create one on <a href='/collaborate/team'>team management</a> workspace.
+              </template>
+            </Listbox>
+          </Panel>
+          <Panel header="Permissions" class="secondary-panel">
+            <template #footer>
+              <div class="text-end">
+                <Button label="Apply changes" icon="pi pi-save" size="small"
+                        @click="applyPermissionsChanges"
+                        :disabled="!dirtyPermissions"/>
+              </div>
+            </template>
+            <Tree v-model:selectionKeys="selectedPermissions"
                   :value="permissionsNodes"
+                  @update:selectionKeys="onPermissionsChanged"
                   selectionMode="checkbox"
-                  scrollHeight="25rem">
+                  class="permission-tree"
+                  scrollHeight="15rem">
             </Tree>
           </Panel>
-          <div class="m-2 me-0 text-end">
-            <SureButton label="Delete" icon="pi pi-trash" severity="danger" size="small" class="me-1"
-                        @confirmed="deleteUserAccess"
-                        :disabled="noCurrentSelection"/>
-            <Button label="Regenerate token" icon="pi pi-refresh" severity="warn" size="small" class="me-1"
-                    @click="resetToken"
-                    :disabled="noCurrentSelection"/>
-            <Button label="Apply changes" icon="pi pi-save" size="small"
-                    @click="applyPermissionsChanges"
-                    :disabled="noCurrentSelection"/>
-          </div>
         </div>
       </div>
     </div>
@@ -368,26 +510,29 @@ export default {
   </div>
 </template>
 <style>
-.default-height
-{
-  min-height: 36rem;
-}
-.default-height-permissions
-{
-  min-height: calc(40rem - 10rem);
-}
 .secondary-panel
 {
   --p-panel-header-padding: 0.5rem 1.25rem;
   --p-panel-content-padding: 0rem;
   --p-tree-padding: 0rem;
+
+  --p-panel-footer-padding: 0 1.125rem 0.5rem 1.125rem;
 }
 
-.custom-list-box
+.permission-tree {
+  .p-tree-root {
+    max-height: 15rem;
+    min-height: 15rem;
+  }
+}
+
+.user-access-list
 {
   & > div
   {
     overflow: hidden auto;
+    min-height: 27rem;
+    maxèheight: 27rem;
   }
   ul
   {
@@ -396,6 +541,7 @@ export default {
   }
   li {
     padding: 0.25rem;
+    margin-bottom: 0.5rem;
     cursor: pointer;
     &[data-p-selected=true] {
       color: white;
@@ -406,6 +552,38 @@ export default {
     }
     &:hover {
       background-color: rgba(var(--bs-secondary-rgb), 0.5);
+    }
+  }
+}
+
+.teams-list
+{
+  ul {
+    list-style: none;
+    padding: 0 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  li {
+    cursor: pointer;
+    display: inline-block;
+    &[data-p-selected=true] {
+      color: white;
+      background-color: rgba(var(--bs-primary-rgb), 1);
+    }
+
+    border: dashed 1px var(--bs-secondary);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+
+    .p-icon {
+      display: none;
+    }
+
+    &[aria-selected=true] {
+      background-color: var(--bs-primary);
+      color: white;
     }
   }
 }

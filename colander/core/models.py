@@ -28,6 +28,7 @@ from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, Search
 from elasticsearch_dsl.response import Response
@@ -2455,6 +2456,7 @@ class DeviceMonitoring(models.Model):
 
     class Meta:
         verbose_name = 'Device monitoring'
+        verbose_name_plural = 'Device monitoring'
         unique_together = ('device', 'pirogue', 'peer_id')
 
     id = models.UUIDField(
@@ -2510,7 +2512,6 @@ class DeviceMonitoring(models.Model):
         on_delete=models.CASCADE,
     )
     authentication_token = models.CharField(
-        editable=False,
         default=_generate_token,
         max_length=128,
     )
@@ -2538,7 +2539,7 @@ class DeviceMonitoring(models.Model):
         Returns:
             bool: True if the monitoring schedule has expired, otherwise False.
         """
-        return datetime.now() > self.started_at + timedelta(days=self.duration)
+        return now() > self.started_at + timedelta(days=self.duration)
 
     def get_network_dpi(self) -> QuerySet['NetworkDPI']:
         return NetworkDPI.objects.filter(device=self.device)
@@ -2593,32 +2594,32 @@ class NetworkDPI(models.Model):
         verbose_name_plural = 'Network DPI'
         ordering = ['-time']
 
-    id = models.CharField(max_length=255, editable=False, primary_key=True)
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, editable=False,)
-    time = models.DateTimeField(editable=False, )
-    timestamp = models.FloatField(editable=False, )
-    community_id = models.CharField(editable=False, max_length=255, db_index=True)
-    community_id_b64 = models.CharField(editable=False, max_length=255)
-    risk = models.IntegerField(editable=False, default=0)  # 0: normal, 1: suspicious, 2: critical
-    bidirectional_duration_ms = models.IntegerField(editable=False, default=0)
-    bidirectional_bytes = models.IntegerField(editable=False, default=0)
-    bidirectional_packets = models.IntegerField(editable=False, default=0)
-    protocol = models.CharField(editable=False, max_length=255, default='unknown')
-    protocol_number = models.IntegerField(editable=False, default=0)
-    ip_version = models.IntegerField(editable=False, default=4)
-    src_ip = models.CharField(editable=False, max_length=255)
-    src_mac = models.CharField(editable=False, max_length=255)
-    src_port = models.IntegerField(editable=False, default=0)
-    dst_ip = models.CharField(editable=False, max_length=255)
-    dst_mac = models.CharField(editable=False, max_length=255)
-    dst_port = models.IntegerField(editable=False, default=0)
-    dst2src_bytes = models.IntegerField(editable=False, default=0)
-    src2dst_bytes = models.IntegerField(editable=False, default=0)
-    application_name = models.CharField(editable=False, max_length=512, default='unknown')
-    application_category_name = models.CharField(editable=False, max_length=512, default='unknown')
-    requested_server_name = models.CharField(editable=False, max_length=512, default='unknown')
-    client_fingerprint = models.CharField(editable=False, max_length=512, default='unknown')
-    server_fingerprint = models.CharField(editable=False, max_length=512, default='unknown')
+    id = models.CharField(max_length=255, primary_key=True)
+    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    timestamp = models.FloatField()
+    community_id = models.CharField(max_length=255, db_index=True)
+    community_id_b64 = models.CharField(max_length=255, blank=True, null=True)
+    risk = models.IntegerField(default=0)  # 0: normal, 1: suspicious, 2: critical
+    bidirectional_duration_ms = models.IntegerField(default=0)
+    bidirectional_bytes = models.IntegerField(default=0)
+    bidirectional_packets = models.IntegerField(default=0)
+    protocol = models.CharField(max_length=255, default='unknown', blank=True, null=True)
+    protocol_number = models.IntegerField(default=0)
+    ip_version = models.IntegerField(default=4)
+    src_ip = models.CharField(max_length=255)
+    src_mac = models.CharField(max_length=255, blank=True, null=True)
+    src_port = models.IntegerField(default=0)
+    dst_ip = models.CharField(max_length=255)
+    dst_mac = models.CharField(max_length=255, blank=True, null=True)
+    dst_port = models.IntegerField(default=0)
+    dst2src_bytes = models.IntegerField(default=0)
+    src2dst_bytes = models.IntegerField(default=0)
+    application_name = models.CharField(max_length=512, default='unknown', blank=True, null=True)
+    application_category_name = models.CharField(max_length=512, default='unknown', blank=True, null=True)
+    requested_server_name = models.CharField(max_length=512, default='unknown', blank=True, null=True)
+    client_fingerprint = models.CharField(max_length=512, default='unknown', blank=True, null=True)
+    server_fingerprint = models.CharField(max_length=512, default='unknown', blank=True, null=True)
     enrichment = JSONField(default=dict)
     extra = JSONField(default=dict)
 
@@ -2679,27 +2680,27 @@ class NetworkAlert(models.Model):
         verbose_name_plural = 'Network alerts'
         ordering = ['-time']
 
-    id = models.CharField(max_length=255, editable=False, primary_key=True)
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, editable=False,)
-    time = models.DateTimeField(editable=False, )
-    timestamp = models.FloatField(editable=False, )
-    community_id = models.CharField(editable=False, max_length=255, db_index=True)
-    community_id_b64 = models.CharField(editable=False, max_length=255)
-    flow_id = models.IntegerField(editable=False, default=0)
-    src_ip = models.CharField(editable=False, max_length=255)
-    src_port = models.IntegerField(editable=False, default=0)
-    dst_ip = models.CharField(editable=False, max_length=255)
-    dst_port = models.IntegerField(editable=False, default=0)
-    protocol = models.CharField(editable=False, max_length=255, default='unknown')
-    app_proto = models.CharField(editable=False, max_length=255, default='unknown')
+    id = models.CharField(max_length=255, primary_key=True)
+    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    timestamp = models.FloatField()
+    community_id = models.CharField(max_length=255, db_index=True)
+    community_id_b64 = models.CharField(max_length=255, blank=True, null=True)
+    flow_id = models.IntegerField(default=0)
+    src_ip = models.CharField(max_length=255)
+    src_port = models.IntegerField(default=0)
+    dst_ip = models.CharField(max_length=255)
+    dst_port = models.IntegerField(default=0)
+    protocol = models.CharField(max_length=255, default='unknown')
+    app_proto = models.CharField(max_length=255, default='unknown')
     rule = models.TextField(default='')
     category = models.TextField(default='')
     signature = models.TextField(default='')
-    severity = models.IntegerField(editable=False, default=5)
-    action = models.CharField(editable=False, max_length=255)
-    signature_id = models.IntegerField(editable=False, default=0)
-    gid = models.IntegerField(editable=False, default=0)
-    rev = models.IntegerField(editable=False, default=0)
+    severity = models.IntegerField(default=5)
+    action = models.CharField(max_length=255)
+    signature_id = models.IntegerField(default=0)
+    gid = models.IntegerField(default=0)
+    rev = models.IntegerField(default=0)
     enrichment = JSONField(default=dict)
     extra = JSONField(default=dict)
 

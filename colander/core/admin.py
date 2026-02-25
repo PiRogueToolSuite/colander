@@ -26,7 +26,7 @@ from colander.core.models import (
     UploadRequest,
     NotificationMessage,
     PiRogueCredentials,
-    PiRogueStatus, DeviceMonitoring,
+    PiRogueStatus, DeviceMonitoring, NetworkDPI, NetworkAlert,
 )
 
 
@@ -182,3 +182,15 @@ class DeviceMonitoringAdmin(admin.ModelAdmin):
     list_display = ('pirogue', 'device', 'status')
     ordering = ('-started_at',)
 admin.site.register(DeviceMonitoring, DeviceMonitoringAdmin)
+
+
+class NetworkDPIAdmin(admin.ModelAdmin):
+    list_display = ('src_ip', 'dst_ip', 'device')
+    ordering = ('-time',)
+admin.site.register(NetworkDPI, NetworkDPIAdmin)
+
+
+class NetworkAlertAdmin(admin.ModelAdmin):
+    list_display = ('src_ip', 'dst_ip', 'device')
+    ordering = ('-time',)
+admin.site.register(NetworkAlert, NetworkAlertAdmin)

@@ -1,3 +1,5 @@
+import json
+
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
 from rest_framework import mixins, status
@@ -5,8 +7,12 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from colander.core.api.security import BearerTokenAuthentication
 
+from colander.core.api.security import (
+    BearerTokenAuthentication,
+    DeviceMonitoringWebhookAuthentication,
+    CanSendToWebhook,
+)
 from colander.core.api.serializers import (
     ArtifactSerializer,
     ArtifactTypeSerializer,
@@ -23,16 +29,15 @@ from colander.core.api.serializers import (
 from colander.core.models import (
     Artifact,
     ArtifactType,
-    ColanderTeam,
     Device,
     DeviceType,
-    DroppedFile,
     EntityRelation,
     Observable,
     ObservableType,
     PiRogueExperiment,
-    UploadRequest,
+    UploadRequest, DeviceMonitoring,
 )
+from colander.core.serializers.device_monitoring_serializers import NetworkEventSerializer
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
 from colander.websocket.consumers import CaseContextConsumer
 
@@ -273,6 +278,111 @@ class ApiTeamViewSet(mixins.RetrieveModelMixin,
             teams = teams.filter(name__icontains=name)
 
         return teams
+
+
+class ApiRootActionsForbiddenViewSet(GenericViewSet):
+    def list(self, request):
+        return JsonResponse({}, status=400)
+
+    def create(self, request):
+        return JsonResponse({}, status=400)
+
+    def retrieve(self, request, pk=None):
+        return JsonResponse({}, status=400)
+
+    def update(self, request, pk=None):
+        return JsonResponse({}, status=400)
+
+    def partial_update(self, request, pk=None):
+        return JsonResponse({}, status=400)
+
+    def destroy(self, request, pk=None):
+        return JsonResponse({}, status=400)
+
+
+class ApiWebhookViewSet(ApiRootActionsForbiddenViewSet):
+    """
+    Manages webhook endpoints.
+
+    This class extends the functionality of `ApiRootActionsForbiddenViewSet` to prevent
+    root actions (get, list, create, update, partial_update, destroy).
+
+    URLs:
+        - /api/webhook/<pk>/device_monitoring/
+    """
+    authentication_classes = [TokenAuthentication, SessionAuthentication, DeviceMonitoringWebhookAuthentication]
+
+    def get_permissions(self):
+        actions = {
+            'device_monitoring': CanSendToWebhook(DeviceMonitoring),
+        }
+        return [actions.get(self.action, None)]
+
+    @staticmethod
+    def import_network_events(device: Device, raw_data):
+        if not device or not raw_data or not isinstance(raw_data, list):
+            return
+
+        for data in raw_data:
+            serializer_class = NetworkEventSerializer.get_serializer_from_data(data)
+            if not serializer_class:
+                return
+            data['device'] = device
+            serializer = serializer_class(data=data, context={'device': device})
+            if serializer.is_valid():
+                serializer.save()
+
+    @action(methods=['post'], detail=True)
+    def device_monitoring(self, request, pk=None):
+        """Handle incoming webhook requests for device monitoring.
+            This view processes network events sent to the device monitoring webhook endpoint.
+            It validates the request authentication, checks if monitoring is active, and imports
+            the network events data.
+
+            Args:
+                request: The HTTP request object containing the webhook payload.
+                pk: The primary key of the :class:`~colander.core.models.DeviceMonitoring` instance.
+
+            Returns:
+                An :class:`~django.http.JsonResponse` with status 200 and empty content.
+                Returns 200 for all cases (success, failure, unauthorized) to prevent
+                information disclosure to potential attackers.
+
+            Note:
+                Authentication is verified either through Django's user authentication
+                or via the X-Colander-Webhook header with the monitoring's authentication token.
+            """
+        # Retrieve the monitoring instance
+        try:
+            monitoring = DeviceMonitoring.objects.get(id=pk)
+        except DeviceMonitoring.DoesNotExist:
+            return JsonResponse({}, status=400)
+
+        # Check if the monitoring period has expired
+        if monitoring.has_expired():
+            return JsonResponse({}, status=400)
+
+        # Verify authentication via user session or webhook token
+        is_authenticated = request.user.is_authenticated
+        is_authenticated |= request.headers.get('X-Colander-Webhook', '') == f'Secret {monitoring.authentication_token}'
+
+        # Reject unauthenticated requests without revealing the reason
+        if not is_authenticated:
+            return JsonResponse({}, status=400)
+
+        # Parse the JSON payload, returning success on invalid JSON to avoid information disclosure
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({}, status=200)
+
+        # Import the network events from the validated payload
+        try:
+            self.import_network_events(monitoring.device, data)
+        except (Exception,):
+            return JsonResponse({}, status=200)
+
+        return JsonResponse({'success': True}, status=200)
 
 
 class ApiDroppedFileViewSet(mixins.CreateModelMixin,

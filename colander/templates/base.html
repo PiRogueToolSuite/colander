@@ -188,7 +188,7 @@
         <div class="list-group list-group-flush">
           <a class="list-group-item list-group-item-action list-group-item-light fw-bold{% if request.path == home_url %} active {% endif %}" href="{% url 'home' %}">
             <i class="nf nf-fa-home list-group-item-icon"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Dashboard</span>
+            <span class="list-group-item-label">Dashboard</span>
           </a>
           <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link case_base_view_url %}"
              href="{{ case_base_view_url }}" title="Cases">
@@ -209,13 +209,25 @@
              href="{{ collaborate_base_view_url }}">
             {% comment %}<i class="nf nf-fa-share_alt" aria-hidden="true"></i>{% endcomment %}
             <i class="nf nf-fa-handshake_o" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline list-group-item-label">Collaborate</span>
+            <span class="list-group-item-label">Collaborate</span>
           </a>
           <div class="list-group list-group-flush list-group-secondary">
             {% block collaborate-sidebar-items %}{% endblock collaborate-sidebar-items %}
           </div>
         </div>
       {% endblock root-sidebar-menu %}
+      <div class="list-group list-group-flush">
+        <div id='sidebar-toggler' class="list-group-item list-group-item-action list-group-item-light fw-bold" href="#" title="Toggle">
+          <i class="fa fa-toggle-left text-secondary"></i>
+          <span class="list-group-item-label text-muted">Minimize</span>
+        </div>
+      </div>
+      <component is="script">
+        $('#sidebar-toggler').on('click', () => {
+          $(document.body).addClass('sidebar-manually-toggled');
+          $(document.body).toggleClass('sidebar-toggled');
+        });
+      </component>
       <div class="fixed-bottom m-2 h4">
         <a href="https://pts-project.org/docs/colander/overview/"
            class="link-secondary link-offset-2 link-underline-opacity-0 link-underline-opacity-0-hover"
@@ -234,6 +246,7 @@
           <i class="nf nf-fa-github"></i>
         </a>
         <a href="https://github.com/PiRogueToolSuite/colander/commit/{{ request.GIT_COMMIT_HASH }}"
+           id="git-commit-hash"
            class="link-offset-2 link-underline-opacity-0 link-underline-opacity-0-hover"
            alt="Git commit hash"
            title="Git commit hash"

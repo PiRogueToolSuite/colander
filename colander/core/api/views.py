@@ -2,16 +2,17 @@ import json
 
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
-from rest_framework import mixins, status
+from rest_framework import mixins, status, permissions
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from colander.core.api.security import (
     BearerTokenAuthentication,
-    DeviceMonitoringWebhookAuthentication,
-    CanSendToWebhook,
+    ApiTokenAuthentication,
+    HasViewPermission,
 )
 from colander.core.api.serializers import (
     ArtifactSerializer,
@@ -299,24 +300,14 @@ class ApiRootActionsForbiddenViewSet(GenericViewSet):
     def destroy(self, request, pk=None):
         return JsonResponse({}, status=400)
 
+    @action(detail=True, methods=['post'])
+    def foo(self, request, pk=None):  # bar/<pk>/foo/
+        return JsonResponse({}, status=400)
 
-class ApiWebhookViewSet(ApiRootActionsForbiddenViewSet):
-    """
-    Manages webhook endpoints.
 
-    This class extends the functionality of `ApiRootActionsForbiddenViewSet` to prevent
-    root actions (get, list, create, update, partial_update, destroy).
-
-    URLs:
-        - /api/webhook/<pk>/device_monitoring/
-    """
-    authentication_classes = [TokenAuthentication, SessionAuthentication, DeviceMonitoringWebhookAuthentication]
-
-    def get_permissions(self):
-        actions = {
-            'device_monitoring': CanSendToWebhook(DeviceMonitoring),
-        }
-        return [actions.get(self.action, None)]
+class NetworkEventsViewSet(GenericViewSet):
+    authentication_classes = [ApiTokenAuthentication]
+    permission_classes = [HasViewPermission]
 
     @staticmethod
     def import_network_events(device: Device, raw_data):
@@ -332,42 +323,38 @@ class ApiWebhookViewSet(ApiRootActionsForbiddenViewSet):
             if serializer.is_valid():
                 serializer.save()
 
-    @action(methods=['post'], detail=True)
-    def device_monitoring(self, request, pk=None):
-        """Handle incoming webhook requests for device monitoring.
-            This view processes network events sent to the device monitoring webhook endpoint.
-            It validates the request authentication, checks if monitoring is active, and imports
-            the network events data.
+    @action(detail=False, methods=['post'], url_path=r'(?P<pk>[^/.]+)')
+    def ingest(self, request, pk=None):
+        """
+        Handle incoming webhook requests for device monitoring.
+        This view processes network events sent to the device monitoring webhook endpoint.
+        It validates the request authentication, checks if monitoring is active, and imports
+        the network events data.
 
-            Args:
-                request: The HTTP request object containing the webhook payload.
-                pk: The primary key of the :class:`~colander.core.models.DeviceMonitoring` instance.
+        Args:
+            request: The HTTP request object containing the webhook payload.
+            pk: The primary key of the :class:`~colander.core.models.DeviceMonitoring` instance.
 
-            Returns:
-                An :class:`~django.http.JsonResponse` with status 200 and empty content.
-                Returns 200 for all cases (success, failure, unauthorized) to prevent
-                information disclosure to potential attackers.
+        Returns:
+            An :class:`~django.http.JsonResponse` with status 200 and empty content.
+            Returns 200 for all cases (success, failure, unauthorized) to prevent
+            information disclosure to potential attackers.
 
-            Note:
-                Authentication is verified either through Django's user authentication
-                or via the X-Colander-Webhook header with the monitoring's authentication token.
-            """
+        Note:
+            Authentication is verified either through Django's user authentication
+            or via the X-Authentication header with the monitoring's authentication token.
+        """
         # Retrieve the monitoring instance
         try:
             monitoring = DeviceMonitoring.objects.get(id=pk)
         except DeviceMonitoring.DoesNotExist:
             return JsonResponse({}, status=400)
 
-        # Check if the monitoring period has expired
-        if monitoring.has_expired():
+        if request.api_token != monitoring.api_token:
             return JsonResponse({}, status=400)
 
-        # Verify authentication via user session or webhook token
-        is_authenticated = request.user.is_authenticated
-        is_authenticated |= request.headers.get('X-Colander-Webhook', '') == f'Secret {monitoring.authentication_token}'
-
-        # Reject unauthenticated requests without revealing the reason
-        if not is_authenticated:
+        # Check if the monitoring period has expired
+        if monitoring.has_expired():
             return JsonResponse({}, status=400)
 
         # Parse the JSON payload, returning success on invalid JSON to avoid information disclosure

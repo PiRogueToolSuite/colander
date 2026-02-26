@@ -9,7 +9,7 @@ from hashlib import sha256
 from io import StringIO
 from secrets import token_urlsafe
 from tempfile import TemporaryDirectory
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import django
 from colander_data_converter.base.models import ColanderFeed
@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa, utils
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import HStoreField
+from django.contrib.postgres.fields import HStoreField, ArrayField
 from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField, QuerySet
@@ -33,7 +33,6 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl import Date, Document, Index, Keyword, Object, Text, Boolean, Search
 from elasticsearch_dsl.response import Response
 from requests.structures import CaseInsensitiveDict
-
 
 logger = logging.getLogger(__name__)
 
@@ -184,8 +183,33 @@ def _random_id(length=16):
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 
-def _generate_token():
-    return token_urlsafe(64)
+def _generate_token(length=64):
+    return token_urlsafe(length)
+
+
+class ApiToken(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='api_tokens',
+    )
+    token = models.CharField(
+        default=_generate_token,
+        max_length=128,
+    )
+    views = ArrayField(
+        models.CharField(max_length=128, blank=True),
+        default=list,
+    )  # must contain a list of basename.action (e.g. network_events.ingest)
 
 
 class CommonModelType(models.Model):
@@ -2511,9 +2535,11 @@ class DeviceMonitoring(models.Model):
         PiRogueCredentials,
         on_delete=models.CASCADE,
     )
-    authentication_token = models.CharField(
-        default=_generate_token,
-        max_length=128,
+    api_token = models.ForeignKey(
+        ApiToken,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     status = models.IntegerField(
         editable=False,
@@ -2546,6 +2572,17 @@ class DeviceMonitoring(models.Model):
 
     def get_network_alerts(self) -> QuerySet['NetworkAlert']:
         return NetworkAlert.objects.filter(device=self.device)
+
+
+@receiver(post_save, sender=DeviceMonitoring, dispatch_uid='create_device_monitoring')
+def create_device_monitoring(sender, instance: DeviceMonitoring, created, **kwargs):
+    if created:
+        token = ApiToken.objects.create(
+            owner=instance.owner,
+            views=['network_events.ingest']
+        )
+        instance.api_token = token
+        instance.save()
 
 
 class NetworkDPI(models.Model):

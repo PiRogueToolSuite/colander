@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.urls import path
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from colander.core.api.views import (
@@ -13,7 +14,8 @@ from colander.core.api.views import (
     ApiPiRogueExperimentViewSet,
     ApiRelationViewSet,
     ApiTeamViewSet,
-    ApiUploadRequestViewSet, ApiWebhookViewSet,
+    ApiUploadRequestViewSet,
+    NetworkEventsViewSet,
 )
 
 if settings.DEBUG:
@@ -35,7 +37,7 @@ router.register("observable_types", ApiObservableTypeViewSet, basename='observab
 router.register("pirogue_experiments", ApiPiRogueExperimentViewSet, basename='pirogue_experiments')
 router.register("relations", ApiRelationViewSet, basename='relations')
 router.register("teams", ApiTeamViewSet, basename='teams')
-router.register("webhook", ApiWebhookViewSet, basename='device_monitoring')
+router.register("network_events", NetworkEventsViewSet, basename='network_events')
 
 app_name = "api"
 urlpatterns = router.urls

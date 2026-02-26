@@ -1,8 +1,10 @@
+from typing import Optional
+
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import BasePermission
 
-from colander.core.models import DeviceMonitoring
+from colander.core.models import ApiToken
 
 
 class BearerTokenAuthentication(TokenAuthentication):
@@ -12,44 +14,44 @@ class BearerTokenAuthentication(TokenAuthentication):
     """
 
 
-def get_webhook_token(keyword, header):
-    if not header or not header.startswith(f'{keyword} '):
-        return None
-
-    try:
-        token = header.strip().split(' ')[1]
-    except (Exception,):
-        return None
-    return token
-
-
-def get_webhook_object_from_auth_header(request, model_class):
-    if not hasattr(model_class, 'authentication_token'):
-        return None
-
+class ApiTokenAuthentication(BaseAuthentication):
     keyword = 'Secret'
-    header = request.META.get('HTTP_X_COLANDER_WEBHOOK')
-    token = get_webhook_token(keyword, header)
+    header_name = 'HTTP_X_AUTHENTICATION'  # X-Authentication
 
-    try:
-        obj = model_class.objects.get(authentication_token=token)
-    except model_class.DoesNotExist:
-        return None
-    return obj
+    @classmethod
+    def get_token_value_from_header(cls, request):
+        header = request.META.get(cls.header_name)
+        if not header or not header.startswith(f'{cls.keyword} '):
+            return None
+        try:
+            token = header.strip().split(' ')[1]
+        except (Exception,):
+            return None
+        return token
 
+    @classmethod
+    def get_token(cls, request) -> Optional[ApiToken]:
+        token = cls.get_token_value_from_header(request)
+        try:
+            api_token = ApiToken.objects.get(token=token)
+        except ApiToken.DoesNotExist:
+            return None
+        return api_token
 
-class CanSendToWebhook(BasePermission):
-    def __init__(self, model_class):
-        self.model_class = model_class
-        super().__init__()
-
-    def has_permission(self, request, view):
-        return get_webhook_object_from_auth_header(request, self.model_class) is not None
-
-
-class DeviceMonitoringWebhookAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        obj = get_webhook_object_from_auth_header(request, DeviceMonitoring)
-        if not obj or not hasattr(obj, 'owner'):
+        token = self.get_token(request)
+        if not token:
             raise AuthenticationFailed()
-        return obj.owner, None
+        return token.owner, token
+
+
+class HasViewPermission(BasePermission):
+    def has_permission(self, request, view):
+        view_name = f'{view.basename}.{view.action}'
+        api_token = ApiTokenAuthentication.get_token(request)
+        if not api_token:
+            return False
+        if view_name not in api_token.views:
+            return False
+        request.api_token = api_token
+        return True

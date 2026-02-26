@@ -26,8 +26,17 @@ from colander.core.models import (
     UploadRequest,
     NotificationMessage,
     PiRogueCredentials,
-    PiRogueStatus, DeviceMonitoring, NetworkDPI, NetworkAlert,
+    PiRogueStatus,
+    DeviceMonitoring,
+    NetworkDPI,
+    NetworkAlert,
+    ApiToken,
 )
+
+
+class ApiTokenAdmin(admin.ModelAdmin):
+    list_display = ('token', 'owner')
+admin.site.register(ApiToken, ApiTokenAdmin)
 
 
 class ColanderTeamAdmin(admin.ModelAdmin):

@@ -13,6 +13,7 @@ from colander.core.archives.endpoints import archives_create_entity_view, \
     archives_remap_entity_view, archives_attach_entity_view, case_archive_request_view, \
     archive_takeout_view
 from colander.core.graph.views import case_graph, case_subgraph
+from colander.core.views import device_monitoring_views
 from colander.core.views.actor_views import ActorCreateView, ActorDetailsView, ActorUpdateView, delete_actor_view
 from colander.core.views.artifact_views import (
     ArtifactCreateView,
@@ -42,6 +43,11 @@ from colander.core.views.detection_rule_views import (
     DetectionRuleDetailsView,
     DetectionRuleUpdateView,
     delete_detection_rule_view,
+)
+from colander.core.views.device_monitoring_views import (
+    DeviceMonitoringCreateView,
+    DeviceMonitoringUpdateView,
+    DeviceMonitoringDetailsView, device_monitoring_delete_view,
 )
 from colander.core.views.device_views import DeviceCreateView, DeviceDetailsView, DeviceUpdateView, delete_device_view
 from colander.core.views.documentation_views import write_documentation_view
@@ -169,6 +175,12 @@ case_contextualized_url_patterns = [
     path("collect/experiment/<slug:pk>/detect", start_detection, name="collect_experiment_detection_view"),
     path("collect/experiment/<slug:pk>/analysis_report", PiRogueExperimentAnalysisReportView.as_view(), name="collect_experiment_analysis_report_view"),
     path("collect/experiment/<slug:pk>/save_decoded", save_decoded_content_view, name="collect_experiment_save_decoded_content_view"),
+
+    path("device_monitoring", device_monitoring_views.landing_view, name="device_monitoring_view"),
+    path("device_monitoring/create", DeviceMonitoringCreateView.as_view(), name="device_monitoring_create_view"),
+    path("device_monitoring/<slug:pk>", DeviceMonitoringDetailsView.as_view(), name="device_monitoring_details_view"),
+    path("device_monitoring/<slug:pk>/edit", DeviceMonitoringUpdateView.as_view(), name="device_monitoring_update_view"),
+    path("device_monitoring/<slug:pk>/delete", device_monitoring_delete_view, name="device_monitoring_delete_view"),
 
     path("graph", graph_base_view, name="graph_base_view"),
     path("graph/subgraphs", SubGraphCreateView.as_view(), name="subgraph_create_view"),

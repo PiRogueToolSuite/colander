@@ -60,7 +60,7 @@ class PiRogueCredentialsCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['credentials'] = PiRogueCredentials.objects.all()
+        ctx['credentials'] = PiRogueCredentials.owned_or_shared_for_user(self.request.user)
         ctx['is_editing'] = False
         return ctx
 

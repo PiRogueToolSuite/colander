@@ -2423,9 +2423,25 @@ class PiRogueCredentials(models.Model):
         blank=True,
     )
 
+    @staticmethod
+    def owned_or_shared_for_user(user):
+        my_teams = ColanderTeam.get_my_teams(user)
+        qs_result = PiRogueCredentials.objects.filter(
+            Q(owner=user) |
+            Q(pk__in=PiRogueUserAccessSharing.objects.filter(team__in=my_teams).values_list('pirogue_credentials'))
+        )
+
+        return qs_result
+
     @property
     def last_status(self):
         return PiRogueStatus.objects.filter(pirogue_credentials=self).order_by('reported_at').last()
+
+    def __str__(self):
+        if self.friendly_name:
+            return f'{self.friendly_name}'
+        else:
+            return f'{self.host}:{self.port}'
 
 
 class PiRogueStatus(models.Model):

@@ -7,6 +7,7 @@
 {% block root-sidebar-menu %}
   {% url 'case_workspace_view' case_id=contextual_case.id as case_ws_url %}
   {% url 'collect_quick_creation_view' case_id=contextual_case.id as collect_quick_creation_view_url %}
+  {% url 'device_monitoring_view' case_id=contextual_case.id as device_monitoring_view_url %}
   {% url 'graph_base_view' case_id=contextual_case.id as graph_base_view_url %}
   {% url 'investigate_base_view' case_id=contextual_case.id as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}
@@ -29,6 +30,15 @@
     </a>
     <div class="list-group list-group-flush list-group-secondary">
       {% block collect-sidebar-items %}{% endblock collect-sidebar-items %}
+    </div>
+
+    <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link device_monitoring_view_url %}"
+       href="{{ device_monitoring_view_url }}">
+      <i class="fa fa-stethoscope" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline list-group-item-label">Device Monitoring</span>
+    </a>
+    <div class="list-group list-group-flush list-group-secondary">
+      {% block device-monitoring-sidebar-items %}{% endblock device-monitoring-sidebar-items %}
     </div>
 
     <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link graph_base_view_url %}"

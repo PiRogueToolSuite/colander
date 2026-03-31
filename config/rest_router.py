@@ -8,6 +8,7 @@ from colander.core.rest.views import (
     CaseViewSet,
     ColanderTeamViewSet,
     DatasetViewSet,
+    DeviceMonitoringViewSet,
     DroppedFileViewSet,
     EntityRelationViewSet,
     EntityViewSet,
@@ -28,6 +29,7 @@ else:
 router.register('artifact_types', ArtifactTypeViewSet, basename='artifact_types')
 router.register("cases", CaseViewSet, basename="cases")
 router.register("dataset", DatasetViewSet, basename="dataset")
+router.register("device_monitoring", DeviceMonitoringViewSet, basename="device_monitoring")
 router.register("drops", DroppedFileViewSet, basename="drops")
 router.register("entity", EntityViewSet, basename="entity")
 router.register("user", UserViewSet, basename="user")

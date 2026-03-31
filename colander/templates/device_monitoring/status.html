@@ -1,0 +1,12 @@
+{% if device_monitoring.status == 0 %}
+  <span><i class="nf nf-fa-pause"></i> Not started</span>
+{% endif %}
+{% if device_monitoring.status == 1 %}
+  <span class="text-success"><i class="nf nf-fa-play"></i> Started</span>
+{% endif %}
+{% if device_monitoring.status == 2 %}
+  <span><i class="nf nf-fa-stop"></i> Finished</span>
+{% endif %}
+{% if device_monitoring.status == 3 %}
+  <span class="text-warning"><i class="nf nf-fa-warning"></i> Failed</span>
+{% endif %}

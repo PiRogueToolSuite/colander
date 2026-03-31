@@ -194,18 +194,18 @@ admin.site.register(PiRogueUserAccessSharing, PiRogueUserAccessSharingAdmin)
 
 
 class DeviceMonitoringAdmin(admin.ModelAdmin):
-    list_display = ('pirogue', 'device', 'status')
+    list_display = ('pirogue', 'device', 'status', 'started_at', 'duration', 'ended_at')
     ordering = ('-started_at',)
 admin.site.register(DeviceMonitoring, DeviceMonitoringAdmin)
 
 
 class NetworkDPIAdmin(admin.ModelAdmin):
-    list_display = ('src_ip', 'dst_ip', 'device')
+    list_display = ('src_ip', 'dst_ip', 'device_monitoring')
     ordering = ('-time',)
 admin.site.register(NetworkDPI, NetworkDPIAdmin)
 
 
 class NetworkAlertAdmin(admin.ModelAdmin):
-    list_display = ('src_ip', 'dst_ip', 'device')
+    list_display = ('src_ip', 'dst_ip', 'device_monitoring')
     ordering = ('-time',)
 admin.site.register(NetworkAlert, NetworkAlertAdmin)

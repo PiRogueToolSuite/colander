@@ -909,3 +909,8 @@ a.disabled
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+.flow-details-drawer {
+  min-width: 40rem;
+  background: rgb(233, 233, 233) !important;
+}

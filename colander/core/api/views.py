@@ -310,18 +310,20 @@ class NetworkEventsViewSet(GenericViewSet):
     permission_classes = [HasViewPermission]
 
     @staticmethod
-    def import_network_events(device: Device, raw_data):
-        if not device or not raw_data or not isinstance(raw_data, list):
+    def import_network_events(device_monitoring: DeviceMonitoring, raw_data):
+        if not device_monitoring or not raw_data or not isinstance(raw_data, list):
             return
 
         for data in raw_data:
             serializer_class = NetworkEventSerializer.get_serializer_from_data(data)
             if not serializer_class:
                 return
-            data['device'] = device
-            serializer = serializer_class(data=data, context={'device': device})
+            data['device_monitoring'] = str(device_monitoring.id)
+            serializer = serializer_class(data=data, context={'device_monitoring': device_monitoring})
             if serializer.is_valid():
                 serializer.save()
+            else:
+                print('not valid', serializer.errors)
 
     @action(detail=False, methods=['post'], url_path=r'(?P<pk>[^/.]+)')
     def ingest(self, request, pk=None):
@@ -365,7 +367,7 @@ class NetworkEventsViewSet(GenericViewSet):
 
         # Import the network events from the validated payload
         try:
-            self.import_network_events(monitoring.device, data)
+            self.import_network_events(monitoring, data)
         except (Exception,):
             return JsonResponse({}, status=200)
 

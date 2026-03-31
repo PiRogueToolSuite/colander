@@ -6,17 +6,19 @@ import {
 } from 'primevue';
 
 import PiRogueNoSection from './sections/PiRogueNoSection.vue';
-import PiRogueStatus from './sections/PiRogueStatus.vue';
+import PiRogueAccess from './sections/PiRogueAccess.vue';
 import PiRogueConfigurationRead from './sections/PiRogueConfigurationRead.vue';
 import PiRoguePackagesInfo from './sections/PiRoguePackagesInfo.vue';
-import PiRogueAccess from './sections/PiRogueAccess.vue';
+import PiRogueStatus from './sections/PiRogueStatus.vue';
+import PiRogueSuricata from './sections/PiRogueSuricata.vue';
+import PiRogueVPN from './sections/PiRogueVPN.vue';
 
 export default {
   components: {
     Menu, Panel,
     PiRogueNoSection, PiRogueStatus,
   },
-  props: [ 'dataCsrfToken', 'dataPirogueCredentialsId' ],
+  props: [ 'dataCsrfToken', 'dataPirogueCredentialsId', 'dataDisableSections' ],
   provide() {
     return {
       csrfToken: this.dataCsrfToken,
@@ -24,36 +26,40 @@ export default {
     };
   },
   data() {
+    let allowed_sections = [];
     return {
       currentSection: {
         menuItem: null,
         title: "PiRogue Configurator",
         component: shallowRef(PiRogueNoSection),
       },
+      hiddenSections: [],
       menu: [
         {
           label: "Information",
           items: [
             {
+              permissions: ['System:GetStatus'],
               label: 'Status',
               icon: 'pi pi-chart-bar',
               command: (evt) => {
-                this.$debug(evt);
                 this.setSection('Status', shallowRef(PiRogueStatus), evt.item);
               },
             },
             {
+              permissions: ['System:GetConfiguration'],
               label: 'Configuration',
               icon: 'pi pi-list-check',
-              command: (a) => {
-                this.setSection('Configuration', shallowRef(PiRogueConfigurationRead));
+              command: (evt) => {
+                this.setSection('Configuration', shallowRef(PiRogueConfigurationRead), evt.item);
               },
             },
             {
+              permissions: ['System:GetPackagesInfo'],
               label: 'Packages',
               icon: 'pi pi-box',
-              command: (a) => {
-                this.setSection('Packages', shallowRef(PiRoguePackagesInfo));
+              command: (evt) => {
+                this.setSection('Packages', shallowRef(PiRoguePackagesInfo), evt.item);
               },
             },
           ],
@@ -61,32 +67,60 @@ export default {
         {
           label: "Configuration",
           items: [
+            /*
             {
+              permissions: [
+                'System:SetHostname',
+                'System:SetLocale',
+                'System:SetTimezone',
+                'Services:SetDashboardConfiguration',
+              ],
               label: 'System',
               icon: 'pi pi-cog',
-              command: (a) => {
-                this.setSection('Configuration', shallowRef(PiRogueNoSection));
+              command: (evt) => {
+                this.setSection('Configuration', shallowRef(PiRogueNoSection), evt.item);
               },
             },
             {
+              permissions: [
+                'Network:EnableExternalPublicAccess',
+                'Network:DisableExternalPublicAccess',
+                'Network:SetWifiConfiguration',
+                'Network:OpenIsolatedPort',
+                'Network:CloseIsolatedPort',
+              ],
               label: 'Network',
               icon: 'pi pi-sitemap',
-              command: (a) => {
-                this.setSection('Network', shallowRef(PiRogueNoSection));
+              command: (evt) => {
+                this.setSection('Network', shallowRef(PiRogueNoSection), evt.item);
               },
             },
+            */
             {
+              permissions: ['Access'],
               label: 'Access',
               icon: 'pi pi-key',
-              command: (a) => {
-                this.setSection('Access', shallowRef(PiRogueAccess));
+              command: (evt) => {
+                this.setSection('Access', shallowRef(PiRogueAccess), evt.item);
               },
             },
             {
+              permissions: ['Network:ListVPNPeers'],
               label: 'VPN',
-              icon: 'pi pi-shield',
-              command: (a) => {
-                this.setSection('VPN', shallowRef(PiRogueNoSection));
+              icon: 'pi pi-unlock',
+              command: (evt) => {
+                this.setSection('VPN', shallowRef(PiRogueVPN), evt.item);
+              },
+              visible: () => {
+                return !this.hiddenSections.includes('Network:ListVPNPeers');
+              },
+            },
+            {
+              permissions: ['Services:ListSuricataRulesSources'],
+              label: 'Suricata',
+              icon: 'pi pi-sparkles',
+              command: (evt) => {
+                this.setSection('Suricata', shallowRef(PiRogueSuricata), evt.item);
               },
             },
           ],
@@ -98,16 +132,17 @@ export default {
      this.$logger(this, 'PiRogueConfigurator');
      this.$debug('CsrfToken', this.dataCsrfToken);
      this.$debug('PiRogueCredentialsID', this.dataPirogueCredentialsId);
+     if (this.dataDisableSections) {
+       this.hiddenSections = this.dataDisableSections.split(',');
+     }
   },
   methods: {
     setSection(title, component, menuItem) {
       if (this.currentSection.menuItem) {
-        this.$debug(this.currentSection.menuItem.class);
         this.currentSection.menuItem.class = '';
       }
       this.currentSection.menuItem = menuItem;
       if (this.currentSection.menuItem) {
-        this.$debug(this.currentSection.menuItem.class);
         this.currentSection.menuItem.class = 'active';
       }
       this.currentSection.title = title;

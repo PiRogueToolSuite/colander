@@ -1,0 +1,21 @@
+{% extends "pages/workspace/base.html" %}
+{% load static %}
+
+{% block offcanvas %}{% endblock offcanvas %}
+{% block content %}
+  <div class="row justify-content-center mt-2">
+    <div class="col">
+      {% include 'device_monitoring/create_update.html' %}
+    </div>
+  </div>
+  {% if device_monitorings %}
+  <div class="row justify-content-center">
+    <div class="col">
+      <h2>All known device monitoring</h2>
+      {% for device_monitoring in device_monitorings %}
+        {% include "device_monitoring/list_item.html" %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+{% endblock content %}

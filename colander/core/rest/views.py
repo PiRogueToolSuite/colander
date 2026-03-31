@@ -28,6 +28,7 @@ from colander.core.feed.internal import InternalFeed
 from colander.core.graph.serializers import GraphRelationSerializer
 from colander.core.models import (
     Case,
+    DeviceMonitoring,
     Entity,
     EntityRelation,
     Event,
@@ -59,8 +60,16 @@ from colander.core.pirogue import (
     delete_user_access,
     reset_user_access_token,
     set_user_access_permissions,
+    list_vpn_peers,
+    get_vpn_peer_config,
+    add_vpn_peer,
+    delete_vpn_peer,
+    list_suricata_rules_sources,
+    delete_suricata_rules_source,
+    add_suricata_rules_source,
 )
 from colander.core.rest.serializers import (
+    DeviceMonitoringSerializer,
     DetailedEntitySerializer,
     SubGraphSerializer,
     FeedTemplateSerializer,
@@ -69,6 +78,8 @@ from colander.core.rest.serializers import (
     PiRogueUserAccessSharingSerializer,
     ColanderTeamSerializer,
 )
+from colander.core.serializers.device_monitoring_serializers import NetworkDPISerializer, \
+    NetworkAlertSerializer
 
 
 class DatasetViewSet(ViewSet):
@@ -406,11 +417,12 @@ class PiRogueViewSet(GenericViewSet):
     def user_access_list(self, request, pk=None):
         pirogue_credentials = self.get_object()
         user_access_list = list_user_accesses(pirogue_credentials.id)
-        for user_access in user_access_list['content']['userAccesses']:
-            PiRogueViewSet._enrich_user_access(pirogue_credentials, user_access)
-            # sharing_list = PiRogueUserAccessSharing.objects.filter(pirogue_credentials=pirogue_credentials, user_access_index=user_access['idx'])
-            # serializer = PiRogueUserAccessSharingSerializer(sharing_list, many=True)
-            # user_access['sharing'] = serializer.data
+        if 'userAccesses' in user_access_list['content']:
+            for user_access in user_access_list['content']['userAccesses']:
+                PiRogueViewSet._enrich_user_access(pirogue_credentials, user_access)
+                # sharing_list = PiRogueUserAccessSharing.objects.filter(pirogue_credentials=pirogue_credentials, user_access_index=user_access['idx'])
+                # serializer = PiRogueUserAccessSharingSerializer(sharing_list, many=True)
+                # user_access['sharing'] = serializer.data
         return JsonResponse(user_access_list, safe=False)
 
     @action(detail=True, methods=['GET'],
@@ -504,6 +516,75 @@ class PiRogueViewSet(GenericViewSet):
                 return JsonResponse(serializer.data, safe=False, status=201)
             return JsonResponse(serializer.errors, safe=False, status=400)
         return HttpResponseNotAllowed(['GET', 'PUT', 'POST'])
+
+    @action(detail=True, methods=['GET'], url_path=r'vpn_peer')
+    def vpn_peer_list(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        response = list_vpn_peers(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET'], url_path=r'vpn_peer/create')
+    def vpn_peer_create(self, request, pk=None):
+        pirogue_credentials = self.get_object()
+        response = add_vpn_peer(pirogue_credentials.id)
+        return JsonResponse(response, safe=False)
+
+    @action(detail=True, methods=['GET', 'DELETE'], url_path=r'vpn_peer/(?P<vpn_peer_idx>\d+)')
+    def vpn_peer_configuration(self, request, pk=None, vpn_peer_idx=None):
+        pirogue_credentials = self.get_object()
+
+        if request.method == 'GET':
+            response = get_vpn_peer_config(pirogue_credentials.id, vpn_peer_idx)
+            return JsonResponse(response, safe=False)
+
+        if request.method == 'DELETE':
+            response = delete_vpn_peer(pirogue_credentials.id, vpn_peer_idx)
+            return JsonResponse(response, safe=False)
+
+        return HttpResponseNotAllowed(['GET', 'DELETE'])
+
+    @action(detail=True, methods=['GET', 'PUT', 'POST', 'DELETE'], url_path=r'suricata_rules_source')
+    def suricata_rules_sources_list(self, request, pk=None):
+        if request.method == 'GET':
+            pirogue_credentials = self.get_object()
+            response = list_suricata_rules_sources(pirogue_credentials.id)
+            return JsonResponse(response, safe=False)
+
+        if request.method == 'DELETE':
+            pirogue_credentials = self.get_object()
+            source_name = request.data.get('name')
+            response = delete_suricata_rules_source(pirogue_credentials.id, source_name)
+            return JsonResponse(response, safe=False)
+
+        if request.method in ['PUT', 'POST']:
+            pirogue_credentials = self.get_object()
+            source_name = request.data.get('name')
+            source_url = request.data.get('url', None)
+            source_parameters = request.data.get('parameters', None)
+            response = add_suricata_rules_source(pirogue_credentials.id, source_name, source_url, source_parameters)
+            return JsonResponse(response, safe=False)
+
+        return HttpResponseNotAllowed(['GET', 'PUT', 'POST', 'DELETE'])
+
+class DeviceMonitoringViewSet(ReadOnlyModelViewSet):
+    serializer_class = DeviceMonitoringSerializer
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return DeviceMonitoring.objects.filter(owner=self.request.user)
+
+    @action(detail=True, methods=['GET'])
+    def flows(self, request, pk=None):
+        network_dpi = self.get_object().get_network_dpi()
+        network_alerts = self.get_object().get_network_alerts()
+
+        answer = {
+            'dpi': NetworkDPISerializer(network_dpi, many=True).data,
+            'alerts': NetworkAlertSerializer(network_alerts, many=True).data,
+        }
+
+        return JsonResponse(answer, safe=False)
 
 
 class ColanderTeamViewSet(ReadOnlyModelViewSet):

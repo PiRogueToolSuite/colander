@@ -1,15 +1,13 @@
 {% load crispy_forms_tags %}
 {% load i18n %}
 {% if is_editing %}
-  <h2>{% translate "Edit Device Monitoring" %}</h2>
-  {% url 'device_monitoring_update_view' case_id=contextual_case.id as process_url %}
+  <h2>{% translate "Edit device monitoring" %}</h2>
 {% else %}
-  <h2>{% translate "New Device Monitoring" %}</h2>
-  {% url 'device_monitoring_create_view' case_id=contextual_case.id as process_url %}
+  <h2>{% translate "New device monitoring" %}</h2>
 {% endif %}
 <div class="card mb-2 bg-secondary-light">
   <div class="card-body">
-    <form method="post" autocomplete="off" action="{{ process_url }}">
+    <form method="post" autocomplete="off">
       {% csrf_token %}
 
       <div class="row">
@@ -17,6 +15,7 @@
           {{ form.device|as_crispy_field }}
           {{ form.duration|as_crispy_field }}
           {{ form.pirogue|as_crispy_field }}
+          {{ form.ip_filter|as_crispy_field }}
         </div>
         <div class="col-md">
           {{ form.description|as_crispy_field }}

@@ -532,7 +532,7 @@ export default {
   {
     overflow: hidden auto;
     min-height: 27rem;
-    maxèheight: 27rem;
+    max-height: 27rem;
   }
   ul
   {

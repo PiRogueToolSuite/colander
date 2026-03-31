@@ -67,6 +67,7 @@
     "lodash": "^4.17.21",
     "markdown-it": "^13.0.2",
     "masonry-layout": "^4.2.2",
+    "mongoose-vuejs": "^0.1.0",
     "npm": "^10.9.2",
     "ol": "^10.5.0",
     "papaparse": "^5.5.3",

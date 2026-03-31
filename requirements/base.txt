@@ -55,5 +55,5 @@ colander-data-converter==1.0.7
 
 # PiRogue
 protobuf
-pirogue-admin-api>=2.0.4
-pirogue-admin-client>=2.0.6
+pirogue-admin-api>=2.0.5
+pirogue-admin-client>=2.0.7

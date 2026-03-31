@@ -7,7 +7,7 @@
 {% block root-sidebar-menu %}
   {% url 'case_workspace_view' case_id=contextual_case.id as case_ws_url %}
   {% url 'collect_quick_creation_view' case_id=contextual_case.id as collect_quick_creation_view_url %}
-  {% url 'device_monitoring_view' case_id=contextual_case.id as device_monitoring_view_url %}
+  {% url 'device_monitoring_create_view' case_id=contextual_case.id as device_monitoring_view_url %}
   {% url 'graph_base_view' case_id=contextual_case.id as graph_base_view_url %}
   {% url 'investigate_base_view' case_id=contextual_case.id as investigate_base_view_url %}
   {% url 'analyze_base_view' observable_id='z' as analyze_base_view_url %}

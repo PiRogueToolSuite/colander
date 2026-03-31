@@ -4,6 +4,7 @@
   outline: 1px dashed rgba(var(--bs-secondary-rgb), 0.5);
   outline-offset: 0px;
   transition: outline-offset 0.25s, outline-color 0.25s;
+  overflow: hidden;
 }
 
 
@@ -14,13 +15,13 @@
   position: absolute;
   width: auto;
   height: auto;
-  right: 0;
+  left: 0;
   top: 0;
   color: white;
   background-color: var(--bs-secondary);
   opacity: 0.5;
-  margin-right: -11rem;
-  transition: margin-right 0.25s, opacity 0.25s, background-color 0.25s;
+  margin-left: -11rem;
+  transition: margin-left 0.25s, opacity 0.25s, background-color 0.25s;
   padding: 1px 2px;
 }
 
@@ -28,7 +29,7 @@
 {
   content: 'Copy successed';
   background-color: var(--bs-success);
-  margin-right: 0;
+  margin-left: 0;
   opacity: 1;
 }
 
@@ -36,7 +37,7 @@
 {
   content: 'Copy failed';
   background-color: var(--bs-danger);
-  margin-right: 0;
+  margin-left: 0;
   opacity: 1;
 }
 
@@ -48,6 +49,6 @@
 
 .clipboard-able:hover:before
 {
-  margin-right: 0;
+  margin-left: 0;
   opacity: 0.9;
 }

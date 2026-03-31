@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from colander.core.models import (
+    DeviceMonitoring,
     Entity,
     EntityRelation,
     colander_models,
@@ -13,6 +14,13 @@ from colander.core.models import (
 )
 from colander.core.rest.commons import CommonTypeSerializer, KeyedListSerializer
 from colander.users.models import User
+
+
+class DeviceMonitoringSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeviceMonitoring
+        fields = ['id', 'description', 'device',
+                  'status', 'duration', 'started_at', 'ended_at']
 
 
 class EntityRelationSerializer(serializers.ModelSerializer):

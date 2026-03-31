@@ -21,7 +21,12 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import HStoreField, ArrayField
-from django.core.validators import FileExtensionValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import (
+    FileExtensionValidator,
+    MinValueValidator,
+    MaxValueValidator,
+    validate_ipv46_address,
+)
 from django.db import models, IntegrityError
 from django.db.models import F, Q, JSONField, QuerySet
 from django.db.models.signals import pre_delete, pre_save, post_save
@@ -2422,6 +2427,12 @@ class PiRogueCredentials(models.Model):
         null=True,
         blank=True,
     )
+    operating_mode = models.CharField(
+        help_text=_('Last known operating mode.'),
+        max_length=32,
+        null=True,
+        blank=True,
+    )
 
     @staticmethod
     def owned_or_shared_for_user(user):
@@ -2433,9 +2444,13 @@ class PiRogueCredentials(models.Model):
 
         return qs_result
 
-    @property
+    @cached_property
     def last_status(self):
         return PiRogueStatus.objects.filter(pirogue_credentials=self).order_by('reported_at').last()
+
+    @cached_property
+    def last_successful_status(self):
+        return PiRogueStatus.objects.filter(pirogue_credentials=self, success=True).order_by('reported_at').last()
 
     def __str__(self):
         if self.friendly_name:
@@ -2551,8 +2566,9 @@ class DeviceMonitoring(models.Model):
         auto_now=True
     )
     started_at = models.DateTimeField(
-        auto_now_add=True,
-        editable=False
+        editable=False,
+        null=True,
+        blank=True
     )
     ended_at = models.DateTimeField(
         editable=False,
@@ -2568,6 +2584,13 @@ class DeviceMonitoring(models.Model):
         editable=False,
         null=True,
         blank=True
+    )
+    ip_filter = models.CharField(
+        validators=[validate_ipv46_address],
+        max_length=64,
+        null=True,
+        blank=True,
+        help_text=_('An IP address filter to be monitored (both IPv4 and IPv6 are supported).'),
     )
     pirogue = models.ForeignKey(
         PiRogueCredentials,
@@ -2603,13 +2626,24 @@ class DeviceMonitoring(models.Model):
         Returns:
             bool: True if the monitoring schedule has expired, otherwise False.
         """
-        return now() > self.started_at + timedelta(days=self.duration)
+        if self.started_at:
+            return now() > self.started_at + timedelta(days=self.duration)
+        else:
+            return False
+
+    @property
+    def network_dpi_count(self) -> int:
+        return self.get_network_dpi().count()
+
+    @property
+    def network_alerts_count(self) -> int:
+        return self.get_network_alerts().count()
 
     def get_network_dpi(self) -> QuerySet['NetworkDPI']:
-        return NetworkDPI.objects.filter(device=self.device)
+        return NetworkDPI.objects.filter(device_monitoring=self)
 
     def get_network_alerts(self) -> QuerySet['NetworkAlert']:
-        return NetworkAlert.objects.filter(device=self.device)
+        return NetworkAlert.objects.filter(device_monitoring=self)
 
 
 @receiver(post_save, sender=DeviceMonitoring, dispatch_uid='create_device_monitoring')
@@ -2670,7 +2704,7 @@ class NetworkDPI(models.Model):
         ordering = ['-time']
 
     id = models.CharField(max_length=255, primary_key=True)
-    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    device_monitoring = models.ForeignKey(DeviceMonitoring, on_delete=models.CASCADE, null=True)
     time = models.DateTimeField()
     timestamp = models.FloatField()
     community_id = models.CharField(max_length=255, db_index=True)
@@ -2756,12 +2790,12 @@ class NetworkAlert(models.Model):
         ordering = ['-time']
 
     id = models.CharField(max_length=255, primary_key=True)
-    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+    device_monitoring = models.ForeignKey(DeviceMonitoring, on_delete=models.CASCADE, null=True)
     time = models.DateTimeField()
     timestamp = models.FloatField()
     community_id = models.CharField(max_length=255, db_index=True)
     community_id_b64 = models.CharField(max_length=255, blank=True, null=True)
-    flow_id = models.IntegerField(default=0)
+    flow_id = models.BigIntegerField(default=0)
     src_ip = models.CharField(max_length=255)
     src_port = models.IntegerField(default=0)
     dst_ip = models.CharField(max_length=255)

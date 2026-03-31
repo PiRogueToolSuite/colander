@@ -1,0 +1,25 @@
+<div>
+  <div class="text-center">
+    Wireguard QR-Code configurator :
+  </div>
+  <img style='max-width: 100%;' alt='VPN Peer configurator' src="data:image/gif;base64,{{encoded_qr_code}}" />
+  <p class="text-muted text-center">Scan this QR-Code with the Wireguard mobile application</p>
+  <div class="accordion accordion-flush" id="vpn-detail-accordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="vpn-detail-heading">
+        <button class="accordion-button collapsed"
+                type="button" data-bs-toggle="collapse"
+                data-bs-target="#vpn-peer-details-full"
+                aria-controls="vpn-peer-details-full">
+          Configuration as text version
+        </button>
+      </h2>
+      <div id="vpn-peer-details-full" class="accordion-collapse collapse"
+           aria-labelledby="vpn-detail-heading" data-bs-parent="#vpn-detail-accordion">
+        <div class="accordion-body">
+          <pre>{{ details }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

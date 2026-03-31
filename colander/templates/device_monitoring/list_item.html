@@ -28,9 +28,50 @@
           </div>
         </div>
       </div>
-      <div class="col-md-4 text-truncate ">
+      <div class="col-md-4 text-truncate">
         <div class="row">
           <div class="col">
+            <div class="text-tiny">
+              <div>Endpoint:</div>
+              <div>
+                <span>
+                  <i class="nf nf-md-security_network text-primary"></i>
+                  Pirogue: {{ device_monitoring.pirogue }}
+                </span>
+                {% if device_monitoring.pirogue.operating_mode == 'wireguard' %}
+                  <span class="ms-2">
+                    <i class="nf nf-cod-shield text-primary"></i>
+                    <span>VPN Peer:</span>
+                    {% if device_monitoring.peer_id %}
+                      <span>{{ device_monitoring.peer_id }}</span>
+                    {% else %}
+                      <span class="text-warning">Not created</span>
+                    {% endif %}
+                  </span>
+                {% endif %}
+                <span class="ms-2">
+                  <i class="nf nf-mdi-ethernet text-primary"></i>
+                  IP Filter: {{ device_monitoring.ip_filter }}
+                </span>
+              </div>
+            </div>
+            <div class="text-tiny mt-1">
+              <div>Status:</div>
+              <div>{% include 'device_monitoring/status.html' %}</div>
+            </div>
+            <div class="text-tiny mt-1">
+              <div>Counts:</div>
+              <div>
+                <span>
+                  <i class="nf nf-oct-alert text-primary"></i> DPI:
+                </span>
+                <span>{{ device_monitoring.network_dpi_count }}</span>
+                <span class="ms-2">
+                  <i class="nf nf-mdi-plus_network text-primary"></i> Alerts:
+                </span>
+                <span>{{ device_monitoring.network_alerts_count }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

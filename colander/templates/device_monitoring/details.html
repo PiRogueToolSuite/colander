@@ -1,0 +1,169 @@
+{% load colander_tags %}
+<div class="row justify-content-center">
+  <div class="col-md-12 mt-2">
+    <h3>
+      <i class="nf fa-stethoscope" aria-hidden="true"></i>
+      <span>Monitoring of {{ device_monitoring.device }}</span>
+    </h3>
+    <div class="mb-3">
+    </div>
+    {% include "device_monitoring/controls.html" with exclude="details" %}
+  </div>
+</div>
+<div class="row justify-content-center">
+  <div class="col-md-12 mt-2">
+    <h4>Details</h4>
+    <div class="row">
+      <div class="col-md-6">
+        <table class="table table-sm">
+          <tbody>
+            <tr>
+              <td>ID</td>
+              <td>
+                {% include "icons/id_icon.html" with c="text-primary" %}
+                <span class="font-monospace">{{ device_monitoring.id }}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>Case</td>
+              <td>
+                {% include "icons/case_icon.html" with c="text-primary" %}
+                <a href="{% url "case_details_view" pk=device_monitoring.case.id %}">
+                  {{ device_monitoring.case.name }}
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>PiRogue</td>
+              <td>
+                <i class="nf nf-md-security_network text-primary"></i>
+                <a href="{% url "pirogue_credentials_details_view" pk=device_monitoring.pirogue.id %}">{{ device_monitoring.pirogue }}</a>
+                <em>(Mode: {{ device_monitoring.pirogue.operating_mode }})</em>
+              </td>
+            </tr>
+            <tr>
+              <td>IP Filter</td>
+              <td>
+                <i class="nf nf-mdi-ethernet text-primary"></i>
+                <span>{{ device_monitoring.ip_filter }}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>Created At</td>
+              <td>
+                  {% include "helpers/date_since.html" with date=device_monitoring.created_at c="text-primary" %}
+              </td>
+            </tr>
+            <tr>
+              <td>Updated At</td>
+              <td>
+                {% include "helpers/date_since.html" with date=device_monitoring.updated_at c="text-primary" %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-md-6">
+        <table class="table table-sm">
+          <tbody>
+            <tr>
+              <td>Device</td>
+              <td>
+                <i class="nf {{ device_monitoring.device.type.nf_icon }} text-primary"></i>
+                <a href="{% url "collect_device_details_view" case_id=device_monitoring.device.case.id pk=device_monitoring.device.id %}">{{ device_monitoring.device }}</a>
+              </td>
+            </tr>
+            <tr>
+              <td>Status</td>
+              <td>
+                {% include "device_monitoring/status.html" %}
+              </td>
+            </tr>
+            <tr>
+              <td>Started At</td>
+              <td>
+                {% if device_monitoring.started_at %}
+                  {% include "helpers/date_since.html" with date=device_monitoring.started_at c="text-primary" %}
+                {% else %}
+                  <em>Not yet</em>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Duration</td>
+              <td>
+                <i class="nf nf-fa-hourglass text-primary"></i>
+                <span>{{ device_monitoring.duration }} day{{ device_monitoring.duration|pluralize }}</span>
+              </td>
+            </tr>
+            <tr>
+              <td>Ended At</td>
+              <td>
+                {% if device_monitoring.ended_at %}
+                  {% include "helpers/date_since.html" with date=device_monitoring.ended_at c="text-primary" %}
+                {% else %}
+                  <em>Not yet</em>
+                {% endif %}
+              </td>
+            </tr>
+            {% if device_monitoring.pirogue.operating_mode == 'wireguard' %}
+            <tr>
+              <td>VPN Peer</td>
+              <td>
+                {% if not device_monitoring.peer_id %}
+                  <a href="{% url 'device_monitoring_create_vpn_peer_view' case_id=device_monitoring.case.id pk=device_monitoring.id %}"
+                     class="btn btn-sm btn-primary">
+                    <i class="nf nf-cod-wand"></i>
+                    <span>Create</span>
+                  </a>
+                {% else %}
+                  <span>Id: {{ device_monitoring.peer_id }}</span>
+                  <button id='view-peer-detail'
+                     class="btn btn-sm btn-primary">
+                    <i class="nf nf-fa-eye"></i>
+                    <span>View</span>
+                  </button>
+                  <div class="modal fade modal-md" id="vpn-peer-details-modal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5">VPN Peer details</h1>
+                        </div>
+                        <div id='vpn-peer-details' class="modal-body">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <component is="script">
+                    let url = "{% url 'device_monitoring_get_vpn_peer_details_view' case_id=device_monitoring.case.id pk=device_monitoring.id %}";
+                    $('#view-peer-detail').click(async () => {
+                      let res = await fetch(url);
+                      let html = await res.text();
+                      console.log('html', html);
+                      $('#vpn-peer-details').html(html);
+                      $('#vpn-peer-details-modal').modal('show');
+                    });
+                  </component>
+                  {% if device_monitoring.status == 1 %}
+                  {% define 'disabled' as release_disabled_class %}
+                  {% endif %}
+                  <a href="{% url 'device_monitoring_release_vpn_peer_view' case_id=device_monitoring.case.id pk=device_monitoring.id %}"
+                     class="btn btn-sm btn-danger text-white {{ release_disabled_class }}">
+                    <i class="nf nf-fa-trash"></i>
+                    <span>Release</span>
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row justify-content-center">
+    <h4>Network DPIs and Alerts</h4>
+   <div is="vue:network-events-analyzer" table-max-height="38rem"
+        data-src="/rest/device_monitoring/{{device_monitoring.id}}/flows/"></div>
+</div>

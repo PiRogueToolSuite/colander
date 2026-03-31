@@ -17,6 +17,8 @@ import CopyToClipboard from "./directives/CopyToClipboard";
 import HarAnalyzerPlugin from 'har-analyzer-vue';
 /* FIXME: Confirm not needed anymore, then clean */
 /* import { DesignSystemConfig as HarPrimeVueConfig } from 'har-analyzer-vue'; */
+import NetworkEventsAnalyzerPlugin from 'mongoose-vuejs';
+import { DesignSystemConfig as NeaPrimeVueConfig } from 'mongoose-vuejs';
 
 import Legacy from './legacy/project';
 import ColanderTextEditor from './legacy/colander-text-editor';
@@ -207,7 +209,18 @@ export default () => {
     }
   });
    */
+
+
+  colander_application.use( NeaPrimeVueConfig, {
+    theme: {
+      preset: ColanderTheme,
+      options: {
+        darkModeSelector: 'none',
+      }
+    }
+  });
   colander_application.use(ToastService);
+  colander_application.use(NetworkEventsAnalyzerPlugin);
   colander_application.use(HarAnalyzerPlugin);
 
   // Directives (globally available)

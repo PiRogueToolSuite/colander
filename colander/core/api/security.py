@@ -16,11 +16,11 @@ class BearerTokenAuthentication(TokenAuthentication):
 
 class ApiTokenAuthentication(BaseAuthentication):
     keyword = 'Secret'
-    header_name = 'HTTP_X_AUTHENTICATION'  # X-Authentication
+    meta_header_name = 'HTTP_X_AUTHENTICATION'  # X-Authentication
 
     @classmethod
     def get_token_value_from_header(cls, request):
-        header = request.META.get(cls.header_name)
+        header = request.META.get(cls.meta_header_name)
         if not header or not header.startswith(f'{cls.keyword} '):
             return None
         try:

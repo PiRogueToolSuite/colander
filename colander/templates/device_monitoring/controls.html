@@ -1,5 +1,10 @@
 {% load i18n %}
-
+{% load colander_tags %}
+{% if device_monitoring.pirogue.operating_mode == 'wireguard' %}
+{% if not device_monitoring.peer_id %}
+{% define "disabled" as disabled_class %}
+{% endif %}
+{% endif %}
 <div class="btn-group" role="group">
   {% if "details" not in exclude %}
     <a href="{% url "device_monitoring_details_view" case_id=device_monitoring.case.id pk=device_monitoring.id %}" class="btn btn-primary {{ btn_class }}">
@@ -7,16 +12,35 @@
       {% translate "Details" %}
     </a>
   {% endif %}
+  {% if device_monitoring.status != 1 %}
   {% if "edit" not in exclude %}
     <a href="{% url "device_monitoring_update_view" case_id=device_monitoring.case.id pk=device_monitoring.id %}" class="btn btn-primary {{ btn_class }}">
       <i class="nf nf-fa-edit"></i>
       {% translate "Edit" %}
     </a>
   {% endif %}
+  {% if "start" not in exclude %}
+    <a href="{% url "device_monitoring_start_view" case_id=device_monitoring.case.id pk=device_monitoring.id %}"
+       class="btn btn-primary {{ disabled_class }} {{ btn_class }}">
+      <i class="nf nf-fa-play"></i>
+      {% translate "Start" %}
+    </a>
+  {% endif %}
+  {% endif %}
+  {% if device_monitoring.status == 1 %}
+  {% if "stop" not in exclude %}
+    <a href="{% url "device_monitoring_stop_view" case_id=device_monitoring.case.id pk=device_monitoring.id %}" class="btn btn-primary {{ btn_class }}">
+      <i class="nf nf-fa-stop"></i>
+      {% translate "Stop" %}
+    </a>
+  {% endif %}
+  {% endif %}
+  {% if device_monitoring.status != 1 %}
   <a href="{% url "device_monitoring_delete_view" case_id=device_monitoring.case.id pk=device_monitoring.id %}"
      class="delete-entity-btn btn btn-danger text-white {{ btn_class }}"
      is="vue:ConfirmButton">
     <i class="nf nf-fa-trash"></i>
     Delete
   </a>
+  {% endif %}
 </div>

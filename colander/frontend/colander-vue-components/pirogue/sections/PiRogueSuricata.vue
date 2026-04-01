@@ -281,7 +281,7 @@ export default {
             <div class="row text-warning" v-if="selectedRulesSource?.parameters">
               <div class="col-2"><label>Parameters</label></div>
               <div class="col-10">
-                <Message severity="warn">Somme parameters are needed to enable this source</Message>
+                <Message severity="warn">Some parameters are needed to enable this source</Message>
                 <div v-for="(pvalue, pname) in selectedRulesSource.parameters">
                   <strong>{{pname}}</strong>: <em>{{pvalue}}</em>
                 </div>

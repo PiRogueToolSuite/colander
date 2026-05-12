@@ -145,11 +145,23 @@ services:
       timeout: 20s
       retries: 3
 
+  clamav:
+    mem_reservation: "512M"
+    mem_limit: "2G"
+    image: ajilaag/clamav-rest
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:9000/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
   mandolin:
     image: ghcr.io/piroguetoolsuite/mandolin:main
     restart: unless-stopped
     depends_on:
       tika:
+        condition: service_healthy
+      clamav:
         condition: service_healthy
     environment:
       - TIKA_URL=http://tika:9998/

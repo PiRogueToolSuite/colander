@@ -2,270 +2,327 @@
 {% load colander_tags %}
 {% load markdownify %}
 
+{# Title bar #}
 <div class="row justify-content-center my-2">
-  <div class="col">
-    <h3>{% include "icons/pills.html" with elt=artifact %} {{ artifact.name }}</h3>
-    {% if artifact.attributes.tags %}
-      <div class="my-2">{% include "helpers/tags.html" with entity=artifact %}</div>
-    {% endif %}
-    <div class="mb-3">
-      {% if artifact.description %}
-        {{ artifact.description | markdownify }}
-      {% else %}
-        {% translate "No description" %}
+  <div class="d-flex">
+    <div class="flex-grow-1">
+      <h3>{% include "icons/pills.html" with elt=artifact %} {{ artifact.name }}</h3>
+      {% if artifact.attributes.tags %}
+        <div class="my-2">{% include "helpers/tags.html" with entity=artifact %}</div>
       {% endif %}
+      <div class="mb-3">
+        {% if artifact.description %}
+          {{ artifact.description | markdownify }}
+        {% else %}
+          {% translate "No description" %}
+        {% endif %}
+      </div>
+      {% include "artifact/controls.html" with exclude="" btn_class="" %}
     </div>
-    {% include "artifact/controls.html" with exclude="" btn_class="" %}
+    {% if artifact.analysis.processors.tika.analysis.extra.geo.lat %}
+      <div class="col-3 m-0 mx-1 p-0">
+        <div is="vue:GeoMap" class="rounded border border-secondary"
+             style="width: 100%; height: 9rem"
+             data-latitude="{{ artifact.analysis.processors.tika.analysis.extra.geo.lat }}"
+             data-longitude="{{ artifact.analysis.processors.tika.analysis.extra.geo.long }}">
+        </div>
+      </div>
+    {% endif %}
+    {% if artifact.thumbnail %}
+      <div class="">
+        <img
+          class="img-fluid rounded border border border-secondary"
+          src="{{ artifact.thumbnail_url }}"
+          alt="{{ artifact.name }}"
+          style="height: 9rem"
+        />
+      </div>
+    {% endif %}
   </div>
-  {% if artifact.thumbnail %}
-    <div class="col-md-2 position-relative">
-      <img class="img-thumbnail position-absolute top-0 end-0 me-2" src="{{artifact.thumbnail_url}}" alt="{{artifact.name}}" style="max-height: 100px" />
+</div>
+
+<div class="row justify-content-center">
+  {# Left panel #}
+  <div class="col mt-2">
+    {# Details #}
+    <div class="row">
+      <div class="col-12">
+        <h5>{% translate "Details" %}</h5>
+        <table class="table table-sm">
+          <tbody>
+          <tr>
+            <td>ID</td>
+            <td>
+              {% include "icons/id_icon.html" with c="text-primary" %}
+              <span class="font-monospace">
+                {{ artifact.id }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td>Case</td>
+            <td>
+              {% include "icons/case_icon.html" with c="text-primary" %}
+              <a href="{% url "case_details_view" pk=artifact.case.id %}">
+                {{ artifact.case.name }}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>Owner</td>
+            <td>
+              {% include "icons/user_icon.html" with c="text-primary" %}
+              {{ artifact.owner }}
+            </td>
+          </tr>
+          <tr>
+            <td>Type</td>
+            <td>
+              <i class="nf {{ artifact.type.nf_icon }} text-primary"></i>
+              {{ artifact.type.name }}
+            </td>
+          </tr>
+          <tr>
+            <td>Created at</td>
+            <td>
+              {% include "helpers/date_since.html" with date=artifact.created_at c="text-primary" %}
+            </td>
+          </tr>
+          <tr>
+            <td>Updated at</td>
+            <td>
+              {% include "helpers/date_since.html" with date=artifact.updated_at c="text-primary" %}
+            </td>
+          </tr>
+          <tr>
+            <td>TLP/PAP</td>
+            <td>
+              {% include "tlp/show_tlp_pap.html" with element=artifact %}
+            </td>
+          </tr>
+          <tr>
+            <td class="text-nowrap">Original name</td>
+            <td>
+              {{ artifact.original_name }}
+            </td>
+          </tr>
+          <tr>
+            <td>Mimetype</td>
+            <td>
+              {{ artifact.mime_type }}
+            </td>
+          </tr>
+          <tr>
+            <td>Size</td>
+            <td>
+              {{ artifact.size_in_bytes|filesizeformat }} ({{ artifact.size_in_bytes }} bytes)
+            </td>
+          </tr>
+          <tr>
+            <td>MD5</td>
+            <td>
+              {% if artifact.has_been_processed %}
+                {% include "icons/id_icon.html" with c="text-primary" %}
+                <span class="font-monospace">
+                    {{ artifact.md5 }}
+                </span>
+              {% else %}
+                <span class="badge bg-info">Processing ...</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td>SHA1</td>
+            <td>
+              {% if artifact.has_been_processed %}
+                {% include "icons/id_icon.html" with c="text-primary" %}
+                <span class="font-monospace">
+                    {{ artifact.sha1 }}
+                </span>
+              {% else %}
+                <span class="badge bg-info">Processing ...</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td>SHA256</td>
+            <td>
+              {% if artifact.has_been_processed %}
+                {% include "icons/id_icon.html" with c="text-primary" %}
+                <span class="font-monospace">
+                    {{ artifact.sha256 }}
+                </span>
+              {% else %}
+                <span class="badge bg-info">Processing ...</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Signature
+              <a href="#" data-bs-toggle="modal" data-bs-target="#integrityCheckInstructions">
+                <i class="fa fa-info-circle text-primary"></i>
+              </a>
+            </td>
+            <td>
+              {% if artifact.has_been_processed %}
+                {% if artifact.has_valid_signature %}
+                  <span class="badge bg-success">Valid signature</span>
+                {% else %}
+                  <span class="badge bg-danger">Incorrect signature (file potentially corrupted or modified)</span>
+                {% endif %}
+              {% else %}
+                <span class="badge bg-info">Processing ...</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td>Extracted from</td>
+            <td>
+              {% if artifact.extracted_from %}
+                <i class="nf {{ artifact.extracted_from.type.nf_icon }} text-primary"></i>
+                <a
+                  href="{% url "collect_device_details_view" case_id=artifact.case.id pk=artifact.extracted_from_id %}">
+                  {{ artifact.extracted_from.name }}
+                </a>
+                ({{ artifact.extracted_from.type }})
+              {% else %}
+                {% translate "No device specified" %}
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td>Source</td>
+            <td>
+              {% if artifact.source_url %}
+                <i class="nf {{ artifact.extracted_from.type.nf_icon }} text-primary"></i>
+                <a href="{{ artifact.source_url }}" target="_blank">
+                  {{ artifact.source_url }}
+                  <i class="nf nf-fa-external_link text-primary"></i>
+                </a>
+              {% else %}
+                {% translate "No source specified" %}
+              {% endif %}
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# Relationships #}
+    <div class="row">
+      {% include "entity_relation/related_entities.html" with entity=artifact %}
+    </div>
+  </div>
+  {# Right panel #}
+  {% if artifact.analysis.processors.clamav or artifact.attributes or artifact.analysis.processors.tika %}
+    <div class="col-6 mt-2 position-relative">
+      <div class="position-absolute top-0 start-0 bottom-0 end-0 overflow-auto" style="max-height: 100%">
+        {# ClamAV #}
+        {% if artifact.analysis.processors.clamav %}
+          {% include "helpers/clamav_result.html" with clamav=artifact.analysis.processors.clamav %}
+        {% endif %}
+
+        {# Attributes #}
+        {% if artifact.attributes %}
+          <h5>{% translate "Properties" %}</h5>
+          {% include "helpers/extra_attributes_light.html" with attributes=artifact.attributes %}
+        {% endif %}
+
+        {# Tika metadata #}
+        {% if artifact.analysis.processors.tika %}
+          <h5>{% translate "Metadata" %}</h5>
+          {% include "helpers/tika_result.html" with tika=artifact.analysis.processors.tika %}
+        {% endif %}
+      </div>
     </div>
   {% endif %}
 </div>
 
-<div class="row justify-content-center">
-  <div class="col-md-8 mt-2">
-    <h5>{% translate "Details" %}</h5>
-    <table class="table table-sm">
-      <tbody>
-      <tr>
-        <td>ID</td>
-        <td>
-          {% include "icons/id_icon.html" with c="text-primary" %}
-          <span class="font-monospace">
-              {{ artifact.id }}
-            </span>
-        </td>
-      </tr>
-      <tr>
-        <td>Case</td>
-        <td>
-          {% include "icons/case_icon.html" with c="text-primary" %}
-          <a href="{% url "case_details_view" pk=artifact.case.id %}">
-            {{ artifact.case.name }}
-          </a>
-        </td>
-      </tr>
-      <tr>
-        <td>Owner</td>
-        <td>
-          {% include "icons/user_icon.html" with c="text-primary" %}
-          {{ artifact.owner }}
-        </td>
-      </tr>
-      <tr>
-        <td>Type</td>
-        <td>
-          <i class="nf {{ artifact.type.nf_icon }} text-primary"></i>
-          {{ artifact.type.name }}
-        </td>
-      </tr>
-      <tr>
-        <td>Created at</td>
-        <td>
-          {% include "helpers/date_since.html" with date=artifact.created_at c="text-primary" %}
-        </td>
-      </tr>
-      <tr>
-        <td>Updated at</td>
-        <td>
-          {% include "helpers/date_since.html" with date=artifact.updated_at c="text-primary" %}
-        </td>
-      </tr>
-      <tr>
-        <td>TLP/PAP</td>
-        <td>
-          {% include "tlp/show_tlp_pap.html" with element=artifact %}
-        </td>
-      </tr>
-      <tr>
-        <td class="text-nowrap">Original name</td>
-        <td>
-          {{ artifact.original_name }}
-        </td>
-      </tr>
-      <tr>
-        <td>Mimetype</td>
-        <td>
-          {{ artifact.mime_type }}
-        </td>
-      </tr>
-      <tr>
-        <td>Size</td>
-        <td>
-          {{ artifact.size_in_bytes|filesizeformat }} ({{ artifact.size_in_bytes }} bytes)
-        </td>
-      </tr>
-      <tr>
-        <td>MD5</td>
-        <td>
-          {% if artifact.has_been_processed %}
-            {% include "icons/id_icon.html" with c="text-primary" %}
-            <span class="font-monospace">
-                  {{ artifact.md5 }}
-              </span>
-          {% else %}
-            <span class="badge bg-info">Processing ...</span>
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>SHA1</td>
-        <td>
-          {% if artifact.has_been_processed %}
-            {% include "icons/id_icon.html" with c="text-primary" %}
-            <span class="font-monospace">
-                  {{ artifact.sha1 }}
-              </span>
-          {% else %}
-            <span class="badge bg-info">Processing ...</span>
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>SHA256</td>
-        <td>
-          {% if artifact.has_been_processed %}
-            {% include "icons/id_icon.html" with c="text-primary" %}
-            <span class="font-monospace">
-                  {{ artifact.sha256 }}
-              </span>
-          {% else %}
-            <span class="badge bg-info">Processing ...</span>
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>Signature</td>
-        <td>
-          {% if artifact.has_been_processed %}
-            {% if artifact.has_valid_signature %}
-              <span class="badge bg-success">Valid signature</span>
-            {% else %}
-              <span class="badge bg-danger">Incorrect signature (file potentially corrupted or modified)</span>
-            {% endif %}
-          {% else %}
-            <span class="badge bg-info">Processing ...</span>
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>Extracted from</td>
-        <td>
-          {% if artifact.extracted_from %}
-            <i class="nf {{ artifact.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{% url "collect_device_details_view" case_id=artifact.case.id pk=artifact.extracted_from_id %}">
-              {{ artifact.extracted_from.name }}
-            </a>
-            ({{ artifact.extracted_from.type }})
-          {% else %}
-            {% translate "No device specified" %}
-          {% endif %}
-        </td>
-      </tr>
-      <tr>
-        <td>Source</td>
-        <td>
-          {% if artifact.source_url %}
-            <i class="nf {{ artifact.extracted_from.type.nf_icon }} text-primary"></i>
-            <a href="{{ artifact.source_url }}" target="_blank">
-              {{ artifact.source_url }}
-              <i class="nf nf-fa-external_link text-primary"></i>
-            </a>
-          {% else %}
-            {% translate "No source specified" %}
-          {% endif %}
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="col-md-4 mt-4">
-    {% if artifact.analysis.processors.tika.analysis.extra.geo.lat %}
-      <div is="vue:GeoMap" class="mb-3 mt-0 rounded border border-secondary"
-           data-latitude="{{ artifact.analysis.processors.tika.analysis.extra.geo.lat }}"
-           data-longitude="{{ artifact.analysis.processors.tika.analysis.extra.geo.long }}">
-      </div>
-    {% endif %}
-    <div class="card bg-secondary-light">
-      <div class="card-body bg-secondary-light p-2">
-        <h5 class="card-title ">Artifact integrity check</h5>
-        <p>
-        To verify the integrity of this artifact, you have to download the public key of the case, the signature of the
-        artifact and the artifact itself.
-        </p>
-        In a terminal run the following command. If the file has not been tampered, the command above
-        returns <code>Verified OK</code>
-        <p class="font-monospace small mb-0 bg-dark text-white p-2 mt-1 rounded-2">
-          openssl dgst -sha256 -sigopt rsa_padding_mode:pss
-          -verify {{ artifact.case.name|escape_space }}.pem
-          -signature {{ artifact.name|escape_space }}.sig
-          {{ artifact.name|escape_space }}
-        </p>
 
-      </div>
-      <div class="card-footer text-center">
-        {% if artifact.has_been_processed %}
-          <a href="{% url "cases_download_key_view" pk=artifact.case.id %}"
-             class="btn btn-sm btn-primary text-white">
-            Download case key
-          </a>
-          <a href="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}" class="btn btn-sm btn-primary text-white">
-            Download artifact
-          </a>
-          <a href="{% url "collect_artifact_download_signature_view" case_id=artifact.case.id pk=artifact.id %}"
-             class="btn btn-sm btn-primary text-white">
-            Download artifact signature
-          </a>
-        {% else %}
-          <span class="badge bg-info">Processing ...</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row justify-content-center">
-  {% include "helpers/extra_attributes.html" with attributes=artifact.attributes %}
-  {% include "entity_relation/related_entities.html" with entity=artifact %}
-</div>
-
-<div class="row justify-content-center">
+{# Content #}
+<div class="row justify-content-center mt-4">
   {% if artifact.type.short_name == "IMAGE" %}
-    <div class="col-md-4 mt-2">
+    <div class="col-6 mt-2">
       <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
-           class="img-thumbnail" style="max-height: 50vh" alt="{{ artifact.name }}">
+           class="img-thumbnail" alt="{{ artifact.name }}" style="max-height: 50vh">
     </div>
     {% if artifact.analysis.content|length > 32 and artifact.analysis.content|length < 512000 %}
-      <div class="col-md-4 mt-2">
+      <div class="col-6 mt-4">
         <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{{ artifact.analysis.content }}</code></pre>
       </div>
     {% endif %}
   {% elif artifact.type.short_name == "VIDEO" %}
-    <div class="col-md-4 mt-2">
+    <div class="col-6 mt-2">
       <video controls class="object-fit-contain col-12">
         <source src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}">
         Your browser does not support the video tag.
       </video>
     </div>
   {% elif artifact.type.short_name == "HAR" %}
-    <div is="vue:har-analyzer" data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div>
+    <div is="vue:har-analyzer"
+         data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div>
   {% elif artifact.mime_type == "text/plain" or artifact.mime_type == "application/json" or artifact.mime_type == "application/xml" or artifact.mime_type == "text/csv" %}
     {% if artifact.size_in_bytes < 500000 %}
-      <div class="col-md-12 mt-4 mb-2">
+      <div class="col-8 mt-4 mb-2">
         <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{% for l in artifact.file.readlines %}{{ l.decode }}{% endfor %}</code></pre>
       </div>
     {% endif %}
   {% elif artifact.analysis %}
     {% if artifact.analysis.content|length > 32 and artifact.analysis.content|length < 512000 %}
-      <div class="col-md-12 mt-4 mb-2">
+      <div class="col mt-4 mb-2">
         <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{{ artifact.analysis.content }}</code></pre>
       </div>
     {% endif %}
   {% endif %}
 </div>
 
+{# Comments #}
 <div class="row justify-content-center">
   {% include "helpers/entity_comments.html" with entity=artifact %}
+</div>
+
+{# Artifact signature instructions (modal) #}
+<div class="modal" id="integrityCheckInstructions" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Artifact integrity check</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          To verify the integrity of this artifact, you have to download the public key of the case, the signature of
+          the
+          artifact and the artifact itself.
+        </div>
+        In a terminal run the following command. If the file has not been tampered with, the command below
+        returns <code>Verified OK</code>
+        <div class="font-monospace small mb-0 bg-dark text-white p-2 mt-4 rounded-2">
+          openssl dgst -sha256 -sigopt rsa_padding_mode:pss
+          -verify {{ artifact.case.name|escape_space }}.pem
+          -signature {{ artifact.name|escape_space }}.sig
+          {{ artifact.name|escape_space }}
+        </div>
+      </div>
+      <div class="modal-footer">{% if artifact.has_been_processed %}
+        <a href="{% url "cases_download_key_view" pk=artifact.case.id %}"
+           class="btn btn-primary text-white">
+          Download case key
+        </a>
+        <a href="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
+           class="btn btn-primary text-white">
+          Download artifact
+        </a>
+        <a href="{% url "collect_artifact_download_signature_view" case_id=artifact.case.id pk=artifact.id %}"
+           class="btn btn-primary text-white">
+          Download artifact signature
+        </a>
+      {% else %}
+        <span class="badge bg-info">Processing ...</span>
+      {% endif %}
+      </div>
+    </div>
+  </div>
 </div>

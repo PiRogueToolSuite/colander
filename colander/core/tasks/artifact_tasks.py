@@ -1,17 +1,14 @@
 import logging
-from tempfile import NamedTemporaryFile
 import re
+from tempfile import NamedTemporaryFile
 
 import mandolin_python_client
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.utils import timezone
-from mandolin_python_client import ThumbnailStrategy
+from mandolin_python_client import ThumbnailStrategy, AnalysisTikaResult, AnalyzerResultClamAVResult
 from mandolin_python_client.rest import ApiException
 
-from elasticsearch_dsl import Index
-
-from colander.core.models import Artifact, ArtifactAnalysis
+from colander.core.models import Artifact
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +36,7 @@ def _mandolin_thumbnail(artifact: Artifact, mandolin_configuration):
         with mandolin_python_client.ApiClient(mandolin_configuration) as api_client:
             api_instance = mandolin_python_client.ConvertersApi(api_client)
             try:
-                api_response:bytearray = api_instance.generate_thumbnail_converter_thumbnail_post(
+                api_response: bytearray = api_instance.generate_thumbnail_converter_thumbnail_post(
                     artifact_file.name,
                     strategy=ThumbnailStrategy.FIT,
                     width=256,
@@ -53,7 +50,7 @@ def _mandolin_thumbnail(artifact: Artifact, mandolin_configuration):
                 logger.error(e)
 
 
-def _mandolin_tika_analysis(artifact: Artifact, mandolin_configuration) -> ArtifactAnalysis | None:
+def _mandolin_tika_analysis(artifact: Artifact, mandolin_configuration) -> AnalysisTikaResult | None:
     with NamedTemporaryFile(suffix=artifact.original_name) as artifact_file:
         for chunk in artifact.file.chunks():
             artifact_file.write(chunk)
@@ -63,16 +60,25 @@ def _mandolin_tika_analysis(artifact: Artifact, mandolin_configuration) -> Artif
             api_instance = mandolin_python_client.AnalyzersApi(api_client)
             file = artifact_file.name
             try:
-                api_response = api_instance.analyze_with_tika_analyzer_tika_post(file, _request_timeout=5 * 60)
-                analysis = ArtifactAnalysis()
-                analysis.owner = str(artifact.owner_id)
-                analysis.case_id = str(artifact.case_id)
-                analysis.artifact_id = str(artifact.id)
-                analysis.analysis_date = timezone.now()
-                analysis.content = api_response.content
-                analysis.success = api_response.success
-                analysis.processors = api_response.processors
-                return analysis
+                response = api_instance.analyze_with_tika_analyzer_tika_post(file, _request_timeout=5 * 60)
+                return response
+            except ApiException as e:
+                logger.error(e)
+    return None
+
+
+def _mandolin_clamav_analysis(artifact: Artifact, mandolin_configuration) -> AnalyzerResultClamAVResult | None:
+    with NamedTemporaryFile(suffix=artifact.original_name) as artifact_file:
+        for chunk in artifact.file.chunks():
+            artifact_file.write(chunk)
+        artifact_file.flush()
+        artifact_file.seek(0)
+        with mandolin_python_client.ApiClient(mandolin_configuration) as api_client:
+            api_instance = mandolin_python_client.AnalyzersApi(api_client)
+            file = artifact_file.name
+            try:
+                response = api_instance.analyze_with_clamav_analyzer_clamav_post(file, _request_timeout=5 * 60)
+                return response.processors.get("clamav", None) if response.processors else None
             except ApiException as e:
                 logger.error(e)
     return None
@@ -83,28 +89,32 @@ def analyze_artifact(artifact_id: str):
         logger.info('Mandolin is disabled')
         return
 
-    # Prepare the ElasticSearch index in which the analysis will be saved
-    from elasticsearch_dsl import connections
-    connections.create_connection(hosts=['elasticsearch'], timeout=20)
     artifact = Artifact.objects.get(id=artifact_id)
-    index_name = artifact.get_es_index()
-    try:
-        index = Index(index_name)
-        if index.exists():
-            index.delete()
-        if not index.exists():
-            index.create()
-            ArtifactAnalysis.init(index=index_name)
-    except Exception as e:
-        logger.exception(e)
-        return
 
     # Call Mandolin to extract the artifact content
     mandolin_configuration = mandolin_python_client.Configuration(
         host=settings.MANDOLIN_BASE_URL
     )
-    if analysis := _mandolin_tika_analysis(artifact, mandolin_configuration):
-        analysis.save(index=index_name)
 
     # Call Mandolin to automatically generate the thumbnail of pictures
     _mandolin_thumbnail(artifact, mandolin_configuration)
+
+    # Call other analyzers
+    tika_analysis = _mandolin_tika_analysis(artifact, mandolin_configuration)
+    clamav_analysis = _mandolin_clamav_analysis(artifact, mandolin_configuration)
+    analysis = {
+        "success": bool(tika_analysis) or bool(clamav_analysis),
+        "content": None,
+        "processors": {}
+    }
+    if tika_analysis:
+        analysis["content"] = tika_analysis.content
+        analysis["processors"]["tika"] = tika_analysis.processors["tika"].to_dict()
+
+    if clamav_analysis:
+        analysis["processors"]["clamav"] = clamav_analysis.to_dict()
+        if clamav_analysis.analysis and clamav_analysis.analysis.infected:
+            artifact.add_attribute("is_malicious", True)
+
+    artifact.analysis = analysis
+    artifact.save()

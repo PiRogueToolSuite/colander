@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% if tika %}
+  <div class="ms-1">
+    {% if tika.success and tika.analysis.extra %}
+      <table class="table table-sm w-auto">
+        <tbody>
+        {% for k,v in tika.analysis.extra.items %}
+          {% if v %}
+            <tr>
+              <td class="font-monospace text-small text-secondary text-wrap4">{{ k }}</td>
+              <td class="font-monospace text-small text-wrap4">{{ v }}</td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+{% endif %}

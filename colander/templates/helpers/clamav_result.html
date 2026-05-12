@@ -1,0 +1,34 @@
+{% load i18n %}
+
+{% if clamav %}
+  <div class="mb-2">
+  {% if clamav.success %}
+    {% if clamav.analysis.infected %}
+      <h5>
+        {% translate "ClamAV" %}
+        <i class="fa fa-bug text-danger"></i>
+      </h5>
+      <div class="ms-1">
+        <span class="text-danger">{% translate "Malicious" %}: </span>
+        {{ clamav.analysis.description }}
+      </div>
+    {% else %}
+      <h5>
+        {% translate "ClamAV" %}
+        <i class="fa fa-check text-success"></i>
+      </h5>
+      <div class="ms-1">
+        <span class="">{% translate "Clean" %}</span>
+      </div>
+    {% endif %}
+  {% else %}
+    <h5>
+      {% translate "ClamAV" %}
+      <i class="fa fa-close text-warning"></i>
+    </h5>
+    <div class="fst-italic ms-1">
+      In error: {{ clamav.error_short }}
+    </div>
+  {% endif %}
+  </div>
+{% endif %}

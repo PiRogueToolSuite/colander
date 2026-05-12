@@ -48,7 +48,7 @@ yara-python==4.5.0  # https://github.com/VirusTotal/yara-python
 pcapng-utils>=1.0.9  # https://github.com/PiRogueToolSuite/pcapng-utils
 
 # Mandolin
-mandolin-python-client>=1.0.2
+mandolin-python-client>=1.2.0
 
 # Colander
 colander-data-converter==1.0.7

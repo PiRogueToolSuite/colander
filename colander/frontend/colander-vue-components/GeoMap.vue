@@ -1,5 +1,5 @@
 <template>
-  <div ref="map-root" class="w-100" style="height: 200px">
+  <div ref="map-root" style="">
   </div>
 </template>
 
@@ -8,6 +8,7 @@
   import {OSM, Vector as VectorSource} from 'ol/source';
   import {Point} from 'ol/geom';
   import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
+  import {defaults as defaultControls} from 'ol/control';
   import {useGeographic} from 'ol/proj';
   import 'ol/ol.css'
 
@@ -24,6 +25,7 @@
       const point = new Point(place);
       new Map({
         target: this.$refs['map-root'],
+        controls: defaultControls({ zoom: false }),
         layers: [
           new TileLayer({
             source: new OSM(

@@ -1,13 +1,13 @@
 {% load i18n %}
 {% load colander_tags %}
 
-<table class="table table-sm">
+<table class="table table-sm ms-1 mb-2 w-auto">
   <tbody>
   {% for k,v in attributes.items %}
     {% if v %}
       <tr>
-        <td data-bs-toggle="tooltip" data-bs-placement="left" title="{{ k }}">{{ k|to_title }}</td>
-        <td class="font-monospace text-wrap4">{{ v }}</td>
+        <td class="font-monospace text-small text-secondary text-wrap4">{{ k }}</td>
+        <td class="font-monospace text-small text-wrap4">{{ v }}</td>
       </tr>
     {% endif %}
   {% endfor %}

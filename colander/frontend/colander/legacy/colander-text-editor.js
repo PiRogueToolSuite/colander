@@ -17,7 +17,8 @@ async function resolve_codemirror() {
       $(view.dom).css({
         'overflow': 'auto',
         'max-width': '100%',
-        'border': '1px solid #c4c3c8',
+        'font-size': '0.9em',
+        'border': '1px solid #a991d4',
         'border-radius': '8px'
       });
       textarea.parentNode.insertBefore(view.dom, textarea);
@@ -59,7 +60,8 @@ async function resolve_codemirror() {
       $(view.dom).css({
         'max-height': '64em',
         'overflow': 'auto',
-        'border': '1px solid #c4c3c8',
+        'font-size': '0.9em',
+        'border': '1px solid #a991d4',
         'border-radius': '8px'
       });
 

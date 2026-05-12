@@ -69,7 +69,7 @@
     "masonry-layout": "^4.2.2",
     "mongoose-vuejs": "^0.1.0",
     "npm": "^10.9.2",
-    "ol": "^10.5.0",
+    "ol": "^10.9.0",
     "papaparse": "^5.5.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.4",

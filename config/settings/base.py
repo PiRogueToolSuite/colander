@@ -416,7 +416,8 @@ MARKDOWNIFY = {
                 "title": "Table of content"
             }
         },
-        "BLEACH": False
+        # Fix: GHSA-g488-q437-q4mr
+        "BLEACH": True
     }
 }
 

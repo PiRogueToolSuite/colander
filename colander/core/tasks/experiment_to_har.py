@@ -23,26 +23,16 @@ class ArtifactDump:
     file in case it already exists, providing flexibility in managing storage scenarios.
     """
 
-    def __init__(self, artifact: Artifact, output_directory: Path):
+    def __init__(self, artifact: Artifact, output_directory: Path, dumped_filename: str):
         self.artifact = artifact
         self.output_directory = output_directory
         self.dumped = False
-        self.force_override = False
-        self.filename_override: str | None = None
+        self.filename: str = dumped_filename
 
     @property
     def path(self) -> Path:
-        if self.force_override:
-            return self.output_directory / self.filename_override
-        assert self.artifact is not None
-        return self.output_directory / self.artifact.name
-
-    @property
-    def filename(self) -> str:
-        if self.force_override:
-            return self.filename_override
-        assert self.artifact is not None
-        return self.artifact.name
+        assert self.filename is not None, "Filename must be specified for ArtifactDump."
+        return self.output_directory / self.filename
 
     @property
     def artifact_exists(self) -> bool:
@@ -52,7 +42,7 @@ class ArtifactDump:
     def exists(self) -> bool:
         return self.artifact_exists and self.path.is_file()
 
-    def dump(self, force: bool = False, default_content: str | None = None, filename: str = None) -> 'ArtifactDump':
+    def dump(self, force: bool = False, default_content: str | None = None) -> 'ArtifactDump':
         """
         Dumps the artifact to a file.
 
@@ -66,13 +56,9 @@ class ArtifactDump:
         """
         if force and not self.artifact_exists:
             assert not self.exists, "The artifact does not exist but force is set to True."
-            assert filename is not None, "Filename must be provided when forcing override."
             assert default_content is not None, "Default content must be provided when forcing override."
 
-            self.force_override = True
-            self.filename_override = filename
-            output_path = self.output_directory / filename
-            with output_path.open(mode='w') as f:
+            with self.path.open(mode='w') as f:
                 f.write(default_content)
             self.dumped = True
         elif not self.artifact_exists:
@@ -112,18 +98,22 @@ class ExperimentDump:
     def __init__(self, experiment: PiRogueExperiment, output_directory: Path):
         self.experiment: PiRogueExperiment = experiment
         self.output_directory: Path = output_directory
-        self.pcap: ArtifactDump = ArtifactDump(self.experiment.pcap, self.output_directory)
-        self.ssl_keylog: ArtifactDump = ArtifactDump(self.experiment.sslkeylog, self.output_directory)
-        self.socket_trace: ArtifactDump = ArtifactDump(self.experiment.socket_trace, self.output_directory)
-        self.aes_trace: ArtifactDump = ArtifactDump(self.experiment.aes_trace, self.output_directory)
-        assert self.pcap.artifact_exists is not None
+        self.pcap: ArtifactDump = ArtifactDump(
+            self.experiment.pcap, self.output_directory, 'capture.pcap')
+        self.ssl_keylog: ArtifactDump = ArtifactDump(
+            self.experiment.sslkeylog, self.output_directory, 'sslkeylog.txt')
+        self.socket_trace: ArtifactDump = ArtifactDump(
+            self.experiment.socket_trace, self.output_directory, 'socket_trace.json')
+        self.aes_trace: ArtifactDump = ArtifactDump(
+            self.experiment.aes_trace, self.output_directory, 'aes_info.jsont')
+        assert self.pcap.artifact_exists, "PCAP Artifact must exists."
         assert self.output_directory is not None and self.output_directory.is_dir()
 
     def generate_dump(self):
         self.pcap.dump()
-        self.ssl_keylog.dump(force=True, filename='sslkeylog.txt', default_content='')
-        self.socket_trace.dump(force=True, filename='socket_trace.json', default_content='[]')
-        self.aes_trace.dump(force=True, filename='aes_info.jsont', default_content='[]')
+        self.ssl_keylog.dump(force=True, default_content='')
+        self.socket_trace.dump(force=True, default_content='[]')
+        self.aes_trace.dump(force=True, default_content='[]')
 
 
 class HARGenerationException(Exception):
@@ -176,13 +166,12 @@ class ExperimentToHAR:
             self.editcap_path).exists(), f"EditCap path {self.editcap_path} does not exist."
 
     def _call_editcap(self):
-        subprocess.check_call(
-            f'{self.editcap_path} --inject-secrets tls,'
-            f'{self.experiment_dump.ssl_keylog.path} '
-            f'{self.experiment_dump.pcap.path} '
-            f'{self.pcapng_path}',
-            shell=True
-        )
+        subprocess.check_call([
+           self.editcap_path,
+           '--inject-secrets', f'tls,{self.experiment_dump.ssl_keylog.path}',
+           str(self.experiment_dump.pcap.path),
+           str(self.pcapng_path)
+        ])
 
     def inject_secrets(self):
         """

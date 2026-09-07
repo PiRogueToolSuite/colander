@@ -1076,7 +1076,7 @@ class Artifact(Entity):
             sig = private_key.sign(
                 bytes.fromhex(self.sha256),
                 padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
+                    mgf=padding.MGF1(chosen_hash),
                     salt_length=padding.PSS.MAX_LENGTH
                 ),
                 utils.Prehashed(chosen_hash)

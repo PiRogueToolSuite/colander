@@ -153,7 +153,9 @@ function legacy_bind($vue) {
     let jOptions = [];
     jOptions.push($(`<option value=''>---------</option>`));
     for( let devId in caseObj.devices ) {
-      jOptions.push($(`<option value='${devId}'>${caseObj.devices[devId].name}</option>`));
+      let jDeviceOption = $(`<option value='${devId}'></option>`);
+      jDeviceOption.text(caseObj.devices[devId].name);
+      jOptions.push(jDeviceOption);
     }
     $('#id_extracted_from').empty().append(jOptions);
 

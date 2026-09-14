@@ -1,17 +1,17 @@
 import pathlib
 
-import magic
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms import ModelForm
 from django.shortcuts import render
-from django.views.generic import CreateView
 
 from colander.core.models import DroppedFile, Artifact, Case
 from colander.core.signals import process_dropped_files_conversion
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ConversionToArtifactForm(ModelForm):
@@ -87,21 +87,24 @@ def __process_drops_conversion(request):
             new_artifact.case = ctaf.cleaned_data['case']
             new_artifact.type = ctaf.cleaned_data['type']
             new_artifact.description = ctaf.cleaned_data['description']
-            new_artifact.extracted_form = ctaf.cleaned_data['extracted_from']
+            new_artifact.extracted_from = ctaf.cleaned_data['extracted_from']
             new_artifact.tlp = ctaf.cleaned_data['tlp']
             new_artifact.pap = ctaf.cleaned_data['pap']
             new_artifact.attributes = {}
+
             # Filters originals attributes without 'source_url'
             for original_attr in cdf.attributes:
-                print(f'original_attr:{original_attr}')
                 if original_attr == 'source_url':
+                    logger.debug('DropFile attribute skipped: %s', original_attr)
                     continue
+                logger.debug('DropFile attribute added: %s', original_attr)
                 new_artifact.attributes[original_attr] = cdf.attributes[original_attr]
             # Filters new 'non-empty' attributes
             for new_attr in ctaf.cleaned_data['attributes']:
-                print(f'new_attr:{new_attr}')
                 if not ctaf.cleaned_data['attributes'][new_attr]:
+                    logger.debug('User defined attribute empty: %s', new_attr)
                     continue
+                logger.debug('User defined attribute added: %s', new_attr)
                 new_artifact.attributes[new_attr] = ctaf.cleaned_data['attributes'][new_attr]
             new_artifact.extension = pathlib.Path(cdf.filename).suffix
             new_artifact.size_in_bytes = cdf.file.size

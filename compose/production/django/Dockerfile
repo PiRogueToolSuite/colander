@@ -80,6 +80,8 @@ RUN chmod +x /start-worker
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
 
+EXPOSE 5000
+
 # make django owner of the WORKDIR directory as well.
 RUN chown django:django ${APP_HOME}
 

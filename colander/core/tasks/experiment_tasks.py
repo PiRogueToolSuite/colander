@@ -12,11 +12,15 @@ from binascii import hexlify
 import communityid
 import requests
 from django.utils import timezone
+from django.utils.html import escape
 from elasticsearch_dsl import Index
 from yara import StringMatchInstance
 
 from colander.core.es_utils import geoip_pipeline_id
 from colander.core.models import DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
+
+import logging
+logger = logging.getLogger(__name__)
 
 external_packages = [
     'com.android.org.conscrypt.',
@@ -101,7 +105,7 @@ def get_stack_trace(traces, community_id, timestamp, operations):
             if delta < min_time:
                 min_time = delta
                 best_guess = t
-    print(f'Best guess with delta {min_time/1000} for {community_id}, {timestamp}, {operations}')
+    logger.debug(f'Best guess with delta {min_time/1000} for {community_id}, {timestamp}, {operations}')
     return best_guess
 
 def _compact_stack_trace(trace):
@@ -172,7 +176,7 @@ def parse_single_http2_layer(http2_layer: dict):
         header_name = http2_layer.get('http2_http2_header_name')
         header_value = http2_layer.get('http2_http2_header_value')
         if len(header_name) != len(header_value):
-            print('ERROR http2 unmatched header names with values')
+            logger.error('http2 unmatched header names with values')
             return headers, data, raw_data
         headers = dict([x for x in zip(header_name, header_value)])
     return headers, data, raw_data
@@ -212,7 +216,7 @@ def parse_http3(layers: dict, layer_names: list):
 
 def parse_http(layers: dict, layer_names: list):
     headers, data, raw_data = None, None, ''
-    print(layers.keys())
+    logger.debug("Layers keys: %s", layers.keys())
     http_layer = layers.get('http')
     if http_layer and type(http_layer) is list:  # list in case of websocket communication
         http_layer = http_layer[0]
@@ -417,7 +421,7 @@ def save_decrypted_traffic(pirogue_dump_id):
             index.create()
             PiRogueExperimentAnalysis.init(index=index_name)
     except Exception as e:
-        print(e)
+        logger.error(e)
 
     pcap = 'pcap.file'
     ssl_keylog = 'sslkeylog.file'
@@ -448,7 +452,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                 shell=True
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             return
 
         # Generate the JSON file containing the traffic
@@ -459,7 +463,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                 shell=True
             )
         except Exception as e:
-            print(e)
+            logger.error(e)
             return
 
         socket_traces_file = f'{tmp_dir}/{socket_trace}'
@@ -532,8 +536,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                                 analysis.timestamp = datetime.datetime.utcfromtimestamp(int(p['timestamp']) / 1000.0)
                                 analysis.save(index=index_name, pipeline=geoip_pipeline_id)
                         except Exception as e:
-                            print('Oooooops')
-                            print(e)
+                            logger.error(e)
 
 def _extract_matching_snippet(match: StringMatchInstance, content):
     content_length = len(content)
@@ -542,7 +545,13 @@ def _extract_matching_snippet(match: StringMatchInstance, content):
     match_off_end = match_off_start + match.matched_length
     snippet_off_start = max(0, match_off_start - context)
     snippet_off_end = min(content_length, match_off_end + context)
-    snippet = content[snippet_off_start:match_off_start] + '<mark>' + content[match_off_start:match_off_end] + '</mark>' + content[match_off_end:snippet_off_end]
+    snippet = ''.join([
+        escape(content[snippet_off_start:match_off_start]),
+        '<mark>',
+        escape(content[match_off_start:match_off_end]),
+        '</mark>',
+        escape(content[match_off_end:snippet_off_end])
+    ])
     return snippet
 
 def apply_detection_rules(pirogue_dump_id):
@@ -551,7 +560,7 @@ def apply_detection_rules(pirogue_dump_id):
     connections.create_connection(hosts=['elasticsearch'], timeout=20)
     pirogue_dump: PiRogueExperiment = PiRogueExperiment.objects.get(id=pirogue_dump_id)
     detection_rules: list[DetectionRule] = DetectionRule.get_user_detection_rules(pirogue_dump.owner, pirogue_dump.case)
-    print(len(detection_rules))
+    logger.debug("Detection rules number: %d", len(detection_rules))
     analysis = pirogue_dump.analysis
     for record in analysis:
         matches = []
@@ -566,7 +575,7 @@ def apply_detection_rules(pirogue_dump_id):
                 try:
                     compiled_rule = yara.compile(source=rule.content)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
                     continue
 
                 rule_matches = compiled_rule.match(data=whole_content)
@@ -588,6 +597,6 @@ def apply_detection_rules(pirogue_dump_id):
                         })
                         match_objects.append(match_object)
                 matches.extend(match_objects)
-                print(rule_matches)
+                logger.debug("All matches: %s", rule_matches)
                 record.detections['yara'] = matches
                 record.save()

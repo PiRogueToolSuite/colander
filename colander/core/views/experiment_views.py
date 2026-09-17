@@ -14,6 +14,8 @@ from colander.core.models import Artifact, DetectionRule, PiRogueExperiment, PiR
 from colander.core.tasks.experiment_to_har import experiment_to_har
 from colander.core.views.views import CaseContextMixin
 
+import logging
+logger = logging.getLogger(__name__)
 
 class PiRogueExperimentCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = PiRogueExperiment
@@ -106,9 +108,11 @@ def __compute_detection_summary(analysis, direction):
                     pass
                 key = f'{host} - ({ip}) - {process}'
                 if direction == 'outbound':
-                    geo_data = record.result.dst.geoip
+                    logger.debug("Record result dst: %s", record.result.dst)
+                    geo_data = record.result.dst.geoip if 'geoip' in record.result.dst else None
                 else:
-                    geo_data = record.result.src.geoip
+                    logger.debug("Record result src: %s", record.result.src)
+                    geo_data = record.result.src.geoip if 'geoip' in record.result.src else None
                 if key not in items:
                     items[key] = {
                         'host': host,

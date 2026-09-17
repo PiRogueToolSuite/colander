@@ -17,7 +17,7 @@ def create_or_edit_entity_relation_view(request):
     form = EntityRelationForm()
     entities = active_case.get_all_entities(exclude_types=['Case', 'EntityRelation', 'DetectionRule'])
     choices = [
-        (t.id, mark_safe(f'{t.value} - {t._meta.verbose_name}'))
+        (t.id, f'{t.value} - {t._meta.verbose_name}')
         for t in entities
     ]
     form.fields['obj_from'].choices = choices

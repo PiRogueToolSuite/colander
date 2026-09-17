@@ -2117,13 +2117,13 @@ class FeedTemplate(models.Model):
         # Copy all templates in the same folder
         with TemporaryDirectory() as tmpdir:
             for template in self.owner.available_templates_qs:
-                with open(os.path.join(tmpdir, template.name), mode='w') as f:
+                with open(os.path.join(tmpdir, str(template.id)), mode='w') as f:
                     f.write(template.content)
             colander_feed = ColanderFeed.load(feed)
             exporter = TemplateExporter(
                 colander_feed,
                 tmpdir,
-                self.name
+                str(self.id)
             )
             io = StringIO()
             exporter.export(io)

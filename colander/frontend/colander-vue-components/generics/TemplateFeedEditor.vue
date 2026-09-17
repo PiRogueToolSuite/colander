@@ -116,9 +116,9 @@ export default {
       extensions: [materialDark],
     }
   },
-  created() {
-    this.getTemplates();
-    this.getEditedTemplate();
+  async created() {
+    await this.getTemplates();
+    await this.getEditedTemplate();
     this.loading = false;
   },
   methods: {
@@ -178,9 +178,6 @@ export default {
           throw new Error(`Response status: ${response.status}`);
         }
         this.editedTemplate = await response.json();
-        if (!this.success) {
-          throw new Error("Unable to load data");
-        }
       } catch (error) {
         this.$toast.add({severity: "error", summary: "Failed", detail: error.message, life: 3000});
       }
@@ -192,9 +189,6 @@ export default {
           throw new Error(`Response status: ${response.status}`);
         }
         this.templates = await response.json();
-        if (!this.success) {
-          throw new Error("Unable to load data");
-        }
       } catch (error) {
         this.$toast.add({severity: "error", summary: "Failed", detail: error.message, life: 3000});
       }
@@ -206,9 +200,6 @@ export default {
           throw new Error(`Response status: ${response.status}`);
         }
         this.internalFeed = await response.json();
-        if (!this.success) {
-          throw new Error("Unable to load data");
-        }
         this.$themeUtils.attachStyleToEntities(this.entities).then(() => {
         });
       } catch (error) {

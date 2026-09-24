@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
 from django.forms.widgets import RadioSelect, Textarea, HiddenInput
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
@@ -276,7 +276,7 @@ def delete_entity_export_feed_view(request, pk):
 
 def entity_export_feed_view(request, pk):
     try:
-        feed = EntityExportFeed.objects.get(id=pk)
+        feed = EntityExportFeed.objects.unguarded_get(id=pk)
     except EntityExportFeed.DoesNotExist:
         return HttpResponse('', status=404, content_type='text/plain')
 
@@ -284,7 +284,7 @@ def entity_export_feed_view(request, pk):
     is_authenticated |= request.GET.get('secret', '') == feed.secret
     is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
     if not is_authenticated:
-        return HttpResponse('', status=503, content_type='text/plain')
+        return HttpResponseForbidden()
 
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedInfoSerializer(feed).data, json_dumps_params={})
@@ -340,15 +340,15 @@ def entity_export_feed_view(request, pk):
 
 def custom_export_feed_view(request, pk):
     try:
-        feed = CustomExportFeed.objects.get(id=pk)
+        feed = CustomExportFeed.objects.unguarded_get(id=pk)
     except CustomExportFeed.DoesNotExist:
-        return HttpResponse('', status=503, content_type='text/plain')
+        return HttpResponse('', status=404, content_type='text/plain')
 
     is_authenticated = request.user.is_authenticated
     is_authenticated |= request.GET.get('secret', '') == feed.secret
     is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
     if not is_authenticated:
-        return HttpResponse('', status=503, content_type='text/plain')
+        return HttpResponseForbidden()
 
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedInfoSerializer(feed).data, json_dumps_params={})
@@ -364,15 +364,15 @@ def custom_export_feed_view(request, pk):
 
 def detection_rule_export_feed_view(request, pk):
     try:
-        feed = DetectionRuleExportFeed.objects.get(id=pk)
+        feed = DetectionRuleExportFeed.objects.unguarded_get(id=pk)
     except DetectionRuleExportFeed.DoesNotExist:
-        return HttpResponse('', status=503, content_type='text/plain')
+        return HttpResponse('', status=404, content_type='text/plain')
 
     is_authenticated = request.user.is_authenticated
     is_authenticated |= request.GET.get('secret', '') == feed.secret
     is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
     if not is_authenticated:
-        return HttpResponse('', status=503, content_type='text/plain')
+        return HttpResponseForbidden()
 
     if 'info' in request.GET:
         return JsonResponse(OutgoingFeedInfoSerializer(feed).data, json_dumps_params={})

@@ -11,6 +11,7 @@ from colander.core.models import (
     Comment,
     DetectionRule,
     DetectionRuleExportFeed,
+    Device,
     DroppedFile,
     EntityExportFeed,
     EntityRelation,
@@ -59,14 +60,14 @@ admin.site.register(ObservableType, ObservableTypeAdmin)
 
 
 class ObservableAdmin(admin.ModelAdmin):
-    list_display = ('type', 'value', 'description')
-    list_filter = ('type', 'description')
+    list_display = ('type', 'value', 'owner', 'description')
+    list_filter = ('type', 'owner', 'description')
 admin.site.register(Observable, ObservableAdmin)
 
 
 class ArtifactAdmin(admin.ModelAdmin):
-    list_display = ('type', 'sha256')
-    list_filter = ('type', 'sha256')
+    list_display = ('name', 'owner', 'type', 'sha256')
+    list_filter = ('name', 'owner', 'type', 'sha256')
 admin.site.register(Artifact, ArtifactAdmin)
 
 
@@ -88,26 +89,32 @@ admin.site.register(EventType, EventTypeAdmin)
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('name', 'owner')
-    list_filter = ('name', 'owner')
+    list_display = ('name', 'owner', 'owner')
+    list_filter = ('name', 'owner', 'owner')
 admin.site.register(Event, EventAdmin)
 
 
 class ThreatAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type')
-    list_filter = ('name', 'type')
+    list_display = ('name', 'owner', 'type')
+    list_filter = ('name', 'owner', 'type')
 admin.site.register(Threat, ThreatAdmin)
 
 
 class ActorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type')
-    list_filter = ('name', 'type')
+    list_display = ('name', 'owner', 'type')
+    list_filter = ('name', 'owner', 'type')
 admin.site.register(Actor, ActorAdmin)
 
 
+class DeviceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'owner', 'type')
+    list_filter = ('name', 'owner', 'type')
+admin.site.register(Device, DeviceAdmin)
+
+
 class PiRogueExperimentAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    list_filter = ('name',)
+    list_display = ('name', 'owner')
+    list_filter = ('name', 'owner')
 admin.site.register(PiRogueExperiment, PiRogueExperimentAdmin)
 
 
@@ -118,8 +125,8 @@ admin.site.register(ObservableRelation, ObservableRelationAdmin)
 
 
 class DetectionRuleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type')
-    list_filter = ('name', 'type')
+    list_display = ('name', 'owner', 'type')
+    list_filter = ('name', 'owner', 'type')
 admin.site.register(DetectionRule, DetectionRuleAdmin)
 
 
@@ -143,12 +150,12 @@ admin.site.register(UploadRequest, UploadRequestAdmin)
 
 
 class EntityOutFeedAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'owner')
 admin.site.register(EntityExportFeed, EntityOutFeedAdmin)
 
 
 class DetectionRuleOutFeedAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'owner')
 admin.site.register(DetectionRuleExportFeed, DetectionRuleOutFeedAdmin)
 
 

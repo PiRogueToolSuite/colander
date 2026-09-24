@@ -169,6 +169,7 @@ MIDDLEWARE = [
     "allauth_2fa.middleware.AllauthTwoFactorMiddleware",
 
     # Workspace middleware
+    "colander.core.model_guardian.ModelGuardianMiddleware",
     "colander.core.middlewares.ContextualCaseMiddleware",
     "colander.core.middlewares.GitCommitHashMiddleware",
 ]

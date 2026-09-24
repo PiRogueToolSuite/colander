@@ -12,6 +12,7 @@ from tempfile import TemporaryDirectory
 from datetime import timedelta
 
 import django
+from colander.core.model_guardian import ModelGuardianManager
 from colander_data_converter.base.models import ColanderFeed
 from colander_data_converter.exporters.template import TemplateExporter
 from cryptography.exceptions import InvalidSignature
@@ -545,6 +546,8 @@ def _get_subgraph_thumbnails_storage_dir(instance, filename):
 
 
 class SubGraph(models.Model):
+    objects = ModelGuardianManager()
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -638,6 +641,8 @@ def _get_entity_thumbnails_storage_dir(instance, filename):
 
 
 class Entity(models.Model):
+    objects = ModelGuardianManager()
+
     class Meta:
         ordering = ['-updated_at']
 
@@ -1454,6 +1459,8 @@ class Observable(Entity):
 
 
 class EntityRelation(models.Model):
+    objects = ModelGuardianManager()
+
     class Meta:
         unique_together = [['name', 'obj_from_id', 'obj_to_id']]
 
@@ -1574,6 +1581,7 @@ def entity_relation_cascade(sender, instance, using, **kwargs):
     ).delete()
 
 
+# TODO: Clean-up 'ObservableRelation' if this does not been used anymore
 class ObservableRelation(Entity):
     class Meta:
         ordering = ['-updated_at']
@@ -1995,6 +2003,8 @@ class Event(Entity):
 
 
 class FeedTemplate(models.Model):
+    objects = ModelGuardianManager
+
     class Meta:
         ordering = ['name']
 
@@ -2382,6 +2392,8 @@ def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
 
 
 class PiRogueCredentials(models.Model):
+    objects = ModelGuardianManager()
+
     class Meta:
         verbose_name = 'PiRogue Credentials'
         verbose_name_plural = 'PiRogue Credentials'
@@ -2520,6 +2532,8 @@ class PiRogueUserAccessSharing(models.Model):
 
 
 class DeviceMonitoring(models.Model):
+    objects = ModelGuardianManager()
+
     STATUS_CHOICES = [
         (0, 'Not started'),
         (1, 'In progress'),
@@ -3018,6 +3032,8 @@ def delete_upload_request_stored_files(sender, instance: UploadRequest, using, *
 
 
 class OutgoingFeed(models.Model):
+    objects = ModelGuardianManager()
+
     class Meta:
         ordering = ['name']
 

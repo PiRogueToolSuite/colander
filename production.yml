@@ -144,7 +144,7 @@ services:
       - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2022-09-22T18-57-27Z
+    image: elasticio/minio:0145d0d938d2690f5198bd581100062b0496e6cd
     volumes:
       - production_colander_minio_data:/data
     env_file:

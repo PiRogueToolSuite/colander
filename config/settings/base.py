@@ -155,7 +155,6 @@ MIDDLEWARE = [
     # Disabled to avoid flooded mailbox by undesirable robots
     # "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
 
     # Configure the django-otp package. Note this must be after the
     # AuthenticationMiddleware.

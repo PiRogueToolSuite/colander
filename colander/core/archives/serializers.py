@@ -32,7 +32,10 @@ class EntityTypeSerializer(Serializer):
 class CaseSerializer(ModelSerializer):
     class Meta:
         model = Case
-        exclude = ['owner', 'es_prefix', 'parent_case', 'teams']
+        exclude = ['owner', 'es_prefix', 'parent_case', 'signing_key', 'teams']
+        extra_kwargs = {
+            'public_key': {'read_only': True},
+        }
 
 
 class ActorSerializer(ModelSerializer):
@@ -65,6 +68,7 @@ class ArtifactSerializer(ModelSerializer):
             'storage_name',
             'storage_location',
             'analysis_index',
+            'analysis', # Potentially generates too big paylod
         ]
         write_only = ['owner', 'case', 'file', 'thumbnail']
         extra_kwargs = {

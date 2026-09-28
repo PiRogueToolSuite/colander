@@ -27,7 +27,7 @@ class ThreatrClient:
             return response.status_code == 200, ''
         except requests.exceptions.RequestException as e:
             logger.error(e)
-            return False, 'Unable to retrieve the API schema (https://<threatr domain>/api/schema/)'
+            return False, f'Unable to retrieve the API schema ({self.url}/api/schema/)'
 
     def is_online(self):
         if not self.__correctly_configured:

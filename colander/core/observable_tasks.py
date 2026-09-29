@@ -51,11 +51,10 @@ def capture_url(observable_id):
         if not ip.is_global:
             logger.error("Can't capture url: ip not global: %s", ip)
             return
-
-    entries = asyncio.run(_synced_capture_url(url_str))
-
-    if entries.get("error"):
-        logger.error(f"The following errors occur: {entries.get("error")}")
+    try:
+        entries = asyncio.run(_synced_capture_url(url_str))
+    except Exception as e:
+        logger.error(f"Page capture failed: %s", e)
         return
 
     screenshot_file = io.BytesIO(entries.get('png'))

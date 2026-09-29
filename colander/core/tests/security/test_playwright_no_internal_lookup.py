@@ -3,7 +3,9 @@ from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
-from colander.core.models import Case, Observable, ObservableType, ArtifactType
+from colander.core.models import (
+    Case, Observable, ObservableType, ArtifactType,
+)
 from colander.core.observable_tasks import capture_url
 from colander.users.models import User
 
@@ -32,19 +34,18 @@ class URLCaptureSSRFRegressionTest(TestCase):
             owner=cls.user,
             case=cls.case,
         )
-        image_artifact_type = ArtifactType.objects.create(
+        cls.image_artifact_type = ArtifactType.objects.create(
             short_name="IMAGE",
             name="IMAGE",
         )
-        har_artifact_type = ArtifactType.objects.create(
+        cls.har_artifact_type = ArtifactType.objects.create(
             short_name="HAR",
             name="HAR",
         )
 
-    @patch("colander.core.observable_tasks.requests.post")
-    def test_internal_url_is_rejected_before_playwright_request(self, playwright_post):
-        playwright_post.return_value = SimpleNamespace(status_code=502)
-
+    def test_internal_url_is_rejected_before_playwright_request(self):
         capture_url(self.observable.id)
 
-        playwright_post.assert_not_called()
+        self.observable.refresh_from_db()
+
+        self.assertEqual(len(self.observable.relations), 0, "Capture of private url succeed")

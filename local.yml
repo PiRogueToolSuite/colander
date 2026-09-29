@@ -37,7 +37,6 @@ services:
       - minio
       - elasticsearch
       - redis
-      - playwright
       - cyberchef
       - mandolin
     volumes:
@@ -61,7 +60,6 @@ services:
     depends_on:
       - postgres
       - minio
-      - playwright
       - elasticsearch
       - redis
       - mandolin
@@ -111,11 +109,6 @@ services:
     container_name: colander_local_cyberchef
     ports:
       - 8001:8000
-    restart: unless-stopped
-
-  playwright:
-    image: ghcr.io/piroguetoolsuite/playwright-rest-api:main
-    container_name: colander_local_playwright
     restart: unless-stopped
 
   elasticsearch:

@@ -53,7 +53,6 @@ services:
       - cyberchef
       - elasticsearch
       - keycloak
-      - playwright
       - minio
       - redis
     env_file:
@@ -70,7 +69,6 @@ services:
     depends_on:
       - colander-postgres
       - elasticsearch
-      - playwright
       - minio
       - redis
     env_file:
@@ -128,11 +126,6 @@ services:
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
-
-  playwright:
-    image: ghcr.io/piroguetoolsuite/playwright-rest-api:main
-    container_name: colander_production_playwright
-    restart: unless-stopped
 
   elasticsearch:
     image: elasticsearch:8.19.11

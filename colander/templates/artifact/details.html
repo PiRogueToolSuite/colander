@@ -243,23 +243,25 @@
 
 {# Content #}
 <div class="row justify-content-center mt-4">
-  {% if artifact.type.short_name == "IMAGE" %}
-    <div class="col-6 mt-2">
-      <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
-           class="img-thumbnail" alt="{{ artifact.name }}" style="max-height: 50vh">
-    </div>
-    {% if artifact.analysis.content|length > 32 and artifact.analysis.content|length < 512000 %}
-      <div class="col-6 mt-4">
-        <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{{ artifact.analysis.content }}</code></pre>
+  {% if artifact.can_be_displayed %}
+    {% if artifact.type.short_name == "IMAGE" %}
+        <div class="col-6 mt-2">
+          <img src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"
+               class="img-thumbnail" alt="{{ artifact.name }}" style="max-height: 50vh">
+        </div>
+      {% if artifact.analysis.content|length > 32 and artifact.analysis.content|length < 512000 %}
+        <div class="col-6 mt-4">
+          <pre class="bg-dark text-white rounded-2 p-2 colander-text-editor"><code>{{ artifact.analysis.content }}</code></pre>
+        </div>
+      {% endif %}
+    {% elif artifact.type.short_name == "VIDEO" %}
+      <div class="col-6 mt-2">
+        <video controls class="object-fit-contain col-12">
+          <source src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}">
+          Your browser does not support the video tag.
+        </video>
       </div>
     {% endif %}
-  {% elif artifact.type.short_name == "VIDEO" %}
-    <div class="col-6 mt-2">
-      <video controls class="object-fit-contain col-12">
-        <source src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}">
-        Your browser does not support the video tag.
-      </video>
-    </div>
   {% elif artifact.type.short_name == "HAR" %}
     <div is="vue:har-analyzer"
          data-src="{% url "collect_artifact_download_view" case_id=artifact.case.id pk=artifact.id %}"></div>

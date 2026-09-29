@@ -1118,7 +1118,7 @@ class Artifact(Entity):
 
     @property
     def can_be_displayed(self):
-        return self.type.short_name in ['IMAGE', 'VIDEO', 'WEBPAGE']
+        return self.type.short_name in ['IMAGE', 'VIDEO'] and 'svg' not in self.mime_type.lower()
 
     @property
     def icon(self):

@@ -184,9 +184,12 @@ def download_artifact(request, pk):
 @login_required
 def view_artifact(request, pk):
     content = Artifact.objects.get(id=pk)
-    response = StreamingHttpResponse(content.file, content_type=content.mime_type)
-    response['Content-Disposition'] = 'inline; filename=' + content.name
-    return response
+    if content.can_be_displayed:
+        response = StreamingHttpResponse(content.file, content_type=content.mime_type)
+        response['Content-Disposition'] = 'inline; filename=' + content.name
+        return response
+    else:
+        return download_artifact(request, pk)
 
 
 @login_required

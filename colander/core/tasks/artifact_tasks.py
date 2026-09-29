@@ -47,7 +47,9 @@ def _mandolin_thumbnail(artifact: Artifact, mandolin_configuration):
                     artifact.thumbnail = ContentFile(api_response, name=artifact_file.name)
                     artifact.save()
             except ApiException as e:
-                logger.error(e)
+                logger.warning(f"Thumbnail failed: %s", e)
+            except Exception as major_e:
+                logger.error(f"Thumbnail failed: %s", major_e)
 
 
 def _mandolin_tika_analysis(artifact: Artifact, mandolin_configuration) -> AnalysisTikaResult | None:
@@ -63,7 +65,9 @@ def _mandolin_tika_analysis(artifact: Artifact, mandolin_configuration) -> Analy
                 response = api_instance.analyze_with_tika_analyzer_tika_post(file, _request_timeout=5 * 60)
                 return response
             except ApiException as e:
-                logger.error(e)
+                logger.warning(f"Tika analysis failed: %s", e)
+            except Exception as major_e:
+                logger.error(f"Tika analysis failed: %s", major_e)
     return None
 
 
@@ -80,7 +84,9 @@ def _mandolin_clamav_analysis(artifact: Artifact, mandolin_configuration) -> Ana
                 response = api_instance.analyze_with_clamav_analyzer_clamav_post(file, _request_timeout=5 * 60)
                 return response.processors.get("clamav", None) if response.processors else None
             except ApiException as e:
-                logger.error(e)
+                logger.warning(f"ClamAV analysis failed: %s", e)
+            except Exception as major_e:
+                logger.error(f"ClamAV analysis failed: %s", major_e)
     return None
 
 

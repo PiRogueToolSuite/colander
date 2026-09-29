@@ -7,11 +7,13 @@ import socket
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.db import transaction
 from lookyloo_models import CaptureSettings
 from playwrightcapture import Capture
 
 from colander.core.artifact_utils import import_file_as_artifact
 from colander.core.models import ArtifactType, EntityRelation, Observable
+from colander.core.signals import artifact_ready_for_analysis
 from colander.websocket.consumers import CaseContextConsumer
 
 logger = logging.getLogger(__name__)
@@ -98,6 +100,15 @@ def capture_url(observable_id):
         obj_to=observable_url
     )
     relation.save()
+
+    transaction.on_commit(
+        lambda:
+            artifact_ready_for_analysis.send(sender=capture_url.__class__, artifact_id=str(screenshot.id))
+    )
+    transaction.on_commit(
+        lambda:
+            artifact_ready_for_analysis.send(sender=capture_url.__class__, artifact_id=str(har.id))
+    )
 
     # Send notifications ...
     CaseContextConsumer.send_message_to_user_consumers(observable_url.owner, {

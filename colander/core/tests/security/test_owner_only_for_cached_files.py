@@ -1,4 +1,4 @@
-import json
+import os
 import tempfile
 from django.test import TestCase, override_settings, Client
 from django.urls import reverse
@@ -12,9 +12,15 @@ _MEDIA_ROOT = tempfile.mkdtemp()
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     },
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+            "LOCATION": os.path.join(_MEDIA_ROOT, "cache"),
+        },
+    },
+    DEBUG=False,
     MEDIA_ROOT=_MEDIA_ROOT,
 )
-
 class TestOwnerOnlyForCachedFile(TestCase):
     @classmethod
     def setUpTestData(cls):

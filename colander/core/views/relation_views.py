@@ -3,10 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
-from django.utils.safestring import mark_safe
 
 from colander.core.forms import EntityRelationForm
 from colander.core.models import EntityRelation
+from colander.core.utils import safe_redirect_to_referrer
 
 
 @login_required
@@ -70,5 +70,4 @@ def create_or_edit_entity_relation_view(request):
 def delete_relation_view(request, pk):
     obj = EntityRelation.objects.get(id=pk)
     obj.delete()
-    return redirect(request.META.get('HTTP_REFERER'))
-    #return redirect(reverse("collect_entity_relation_create_view", kwargs={'case_id': request.contextual_case.id}))
+    return safe_redirect_to_referrer(request)

@@ -11,6 +11,7 @@ from colander.core.forms import CommentForm
 from colander.core.forms.widgets import ThumbnailFileInput
 from colander.core.models import Actor, Artifact, Observable, ObservableRelation, ObservableType, Threat
 from colander.core.observable_tasks import capture_url
+from colander.core.utils import safe_redirect_to_referrer
 from colander.core.views.views import CaseContextMixin
 
 
@@ -182,4 +183,4 @@ def capture_observable_view(request, pk):
     if obj.type.short_name == 'URL':
         async_task(capture_url, obj.id)
         messages.success(request, 'The capture of this URL has started, refresh this page in a few minutes.')
-    return redirect(request.META.get('HTTP_REFERER'))
+    return safe_redirect_to_referrer(request)

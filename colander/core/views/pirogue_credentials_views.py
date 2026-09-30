@@ -15,6 +15,7 @@ from django.views.generic import CreateView, DetailView, UpdateView
 from colander.core.models import PiRogueCredentials, PiRogueStatus
 from colander.core.pirogue import unschedule_pirogue_status_retrieval, \
     register_pirogue_status_retrieval_schedule, _proceed_pirogue_status_retrieval
+from colander.core.utils import safe_redirect_to_referrer
 
 
 class PiRogueCredentialsCreateView(LoginRequiredMixin, CreateView):
@@ -107,7 +108,4 @@ def pirogue_credentials_check_status_view(request, pk):
 
     _proceed_pirogue_status_retrieval(pk)
 
-    referrer = request.META.get('HTTP_REFERER')
-    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
-        return HttpResponseRedirect(referrer)
-    return HttpResponseRedirect('/')
+    return safe_redirect_to_referrer(request)

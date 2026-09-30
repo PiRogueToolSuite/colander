@@ -1,6 +1,8 @@
 import hashlib
 
 import magic
+from django.http import HttpResponseRedirect
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 def hash_file(file):
@@ -27,3 +29,14 @@ def get_upload_file_mime_type(file):
     mime_type = magic.from_buffer(file.read(2048), mime=True)
     file.seek(initial_pos)
     return mime_type
+
+
+def safe_get_referrer(request, fallback_url:str = '/'):
+    referrer = request.META.get('HTTP_REFERER')
+    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
+        return referrer
+    return fallback_url
+
+
+def safe_redirect_to_referrer(request, fallback_url:str = '/'):
+    return HttpResponseRedirect(safe_get_referrer(request, fallback_url))

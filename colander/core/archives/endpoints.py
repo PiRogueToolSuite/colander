@@ -15,6 +15,7 @@ from rest_framework.exceptions import ValidationError
 from colander.core.archives.exporters import schedule_archive_export
 from colander.core.archives.serializers import model_by_super_types_str, serializers_by_model
 from colander.core.models import Case, ArchiveExport, Appendix
+from colander.core.utils import safe_redirect_to_referrer
 
 
 @login_required
@@ -30,15 +31,11 @@ def case_archive_request_view(request, pk):
         type=Appendix.ExportType.CASE,
     )
 
-    #archives.schedule_archive_export(archive_export)
     transaction.on_commit(partial(schedule_archive_export, archive_export))
 
     messages.info(request, "Archive export requested. You will be notified when done.")
 
-    referrer = request.META.get('HTTP_REFERER')
-    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
-        return HttpResponseRedirect(referrer)
-    return HttpResponseRedirect('/')
+    return safe_redirect_to_referrer(request)
 
 
 @login_required

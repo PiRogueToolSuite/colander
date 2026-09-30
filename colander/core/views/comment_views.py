@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
 from django.views.generic import UpdateView
 
 from colander.core.forms import CommentForm
 from colander.core.models import Comment
+from colander.core.utils import safe_redirect_to_referrer, safe_get_referrer
 
 
 @login_required
@@ -18,8 +18,8 @@ def create_comment_view(request):
                 comment.owner = owner
             comment.save()
             form.save_m2m()
-            return redirect(request.META.get('HTTP_REFERER'))
-    return redirect(request.META.get('HTTP_REFERER'))
+
+    return safe_redirect_to_referrer(request)
 
 
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
@@ -30,7 +30,7 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
     ]
 
     def get_success_url(self):
-        return self.request.META.get('HTTP_REFERER')
+        return safe_get_referrer(self.request)
 
 @login_required
 def edit_comment_view(request, pk):
@@ -42,13 +42,14 @@ def edit_comment_view(request, pk):
             comment.owner = owner
             comment.save()
             form.save_m2m()
-            return redirect(request.META.get('HTTP_REFERER'))
-    return redirect(request.META.get('HTTP_REFERER'))
+
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
 def delete_comment_view(request, pk):
     comment = Comment.objects.get(id=pk)
     comment.delete()
-    return redirect(request.META.get('HTTP_REFERER'))
+
+    return safe_redirect_to_referrer(request)
 

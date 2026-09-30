@@ -1,13 +1,14 @@
-from django.conf.urls.static import static
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.staticfiles import finders
 from django.forms import ModelForm
 from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.generic import CreateView, UpdateView
 
 from colander.core.models import SubGraph
+from colander.core.utils import safe_redirect_to_referrer
 from colander.core.views.views import CaseContextMixin
 
 
@@ -112,11 +113,9 @@ def subgraph_pin_toggle_view(request, pk):
 
     request.user.save()
 
-    next_url = request.GET.get('next', None)
-    if next_url:
-        return redirect(next_url)
-    else:
-        return redirect("subgraph_create_view", case_id=request.contextual_case.id)
+    return safe_redirect_to_referrer(
+        request,
+        reverse('subgraph_create_view', kwargs={'case_id': request.contextual_case.id}))
 
 
 @login_required

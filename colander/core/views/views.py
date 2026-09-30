@@ -30,6 +30,7 @@ from colander.core.models import (
     Threat, CustomExportFeed,
 )
 from colander.core.templatetags.colander_tags import model_name
+from colander.core.utils import safe_redirect_to_referrer, safe_get_referrer
 
 
 @login_required
@@ -96,7 +97,7 @@ def enable_documentation_editor(request):
     if not active_case:
         return redirect('case_create_view')
     request.session['show_documentation_editor'] = True
-    return redirect(request.META.get('HTTP_REFERER'))
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -105,7 +106,7 @@ def disable_documentation_editor(request):
     if not active_case:
         return redirect('case_create_view')
     request.session['show_documentation_editor'] = False
-    return redirect(request.META.get('HTTP_REFERER'))
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -120,7 +121,7 @@ def save_case_documentation_view(request):
         if form.is_valid():
             active_case.documentation = form.cleaned_data.get('documentation')
             active_case.save()
-    return redirect(request.META.get('HTTP_REFERER'))
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -454,7 +455,7 @@ def vues_view(request, component_name):
         return HttpResponseNotFound("Not found")
 
     # Inject contextual case (if any) into requested vues parts
-    referer = request.META.get("HTTP_REFERER", None) or "/"
+    referer = safe_get_referrer(request)
     parsed = urlparse(referer)
     func, args, kwargs = resolve(parsed[2])
     ctx = {}
@@ -507,7 +508,7 @@ def do_search(query, cases):
 @login_required
 def quick_search(request):
     if request.method != 'POST':
-        return redirect(request.META.get('HTTP_REFERER'))
+        return safe_redirect_to_referrer(request)
 
     case_id = request.POST.get('case_id', None)
     query = request.POST.get('q', '')
@@ -522,8 +523,6 @@ def quick_search(request):
 
     results = do_search(query, cases)
     return render(request, 'pages/quick_search/result_list.html', context={'results': results})
-
-    #return redirect(request.META.get('HTTP_REFERER'))
 
 
 @login_required

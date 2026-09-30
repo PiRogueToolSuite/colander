@@ -12,6 +12,7 @@ from colander.core.tasks.experiment_tasks import apply_detection_rules, save_dec
 from colander.core.forms import CommentForm
 from colander.core.models import Artifact, DetectionRule, PiRogueExperiment, PiRogueExperimentAnalysis
 from colander.core.tasks.experiment_to_har import experiment_to_har
+from colander.core.utils import safe_redirect_to_referrer
 from colander.core.views.views import CaseContextMixin
 
 import logging
@@ -221,7 +222,7 @@ def start_decryption(request, pk):
             async_task(save_decrypted_traffic, pk)
         else:
             messages.error(request, 'Cannot decrypt traffic since your experiment does not have both a PCAP file and an SSL keylog file.')
-    return redirect(request.META.get('HTTP_REFERER'))
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -234,4 +235,4 @@ def start_detection(request, pk):
             async_task(apply_detection_rules, pk)
         else:
             messages.error(request, 'Cannot analyze traffic since the traffic has not been decrypted yet.')
-    return redirect(request.META.get('HTTP_REFERER'))
+    return safe_redirect_to_referrer(request)

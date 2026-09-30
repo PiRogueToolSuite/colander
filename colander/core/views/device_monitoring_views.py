@@ -7,10 +7,8 @@ import qrcode
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.utils.encoding import force_str
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import CreateView, DetailView, UpdateView
 
 from colander.core.models import DeviceMonitoring, Device, PiRogueCredentials
@@ -19,6 +17,7 @@ from colander.core.pirogue import (
     delete_device_monitoring,
     register_device_monitoring_auto_stopper, add_vpn_peer, delete_vpn_peer, get_vpn_peer_config,
 )
+from colander.core.utils import safe_redirect_to_referrer
 from colander.core.views.views import CaseContextMixin
 
 
@@ -112,10 +111,7 @@ def device_monitoring_start_view(request, pk):
     else:
         messages.add_message(request, messages.ERROR, "Can't start monitoring: "+result['error'])
 
-    referrer = request.META.get('HTTP_REFERER')
-    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
-        return HttpResponseRedirect(referrer)
-    return HttpResponseRedirect('/')
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -131,10 +127,7 @@ def device_monitoring_stop_view(request, pk):
     else:
         messages.add_message(request, messages.ERROR, "Can't stop monitoring: "+result['error'])
 
-    referrer = request.META.get('HTTP_REFERER')
-    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
-        return HttpResponseRedirect(referrer)
-    return HttpResponseRedirect('/')
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -155,10 +148,7 @@ def device_monitoring_create_vpn_peer_view(request, pk):
     else:
         messages.add_message(request, messages.ERROR, "Can't create VPN peer for this monitoring: "+result['error'])
 
-    referrer = request.META.get('HTTP_REFERER')
-    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
-        return HttpResponseRedirect(referrer)
-    return HttpResponseRedirect('/')
+    return safe_redirect_to_referrer(request)
 
 
 @login_required
@@ -194,7 +184,4 @@ def device_monitoring_release_vpn_peer_view(request, pk):
     else:
         messages.add_message(request, messages.ERROR, "Can't delete VPN peer on this monitoring: "+result['error'])
 
-    referrer = request.META.get('HTTP_REFERER')
-    if referrer and url_has_allowed_host_and_scheme(referrer, allowed_hosts={request.get_host()}):
-        return HttpResponseRedirect(referrer)
-    return HttpResponseRedirect('/')
+    return safe_redirect_to_referrer(request)

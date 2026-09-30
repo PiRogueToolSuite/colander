@@ -280,7 +280,7 @@ def entity_export_feed_view(request, pk):
     except EntityExportFeed.DoesNotExist:
         return HttpResponse('', status=404, content_type='text/plain')
 
-    is_authenticated = request.user.is_authenticated
+    is_authenticated = request.user.is_authenticated and feed.case.can_contribute(request.user)
     is_authenticated |= request.GET.get('secret', '') == feed.secret
     is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
     if not is_authenticated:
@@ -344,7 +344,7 @@ def custom_export_feed_view(request, pk):
     except CustomExportFeed.DoesNotExist:
         return HttpResponse('', status=404, content_type='text/plain')
 
-    is_authenticated = request.user.is_authenticated
+    is_authenticated = request.user.is_authenticated and feed.case.can_contribute(request.user)
     is_authenticated |= request.GET.get('secret', '') == feed.secret
     is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
     if not is_authenticated:
@@ -368,7 +368,7 @@ def detection_rule_export_feed_view(request, pk):
     except DetectionRuleExportFeed.DoesNotExist:
         return HttpResponse('', status=404, content_type='text/plain')
 
-    is_authenticated = request.user.is_authenticated
+    is_authenticated = request.user.is_authenticated and feed.case.can_contribute(request.user)
     is_authenticated |= request.GET.get('secret', '') == feed.secret
     is_authenticated |= request.headers.get('X-Colander-Feed', '') == f'Secret {feed.secret}'
     if not is_authenticated:

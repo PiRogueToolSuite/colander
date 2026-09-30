@@ -58,6 +58,16 @@ class CachedFileApiView(APIView):
         if not cached:
             return JsonResponse({"status": "failed", "message": "File not found"}, status=HTTP_404_NOT_FOUND)
 
+        owner_id = cached.get('owner_id', None)
+
+        if not owner_id:
+            # Faking 404 instead of 403
+            return JsonResponse({"status": "failed", "message": "File not found"}, status=HTTP_404_NOT_FOUND)
+
+        if owner_id != str(request.user.id):
+            # Faking 404 instead of 403
+            return JsonResponse({"status": "failed", "message": "File not found"}, status=HTTP_404_NOT_FOUND)
+
         data = cached.get("data")
         decoded_data = base64.b64decode(data)
         content_type = cached.get("content_type") or "application/octet-stream"
@@ -170,6 +180,7 @@ class CachedFileApiView(APIView):
         cache_key = f"{self.prefix}{uid}"
         timeout = getattr(settings, "CACHED_FILE_TIMEOUT", 3600)
         cache_value = {
+            "owner_id": str(request.user.id),
             "name": name,
             "content_type": content_type,
             "data": base64_data.decode(),

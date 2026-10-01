@@ -33,7 +33,8 @@ def initialize_upload(request):
 
 @login_required
 def append_to_upload(request, upload_id):
-    upload_request = get_object_or_404(UploadRequest, id=upload_id)
+    upload_request = get_object_or_404(
+        UploadRequest.objects.filter(owner=request.user), id=upload_id)
 
     if request.method == 'GET':
         response = JsonResponse(UploadRequestSerializer(upload_request).data)

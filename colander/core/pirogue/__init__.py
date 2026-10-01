@@ -94,7 +94,8 @@ def _proceed_pirogue_status_retrieval(pirogue_credentials_id):
             ps.success = False
         ps.error = rpc_error.details()
         ps.save()
-        _safe_update_pirogue_operating_mode(prc, paca, None)
+        if rpc_error.code() != grpc.StatusCode.UNAVAILABLE:
+            _safe_update_pirogue_operating_mode(prc, paca, None)
     except Exception as exception:
         ps.success = False
         ps.error = str(exception)

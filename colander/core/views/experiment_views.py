@@ -208,7 +208,7 @@ def save_decoded_content_view(request, pk):
             record.save()
             messages.success(request, "Decoded content successfully saved")
         except Exception as e:
-            print(e)
+            logger.error("can't save decoded content", exc_info=e)
     return redirect("collect_experiment_details_view", pk=pk, case_id=request.contextual_case.id)
 
 

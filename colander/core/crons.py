@@ -35,7 +35,8 @@ def compute_non_signed_artifacts(batch=1):
     fence_date = datetime.now(tz=pytz.UTC) - timedelta(hours=1)
     artifacts = Artifact.objects.filter( sha256__isnull=True, created_at__lt=fence_date )[:batch]
     for artifact in artifacts:
-        logger.info(f"compute_non_signed_artifacts[{artifact.id}]: processing ...")
+        logger.info("compute_non_signed_artifacts[%s]: processing ...",
+                    artifact.id)
         upr = None
         try:
             upr = UploadRequest.objects.get(target_entity_id=str(artifact.id))

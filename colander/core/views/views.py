@@ -8,7 +8,7 @@ from django.contrib.staticfiles import finders
 from django.core.files.base import ContentFile
 from django.forms.widgets import Textarea
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, \
-    StreamingHttpResponse
+    StreamingHttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -32,6 +32,8 @@ from colander.core.models import (
 from colander.core.templatetags.colander_tags import model_name
 from colander.core.utils import safe_redirect_to_referrer, safe_get_referrer
 
+import logging
+logger = logging.getLogger(__name__)
 
 @login_required
 def landing_view(request):
@@ -66,7 +68,6 @@ class CaseContextMixin(AccessMixin):
     active_case = None
 
     def dispatch(self, request, *args, **kwargs):
-        # print("CaseContextMixin", "dispatch", request, hasattr(request, 'contextual_case') )
         if hasattr(request, 'contextual_case') and request.contextual_case.can_contribute(request.user):
             self.active_case = request.contextual_case
             return super().dispatch(request, *args, **kwargs)
@@ -74,7 +75,6 @@ class CaseContextMixin(AccessMixin):
             return self.handle_no_permission()
 
     def get_success_url(self):
-        #print("get_success_url", self.active_case)
         return reverse(self.contextual_success_url, kwargs={'case_id': self.active_case.id})
 
 
@@ -231,14 +231,13 @@ def cases_select_view(request, pk):
         if case.can_contribute(request.user):
             request.session['active_case'] = str(case.id)
         else:
-            print(f'{request.user} can not contribute to {case}!')
-        #return redirect('case_create_view')
+            logger.warning('User:%s can not contribute to case:%s',
+                           request.user, case)
         return redirect('case_details_view', case.id)
 
 
 @login_required
 def get_active_case(request, case_id=None):
-    print("Case id:", case_id)
     if case_id:
         try:
             case = Case.objects.get(id=case_id)
@@ -433,8 +432,6 @@ def report_base_view(request):
 
 @login_required
 def forward_auth(request):
-    print(request.headers)
-    print(request.path)
     return HttpResponse("OK")
     # return redirect('http://spiderfoot.localhost:88')
     # return HttpResponse(status=200,headers=request.headers)
@@ -446,6 +443,7 @@ def cron_ish_view(request):
     if request.method == 'GET':
         RunJobs.run_all_jobs()
         return HttpResponse('')
+    return Http404()
 
 
 @login_required

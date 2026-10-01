@@ -15,6 +15,8 @@ import environ
 
 from colander.core.models import NotificationMessage, Appendix, ArchiveExport
 
+import logging
+logger = logging.getLogger(__name__)
 
 def notification_message_task(notification_message_id:str):
     nm = NotificationMessage.objects.get(id=notification_message_id)
@@ -56,9 +58,8 @@ def notify_case_archive_done(archive_export: ArchiveExport):
 
         return async_task(notification_message_task, str(nm.id))
     except Exception as e:
-        print('>>> ERROR notify_case_archive_done', e)
-        tb = traceback.format_exc()
-        print('>>> TRACEBACK notify_case_archive_done', tb)
+        logger.error("can't create case archive done notification, traceback = ",
+                     exc_info=e)
 
 
 def notification_message_mail(notification_message: NotificationMessage):
@@ -71,7 +72,9 @@ def notification_message_mail(notification_message: NotificationMessage):
             context=notification_message.context,
         )
     except TemplateDoesNotExist as tdne:
-        print('Template not found: {notification_message.template_path}.html.tpl', tdne)
+        logger.warning('Template not found: %s.html.tpl',
+                       notification_message.template_path,
+                       exc_info=tdne)
 
     try:
         txt_part = render_to_string(
@@ -79,21 +82,23 @@ def notification_message_mail(notification_message: NotificationMessage):
             context=notification_message.context,
         )
     except TemplateDoesNotExist as tdne:
-        print('Template not found: {notification_message.template_path}.txt.tpl', tdne)
+        logger.warning('Template not found: %s.txt.tpl',
+                       notification_message.template_path,
+                       exc_info=tdne)
 
 
     if txt_part is None and html_part is None:
-        print('No content to produce without template')
+        logger.warning('No content to produce without template')
         return
 
     if txt_part is None:
         txt_part = strip_tags(html_part)
 
-    print('txt_part', txt_part)
-    print('html_part', html_part)
+    logger.debug('txt_part: %s', txt_part)
+    logger.debug('html_part: %s', html_part)
 
     if notification_message.recipient.email is None:
-        print('No email address to send to')
+        logger.warning('No email address to send to')
         return
 
     mail = EmailMultiAlternatives(

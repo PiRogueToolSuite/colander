@@ -45,7 +45,7 @@ def get_case_from_request(request):
 
     user = request.user
 
-    logger.debug(f"Case id: {case_id}, user: {user}")
+    logger.debug("Case id:%s, user:%s", case_id, user)
 
     if not case_id or not user:
         return None
@@ -56,7 +56,7 @@ def get_case_from_request(request):
         return None
 
     if not case.can_contribute(user):
-        logger.error(f"User {user} is not authorized to contribute to case {case_id}")
+        logger.warning("User:%s is not authorized to contribute to case:%s", user, case)
         return None
 
     return case
@@ -80,7 +80,6 @@ class CanContributeToCase(permissions.BasePermission):
             bool: True if the case exists and `case.can_contribute(request.user)` is True,
             otherwise False.
         """
-        logger.info(request.data)
         case = get_case_from_request(request)
         if not case:
             return False

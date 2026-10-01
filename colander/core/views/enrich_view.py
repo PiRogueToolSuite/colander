@@ -42,7 +42,7 @@ def enrich_observable(request, observable_id):
             index.create()
             ObservableEnrichment.init(index=index_name)
     except Exception as e:
-        logger.error(e)
+        logger.error("can't enrich observable", exc_info=e)
 
     # Check if an enrichment already exists
     enrichment = None
@@ -50,7 +50,7 @@ def enrich_observable(request, observable_id):
         enrichment = ObservableEnrichment.get(str(observable.id), index=index_name)
         cached = True
     except Exception as e:
-        logger.error(e)
+        logger.error("enrichment not created", exc_info=e)
 
     if enrichment:
         result = enrichment.data

@@ -20,6 +20,8 @@ from colander.core.pirogue import (
 from colander.core.utils import safe_redirect_to_referrer
 from colander.core.views.views import CaseContextMixin
 
+import logging
+logger = logging.getLogger(__name__)
 
 class DeviceMonitoringCreateView(LoginRequiredMixin, CaseContextMixin, CreateView):
     model = DeviceMonitoring
@@ -51,7 +53,6 @@ class DeviceMonitoringCreateView(LoginRequiredMixin, CaseContextMixin, CreateVie
     def form_valid(self, form):
         if form.is_valid():
             device_monitoring = form.save(commit=False)
-            print("DeviceMonitoringCreateView is_valid", device_monitoring)
             if not hasattr(device_monitoring, 'owner'):
                 device_monitoring.owner = self.request.user
             if not hasattr(device_monitoring, 'case'):
@@ -174,8 +175,6 @@ def device_monitoring_release_vpn_peer_view(request, pk):
     device_monitoring = DeviceMonitoring.objects.get(pk=pk)
 
     result = delete_vpn_peer(device_monitoring.pirogue.id, device_monitoring.peer_id)
-
-    print('device_monitoring_release_vpn_peer_view Result', result)
 
     if result['success']:
         device_monitoring.peer_id = None

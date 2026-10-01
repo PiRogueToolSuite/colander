@@ -105,7 +105,11 @@ def get_stack_trace(traces, community_id, timestamp, operations):
             if delta < min_time:
                 min_time = delta
                 best_guess = t
-    logger.debug(f'Best guess with delta {min_time/1000} for {community_id}, {timestamp}, {operations}')
+    logger.debug('Best guess with delta %s for %s, %s, %s',
+                 min_time/1000,
+                 community_id,
+                 timestamp,
+                 operations)
     return best_guess
 
 def _compact_stack_trace(trace):
@@ -421,7 +425,7 @@ def save_decrypted_traffic(pirogue_dump_id):
             index.create()
             PiRogueExperimentAnalysis.init(index=index_name)
     except Exception as e:
-        logger.error(e)
+        logger.error("can't save decrypted traffic, tracback = ", exc_info=e)
 
     pcap = 'pcap.file'
     ssl_keylog = 'sslkeylog.file'
@@ -452,7 +456,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                 shell=True
             )
         except Exception as e:
-            logger.error(e)
+            logger.error("editcap execution fail, tracback = ", exc_info=e)
             return
 
         # Generate the JSON file containing the traffic
@@ -463,7 +467,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                 shell=True
             )
         except Exception as e:
-            logger.error(e)
+            logger.error("tshark execution fail, traceback = ", exc_info=e)
             return
 
         socket_traces_file = f'{tmp_dir}/{socket_trace}'
@@ -536,7 +540,7 @@ def save_decrypted_traffic(pirogue_dump_id):
                                 analysis.timestamp = datetime.datetime.utcfromtimestamp(int(p['timestamp']) / 1000.0)
                                 analysis.save(index=index_name, pipeline=geoip_pipeline_id)
                         except Exception as e:
-                            logger.error(e)
+                            logger.error("can't create analysis, traceback = ", exc_info=e)
 
 def _extract_matching_snippet(match: StringMatchInstance, content):
     content_length = len(content)
@@ -575,7 +579,7 @@ def apply_detection_rules(pirogue_dump_id):
                 try:
                     compiled_rule = yara.compile(source=rule.content)
                 except Exception as e:
-                    logger.error(e)
+                    logger.warning("yara rule compilation fail", exc_info=e)
                     continue
 
                 rule_matches = compiled_rule.match(data=whole_content)

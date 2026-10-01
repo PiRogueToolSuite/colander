@@ -26,7 +26,7 @@ class ThreatrClient:
             response = requests.head(f'{self.url}/api/schema/', headers=self.__get_headers(), timeout=10)
             return response.status_code == 200, ''
         except requests.exceptions.RequestException as e:
-            logger.error(e)
+            logger.warning("Can't check Threatr API, traceback = ", exc_info=e)
             return False, 'Unable to retrieve the API schema (https://<threatr domain>/api/schema/)'
 
     def is_online(self):

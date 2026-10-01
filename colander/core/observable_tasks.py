@@ -32,7 +32,9 @@ def capture_url(observable_id):
         host = parsed_url.hostname
         logger.debug("Host from url: %s", host)
     except Exception as e:
-        logger.error("Can't capture url: No host part in the given url: %s", e)
+        logger.error("Can't capture url: No host part in the given url: %s, traceback = ",
+                     url_str,
+                     exc_info=e)
         return
 
     try:

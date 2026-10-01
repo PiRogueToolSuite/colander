@@ -11,5 +11,5 @@ logger = logging.getLogger(__name__)
 def request_threatr_view(request):
     credentials = BackendCredentials.objects.filter(backend=THREAT_BACKEND_IDENTIFIER)
     if not credentials:
-        logger.error(f'No credentials found for module {THREAT_BACKEND_IDENTIFIER}')
+        logger.error('No credentials found for module %s', THREAT_BACKEND_IDENTIFIER)
         return None

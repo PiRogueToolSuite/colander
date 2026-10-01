@@ -12,6 +12,9 @@ from colander.core.models import ArchiveExport, Appendix
 from colander.core.notifications import notify_case_archive_done
 from colander.websocket.consumers import CaseContextConsumer
 
+import logging
+logger = logging.getLogger(__name__)
+
 MISSING_ARCHIVE_EXPORTER_SCHEDULE_TASK_NAME = 'missing_archive_exporter'
 
 
@@ -22,7 +25,7 @@ def schedule_archive_export(archive_export:ArchiveExport):
 
 
 def _process_archive_export(archive_export_id):
-    print(f'Processing archive export: {archive_export_id}')
+    logger.info('Processing archive export: %s', archive_export_id)
 
     archive_export = ArchiveExport.objects.get(pk=archive_export_id)
     if archive_export.type == Appendix.ExportType.CASE:
@@ -47,14 +50,14 @@ def _archive_export_end(task):
         })
         notify_case_archive_done(archive_export)
 
-    print("archive_export_done", archive_export_id, task.result)
+    logger.info("archive_export_done[id=%s]: %s", archive_export_id, task.result)
 
 
 def _ensure_missing_archives_task_exist():
     func=f'{_proceed_missing_archives.__module__}.{_proceed_missing_archives.__qualname__}'
-    print('scheduled func to call:', func)
+    logger.info('scheduled func to call: %s', func)
     if Schedule.objects.filter(func=func).exists(): return
-    print('creating scheduled func to call:', func)
+    logger.info('creating scheduled func to call: %s', func)
     Schedule.objects.create(func=func, schedule_type='H', name=MISSING_ARCHIVE_EXPORTER_SCHEDULE_TASK_NAME)
 
 
@@ -77,5 +80,5 @@ def _proceed_missing_archives():
     # unschedule 'missing_archive_exporter' task
     func=f'{_proceed_missing_archives.__module__}.{_proceed_missing_archives.__qualname__}'
     if Schedule.objects.filter(func=func).exists():
-        print('unscheduling func:', func)
+        logger.info('unscheduling func: %s', func)
         Schedule.objects.get(func=func).delete()

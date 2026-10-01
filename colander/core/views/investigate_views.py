@@ -36,7 +36,9 @@ def investigate_search_view(request):
     correctly_configured, message = threatr_client.is_correctly_configured()
     if not correctly_configured:
         messages.error(request, message, extra_tags='danger')
-        logger.error(f'Threatr is not correctly configured. {THREAT_BACKEND_IDENTIFIER}. {message}')
+        logger.error('Threatr is not correctly configured, %s : %s',
+                     THREAT_BACKEND_IDENTIFIER,
+                     message)
         return render(
             request,
             'pages/investigate/base.html',

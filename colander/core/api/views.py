@@ -2,10 +2,9 @@ import json
 
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
-from rest_framework import mixins, status, permissions
+from rest_framework import mixins, status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
@@ -42,6 +41,8 @@ from colander.core.serializers.device_monitoring_serializers import NetworkEvent
 from colander.core.serializers.upload_request_serializers import UploadRequestSerializer
 from colander.websocket.consumers import CaseContextConsumer
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ApiCaseViewSet(mixins.RetrieveModelMixin,
                      mixins.ListModelMixin,
@@ -323,7 +324,8 @@ class NetworkEventsViewSet(GenericViewSet):
             if serializer.is_valid():
                 serializer.save()
             else:
-                print('not valid', serializer.errors)
+                logger.warning("import_network_events: payload not valid: %s",
+                               serializer.errors)
 
     @action(detail=False, methods=['post'], url_path=r'(?P<pk>[^/.]+)')
     def ingest(self, request, pk=None):

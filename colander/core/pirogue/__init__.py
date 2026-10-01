@@ -64,7 +64,7 @@ def _safe_update_pirogue_operating_mode(pirogue_credentials, pirogue_admin_clien
         pirogue_credentials.operating_mode = operating_mode
         pirogue_credentials.save()
     except Exception as exception:
-        logging.warning('safe_update_pirogue_operating_mode fail', exception)
+        logging.warning('safe_update_pirogue_operating_mode fail, traceback = ', exc_info=exception)
 
 
 def _proceed_pirogue_status_retrieval(pirogue_credentials_id):

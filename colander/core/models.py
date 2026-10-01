@@ -771,7 +771,7 @@ class Entity(models.Model):
                 objects = model.objects.filter(**{f'{field_name}__icontains': name_or_value, 'owner': owner})
                 results.extend(objects.all())
             except Exception as e:
-                print(model, e)
+                logger.warning("Model filter_by_name_or_value fails, traceback = ", exc_info=e)
                 pass
         results.sort(key=lambda a: a.updated_at, reverse=True)
         return results
@@ -1199,7 +1199,7 @@ def delete_artifact_stored_files(sender, instance: Artifact, using, **kwargs):
         if index.exists():
             index.delete()
     except Exception as e:
-        logger.error(e)
+        logger.error("Can't delete artifact stored file", exc_info=e)
 
 
 class Threat(Entity):
@@ -2379,7 +2379,6 @@ class PiRogueExperiment(Entity):
 
 @receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')
 def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
-    print(f'Delete the PiRogue experiment [{instance.name}] {instance.id}')
     from elasticsearch_dsl import connections
     connections.create_connection(hosts=['elasticsearch'], timeout=20)
     index_name = instance.get_es_index()
@@ -2388,7 +2387,8 @@ def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
         if index.exists():
             index.delete()
     except Exception as e:
-        logger.error(e)
+        logger.error("Can't delete experiment associated elastirsearch index, traceback = ",
+                     exc_info=e)
 
 
 class PiRogueCredentials(models.Model):

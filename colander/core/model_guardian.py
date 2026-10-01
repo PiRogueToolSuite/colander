@@ -37,55 +37,55 @@ class ModelGuardianMiddleware:
 class ModelGuardianManager(models.Manager):
 
     def get(self, *args, **kwargs):
-        logger.info(f"get({self.model}, ...)")
+        logger.debug("get(%s, ...)", self.model)
         return self.get_queryset().get(*args, **kwargs)
 
     def unguarded_get(self, *args, **kwargs):
-        logger.info(f"unguarded_get({self.model}, ...)")
+        logger.debug("unguarded_get(%s, ...)", self.model)
         return self.get_queryset(guarded=False).get(*args, **kwargs)
 
     def get_queryset(self, guarded:bool=True):
-        logger.info(f"get_queryset({self.model}, guarded:{guarded})")
+        logger.debug("get_queryset(%s, guarded:%s)", self.model, guarded)
         enforced_qs = models.QuerySet(model=self.model, using=self._db, hints=self._hints)
 
         request = get_current_request()
 
         if request is None:
-            logger.info(f"No request available")
+            logger.debug("No request available")
             # Internal call
             return enforced_qs
 
-        logger.info(f"Request available")
+        logger.debug("Request available")
         if not guarded:
-            logger.info(f"Disabled guard for sub-sequence call")
+            logger.info("Disabled guard for sub-sequence call")
             request.not_guarded_subsequence = True
             return enforced_qs
 
         if hasattr(request, "not_guarded_subsequence") and request.not_guarded_subsequence:
-            logger.info(f"Disabled guard for sub-sequence call")
+            logger.info("Disabled guard for sub-sequence call")
             guarded = False
             return enforced_qs
 
         if hasattr(request, "contextual_case"):
-            logger.info(f"request.contextual_case: {request.contextual_case}")
+            logger.debug("request.contextual_case: %s", request.contextual_case)
             if hasattr(self.model, 'case'):
-                logger.info(f"Enforcing guard against contextual case")
+                logger.debug("Enforcing guard against contextual case")
                 enforced_qs = enforced_qs.filter(case=request.contextual_case)
 
         if hasattr(request, "user"):
-            logger.info(f"request.user: {request.user} guarded_access: {guarded}")
+            logger.debug("request.user:%s guarded_access:%s", request.user, guarded)
             if request.user.is_superuser:
-                logger.info(f"Supervisor access")
+                logger.info("Supervisor access")
                 return enforced_qs
             if request.user.is_anonymous:
-                logger.warning(f"Guarded anonymous access. Blocked !")
+                logger.info("Guarded anonymous access. Blocked !")
                 raise ObjectDoesNotExist()
             else:
                 if hasattr(self.model, 'case'):
-                    logger.info(f"Enforcing guard against case contributors")
+                    logger.debug("Enforcing guard against case contributors")
                     enforced_qs = enforced_qs.filter(case__in=request.user.all_my_cases)
                 elif hasattr(self.model, 'owner'):
-                    logger.info(f"Enforcing guard against entity ownership")
+                    logger.debug("Enforcing guard against entity ownership")
                     enforced_qs = enforced_qs.filter(owner=request.user)
 
         return enforced_qs

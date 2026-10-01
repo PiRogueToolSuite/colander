@@ -188,7 +188,7 @@ class ExperimentToHAR:
         try:
             self._call_editcap()
         except Exception as e:
-            logger.error(e)
+            logger.error("editcap call fail", exc_info=e)
             raise HARGenerationException(f'Failed to inject secrets for the experiment [{self.experiment.id}]')
 
     def generate_har(self, har_path: Path | None = None):
@@ -216,7 +216,7 @@ class ExperimentToHAR:
                 overwrite=True,
             )
         except Exception as e:
-            logger.error(e)
+            logger.error("pcapng to har fail", exc_info=e)
             raise HARGenerationException(f'Failed to generate HAR for experiment [{self.experiment.id}]')
 
     def save_as_artifact(self) -> Artifact:

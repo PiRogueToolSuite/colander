@@ -17,7 +17,6 @@ class CaseArchiveExporter:
         self._entities = case.entities
         self._entities.extend(SubGraph.objects.filter(case=self._case).all())
         self._relations = case.relations
-        print('all entities', self._entities)
 
     def export(self, pretty:bool=False):
         buffer = io.BytesIO()

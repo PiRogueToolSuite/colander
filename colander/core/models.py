@@ -5,6 +5,7 @@ import random
 import string
 import uuid
 from copy import deepcopy
+from functools import partial
 from hashlib import sha256
 from io import StringIO
 from secrets import token_urlsafe
@@ -3049,7 +3050,7 @@ class OutgoingFeed(models.Model):
     secret = models.CharField(
         max_length=512,
         help_text=_('Feeds are protected by a secret. You can reset it at anytime invalidating the previous one.'),
-        default=_random_id
+        default=partial(_generate_token, length=16),
     )
     description = models.TextField(
         help_text=_('Add more details about this feed.'),

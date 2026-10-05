@@ -113,7 +113,7 @@ def capture_url(observable_id):
     )
 
     # Send notifications ...
-    CaseContextConsumer.send_message_to_user_consumers(observable_url.owner, {
+    CaseContextConsumer.send_message_to_case_consumers(observable_url.case, {
         'msg': 'A new capture has been done',
         'detail': 'Screenshot and HAR',
         'url': observable_url.get_absolute_url(),

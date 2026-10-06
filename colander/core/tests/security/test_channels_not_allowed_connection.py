@@ -62,7 +62,7 @@ class ChannelsNotAllowedToInvalidCookieTest(BaseCampaign):
         self.assertFalse(connected, "Connected anonymously")
 
 
-class ChannelsNotAllowedToUnknownCaseIdTest(BaseCampain):
+class ChannelsNotAllowedToUnknownCaseIdTest(BaseCampaign):
     @async_to_sync
     async def test_invalid_case_id(self):
         client = Client()

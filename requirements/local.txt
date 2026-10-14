@@ -10,7 +10,7 @@ mypy==0.971  # https://github.com/python/mypy
 django-stubs==1.12.0  # https://github.com/typeddjango/django-stubs
 pytest==7.1.3  # https://github.com/pytest-dev/pytest
 pytest-sugar==0.9.5  # https://github.com/Frozenball/pytest-sugar
-djangorestframework-stubs==1.7.0  # https://github.com/typeddjango/djangorestframework-stubs
+djangorestframework-stubs==3.18.1  # https://github.com/typeddjango/djangorestframework-stubs
 
 # Documentation
 # ------------------------------------------------------------------------------

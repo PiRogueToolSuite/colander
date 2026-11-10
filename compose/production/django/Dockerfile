@@ -46,8 +46,7 @@ RUN addgroup --system django \
 
 # Install required system dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-  # psycopg2 dependencies
-  libpq-dev \
+  libpq-dev libatomic1 \
   gettext libmagic1 tshark wireshark-common libssl-dev python3-dev wget\
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \

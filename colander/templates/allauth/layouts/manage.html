@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% load static i18n compress %}{% load colander_tags %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block sidebar-toggler %}{% endblock %}
+
+{% block root-sidebar-menu %}
+  <div class="list-group list-group-flush">
+    {% if user.is_authenticated %}
+      {% url 'users:detail' request.user.username as profile_url_ %}
+      {% if profile_url_ %}
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link profile_url_ %}"
+           href="{{ profile_url_ }}" title="Profile">
+          <i class="fa fa-user list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "Profile" %}</span>
+        </a>
+      {% endif %}
+      {% url 'account_email' as email_url_ %}
+      {% if email_url_ %}
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link email_url_ %}"
+           href="{{ email_url_ }}" title="Change email">
+          <i class="fa fa-vcard list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "Change email" %}</span>
+        </a>
+      {% endif %}
+      {% url 'account_change_password' as change_password_url_ %}
+      {% if change_password_url_ %}
+        <a
+          class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link change_password_url_ %}"
+          href="{{ change_password_url_ }}" title="Change password">
+          <i class="fa fa-lock list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "Change password" %}</span>
+        </a>
+      {% endif %}
+      {% url 'socialaccount_connections' as connections_url_ %}
+      {% if connections_url_ %}
+        <a
+          class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link connections_url_ %}"
+          href="{{ connections_url_ }}" title="Connections">
+          <i class="fa fa-users list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "Connections" %}</span>
+        </a>
+      {% endif %}
+      {% url 'mfa_index' as mfa_url_ %}
+      {% if mfa_url_ %}
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link mfa_url_ %}"
+           href="{{ mfa_url_ }}" title="2FA">
+          <i class="fa fa-key-modern list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "2FA" %}</span>
+        </a>
+      {% endif %}
+      {% url 'usersessions_list' as usersessions_list_url_ %}
+      {% if usersessions_list_url_ and False %}
+        <a
+          class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link usersessions_list_url_ %}"
+          href="{{ usersessions_list_url_ }}" title="Sessions">
+          <span class="list-group-item-label">{% trans "Sessions" %}</span>
+        </a>
+      {% endif %}
+      {% url 'account_logout' as logout_url_ %}
+      {% if logout_url_ %}
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link logout_url_ %}"
+           href="{{ logout_url_ }}" title="Sign out">
+          <i class="fa fa-sign-out list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "Sign out" %}</span>
+        </a>
+      {% endif %}
+    {% else %}
+      {% url 'account_login' as login_url_ %}
+      {% if login_url_ %}
+        <a class="list-group-item list-group-item-action list-group-item-light fw-bold {% active_link login_url_ %}"
+           href="{{ login_url_ }}" title="Sign in">
+          <i class="fa fa-sign-in list-group-item-icon nav-link-label" aria-hidden="true"></i>
+          <span class="list-group-item-label">{% trans "Sign in" %}</span>
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}
+{% block container %}
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </div>
+{% endblock %}
+

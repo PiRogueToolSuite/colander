@@ -1,135 +1,74 @@
-{% extends "base.html" %}
+{% extends "allauth/layouts/manage.html" %}
 {% load static i18n %}
 
 {% block title %}User: {{ object.username }}{% endblock %}
 
-{% block content %}
-  <div class="row mt-2">
-    <div class="col-sm-12">
-
+{% block container %}
+  <div class="row">
+    <div class="col-12">
       <h2>{{ object.username }}</h2>
       {% if object.name %}
         <p>{{ object.name }}</p>
       {% endif %}
     </div>
-  </div>
 
-  {% if object == request.user %}
-    <div class="row">
-      <div class="col-md-12">
+    {% if object == request.user %}
+      <div class="col-6">
         <table class="table table-sm">
           <tbody>
           <tr>
-            <td class=""><b>E-mail address</b></td>
-            <td>
-              <ul class="list-unstyled m-0">
-                {% for email in request.user.emailaddress_set.all %}
-                  <samp>{{ email }}</samp>
-                {% endfor %}
-              </ul>
-            </td>
-            <td width="15%">
-              <a class="btn btn-sm btn-primary" href="{% url 'account_email' %}" role="button">Manage</a>
-            </td>
-          </tr>
-          <tr>
-            <td><b>2FA</b></td>
-            <td>
-              {% if request.user.staticdevice_set.exists %}
-                <span class="badge bg-success">2FA enabled</span>
-              {% else %}
-                <span class="badge bg-warning text-white">2FA not enabled</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if request.user.staticdevice_set.exists %}
-                <a class="btn btn-sm btn-primary" href="{% url 'two-factor-backup-tokens' %}" role="button">Backup
-                  tokens</a>
-              {% else %}
-                <a class="btn btn-sm btn-primary" href="{% url 'two-factor-setup' %}" role="button">Setup 2FA</a>
-              {% endif %}
-            </td>
-          </tr>
-          <tr>
             <td><b>Contributor ID</b></td>
-            <td>
-              <code>{{ request.user.contributor_id }}</code>
-            </td>
+            <td><code>{{ request.user.contributor_id }}</code></td>
             <td></td>
           </tr>
           <tr>
-            <td><b>API Url</b></td>
-            <td>
-              <code>{{ request.scheme }}://{{ request.get_host }}/api</code>
-            </td>
+            <td><b>API URL</b></td>
+            <td><code>{{ request.scheme }}://{{ request.get_host }}/api</code></td>
             <td></td>
           </tr>
           <tr>
-            <td><b>API Key</b></td>
-            <td>
-              <code>{{ request.user.token }}</code>
-            </td>
-            <td>
-              <a class="btn btn-sm btn-warning text-nowrap delete-entity-btn"
-                 role='button'
-                 href="{% url 'users:regenerate_token' request.user.username %}"
-                 title="Invalidate current token then generate a new one">
-                {% translate "Re-Generate" %}
-              </a>
-            </td>
-          </tr>
-          <tr>
+            <td><b>API key</b></td>
+            <td><code>{{ request.user.token }}</code></td>
             <td></td>
-            <td></td>
-            <td>
-              <a class="btn btn-sm btn-primary text-nowrap" role='button' href="{% url 'account_logout' %}">
-                <i class="fa fa-sign-out" aria-hidden="true"></i>
-                {% translate "Log Out" %}
-              </a>
-            </td>
           </tr>
           </tbody>
         </table>
+        <a class="btn btn-sm btn-warning text-nowrap text-white delete-entity-btn"
+           role='button'
+           href="{% url 'users:regenerate_token' request.user.username %}"
+           title="Invalidate current token then generate a new one">
+          {% translate "Reset API key" %}
+        </a>
       </div>
-      <div class="col-md-12 mt-2">
+      <div class="col-12 mt-2">
         <h3>Connect your PiRogue</h3>
         <p>
-          If you have a <a href="https://pts-project.org/docs/pirogue/overview/" title="PiRogue documentation">PiRogue</a>,
-          you can connect it to Colander and start collecting artifacts from it. To do so, run the following commands on
+          If you have a <a href="https://pts-project.org/docs/pirogue/overview/"
+                           title="PiRogue documentation">PiRogue</a>,
+          you can connect it to Colander and start collecting artifacts from it. To do so, run the following commands
+          on
           your PiRogue:
         </p>
         <pre class="bg-dark text-white text-wrap p-3 rounded"><code>sudo apt update<br>
 sudo apt install -y pirogue-colander-connector<br>
 pirogue-colander config -u "{{ request.scheme }}://{{ request.META.HTTP_HOST }}" -k "{{ request.user.token }}"</code></pre>
       </div>
-      <div class="col-md-12 mt-2">
+      <div class="col-12 mt-2">
         <h3>Collect web content with Colander Companion</h3>
-        <div class="row">
-          <div class="col-md-12">
-            <p>
-              If you use Firefox browser, you may want to use <a href="https://pts-project.org/colander-companion/">Colander Companion</a> browser extension
-              to collect web content.
-              Simply follow the approriate cookbook to setup
-              <a href="https://pts-project.org/cookbooks/colander-companion-setup/" title="Setup Colander Companion web extension ">Colander Companion on your desktop</a> or
-              <a href="https://pts-project.org/cookbooks/colander-companion-mobile-setup/" title="Setup Colander Companion on mobile/tablet">for mobile/tablet device</a>.
-            </p>
-          </div>
-          {% comment %}
-          <div class="col-md-6">
-            <p>
-              When done, came back to this page with your Colander Companion extension installed,
-              then click on the `Auto-Configure` button.
-            </p>
-            <p>
-              <button class='btn btn-primary' role="push-colander-companion-configuration">
-                ⚡ Auto-Configure this server
-              </button>
-            </p>
-          </div>
-          {% endcomment %}
+        <div class="col-12">
+          <p>
+            If you use Firefox browser, you may want to use <a href="https://pts-project.org/colander-companion/">Colander
+            Companion</a> browser extension
+            to collect web content.
+            Simply follow the approriate cookbook to setup
+            <a href="https://pts-project.org/cookbooks/colander-companion-setup/"
+               title="Setup Colander Companion web extension ">Colander Companion on your desktop</a> or
+            <a href="https://pts-project.org/cookbooks/colander-companion-mobile-setup/"
+               title="Setup Colander Companion on mobile/tablet">for mobile/tablet device</a>.
+          </p>
         </div>
       </div>
-    </div>
-  {% endif %}
+    {% endif %}
+  </div>
 
-{% endblock content %}
+{% endblock container %}

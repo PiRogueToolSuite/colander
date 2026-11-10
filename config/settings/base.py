@@ -36,6 +36,53 @@ USE_L10N = True
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
+LANGUAGES = [
+    ("ar", "Arabic"),
+    ("az", "Azerbaijani"),
+    ("bg", "Bulgarian"),
+    ("ca", "Catalan"),
+    ("cs", "Czech"),
+    ("da", "Danish"),
+    ("de", "German"),
+    ("el", "Greek"),
+    ("en", "English"),
+    ("es", "Spanish"),
+    ("et", "Estonian"),
+    ("eu", "Basque"),
+    ("fa", "Persian"),
+    ("fi", "Finnish"),
+    ("fr", "French"),
+    ("he", "Hebrew"),
+    ("hr", "Croatian"),
+    ("hu", "Hungarian"),
+    ("id", "Indonesian"),
+    ("it", "Italian"),
+    ("ja", "Japanese"),
+    ("ka", "Georgian"),
+    ("ko", "Korean"),
+    ("ky", "Kyrgyz"),
+    ("lt", "Lithuanian"),
+    ("lv", "Latvian"),
+    ("mn", "Mongolian"),
+    ("nb", "Norwegian Bokmål"),
+    ("nl", "Dutch"),
+    ("pl", "Polish"),
+    ("pt-BR", "Portuguese (Brazil)"),
+    ("pt-PT", "Portuguese (Portugal)"),
+    ("ro", "Romanian"),
+    ("ru", "Russian"),
+    ("sk", "Slovak"),
+    ("sl", "Slovenian"),
+    ("sr", "Serbian"),
+    ("sr-Latn", "Serbian (Latin)"),
+    ("sv", "Swedish"),
+    ("th", "Thai"),
+    ("tr", "Turkish"),
+    ("uk", "Ukrainian"),
+    ("zh-hans", "Chinese (Simplified)"),
+    ("zh-hant", "Chinese (Traditional)"),
+]
+
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -61,7 +108,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize",  # Handy template tags
     "django.contrib.admin",
     "django.forms",
     "django.contrib.postgres",
@@ -71,12 +118,15 @@ THIRD_PARTY_APPS = [
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
-    "dj_rest_auth.registration",
+    "allauth.usersessions",
+    "allauth.mfa",
+
+    # "dj_rest_auth.registration",
     "allauth.socialaccount",
-    # 'allauth.socialaccount.providers.openid_connect',
+    "allauth.socialaccount.providers.openid_connect",
     "rest_framework",
     "rest_framework.authtoken",
-    "dj_rest_auth",
+    # "dj_rest_auth",
     "corsheaders",
     "drf_spectacular",
     "django_q",
@@ -308,7 +358,8 @@ LOGGING = {
 
 # django-allauth
 # ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
+ACCOUNT_ALLOW_REGISTRATION = env.bool("ACCOUNT_ALLOW_REGISTRATION", False)
+SOCIAL_ACCOUNT_ALLOW_REGISTRATION = env.bool("SOCIAL_ACCOUNT_ALLOW_REGISTRATION", True)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -323,6 +374,9 @@ ACCOUNT_FORMS = {"signup": "colander.users.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "colander.users.adapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 SOCIALACCOUNT_FORMS = {"signup": "colander.users.forms.UserSocialSignupForm"}
+MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
+
+
 # django-compressor
 # ------------------------------------------------------------------------------
 # https://django-compressor.readthedocs.io/en/latest/quickstart/#installation

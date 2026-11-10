@@ -235,16 +235,17 @@ case_contextualized_url_patterns = [
 
 urlpatterns = [
       path(r'jsi18n/', JavaScriptCatalog.as_view(), name='jsi18n'),
+      path("i18n/", include("django.conf.urls.i18n")),
       path("", landing_view, name="home"),
       path("about/", login_required(TemplateView.as_view(template_name="pages/about.html")), name="about"),
       # Django Admin, use {% url 'admin:index' %}
       path(settings.ADMIN_URL, admin.site.urls),
       # User management
       path("users/", include("colander.users.urls", namespace="users")),
-      path('accounts/2fa/setup', UserTwoFactorSetup.as_view(), name="two-factor-setup",),
-      path('accounts/2fa/authenticate', TwoFactorAuthenticate.as_view(), name="two-factor-authenticate",),
-      path('accounts/2fa/backup-tokens', TwoFactorBackupTokens.as_view(), name="two-factor-backup-tokens",),
-      path('accounts/2fa/remove', TwoFactorRemove.as_view(), name="two-factor-remove",),
+      # path('accounts/2fa/setup', UserTwoFactorSetup.as_view(), name="two-factor-setup",),
+      # path('accounts/2fa/authenticate', TwoFactorAuthenticate.as_view(), name="two-factor-authenticate",),
+      # path('accounts/2fa/backup-tokens', TwoFactorBackupTokens.as_view(), name="two-factor-backup-tokens",),
+      # path('accounts/2fa/remove', TwoFactorRemove.as_view(), name="two-factor-remove",),
       path("accounts/", include("allauth.urls")),
 
       path("quick_search/", quick_search, name='quick_search_view'),

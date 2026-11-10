@@ -93,3 +93,4 @@ THREATR_BASE_URL = env('THREATR_BASE_URL', default=f'https://{THREATR_FQDN}')
 
 # Based for WebSocket channel instanciation
 ASGI_APPLICATION = "config.asgi_local.application"
+MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = True

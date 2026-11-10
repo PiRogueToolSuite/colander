@@ -1,0 +1,27 @@
+{
+  "realm": "colander",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "colander-dev",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "dev-secret",
+      "standardFlowEnabled": true,
+      "redirectUris": ["http://colander:8000/accounts/oidc/keycloak/login/callback/"],
+      "webOrigins": ["http://colander:8000"]
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "email": "test@example.com",
+      "emailVerified": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "test", "temporary": false }]
+    }
+  ]
+}

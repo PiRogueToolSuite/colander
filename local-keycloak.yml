@@ -1,0 +1,189 @@
+volumes:
+  colander_local_postgres_data: { }
+  colander_local_postgres_data_backups: { }
+  colander_local_minio_data: { }
+  colander_local_es_data: { }
+
+services:
+#  traefik:
+#    image: traefik:v2.9.8
+#    command:
+#      - "--log.level=DEBUG"
+#      - "--api.insecure=true"
+#      - "--providers.docker=true"
+#      - "--providers.docker.exposedbydefault=false"
+#      - "--entrypoints.web.address=:80"
+#    depends_on:
+#      - django
+#      - cyberchef
+#      - keycloak
+#    restart: unless-stopped
+#    ports:
+#      - "88:80"
+#      - "8088:8080" # The Web UI (enabled by --api)
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: colander_local_django
+    container_name: colander_local_django
+    # special case for docker build toolchain
+    # platform: linux/x86_64
+    depends_on:
+      - postgres
+      - minio
+      - elasticsearch
+      - redis
+      - playwright
+      - cyberchef
+      - mandolin
+      - keycloak
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "8080:8000"
+    command: /start
+
+  worker:
+    <<: *django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: colander_local_worker
+    container_name: colander_local_worker
+    # special case for docker build toolchain
+    # platform: linux/x86_64
+    depends_on:
+      - postgres
+      - minio
+      - playwright
+      - elasticsearch
+      - redis
+      - mandolin
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    command: /start-worker
+    ports: [ ]
+
+  redis:
+    image: redis:6
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: colander_production_postgres
+    container_name: colander_local_postgres
+    volumes:
+      - colander_local_postgres_data:/var/lib/postgresql/data:Z
+      - colander_local_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.local/.postgres
+
+  minio:
+    image: rustfs/rustfs:latest
+    volumes:
+      - colander_local_minio_data:/data
+    env_file:
+      - ./.envs/.local/.django
+    depends_on:
+      - rustfs_perms
+    command: server /data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  rustfs_perms:
+    image: alpine
+    user: root
+    volumes:
+      - colander_local_minio_data:/fix_path
+    command: chown -R 10001:10001 /fix_path
+
+  cyberchef:
+    image: mpepping/cyberchef:latest
+    container_name: colander_local_cyberchef
+    ports:
+      - 8001:8000
+    restart: unless-stopped
+
+  playwright:
+    image: ghcr.io/piroguetoolsuite/playwright-rest-api:main
+    container_name: colander_local_playwright
+    restart: unless-stopped
+
+  elasticsearch:
+    image: elasticsearch:8.19.11
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - colander_local_es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s -X GET http://localhost:9200/_cluster/health?pretty | grep status | grep -q '\\(green\\|yellow\\)'" ]
+      interval: 10s
+      timeout: 10s
+      retries: 24
+    environment:
+      - logger.level=WARN
+      - discovery.type='single-node'
+      - xpack.security.enabled='false'
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  tika:
+    image: apache/tika:3.0.0.0-full
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:9998/tika" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  clamav:
+    mem_reservation: "512M"
+    mem_limit: "2G"
+    image: ajilaag/clamav-rest
+    healthcheck:
+      test: [ "CMD", "wget", "-O", "/dev/null", "http://localhost:9000/" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  mandolin:
+    image: ghcr.io/piroguetoolsuite/mandolin:main
+    restart: unless-stopped
+    depends_on:
+      tika:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+    environment:
+      - TIKA_URL=http://tika:9998/
+      - MAX_FILE_SIZE=250000000  # 250MB
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin   # older than v26: KEYCLOAK_ADMIN
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin   # older than v26: KEYCLOAK_ADMIN_PASSWORD
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./compose/local/keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro

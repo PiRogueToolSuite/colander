@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
-      
+
       # Compile frontend resources: scripts and styles
       - name: Setup node
         uses: actions/setup-node@v4
@@ -153,18 +153,3 @@ jobs:
         with:
           sarif_file: sarif.output.json
 
-  build-deployment-package:
-    if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
-    needs: [docker-build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v3
-      - name: Compress the deployment package
-        run: tar czf deployment-package.tar.gz deploy_package
-      - name: Release
-        uses: fnkr/github-action-ghr@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GHR_PATH: deployment-package.tar.gz
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

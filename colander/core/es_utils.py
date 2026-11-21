@@ -1,9 +1,9 @@
 import time
 
+from django.conf import settings
 from elasticsearch.client import Elasticsearch
 
 geoip_pipeline_id = 'geoip_pipeline'
-
 
 def transform_results(results):
     return [doc['_source'] for doc in results['hits']['hits']]
@@ -24,7 +24,8 @@ def transform_hl_results(results):
 def wait_es():
     for _ in range(100):
         try:
-            client = Elasticsearch("http://elasticsearch:9200")
+            client = Elasticsearch(settings.ELASTICSEARCH_URL,
+                                   basic_auth=(settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD))
             client.cluster.health(wait_for_status='yellow')
             return client
         except Exception:

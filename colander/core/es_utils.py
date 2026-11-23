@@ -22,6 +22,11 @@ def transform_hl_results(results):
 
 
 def wait_es():
+    def get_es_creds():
+        if settings.ELASTICSEARCH_USERNAME or settings.ELASTICSEARCH_PASSWORD:
+            return (settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD)
+        else return None
+
     for _ in range(100):
         try:
             client = Elasticsearch(settings.ELASTICSEARCH_URL,

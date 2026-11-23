@@ -55,7 +55,7 @@ jobs:
         run:  docker compose -f local.yml down
 
   docker-build:
-    if: github.event_name == 'push' && github.repository_owner == 'PiRogueToolSuite'
+    if: (github.event_name == 'pull_request' || github.event_name == 'push') && github.repository_owner == 'PiRogueToolSuite'
     needs: [tests]
     runs-on: ubuntu-latest
     permissions:

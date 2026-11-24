@@ -27,7 +27,7 @@ class ObservableEnrichment(Document, LoginRequiredMixin):
 
 @login_required
 def enrich_observable(request, observable_id):
-    from core.es_utils import elasticticsearch_dsl_create_connection
+    from colander.core.es_utils import elasticticsearch_dsl_create_connection
     elasticticsearch_dsl_create_connection()
     result = None
     in_error = True

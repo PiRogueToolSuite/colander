@@ -412,7 +412,7 @@ def get_detected_tracker(tracker_definitions, stack_trace):
 
 
 def save_decrypted_traffic(pirogue_dump_id):
-    from core.es_utils import elasticticsearch_dsl_create_connection
+    from colander.core.es_utils import elasticticsearch_dsl_create_connection
     elasticticsearch_dsl_create_connection()
     pirogue_dump = PiRogueExperiment.objects.get(id=pirogue_dump_id)
 
@@ -560,7 +560,7 @@ def _extract_matching_snippet(match: StringMatchInstance, content):
 
 def apply_detection_rules(pirogue_dump_id):
     import yara
-    from core.es_utils import elasticticsearch_dsl_create_connection
+    from colander.core.es_utils import elasticticsearch_dsl_create_connection
     elasticticsearch_dsl_create_connection()
     pirogue_dump: PiRogueExperiment = PiRogueExperiment.objects.get(id=pirogue_dump_id)
     detection_rules: list[DetectionRule] = DetectionRule.get_user_detection_rules(pirogue_dump.owner, pirogue_dump.case)

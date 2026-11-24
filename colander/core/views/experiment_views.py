@@ -196,7 +196,7 @@ def delete_experiment_view(request, pk):
 
 @login_required
 def save_decoded_content_view(request, pk):
-    from core.es_utils import elasticticsearch_dsl_create_connection
+    from colander.core.es_utils import elasticticsearch_dsl_create_connection
     elasticticsearch_dsl_create_connection()
     if request.method == 'POST':
         try:

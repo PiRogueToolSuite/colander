@@ -1,10 +1,16 @@
 ARG PYTHON_VERSION=3.12-slim-bookworm
 
+FROM node:18 AS collect-static
+COPY ./ /src
+WORKDIR /src
+RUN npm ci && \
+    npm run dist
+
 # define an alias for the specfic python version used in this file.
-FROM python:${PYTHON_VERSION} as python
+FROM python:${PYTHON_VERSION} AS python
 
 # Python build stage
-FROM python as python-build-stage
+FROM python AS python-build-stage
 
 ARG BUILD_ENVIRONMENT=production
 
@@ -24,7 +30,7 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels  \
 
 
 # Python 'run' stage
-FROM python as python-run-stage
+FROM python AS python-run-stage
 
 LABEL org.opencontainers.image.source="https://github.com/PiRogueToolSuite/colander" \
       org.opencontainers.image.description="Case, knowledge management and digital investigation platform" \
@@ -34,15 +40,14 @@ LABEL org.opencontainers.image.source="https://github.com/PiRogueToolSuite/colan
 ARG BUILD_ENVIRONMENT=production
 ARG APP_HOME=/app
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV BUILD_ENV ${BUILD_ENVIRONMENT}
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV BUILD_ENV=${BUILD_ENVIRONMENT}
 
 WORKDIR ${APP_HOME}
 
 RUN addgroup --system django \
     && adduser --system --ingroup django django
-
 
 # Install required system dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
@@ -51,6 +56,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
+
 
 # All absolute dir copies ignore workdir instruction. All relative dir copies are wrt to the workdir instruction
 # copy python dependency wheels from python-build-stage
@@ -78,9 +84,11 @@ COPY --chown=django:django ./compose/production/django/django-q/start /start-wor
 RUN sed -i 's/\r$//g' /start-worker
 RUN chmod +x /start-worker
 
-
 # copy application code to WORKDIR
 COPY --chown=django:django . ${APP_HOME}
+
+# copy static files built at the collect-static stage
+COPY --chown=django:django --from=collect-static /src/colander/static/. ${APP_HOME}/colander/static/
 
 EXPOSE 5000
 

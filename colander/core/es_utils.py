@@ -1,9 +1,10 @@
 import time
 
+from django.conf import settings
 from elasticsearch.client import Elasticsearch
+from elasticsearch_dsl import connections
 
 geoip_pipeline_id = 'geoip_pipeline'
-
 
 def transform_results(results):
     return [doc['_source'] for doc in results['hits']['hits']]
@@ -20,11 +21,23 @@ def transform_hl_results(results):
         ret.append(d)
     return ret
 
+def elasticticsearch_dsl_create_connection(alias='default'):
+    if settings.ELASTICSEARCH_USERNAME or settings.ELASTICSEARCH_PASSWORD:
+        connections.create_connection(alias='default', timeout=20,
+            hosts=[settings.ELASTICSEARCH_URL],
+            http_auth=(settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD))
+    else:
+        connections.create_connection(alias='default', timeout=20,
+            hosts=[settings.ELASTICSEARCH_URL])
 
 def wait_es():
     for _ in range(100):
         try:
-            client = Elasticsearch("http://elasticsearch:9200")
+            if settings.ELASTICSEARCH_USERNAME or settings.ELASTICSEARCH_PASSWORD:
+                client = Elasticsearch(settings.ELASTICSEARCH_URL,
+                                       http_auth=(settings.ELASTICSEARCH_USERNAME, settings.ELASTICSEARCH_PASSWORD))
+            else:
+                client = Elasticsearch(settings.ELASTICSEARCH_URL)
             client.cluster.health(wait_for_status='yellow')
             return client
         except Exception:

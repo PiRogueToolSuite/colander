@@ -489,6 +489,10 @@ SERVERLESS_CRONJOBS = [
     )
 ]
 
+ELASTICSEARCH_URL = env('ELASTICSEARCH_URL', default='http://elasticsearch:9200')
+ELASTICSEARCH_USERNAME = env('ELASTICSEARCH_USERNAME', default='')
+ELASTICSEARCH_PASSWORD = env('ELASTICSEARCH_PASSWORD', default='')
+
 # Licensing
 LICENSE_ENABLED = env.bool("LICENSE_ENABLED", default=False)
 
@@ -516,7 +520,9 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("redis", 6379)],
+            "hosts": [{
+                "address": env("REDIS_URL")
+            }],
         },
     }
 }

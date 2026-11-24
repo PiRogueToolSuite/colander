@@ -1192,8 +1192,8 @@ class Artifact(Entity):
 @receiver(pre_delete, sender=Artifact, dispatch_uid='delete_artifact_file')
 def delete_artifact_stored_files(sender, instance: Artifact, using, **kwargs):
     instance.file.delete()
-    from elasticsearch_dsl import connections
-    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    from core.es_utils import elasticticsearch_dsl_create_connection
+    elasticticsearch_dsl_create_connection()
     index_name = instance.get_es_index()
     try:
         index = Index(index_name)
@@ -2234,8 +2234,8 @@ class PiRogueExperiment(Entity):
 
     @cached_property
     def analysis(self):
-        from elasticsearch_dsl import connections
-        connections.create_connection(hosts=['elasticsearch'], timeout=20)
+        from core.es_utils import elasticticsearch_dsl_create_connection
+        elasticticsearch_dsl_create_connection()
         try:
             search = PiRogueExperimentAnalysis.search(index=self.get_es_index())
             search.sort('timestamp')
@@ -2380,8 +2380,8 @@ class PiRogueExperiment(Entity):
 
 @receiver(pre_delete, sender=PiRogueExperiment, dispatch_uid='delete_elastic_search_experiment_index')
 def delete_experiment(sender, instance: PiRogueExperiment, using, **kwargs):
-    from elasticsearch_dsl import connections
-    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    from core.es_utils import elasticticsearch_dsl_create_connection
+    elasticticsearch_dsl_create_connection()
     index_name = instance.get_es_index()
     try:
         index = Index(index_name)

@@ -27,8 +27,8 @@ class ObservableEnrichment(Document, LoginRequiredMixin):
 
 @login_required
 def enrich_observable(request, observable_id):
-    from elasticsearch_dsl import connections
-    connections.create_connection(hosts=['elasticsearch'], timeout=20)
+    from core.es_utils import elasticticsearch_dsl_create_connection
+    elasticticsearch_dsl_create_connection()
     result = None
     in_error = True
     cached = False
